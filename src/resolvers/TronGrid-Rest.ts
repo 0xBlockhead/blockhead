@@ -24,6 +24,7 @@ import { TronAccountSelector } from '$/schema/TronAccount.ts'
 import { TronAccount_TimestampSelector } from '$/schema/TronAccount_Timestamp.ts'
 import { TronWitnessSelector } from '$/schema/TronWitness.ts'
 import { TronWitness_TimestampSelector } from '$/schema/TronWitness_Timestamp.ts'
+import { TronTransactionReceiptSelector } from '$/schema/TronTransactionReceipt.ts'
 
 type NetworkSelector = { caip2: {
 	namespace: string
@@ -137,6 +138,16 @@ const transactionFields = (
 		contractType: contract?.type,
 		result: info?.receipt?.result ?? transaction.ret?.[0]?.contractRet,
 		feeSun: bigintFromNumberOrString(info?.fee ?? transaction.ret?.[0]?.fee),
+		...(transaction.txID != null && {
+			$receipt: {
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: network,
+						transactionId: transaction.txID,
+					},
+				},
+			},
+		}),
 		...(value?.owner_address != null && {
 			$owner: {
 				[EntityMetaKey.Selector]: {
@@ -170,6 +181,14 @@ const transactionFields = (
 	}
 }
 
+const receiptFields = (info: TronNodeTransactionInfo) => ({
+	feeSun: bigintFromNumberOrString(info.fee),
+	result: info.receipt?.result,
+	energyUsageTotal: bigintFromNumberOrString(info.receipt?.energy_usage_total),
+	netUsage: bigintFromNumberOrString(info.receipt?.net_usage),
+	contractResultHex: info.contractResult ?? [],
+})
+
 const witnessFields = (witness: TronNodeWitness) => ({
 	url: witness.url,
 	...(witness.voteCount != null && {
@@ -183,6 +202,7 @@ const witnessFields = (witness: TronNodeWitness) => ({
 	}),
 	...(witness.latestBlockNum != null && {
 		latestBlockHeight: BigInt(witness.latestBlockNum),
+		latestSlotNumber: BigInt(witness.latestBlockNum),
 	}),
 	active: witness.isJobs,
 })
@@ -361,6 +381,7 @@ export default {
 				contractType: (transaction) => transaction.contractType,
 				result: (transaction) => transaction.result,
 				feeSun: (transaction) => transaction.feeSun,
+				$receipt: (transaction) => transaction.$receipt,
 				$owner: (transaction) => transaction.$owner,
 				$to: (transaction) => transaction.$to,
 				$contract: (transaction) => transaction.$contract,
@@ -410,17 +431,36 @@ export default {
 			resolve: {
 				[TronAccount_TimestampSelector.AccountTimestampMsSource]: async ({ $account }) => {
 					assertTronMainnet($account.$network)
-					const { getAccount } = await import('$/sources/TronGrid/Rest/queries.ts')
-					const account = await getAccount({
-						restBaseUrl: await tronGridRestBaseUrl(),
-						address: $account.address,
-					})
+					const {
+						getAccount,
+						getAccountResource,
+					} = await import('$/sources/TronGrid/Rest/queries.ts')
+					const restBaseUrl = await tronGridRestBaseUrl()
+					const [
+						account,
+						accountResource,
+					] = await Promise.all([
+						getAccount({
+							restBaseUrl,
+							address: $account.address,
+						}),
+						getAccountResource({
+							restBaseUrl,
+							address: $account.address,
+						}),
+					])
 					return {
 						...(account.balance != null && {
 							balanceSun: BigInt(account.balance),
 						}),
 						createdTimestampMs: account.create_time,
 						latestOperationTimestampMs: account.latest_opration_time,
+						freeNetUsed: bigintFromNumberOrString(accountResource.freeNetUsed),
+						freeNetLimit: bigintFromNumberOrString(accountResource.freeNetLimit),
+						netUsed: bigintFromNumberOrString(accountResource.NetUsed),
+						netLimit: bigintFromNumberOrString(accountResource.NetLimit),
+						energyUsed: bigintFromNumberOrString(accountResource.EnergyUsed),
+						energyLimit: bigintFromNumberOrString(accountResource.EnergyLimit),
 					}
 				}
 			},
@@ -429,6 +469,34 @@ export default {
 				balanceSun: (account) => account.balanceSun,
 				createdTimestampMs: (account) => account.createdTimestampMs,
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
+				freeNetUsed: (account) => account.freeNetUsed,
+				freeNetLimit: (account) => account.freeNetLimit,
+				netUsed: (account) => account.netUsed,
+				netLimit: (account) => account.netLimit,
+				energyUsed: (account) => account.energyUsed,
+				energyLimit: (account) => account.energyLimit,
+			},
+		}),
+
+		defineResolver(Source.TronGrid_Rest, {
+			entityType: EntityType.TronTransactionReceipt,
+			resolve: {
+				[TronTransactionReceiptSelector.Transaction]: async ({ $transaction }) => {
+					assertTronMainnet($transaction.$network)
+					const { getTransactionInfoById } = await import('$/sources/TronGrid/Rest/queries.ts')
+					return receiptFields(await getTransactionInfoById({
+						restBaseUrl: await tronGridRestBaseUrl(),
+						transactionId: $transaction.transactionId,
+					}))
+				}
+			},
+		})({
+			fields: {
+				feeSun: (receipt) => receipt.feeSun,
+				result: (receipt) => receipt.result,
+				energyUsageTotal: (receipt) => receipt.energyUsageTotal,
+				netUsage: (receipt) => receipt.netUsage,
+				contractResultHex: (receipt) => receipt.contractResultHex,
 			},
 		}),
 
@@ -482,6 +550,7 @@ export default {
 				totalProduced: (timestamp) => timestamp.totalProduced,
 				totalMissed: (timestamp) => timestamp.totalMissed,
 				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
+				latestSlotNumber: (timestamp) => timestamp.latestSlotNumber,
 				active: (timestamp) => timestamp.active,
 			},
 		}),

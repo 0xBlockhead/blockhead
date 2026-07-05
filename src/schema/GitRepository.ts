@@ -1,13 +1,13 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { type } from 'arktype'
+
 export enum GitRepositorySelector {
-	RepositoryId = 'repositoryId',
-	CanonicalRemoteUrl = 'canonicalRemoteUrl',
+	RepositoryId = 'RepositoryId',
+	CanonicalRemoteUrl = 'CanonicalRemoteUrl',
 }
 export default {
 	entityType: EntityType.GitRepository,
@@ -29,60 +29,60 @@ export default {
 	],
 	fields: [
 		{
-			name: 'repositoryId',
-			label: 'repository ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'repositoryId',
+				label: 'repository ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'canonicalRemoteUrl',
-			label: 'canonical remote URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'canonicalRemoteUrl',
+				label: 'canonical remote URL',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'defaultRefName',
-			label: 'default ref name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'defaultRefName',
+				label: 'default ref name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'objectFormat',
-			label: 'object format',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'objectFormat',
+				label: 'object format',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$refs',
-			label: 'refs',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.GitRef,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$refs',
+				label: 'refs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.GitRef,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$objects',
-			label: 'objects',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.GitObject,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$objects',
+				label: 'objects',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.GitObject,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$remotes',
-			label: 'remotes',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.GitRemote,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$remotes',
+				label: 'remotes',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.GitRemote,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$fetches',
-			label: 'fetches',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.GitFetchObservation,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$fetches',
+				label: 'fetches',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.GitFetchObservation,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

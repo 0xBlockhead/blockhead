@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum HyperliquidTransactionSelector {
-	NetworkTxHash = 'networkTxHash',
+	NetworkTxHash = 'NetworkTxHash',
 }
 export default {
 	entityType: EntityType.HyperliquidTransaction,
@@ -23,47 +22,47 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'txHash',
-			label: 'Transaction hash',
-			description: 'The transaction hash in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'txHash',
+				label: 'Transaction hash',
+				description: 'The transaction hash in its network.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$block',
-			label: 'block',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.HyperliquidBlock,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$block',
+				label: 'block',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.HyperliquidBlock,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$account',
-			label: 'account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.HyperliquidAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$account',
+				label: 'account',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.HyperliquidAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'actionType',
-			label: 'action type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'actionType',
+				label: 'action type',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.HyperliquidTransaction_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.HyperliquidTransaction_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

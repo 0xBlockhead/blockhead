@@ -43,6 +43,13 @@ export default {
 				cardinality: EntityFieldCardinality.One,
 		},
 		{
+				name: '$epoch',
+				label: 'Epoch',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BeaconEpoch,
+				cardinality: EntityFieldCardinality.One,
+		},
+		{
 				name: 'proposerIndex',
 				label: 'Proposer index',
 				type: EntityFieldType.Primitive,

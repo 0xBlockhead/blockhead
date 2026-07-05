@@ -11,12 +11,16 @@
 	import { schema } from '$/schema/index.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'Nostr reactions',
 		typeAnnotationParagraphs = ['A Nostr reaction is a kind-7 event keyed by event id and scoped to the note or article it reacts to.'],
-		placeholderText = 'Loading Nostr reactions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -46,9 +50,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NostrReactionView from '$/views/NostrReactionView.svelte'
 </script>
 
 
@@ -61,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					content: true,
 					eventId: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrReaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(nostrReactions)}
 			{@const uniqueNostrReactions = [...new Map(nostrReactions.values.map((nostrReaction) => [nostrReaction[EntityMetaKey.SelectorKey], nostrReaction])).values()]}
 			<EntitiesList
@@ -95,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrReactions.values.length === uniqueNostrReactions.length && nostrReactions.totalCount != null && nostrReactions.totalCount >= uniqueNostrReactions.length ? nostrReactions.totalCount : uniqueNostrReactions.length}
+				totalCount={nostrReactions.totalCount}
 				getKey={(nostrReaction) => nostrReaction[EntityMetaKey.SelectorKey]}
 				items={uniqueNostrReactions}
 			>
@@ -108,28 +98,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: nostrReaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrReaction> })}
-					<EntityView
-						entityType={EntityType.NostrReaction}
-						entitySelector={nostrReaction.entitySelector}
-						layout={EntityLayout.Summary}
+					{@const nostrReactionFields = { ...nostrReaction[EntityMetaKey.Selector], ...nostrReaction }}
+					<NostrReactionView
+						selection={select(EntityType.NostrReaction, nostrReaction[EntityMetaKey.Selector])}
+						prefetched={nostrReactionFields}
+						layout={EntityLayout.Title}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const content0 = ({ ...nostrReaction.entitySelector, ...nostrReaction }).content}
-							{String((content0) ?? '')}
-							{@const eventId1 = ({ ...nostrReaction.entitySelector, ...nostrReaction }).eventId}
-							<TruncatedValue value={String(eventId1)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const createdAtAfter0 = ({ ...nostrReaction.entitySelector, ...nostrReaction }).createdAt}
-							{#if createdAtAfter0 != null}
-								<span data-text="muted">
-									<Timestamp timestamp={Number(createdAtAfter0)} />
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

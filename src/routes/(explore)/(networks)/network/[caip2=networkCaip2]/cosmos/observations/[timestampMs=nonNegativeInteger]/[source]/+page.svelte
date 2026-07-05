@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.CosmosNetwork_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					latestBlockHeight: true,
 					chainId: true,

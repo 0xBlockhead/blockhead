@@ -49,7 +49,6 @@ export const radicleBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:RADICLE_REMOTE_URL',
-				origin: 'env:RADICLE_REMOTE_URL',
 				corsEnabled: false,
 			},
 		],

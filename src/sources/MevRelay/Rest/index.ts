@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
 import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 
-const MevRelayRestSource = {
+export default {
 	provider: SourceProvider.MevRelay,
 	source: Source.MevRelay_Rest,
-	label: 'MEV-Boost relay',
+	label: 'MEV relay REST',
 } satisfies SourceDefinition
-
-export default MevRelayRestSource

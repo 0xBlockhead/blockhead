@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='EvmErrorsView-page'
+		id='evm-errors'
 	/>
 </Page>

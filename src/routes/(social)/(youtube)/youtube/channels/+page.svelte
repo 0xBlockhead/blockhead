@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,13 @@
 		selection={
 			select(EntityType._GlobalYoutubeNetwork, {
 				scope: '_GlobalYoutubeNetwork',
-			})[EntityProxyField]<EntityType.YoutubeChannel>('$$sourceWindowChannels')
+			})[EntityProxyField]<EntityType.YoutubeChannel>('$$sourceWindowChannels', {
+				sources: [
+					Source.Constants_Internal,
+					Source.Youtube_Rest,
+				],
+			})
 		}
-		id='YoutubeChannelsView-page'
+		id='source-window-channels'
 	/>
 </Page>

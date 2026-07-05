@@ -1,0 +1,914 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		prefetched = {},
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.CctpMessage>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.CctpMessage>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
+
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	const cctpMessage = $derived(selection({
+		sources: [
+			Source.CircleCctpContracts_Evm,
+			Source.CircleCctpContracts_Solana,
+			Source.CircleCctpContracts_Stellar,
+			Source.CircleCctp_IrisApi,
+		],
+		fields: {
+			messageHash: true,
+		},
+	}))
+	const titleFallback = $derived([String((selection.entitySelector.nonce ?? prefetched.nonce) ?? '')].filter(Boolean).join(' ') || 'CCTP message')
+	const viewDomId = $derived('cctp-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import CctpAttestation_TimestampsView from '$/views/CctpAttestation_TimestampsView.svelte'
+	import CctpDomainSupportView from '$/views/CctpDomainSupportView.svelte'
+</script>
+
+
+<EntityView
+	entityType={EntityType.CctpMessage}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	{href}
+	{layout}
+	bind:open
+	{...EntityViewProps}
+>
+	{#snippet Title()}
+		<ResourceBoundary resource={cctpMessage}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.nonce ?? prefetched.nonce) ?? '')].filter(Boolean).join(' ') || title || 'CCTP message'}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.nonce) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={cctpMessage}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.sourceDomain ?? prefetched.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.nonce ?? prefetched.nonce) ?? '')].filter(Boolean).join(' ') || title || 'CCTP message'}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.sourceDomain) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.nonce) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={cctpMessage}>
+			{#snippet Pending()}
+				{@const messageHash0 = prefetched.messageHash}
+				{#if messageHash0 !== undefined && messageHash0 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((messageHash0) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const messageHash0 = resolvedEntity.messageHash}
+				{#if messageHash0 !== undefined && messageHash0 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((messageHash0) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>Source domain</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									sourceDomain: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const sourceDomain = selection.entitySelector.sourceDomain ?? prefetched.sourceDomain}
+							{#if sourceDomain !== undefined && sourceDomain !== null}
+								{String((sourceDomain) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const sourceDomain = resolvedEntity.sourceDomain}
+							{#if sourceDomain !== undefined && sourceDomain !== null}
+								{String((sourceDomain) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Nonce</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									nonce: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const nonce = selection.entitySelector.nonce ?? prefetched.nonce}
+							{#if nonce !== undefined && nonce !== null}
+								{String((nonce) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const nonce = resolvedEntity.nonce}
+							{#if nonce !== undefined && nonce !== null}
+								{String((nonce) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							cctpVersion: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const cctpVersion = prefetched.cctpVersion}
+					{#if cctpVersion !== undefined && cctpVersion !== null}
+						<div>
+							<dt>CCTP version</dt>
+							<dd>
+								{String((cctpVersion) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const cctpVersion = resolvedEntity.cctpVersion}
+					{#if cctpVersion !== undefined && cctpVersion !== null}
+						<div>
+							<dt>CCTP version</dt>
+							<dd>
+								{String((cctpVersion) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							messageHash: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const messageHash = prefetched.messageHash}
+					{#if messageHash !== undefined && messageHash !== null}
+						<div>
+							<dt>Message hash</dt>
+							<dd>
+								<TruncatedValue value={String((messageHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const messageHash = resolvedEntity.messageHash}
+					{#if messageHash !== undefined && messageHash !== null}
+						<div>
+							<dt>Message hash</dt>
+							<dd>
+								<TruncatedValue value={String((messageHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							messageBytes: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const messageBytes = prefetched.messageBytes}
+					{#if messageBytes !== undefined && messageBytes !== null}
+						<div>
+							<dt>Message bytes</dt>
+							<dd>
+								{String((messageBytes) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const messageBytes = resolvedEntity.messageBytes}
+					{#if messageBytes !== undefined && messageBytes !== null}
+						<div>
+							<dt>Message bytes</dt>
+							<dd>
+								{String((messageBytes) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							sourceTransactionHash: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const sourceTransactionHash = prefetched.sourceTransactionHash}
+					{#if sourceTransactionHash !== undefined && sourceTransactionHash !== null}
+						<div>
+							<dt>Source transaction hash</dt>
+							<dd>
+								<TruncatedValue value={String((sourceTransactionHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sourceTransactionHash = resolvedEntity.sourceTransactionHash}
+					{#if sourceTransactionHash !== undefined && sourceTransactionHash !== null}
+						<div>
+							<dt>Source transaction hash</dt>
+							<dd>
+								<TruncatedValue value={String((sourceTransactionHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							sourceLogIndex: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const sourceLogIndex = prefetched.sourceLogIndex}
+					{#if sourceLogIndex !== undefined && sourceLogIndex !== null}
+						<div>
+							<dt>Source log index</dt>
+							<dd>
+								{String((sourceLogIndex) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sourceLogIndex = resolvedEntity.sourceLogIndex}
+					{#if sourceLogIndex !== undefined && sourceLogIndex !== null}
+						<div>
+							<dt>Source log index</dt>
+							<dd>
+								{String((sourceLogIndex) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection[EntityProxyField]<EntityType.CctpDomainSupport, false>('$sourceDomain')}
+			>
+				{#snippet children(cctpDomainSupport)}
+					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>Source domain</dt>
+							<dd>
+								<CctpDomainSupportView
+									selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
+									prefetched={cctpDomainSupport}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection[EntityProxyField]<EntityType.CctpDomainSupport, false>('$destinationDomain')}
+			>
+				{#snippet children(cctpDomainSupport)}
+					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>Destination domain</dt>
+							<dd>
+								<CctpDomainSupportView
+									selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
+									prefetched={cctpDomainSupport}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							destinationDomain: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const destinationDomain = prefetched.destinationDomain}
+					{#if destinationDomain !== undefined && destinationDomain !== null}
+						<div>
+							<dt>Destination domain</dt>
+							<dd>
+								{String((destinationDomain) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const destinationDomain = resolvedEntity.destinationDomain}
+					{#if destinationDomain !== undefined && destinationDomain !== null}
+						<div>
+							<dt>Destination domain</dt>
+							<dd>
+								{String((destinationDomain) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							sender: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const sender = prefetched.sender}
+					{#if sender !== undefined && sender !== null}
+						<div>
+							<dt>Sender</dt>
+							<dd>
+								{String((sender) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sender = resolvedEntity.sender}
+					{#if sender !== undefined && sender !== null}
+						<div>
+							<dt>Sender</dt>
+							<dd>
+								{String((sender) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							recipient: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const recipient = prefetched.recipient}
+					{#if recipient !== undefined && recipient !== null}
+						<div>
+							<dt>Recipient</dt>
+							<dd>
+								{String((recipient) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const recipient = resolvedEntity.recipient}
+					{#if recipient !== undefined && recipient !== null}
+						<div>
+							<dt>Recipient</dt>
+							<dd>
+								{String((recipient) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							destinationCaller: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const destinationCaller = prefetched.destinationCaller}
+					{#if destinationCaller !== undefined && destinationCaller !== null}
+						<div>
+							<dt>Destination caller</dt>
+							<dd>
+								{String((destinationCaller) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const destinationCaller = resolvedEntity.destinationCaller}
+					{#if destinationCaller !== undefined && destinationCaller !== null}
+						<div>
+							<dt>Destination caller</dt>
+							<dd>
+								{String((destinationCaller) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							burnToken: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const burnToken = prefetched.burnToken}
+					{#if burnToken !== undefined && burnToken !== null}
+						<div>
+							<dt>Burn token</dt>
+							<dd>
+								{String((burnToken) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const burnToken = resolvedEntity.burnToken}
+					{#if burnToken !== undefined && burnToken !== null}
+						<div>
+							<dt>Burn token</dt>
+							<dd>
+								{String((burnToken) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							mintRecipient: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const mintRecipient = prefetched.mintRecipient}
+					{#if mintRecipient !== undefined && mintRecipient !== null}
+						<div>
+							<dt>Mint recipient</dt>
+							<dd>
+								{String((mintRecipient) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mintRecipient = resolvedEntity.mintRecipient}
+					{#if mintRecipient !== undefined && mintRecipient !== null}
+						<div>
+							<dt>Mint recipient</dt>
+							<dd>
+								{String((mintRecipient) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							amount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const amount = prefetched.amount}
+					{#if amount !== undefined && amount !== null}
+						<div>
+							<dt>Amount</dt>
+							<dd>
+								<NumberValue value={Number(amount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const amount = resolvedEntity.amount}
+					{#if amount !== undefined && amount !== null}
+						<div>
+							<dt>Amount</dt>
+							<dd>
+								<NumberValue value={Number(amount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							messageSender: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const messageSender = prefetched.messageSender}
+					{#if messageSender !== undefined && messageSender !== null}
+						<div>
+							<dt>Message sender</dt>
+							<dd>
+								{String((messageSender) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const messageSender = resolvedEntity.messageSender}
+					{#if messageSender !== undefined && messageSender !== null}
+						<div>
+							<dt>Message sender</dt>
+							<dd>
+								{String((messageSender) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							maxFee: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const maxFee = prefetched.maxFee}
+					{#if maxFee !== undefined && maxFee !== null}
+						<div>
+							<dt>Max fee</dt>
+							<dd>
+								<NumberValue value={Number(maxFee)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const maxFee = resolvedEntity.maxFee}
+					{#if maxFee !== undefined && maxFee !== null}
+						<div>
+							<dt>Max fee</dt>
+							<dd>
+								<NumberValue value={Number(maxFee)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							feeExecuted: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const feeExecuted = prefetched.feeExecuted}
+					{#if feeExecuted !== undefined && feeExecuted !== null}
+						<div>
+							<dt>Fee executed</dt>
+							<dd>
+								<NumberValue value={Number(feeExecuted)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const feeExecuted = resolvedEntity.feeExecuted}
+					{#if feeExecuted !== undefined && feeExecuted !== null}
+						<div>
+							<dt>Fee executed</dt>
+							<dd>
+								<NumberValue value={Number(feeExecuted)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							expirationBlock: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const expirationBlock = prefetched.expirationBlock}
+					{#if expirationBlock !== undefined && expirationBlock !== null}
+						<div>
+							<dt>Expiration block</dt>
+							<dd>
+								<NumberValue value={Number(expirationBlock)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const expirationBlock = resolvedEntity.expirationBlock}
+					{#if expirationBlock !== undefined && expirationBlock !== null}
+						<div>
+							<dt>Expiration block</dt>
+							<dd>
+								<NumberValue value={Number(expirationBlock)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							hookData: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const hookData = prefetched.hookData}
+					{#if hookData !== undefined && hookData !== null}
+						<div>
+							<dt>Hook data</dt>
+							<dd>
+								{String((hookData) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const hookData = resolvedEntity.hookData}
+					{#if hookData !== undefined && hookData !== null}
+						<div>
+							<dt>Hook data</dt>
+							<dd>
+								{String((hookData) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							minFinalityThreshold: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const minFinalityThreshold = prefetched.minFinalityThreshold}
+					{#if minFinalityThreshold !== undefined && minFinalityThreshold !== null}
+						<div>
+							<dt>Minimum finality threshold</dt>
+							<dd>
+								{String((minFinalityThreshold) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const minFinalityThreshold = resolvedEntity.minFinalityThreshold}
+					{#if minFinalityThreshold !== undefined && minFinalityThreshold !== null}
+						<div>
+							<dt>Minimum finality threshold</dt>
+							<dd>
+								{String((minFinalityThreshold) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							finalityThresholdExecuted: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const finalityThresholdExecuted = prefetched.finalityThresholdExecuted}
+					{#if finalityThresholdExecuted !== undefined && finalityThresholdExecuted !== null}
+						<div>
+							<dt>Finality threshold executed</dt>
+							<dd>
+								{String((finalityThresholdExecuted) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const finalityThresholdExecuted = resolvedEntity.finalityThresholdExecuted}
+					{#if finalityThresholdExecuted !== undefined && finalityThresholdExecuted !== null}
+						<div>
+							<dt>Finality threshold executed</dt>
+							<dd>
+								{String((finalityThresholdExecuted) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<CctpAttestation_TimestampsView
+				selection={selection[EntityProxyField]<EntityType.CctpAttestation_Timestamp>('$$attestationTimestamps')}
+				title='Attestation timestamps'
+				emptyText='No CCTP attestation observations.'
+				id='CctpAttestation_TimestampsView-$$attestationTimestamps'
+			/>
+		{/if}
+	{/snippet}
+</EntityView>

@@ -43,6 +43,7 @@
 		}
 		selection={
 			select(EntityType.AssetFormatSupport_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					confidence: true,
 					evidenceKind: true,

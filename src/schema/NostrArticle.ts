@@ -52,9 +52,6 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: [
-					Source.NostrBand_Rest,
-				],
 		},
 		{
 				name: 'summary',
@@ -62,9 +59,6 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: [
-					Source.NostrBand_Rest,
-				],
 		},
 		{
 				name: 'imageUrl',

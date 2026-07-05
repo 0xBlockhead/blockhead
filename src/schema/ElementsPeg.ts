@@ -1,22 +1,20 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum ElementsPegDirection {
 	PegIn = 'PegIn',
 	PegOut = 'PegOut',
 }
 export enum ElementsPegSelector {
-	ElementsNetworkPegTransactionIdDirection = 'elementsNetworkPegTransactionIdDirection',
-	NetworkPegTransactionIdDirection = '$network+pegTransactionId+direction',
+	ElementsNetworkPegTransactionIdDirection = 'ElementsNetworkPegTransactionIdDirection',
 }
 export default {
 	entityType: EntityType.ElementsPeg,
-	label: 'elements peg',
-	labelPlural: 'elements pegs',
+	label: 'Elements peg',
+	labelPlural: 'Elements pegs',
 	selectors: [
 		{
 			name: ElementsPegSelector.ElementsNetworkPegTransactionIdDirection,
@@ -29,67 +27,67 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ElementsNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.ElementsNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'pegTransactionId',
-			label: 'peg transaction ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'pegTransactionId',
+				label: 'Peg transaction ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'direction',
-			label: 'direction',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'direction',
+				label: 'Direction',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$bitcoinTransaction',
-			label: 'Bitcoin transaction',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$bitcoinTransaction',
+				label: 'Bitcoin transaction',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.UtxoTransaction,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$elementsTransaction',
-			label: 'elements transaction',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoTransaction,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$elementsTransaction',
+				label: 'Elements transaction',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.UtxoTransaction,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'amountSats',
-			label: 'amount sats',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'amountSats',
+				label: 'Amount sats',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'claimScript',
-			label: 'claim script',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'claimScript',
+				label: 'Claim script',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'pakProof',
-			label: 'pak proof',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'pakProof',
+				label: 'PAK proof',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ElementsPeg_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.ElementsPeg_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

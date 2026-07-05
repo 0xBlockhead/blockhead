@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Transactions',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Solana transactions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					signature: true,
 					status: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(solanaTransactions)}
 			{@const uniqueSolanaTransactions = [...new Map(solanaTransactions.values.map((solanaTransaction) => [solanaTransaction[EntityMetaKey.SelectorKey], solanaTransaction])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaTransactions.values.length === uniqueSolanaTransactions.length && solanaTransactions.totalCount != null && solanaTransactions.totalCount >= uniqueSolanaTransactions.length ? solanaTransactions.totalCount : uniqueSolanaTransactions.length}
+				totalCount={solanaTransactions.totalCount}
 				getKey={(solanaTransaction) => solanaTransaction[EntityMetaKey.SelectorKey]}
 				items={uniqueSolanaTransactions}
 			>
@@ -111,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: solanaTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaTransaction> })}
+					{@const solanaTransactionFields = { ...solanaTransaction[EntityMetaKey.Selector], ...solanaTransaction }}
+					{@const solanaTransactionHrefFields = { ...solanaTransaction, ...solanaTransaction[EntityMetaKey.Selector] }}
 					<SolanaTransactionView
+						selection={select(EntityType.SolanaTransaction, solanaTransaction[EntityMetaKey.Selector])}
+						prefetched={solanaTransactionFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/tx/[signature]', {
-								networkSlug: String(({ ...solanaTransaction.entitySelector, ...solanaTransaction }).$network.slug),
-								signature: String(({ ...solanaTransaction.entitySelector, ...solanaTransaction }).signature),
-							})
+							(solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined && solanaTransactionHrefFields.$network.caip2.namespace !== undefined && solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined && solanaTransactionHrefFields.$network.caip2.reference !== undefined && solanaTransactionHrefFields.signature !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/tx/[signature]', {
+								networkSlug: String(networkByCaip2[String(String(solanaTransactionHrefFields.$network.caip2.namespace) + ':' + String(solanaTransactionHrefFields.$network.caip2.reference))].slug ?? ''),
+								signature: String(solanaTransactionHrefFields.signature ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.SolanaTransaction, solanaTransaction.entitySelector)}
-						prefetched={solanaTransaction}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

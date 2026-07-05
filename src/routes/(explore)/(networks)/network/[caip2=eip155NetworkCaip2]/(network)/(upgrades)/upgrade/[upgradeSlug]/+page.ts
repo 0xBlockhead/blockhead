@@ -17,7 +17,7 @@ export const load: PageLoad = ({ params }) => {
 			$network: {
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 			},
-			upgradeId: networkUpgradeByChainIdAndRouteSegment[String(caip2SelectorValueFromString(decodeURIComponent(params.caip2)).reference) + ':' + String(params.upgradeSlug)].upgradeId,
+			slug: params.upgradeSlug,
 		}
 	)
 	if (ethereumNetworkUpgradeSelector instanceof arktype.errors) error(404, 'Invalid EthereumNetworkUpgrade selector')

@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='FarcasterChannelsView-page'
+		id='channels'
 	/>
 </Page>

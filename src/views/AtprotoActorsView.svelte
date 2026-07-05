@@ -21,7 +21,7 @@
 		selection,
 		title = 'AT Protocol accounts',
 		typeAnnotationParagraphs = ['An AT Protocol actor is a DID-addressed repository identity. Handles, display names, avatars, banners, and counts are mutable appview observations over that identity.'],
-		placeholderText = 'Loading AT Protocol accounts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$icon: true,
 					displayName: true,
 					handle: true,
 					did: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoActor}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(atprotoActors)}
 			{@const uniqueAtprotoActors = [...new Map(atprotoActors.values.map((atprotoActor) => [atprotoActor[EntityMetaKey.SelectorKey], atprotoActor])).values()]}
 			<EntitiesList
@@ -100,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={atprotoActors.values.length === uniqueAtprotoActors.length && atprotoActors.totalCount != null && atprotoActors.totalCount >= uniqueAtprotoActors.length ? atprotoActors.totalCount : uniqueAtprotoActors.length}
+				totalCount={atprotoActors.totalCount}
 				getKey={(atprotoActor) => atprotoActor[EntityMetaKey.SelectorKey]}
 				items={uniqueAtprotoActors}
 			>
@@ -113,14 +100,16 @@
 				{/snippet}
 
 				{#snippet Item({ item: atprotoActor }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AtprotoActor> })}
+					{@const atprotoActorFields = { ...atprotoActor[EntityMetaKey.Selector], ...atprotoActor }}
+					{@const atprotoActorHrefFields = { ...atprotoActor, ...atprotoActor[EntityMetaKey.Selector] }}
 					<AtprotoActorView
+						selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector])}
+						prefetched={atprotoActorFields}
 						href={
-							resolve('/(social)/(atproto)/atproto/actor/[did]', {
-								did: String(atprotoActor.entitySelector.did),
-							})
+							(atprotoActorHrefFields.did !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]', {
+								did: encodeURIComponent(String(atprotoActorHrefFields.did ?? '')),
+							}) : undefined)
 						}
-						selection={select(EntityType.AtprotoActor, atprotoActor.entitySelector)}
-						prefetched={atprotoActor}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

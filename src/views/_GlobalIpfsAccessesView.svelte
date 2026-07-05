@@ -21,7 +21,7 @@
 		selection,
 		title = 'Global IPFS accesses',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Global IPFS accesses...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -67,19 +67,6 @@
 		resource={selection}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalIpfsAccess}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalIpfsAccesses)}
 			{@const uniqueGlobalIpfsAccesses = [...new Map(globalIpfsAccesses.values.map((globalIpfsAccess) => [globalIpfsAccess[EntityMetaKey.SelectorKey], globalIpfsAccess])).values()]}
 			<EntitiesList
@@ -91,7 +78,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalIpfsAccesses.values.length === uniqueGlobalIpfsAccesses.length && globalIpfsAccesses.totalCount != null && globalIpfsAccesses.totalCount >= uniqueGlobalIpfsAccesses.length ? globalIpfsAccesses.totalCount : uniqueGlobalIpfsAccesses.length}
+				totalCount={globalIpfsAccesses.totalCount}
 				getKey={(globalIpfsAccess) => globalIpfsAccess[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalIpfsAccesses}
 			>
@@ -99,16 +86,18 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No global IPFS accesses yet.</p>
+						<p data-text="muted">No Global IPFS accesses yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: globalIpfsAccess }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalIpfsAccess> })}
+					{@const globalIpfsAccessFields = { ...globalIpfsAccess[EntityMetaKey.Selector], ...globalIpfsAccess }}
+					{@const globalIpfsAccessHrefFields = { ...globalIpfsAccess, ...globalIpfsAccess[EntityMetaKey.Selector] }}
 					<GlobalIpfsAccessView
+						selection={select(EntityType._GlobalIpfsAccess, globalIpfsAccess[EntityMetaKey.Selector])}
+						prefetched={globalIpfsAccessFields}
 						href={resolve('/(explore)/(ipfs)/ipfs/access')}
-						selection={select(EntityType._GlobalIpfsAccess, globalIpfsAccess.entitySelector)}
-						prefetched={globalIpfsAccess}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

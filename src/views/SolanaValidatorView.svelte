@@ -6,10 +6,11 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -41,18 +42,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const solanaValidator = $derived(selection({
 		fields: {
 			delinquent: true,
-			nodePubkey: true,
-			activatedStakeLamports: true,
-			commission: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).votePubkey) ?? '')].filter(Boolean).join(' ') || 'solana validator')
+	const titleFallback = $derived([String((selection.entitySelector.votePubkey ?? prefetched.votePubkey) ?? '')].filter(Boolean).join(' ') || 'solana validator')
 	const viewDomId = $derived('solana-validator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -61,131 +59,158 @@
 
 <EntityView
 	entityType={EntityType.SolanaValidator}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validator/[votePubkey]', {
-			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).$network.slug),
-			votePubkey: String(({ ...selection.entitySelector, ...prefetched }).votePubkey),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.votePubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validator/[votePubkey]', {
+			networkSlug: String(networkByCaip2[String(String(pendingEntity.$network.caip2.namespace) + ':' + String(pendingEntity.$network.caip2.reference))].slug ?? ''),
+			votePubkey: String(pendingEntity.votePubkey ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const votePubkey0 = ({ ...selection.entitySelector, ...prefetched }).votePubkey}
-			{#if votePubkey0 !== undefined && votePubkey0 !== null}
-				<TruncatedValue value={String(votePubkey0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaValidator}>
-				{#snippet Pending()}
-					{@const votePubkey0 = ({ ...selection.entitySelector, ...prefetched }).votePubkey}
-					{#if votePubkey0 !== undefined && votePubkey0 !== null}
-						<TruncatedValue value={String(votePubkey0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={solanaValidator}>
+			{#snippet Pending()}
+				{@const votePubkey0 = selection.entitySelector.votePubkey ?? prefetched.votePubkey}
+				{#if votePubkey0 !== undefined && votePubkey0 !== null}
+					<TruncatedValue value={String((votePubkey0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const votePubkey0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).votePubkey}
-					{#if votePubkey0 !== undefined && votePubkey0 !== null}
-						<TruncatedValue value={String(votePubkey0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const votePubkey0 = resolvedEntity.votePubkey}
+				{#if votePubkey0 !== undefined && votePubkey0 !== null}
+					<TruncatedValue value={String((votePubkey0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const votePubkey0 = ({ ...selection.entitySelector, ...prefetched }).votePubkey}
-			{#if votePubkey0 !== undefined && votePubkey0 !== null}
-				<TruncatedValue value={String(votePubkey0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaValidator}>
-				{#snippet Pending()}
-					{@const votePubkey0 = ({ ...selection.entitySelector, ...prefetched }).votePubkey}
-					{#if votePubkey0 !== undefined && votePubkey0 !== null}
-						<TruncatedValue value={String(votePubkey0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={solanaValidator}>
+			{#snippet Pending()}
+				{@const votePubkey0 = selection.entitySelector.votePubkey ?? prefetched.votePubkey}
+				{#if votePubkey0 !== undefined && votePubkey0 !== null}
+					<TruncatedValue value={String((votePubkey0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const votePubkey0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).votePubkey}
-					{#if votePubkey0 !== undefined && votePubkey0 !== null}
-						<TruncatedValue value={String(votePubkey0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const votePubkey0 = resolvedEntity.votePubkey}
+				{#if votePubkey0 !== undefined && votePubkey0 !== null}
+					<TruncatedValue value={String((votePubkey0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const delinquent0 = prefetched.delinquent}
-			{#if delinquent0 !== undefined && delinquent0 !== null}
-				<span data-text="muted">
-					{String((delinquent0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaValidator}>
-				{#snippet Pending()}
-					{@const delinquent0 = prefetched.delinquent}
-					{#if delinquent0 !== undefined && delinquent0 !== null}
-						<span data-text="muted">
-							{String((delinquent0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={solanaValidator}>
+			{#snippet Pending()}
+				{@const delinquent0 = prefetched.delinquent}
+				{#if delinquent0 !== undefined && delinquent0 !== null}
+					<span data-text="muted">
+						{delinquent0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const delinquent0 = entity.delinquent}
-					{#if delinquent0 !== undefined && delinquent0 !== null}
-						<span data-text="muted">
-							{String((delinquent0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const delinquent0 = resolvedEntity.delinquent}
+				{#if delinquent0 !== undefined && delinquent0 !== null}
+					<span data-text="muted">
+						{delinquent0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={solanaValidator}>
+			<div>
+				<dt>Vote public key</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									votePubkey: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const votePubkey = selection.entitySelector.votePubkey ?? prefetched.votePubkey}
+							{#if votePubkey !== undefined && votePubkey !== null}
+								<TruncatedValue value={String((votePubkey) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const votePubkey = resolvedEntity.votePubkey}
+							{#if votePubkey !== undefined && votePubkey !== null}
+								<TruncatedValue value={String((votePubkey) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							nodePubkey: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const nodePubkey = prefetched.nodePubkey ?? selection.entitySelector.nodePubkey}
+					{@const nodePubkey = prefetched.nodePubkey}
 					{#if nodePubkey !== undefined && nodePubkey !== null}
 						<div>
 							<dt>Node public key</dt>
 							<dd>
-								<TruncatedValue value={String(nodePubkey)} />
+								<TruncatedValue value={String((nodePubkey) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const nodePubkey = entity.nodePubkey ?? selection.entitySelector.nodePubkey ?? prefetched.nodePubkey}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const nodePubkey = resolvedEntity.nodePubkey}
 					{#if nodePubkey !== undefined && nodePubkey !== null}
 						<div>
 							<dt>Node public key</dt>
 							<dd>
-								<TruncatedValue value={String(nodePubkey)} />
+								<TruncatedValue value={String((nodePubkey) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={solanaValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							activatedStakeLamports: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activatedStakeLamports = prefetched.activatedStakeLamports ?? selection.entitySelector.activatedStakeLamports}
+					{@const activatedStakeLamports = prefetched.activatedStakeLamports}
 					{#if activatedStakeLamports !== undefined && activatedStakeLamports !== null}
 						<div>
 							<dt>Activated stake</dt>
@@ -197,7 +222,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activatedStakeLamports = entity.activatedStakeLamports ?? selection.entitySelector.activatedStakeLamports ?? prefetched.activatedStakeLamports}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activatedStakeLamports = resolvedEntity.activatedStakeLamports}
 					{#if activatedStakeLamports !== undefined && activatedStakeLamports !== null}
 						<div>
 							<dt>Activated stake</dt>
@@ -209,9 +235,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={solanaValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							commission: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const commission = prefetched.commission ?? selection.entitySelector.commission}
+					{@const commission = prefetched.commission}
 					{#if commission !== undefined && commission !== null}
 						<div>
 							<dt>Commission</dt>
@@ -223,12 +257,48 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const commission = entity.commission ?? selection.entitySelector.commission ?? prefetched.commission}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const commission = resolvedEntity.commission}
 					{#if commission !== undefined && commission !== null}
 						<div>
 							<dt>Commission</dt>
 							<dd>
 								{String((commission) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							delinquent: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const delinquent = prefetched.delinquent}
+					{#if delinquent !== undefined && delinquent !== null}
+						<div>
+							<dt>Delinquent</dt>
+							<dd>
+								{delinquent ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const delinquent = resolvedEntity.delinquent}
+					{#if delinquent !== undefined && delinquent !== null}
+						<div>
+							<dt>Delinquent</dt>
+							<dd>
+								{delinquent ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
@@ -241,10 +311,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

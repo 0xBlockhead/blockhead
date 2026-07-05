@@ -20,7 +20,7 @@
 		selection,
 		title = 'AT Protocol',
 		typeAnnotationParagraphs = ['AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from configured Bluesky-compatible appview sources, not a claim about every repository on the network.'],
-		placeholderText = 'Loading AT Protocol...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,28 +64,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 					scope: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalAtprotoNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalAtprotoNetworks)}
 			{@const uniqueGlobalAtprotoNetworks = [...new Map(globalAtprotoNetworks.values.map((globalAtprotoNetwork) => [globalAtprotoNetwork[EntityMetaKey.SelectorKey], globalAtprotoNetwork])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalAtprotoNetworks.values.length === uniqueGlobalAtprotoNetworks.length && globalAtprotoNetworks.totalCount != null && globalAtprotoNetworks.totalCount >= uniqueGlobalAtprotoNetworks.length ? globalAtprotoNetworks.totalCount : uniqueGlobalAtprotoNetworks.length}
+				totalCount={globalAtprotoNetworks.totalCount}
 				getKey={(globalAtprotoNetwork) => globalAtprotoNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalAtprotoNetworks}
 			>
@@ -110,9 +97,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: globalAtprotoNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAtprotoNetwork> })}
+					{@const globalAtprotoNetworkFields = { ...globalAtprotoNetwork[EntityMetaKey.Selector], ...globalAtprotoNetwork }}
 					<GlobalAtprotoNetworkView
-						selection={select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork.entitySelector)}
-						prefetched={globalAtprotoNetwork}
+						selection={select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork[EntityMetaKey.Selector])}
+						prefetched={globalAtprotoNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

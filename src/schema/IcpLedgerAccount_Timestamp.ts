@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum IcpLedgerAccount_TimestampSelector {
-	LedgerOwnerSubaccountTimestampMsSource = '$ledger+owner+subaccount+timestampMs+source',
+	LedgerOwnerSubaccountTimestampMsSource = 'LedgerOwnerSubaccountTimestampMsSource',
 }
 export default {
 	entityType: EntityType.IcpLedgerAccount_Timestamp,
@@ -26,55 +25,55 @@ export default {
 	],
 	fields: [
 		{
-			name: '$ledger',
-			label: 'ledger',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.IcpLedgerCanister,
-			cardinality: EntityFieldCardinality.One,
+				name: '$ledger',
+				label: 'ledger',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.IcpLedgerCanister,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'owner',
-			label: 'owner',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'owner',
+				label: 'owner',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'subaccount',
-			label: 'subaccount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'subaccount',
+				label: 'subaccount',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'balance',
-			label: 'balance',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'balance',
+				label: 'balance',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'allowanceCount',
-			label: 'allowance count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'allowanceCount',
+				label: 'allowance count',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

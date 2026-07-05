@@ -21,7 +21,7 @@
 		selection,
 		title = 'Coin observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Coin observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$coin: true,
 					marketCap: true,
 					marketCapUsd: true,
 					change24hPercent: true,
+					timestampMs: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Coin_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(coinTimestamps)}
 			{@const uniqueCoinTimestamps = [...new Map(coinTimestamps.values.map((coinTimestamp) => [coinTimestamp[EntityMetaKey.SelectorKey], coinTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={coinTimestamps.values.length === uniqueCoinTimestamps.length && coinTimestamps.totalCount != null && coinTimestamps.totalCount >= uniqueCoinTimestamps.length ? coinTimestamps.totalCount : uniqueCoinTimestamps.length}
+				totalCount={coinTimestamps.totalCount}
 				getKey={(coinTimestamp) => coinTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueCoinTimestamps}
 			>
@@ -108,21 +97,23 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No coin observations yet.</p>
+						<p data-text="muted">No Coin observations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: coinTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Coin_Timestamp> })}
+					{@const coinTimestampFields = { ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }}
+					{@const coinTimestampHrefFields = { ...coinTimestamp, ...coinTimestamp[EntityMetaKey.Selector] }}
 					<Coin_TimestampView
+						selection={select(EntityType.Coin_Timestamp, coinTimestamp[EntityMetaKey.Selector])}
+						prefetched={coinTimestampFields}
 						href={
-							resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								coinId: String(({ ...coinTimestamp.entitySelector, ...coinTimestamp }).$coin.coinId),
-								timestampMs: String(({ ...coinTimestamp.entitySelector, ...coinTimestamp }).timestampMs),
-								source: String(({ ...coinTimestamp.entitySelector, ...coinTimestamp }).source),
-							})
+							(coinTimestampHrefFields.$coin !== undefined && coinTimestampHrefFields.$coin.coinId !== undefined && coinTimestampHrefFields.timestampMs !== undefined && coinTimestampHrefFields.source !== undefined ? resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								coinId: String(coinTimestampHrefFields.$coin.coinId ?? ''),
+								timestampMs: String(coinTimestampHrefFields.timestampMs ?? ''),
+								source: String(coinTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Coin_Timestamp, coinTimestamp.entitySelector)}
-						prefetched={coinTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

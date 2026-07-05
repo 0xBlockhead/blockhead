@@ -21,7 +21,7 @@
 		selection,
 		title = 'Asset supply observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Asset supply observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					supplyScopeKey: true,
 					totalSupply: true,
 					circulatingSupply: true,
 					source: true,
+					$assetInstance: true,
+					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetSupply_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(assetSupplyTimestamps)}
 			{@const uniqueAssetSupplyTimestamps = [...new Map(assetSupplyTimestamps.values.map((assetSupplyTimestamp) => [assetSupplyTimestamp[EntityMetaKey.SelectorKey], assetSupplyTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={assetSupplyTimestamps.values.length === uniqueAssetSupplyTimestamps.length && assetSupplyTimestamps.totalCount != null && assetSupplyTimestamps.totalCount >= uniqueAssetSupplyTimestamps.length ? assetSupplyTimestamps.totalCount : uniqueAssetSupplyTimestamps.length}
+				totalCount={assetSupplyTimestamps.totalCount}
 				getKey={(assetSupplyTimestamp) => assetSupplyTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueAssetSupplyTimestamps}
 			>
@@ -108,24 +97,26 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No asset supply observations yet.</p>
+						<p data-text="muted">No Asset supply observations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: assetSupplyTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetSupply_Timestamp> })}
+					{@const assetSupplyTimestampFields = { ...assetSupplyTimestamp[EntityMetaKey.Selector], ...assetSupplyTimestamp }}
+					{@const assetSupplyTimestampHrefFields = { ...assetSupplyTimestamp, ...assetSupplyTimestamp[EntityMetaKey.Selector] }}
 					<AssetSupply_TimestampView
+						selection={select(EntityType.AssetSupply_Timestamp, assetSupplyTimestamp[EntityMetaKey.Selector])}
+						prefetched={assetSupplyTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/supply/[supplyScopeKey]/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).$assetInstance.$network.caip2.namespace)}:${String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).$assetInstance.$network.caip2.reference)}`,
-								kind: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).$assetInstance.kind),
-								assetKey: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).$assetInstance.assetKey),
-								supplyScopeKey: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).supplyScopeKey),
-								timestampMs: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).timestampMs),
-								source: String(({ ...assetSupplyTimestamp.entitySelector, ...assetSupplyTimestamp }).source),
-							})
+							(assetSupplyTimestampHrefFields.$assetInstance !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network.caip2 !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network.caip2.namespace !== undefined && assetSupplyTimestampHrefFields.$assetInstance !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network.caip2 !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network.caip2.reference !== undefined && assetSupplyTimestampHrefFields.$assetInstance !== undefined && assetSupplyTimestampHrefFields.$assetInstance.kind !== undefined && assetSupplyTimestampHrefFields.$assetInstance !== undefined && assetSupplyTimestampHrefFields.$assetInstance.assetKey !== undefined && assetSupplyTimestampHrefFields.supplyScopeKey !== undefined && assetSupplyTimestampHrefFields.timestampMs !== undefined && assetSupplyTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/supply/[supplyScopeKey]/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(assetSupplyTimestampHrefFields.$assetInstance.$network.caip2.namespace ?? '')}:${String(assetSupplyTimestampHrefFields.$assetInstance.$network.caip2.reference ?? '')}`,
+								kind: String(assetSupplyTimestampHrefFields.$assetInstance.kind ?? ''),
+								assetKey: String(assetSupplyTimestampHrefFields.$assetInstance.assetKey ?? ''),
+								supplyScopeKey: String(assetSupplyTimestampHrefFields.supplyScopeKey ?? ''),
+								timestampMs: String(assetSupplyTimestampHrefFields.timestampMs ?? ''),
+								source: String(assetSupplyTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.AssetSupply_Timestamp, assetSupplyTimestamp.entitySelector)}
-						prefetched={assetSupplyTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

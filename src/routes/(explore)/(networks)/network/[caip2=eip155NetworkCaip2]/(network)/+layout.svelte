@@ -26,29 +26,30 @@
 </script>
 
 
-<ParentPageCollapsible
-	href={
-		resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-			caip2: params.caip2,
-		})
-	}
-	id={params.caip2}
->
-	{#snippet Summary()}
-		<EvmNetworkView
-			selection={
-				select(EntityType.EvmNetwork, {
-					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-				})
-			}
-			href={
-				resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-					caip2: params.caip2,
-				})
-			}
-			layout={EntityLayout.SummaryInline}
-		/>
-	{/snippet}
+{#key params.caip2}
+	<ParentPageCollapsible
+		href={
+			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+				caip2: params.caip2,
+			})
+		}
+	>
+		{#snippet Summary()}
+			<EvmNetworkView
+				selection={
+					select(EntityType.EvmNetwork, {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					})
+				}
+				href={
+					resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+						caip2: params.caip2,
+					})
+				}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/snippet}
 
-	{@render children()}
-</ParentPageCollapsible>
+		{@render children()}
+	</ParentPageCollapsible>
+{/key}

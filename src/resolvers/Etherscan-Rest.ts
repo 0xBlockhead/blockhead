@@ -475,11 +475,14 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.Etherscan_Rest, {
-			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
-			resolve: {
-				[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }, context) => {
-					const { getGasOracle } = await import('$/sources/Etherscan/Rest/queries.ts')
-					const chainId = chainIdFromEvmNetworkId($network)
+				entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
+				resolve: {
+					[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource]: async ({ $network, source }, context) => {
+						if (source !== Source.Etherscan_Rest)
+							throw new Error('Etherscan_Rest: EvmNetwork_GasEstimate_Timestamp selector source mismatch')
+
+						const { getGasOracle } = await import('$/sources/Etherscan/Rest/queries.ts')
+						const chainId = chainIdFromEvmNetworkId($network)
 					await throwIfEtherscanRestUnsupportedChainId(chainId)
 					const oracle = await getGasOracle({
 						publicEnv: context.publicEnv,

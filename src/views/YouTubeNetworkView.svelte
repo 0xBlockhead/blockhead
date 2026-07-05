@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -39,20 +39,18 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const youtubeNetwork = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
 		],
 		fields: {
 			protocolName: true,
-			homeUrl: true,
-			docsUrl: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API')
+	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'YouTube Data API')
 	const viewDomId = $derived('youtube-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
@@ -60,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.YoutubeNetwork}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={href ?? resolve('/(social)/(youtube)/youtube/api')}
@@ -69,30 +67,65 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).protocolName) ?? '')].filter(Boolean).join(' ') || title || 'YouTube Data API'}
-		{:else}
-			<ResourceBoundary resource={youtubeNetwork}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).protocolName) ?? '')].filter(Boolean).join(' ') || title || 'YouTube Data API'}
-				{/snippet}
+		<ResourceBoundary resource={youtubeNetwork}>
+			{#snippet Pending()}
+				{[String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'YouTube Data API'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<div>
+				<dt>Protocol</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									protocolName: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const protocolName = prefetched.protocolName}
+							{#if protocolName !== undefined && protocolName !== null}
+								{String((protocolName) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const protocolName = resolvedEntity.protocolName}
+							{#if protocolName !== undefined && protocolName !== null}
+								{String((protocolName) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
 			{#if contentOpen}
 				<div>
 					<dt>Home</dt>
 					<dd>
-						<ResourceBoundary resource={youtubeNetwork}>
+						<ResourceBoundary
+							resource={
+								selection({
+									fields: {
+										homeUrl: true,
+									},
+								})
+							}
+						>
 							{#snippet Pending()}
-								{@const homeUrl = prefetched.homeUrl ?? selection.entitySelector.homeUrl}
+								{@const homeUrl = prefetched.homeUrl}
 								{#if homeUrl !== undefined && homeUrl !== null}
 									<svelte:element
 										this={'a'}
@@ -106,7 +139,8 @@
 							{/snippet}
 
 							{#snippet children(entity)}
-								{@const homeUrl = entity.homeUrl ?? selection.entitySelector.homeUrl ?? prefetched.homeUrl}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{@const homeUrl = resolvedEntity.homeUrl}
 								{#if homeUrl !== undefined && homeUrl !== null}
 									<svelte:element
 										this={'a'}
@@ -124,9 +158,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={youtubeNetwork}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								docsUrl: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const docsUrl = prefetched.docsUrl ?? selection.entitySelector.docsUrl}
+						{@const docsUrl = prefetched.docsUrl}
 						{#if docsUrl !== undefined && docsUrl !== null}
 							<div>
 								<dt>Documentation</dt>
@@ -145,7 +187,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const docsUrl = entity.docsUrl ?? selection.entitySelector.docsUrl ?? prefetched.docsUrl}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const docsUrl = resolvedEntity.docsUrl}
 						{#if docsUrl !== undefined && docsUrl !== null}
 							<div>
 								<dt>Documentation</dt>

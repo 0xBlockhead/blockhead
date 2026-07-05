@@ -208,7 +208,7 @@ const projectResource = <_Input, _Output>(
 	},
 })
 
-const projectReferenceData = (value: ({ [EntityMetaKey.Fields]?: object } & object) | undefined) => (
+const projectReferenceData = (value: object | undefined) => (
 	value == null ?
 		undefined
 	:
@@ -217,7 +217,6 @@ const projectReferenceData = (value: ({ [EntityMetaKey.Fields]?: object } & obje
 			...(EntityMetaKey.Selector in value ? {
 				entitySelector: value[EntityMetaKey.Selector],
 			} : {}),
-			...(EntityMetaKey.Fields in value ? value[EntityMetaKey.Fields] : {}),
 		}
 )
 

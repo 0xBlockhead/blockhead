@@ -1,7 +1,7 @@
 // Generated from APP.ts. Do not edit by hand.
 
 import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
-import { SourceDelivery, SourceEndpointKind, type SourceBinding } from '$/sources/SourceBinding.ts'
+import { SourceCredentialScope, SourceDelivery, SourceEndpointKind, type SourceBinding } from '$/sources/SourceBinding.ts'
 import { validateSourceBindings } from '$/sources/validateSourceBindings.ts'
 import { env as privateEnv } from '$env/dynamic/private'
 
@@ -11,7 +11,10 @@ export const sourceBindings = validateSourceBindings(
 
 export const enabledSourceBindings = sourceBindings.filter((binding) => (
 	binding.credentials.every((credential) => (
-		credential.keys == null
+		credential.scope === SourceCredentialScope.None
+		|| credential.scope === SourceCredentialScope.PublicConfig
+		|| credential.scope === SourceCredentialScope.UserDelegated
+		|| credential.keys == null
 		|| credential.keys.every((key) => privateEnv[key]?.trim() !== '')
 	))
 ))

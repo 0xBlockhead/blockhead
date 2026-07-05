@@ -21,7 +21,7 @@
 		selection,
 		title = 'Asset instances',
 		typeAnnotationParagraphs = ['A concrete asset on a specific network or venue, such as a native coin, token, share, or collectible.'],
-		placeholderText = 'Loading Asset instances...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
-					$icon: true,
 					symbol: true,
 					name: true,
 					$network: true,
+					kind: true,
+					assetKey: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetInstance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(assetInstances)}
 			{@const uniqueAssetInstances = [...new Map(assetInstances.values.map((assetInstance) => [assetInstance[EntityMetaKey.SelectorKey], assetInstance])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={assetInstances.values.length === uniqueAssetInstances.length && assetInstances.totalCount != null && assetInstances.totalCount >= uniqueAssetInstances.length ? assetInstances.totalCount : uniqueAssetInstances.length}
+				totalCount={assetInstances.totalCount}
 				getKey={(assetInstance) => assetInstance[EntityMetaKey.SelectorKey]}
 				items={uniqueAssetInstances}
 			>
@@ -108,22 +96,24 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No asset instances yet.</p>
+						<p data-text="muted">No Asset instances yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: assetInstance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetInstance> })}
+					{@const assetInstanceFields = { ...assetInstance[EntityMetaKey.Selector], ...assetInstance }}
+					{@const assetInstanceHrefFields = { ...assetInstance, ...assetInstance[EntityMetaKey.Selector] }}
 					<AssetInstanceView
+						selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
+						prefetched={assetInstanceFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
-								caip2: `${String(({ ...assetInstance.entitySelector, ...assetInstance }).$network.caip2.namespace)}:${String(({ ...assetInstance.entitySelector, ...assetInstance }).$network.caip2.reference)}`,
-								kind: String(({ ...assetInstance.entitySelector, ...assetInstance }).kind),
-								assetKey: String(({ ...assetInstance.entitySelector, ...assetInstance }).assetKey),
-							})
+							(assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined && assetInstanceHrefFields.$network.caip2.namespace !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined && assetInstanceHrefFields.$network.caip2.reference !== undefined && assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+								caip2: `${String(assetInstanceHrefFields.$network.caip2.namespace ?? '')}:${String(assetInstanceHrefFields.$network.caip2.reference ?? '')}`,
+								kind: String(assetInstanceHrefFields.kind ?? ''),
+								assetKey: String(assetInstanceHrefFields.assetKey ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.AssetInstance, assetInstance.entitySelector)}
-						prefetched={assetInstance}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

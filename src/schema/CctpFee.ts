@@ -1,17 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum CctpFeeSelector {
-	ApiHostFromDomainToDomain = 'apiHostFromDomainToDomain',
+	ApiHostFromDomainToDomain = 'ApiHostFromDomainToDomain',
 }
 export default {
 	entityType: EntityType.CctpFee,
-	label: 'cctp fee',
-	labelPlural: 'cctp fees',
+	label: 'CCTP fee',
+	labelPlural: 'CCTP fees',
 	selectors: [
 		{
 			name: CctpFeeSelector.ApiHostFromDomainToDomain,
@@ -24,32 +23,32 @@ export default {
 	],
 	fields: [
 		{
-			name: 'apiHost',
-			label: 'API host',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'apiHost',
+				label: 'API host',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'fromDomain',
-			label: 'from domain',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'fromDomain',
+				label: 'From domain',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'toDomain',
-			label: 'to domain',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'toDomain',
+				label: 'To domain',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'rows',
-			label: 'rows',
-			type: EntityFieldType.Primitive,
-			primitiveType: type({"finalityThreshold": "number", "minimumFee": "number"}).array(),
-			cardinality: EntityFieldCardinality.One,
+				name: 'rows',
+				label: 'Rows',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('unknown'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -3,12 +3,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { NetworkNamespace } from '$/constants/Network.ts'
-	import { Source } from '$/sources/Source.ts'
-	import CosmosGovernanceProposalsView from '$/views/CosmosGovernanceProposalsView.svelte'
+	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
@@ -24,6 +20,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import CosmosGovernanceProposalsView from '$/views/CosmosGovernanceProposalsView.svelte'
 </script>
 
 
@@ -33,37 +30,20 @@
 
 
 <Page>
-	<ResourceBoundary
-		resource={select(EntityType.Network, {
-			slug: params.networkSlug,
-		})({
-			sources: [
-				Source.Constants_Internal,
-			],
-			fields: {
-				caip2: true,
-			},
-		})}
-	>
-		{#snippet children(network)}
-			{#if network.caip2.namespace === NetworkNamespace.Cosmos}
-				<CosmosGovernanceProposalsView
-					selection={select(EntityType.CosmosNetwork, {
-						$network: {
-							slug: params.networkSlug,
-						},
-					})[EntityProxyField]<EntityType.CosmosGovernanceProposal>('$$governanceProposals')({
-						limit: 32,
-					})}
-					href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/governance', {
-						networkSlug: params.networkSlug,
-					})}
-					id='governance'
-					title='Governance'
-				/>
-			{:else}
-				<p data-text='muted'>This network does not expose a governance route yet.</p>
-			{/if}
-		{/snippet}
-	</ResourceBoundary>
+	<CosmosGovernanceProposalsView
+		href={
+			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/governance', {
+				networkSlug: params.networkSlug,
+			})
+		}
+		title='Governance'
+		selection={
+			select(EntityType.CosmosNetwork, {
+				$network: {
+					slug: params.networkSlug,
+				},
+			})[EntityProxyField]<EntityType.CosmosGovernanceProposal>('$$governanceProposals')
+		}
+		id='governance-proposals'
+	/>
 </Page>

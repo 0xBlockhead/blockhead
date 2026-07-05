@@ -13,6 +13,7 @@ export enum BlockheadAgentConversationTurnStatus {
 }
 export enum BlockheadAgentConversationTurnSelector {
 	Id = 'Id',
+	ConversationTurnId = 'ConversationTurnId',
 }
 export default {
 	entityType: EntityType.BlockheadAgentConversationTurn,
@@ -22,6 +23,13 @@ export default {
 		{
 			name: BlockheadAgentConversationTurnSelector.Id,
 			fields: [
+				'id',
+			],
+		},
+		{
+			name: BlockheadAgentConversationTurnSelector.ConversationTurnId,
+			fields: [
+				'$conversation',
 				'id',
 			],
 		},
@@ -96,6 +104,13 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+				name: '$$providerCalls',
+				label: 'provider calls',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.BlockheadAgentProviderCall,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

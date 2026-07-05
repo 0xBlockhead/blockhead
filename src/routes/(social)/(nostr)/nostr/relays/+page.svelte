@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,13 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			})[EntityProxyField]<EntityType.NostrRelay>('$$sourceWindowRelays')
+			})[EntityProxyField]<EntityType.NostrRelay>('$$sourceWindowRelays', {
+				sources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+			})
 		}
-		id='NostrRelaysView-page'
+		id='source-window-relays'
 	/>
 </Page>

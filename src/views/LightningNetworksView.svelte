@@ -21,7 +21,7 @@
 		selection,
 		title = 'Lightning networks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Lightning networks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					name: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(lightningNetworks)}
 			{@const uniqueLightningNetworks = [...new Map(lightningNetworks.values.map((lightningNetwork) => [lightningNetwork[EntityMetaKey.SelectorKey], lightningNetwork])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lightningNetworks.values.length === uniqueLightningNetworks.length && lightningNetworks.totalCount != null && lightningNetworks.totalCount >= uniqueLightningNetworks.length ? lightningNetworks.totalCount : uniqueLightningNetworks.length}
+				totalCount={lightningNetworks.totalCount}
 				getKey={(lightningNetwork) => lightningNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueLightningNetworks}
 			>
@@ -111,14 +98,16 @@
 				{/snippet}
 
 				{#snippet Item({ item: lightningNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LightningNetwork> })}
+					{@const lightningNetworkFields = { ...lightningNetwork[EntityMetaKey.Selector], ...lightningNetwork }}
+					{@const lightningNetworkHrefFields = { ...lightningNetwork, ...lightningNetwork[EntityMetaKey.Selector] }}
 					<LightningNetworkView
+						selection={select(EntityType.LightningNetwork, lightningNetwork[EntityMetaKey.Selector])}
+						prefetched={lightningNetworkFields}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(lightningNetwork.entitySelector.$network.slug),
+								networkSlug: String(lightningNetworkHrefFields.$network.slug ?? ''),
 							})
 						}
-						selection={select(EntityType.LightningNetwork, lightningNetwork.entitySelector)}
-						prefetched={lightningNetwork}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

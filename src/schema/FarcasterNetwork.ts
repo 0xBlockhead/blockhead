@@ -82,10 +82,6 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.FarcasterUser,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Snapchain_Rest,
-					Source.Neynar_Rest,
-				],
 		},
 		{
 				name: '$$channels',
@@ -93,9 +89,6 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.FarcasterChannel,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Farcaster_Rest,
-				],
 		},
 	],
 } as const satisfies EntityDefinition

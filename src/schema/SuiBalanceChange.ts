@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum SuiBalanceChangeSelector {
-	TransactionChangeIndex = '$transaction+changeIndex',
+	TransactionChangeIndex = 'TransactionChangeIndex',
 }
 export default {
 	entityType: EntityType.SuiBalanceChange,
@@ -23,46 +22,46 @@ export default {
 	],
 	fields: [
 		{
-			name: '$transaction',
-			label: 'transaction',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.SuiTransaction,
-			cardinality: EntityFieldCardinality.One,
+				name: '$transaction',
+				label: 'transaction',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.SuiTransaction,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'changeIndex',
-			label: 'change index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'changeIndex',
+				label: 'change index',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'ownerSelector',
-			label: 'owner selector',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("unknown"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'ownerSelector',
+				label: 'owner selector',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('unknown'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'coinType',
-			label: 'coin type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'coinType',
+				label: 'coin type',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$coinType',
-			label: 'coin type',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.SuiCoinType,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$coinType',
+				label: 'coin type',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.SuiCoinType,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'amountDelta',
-			label: 'amount delta',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'amountDelta',
+				label: 'amount delta',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

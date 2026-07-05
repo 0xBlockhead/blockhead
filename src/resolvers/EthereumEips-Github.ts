@@ -15,12 +15,12 @@ import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { SpecificationProposalKindSelector } from '$/schema/SpecificationProposalKind.ts'
 import { SpecificationProposalSelector } from '$/schema/SpecificationProposal.ts'
-import { ethereumEipSpecGithubRepoByLedger } from '$/sources/EthereumEips/Github/constants.ts'
 
-const ethereumProposalMarkdownBody = (
+const ethereumProposalMarkdownBody = async (
 	text: string,
 	ledger: 'eip' | 'erc'
 ) => {
+	const { ethereumEipSpecGithubRepoByLedger } = await import('$/sources/EthereumEips/Github/constants.ts')
 	const target = ethereumEipSpecGithubRepoByLedger[ledger]
 	const githubBlobBase = `https://github.com/${target.owner}/${target.repo}/blob/${target.ref}`
 	const githubBlobPathBase = `${githubBlobBase}/${target.path}/`
@@ -142,7 +142,7 @@ export default {
 					number: number,
 				})
 				if (text.trim() === '') throw new Error('EthereumEips_Github: empty proposal markdown')
-				const body = ethereumProposalMarkdownBody(
+				const body = await ethereumProposalMarkdownBody(
 					text,
 					category === ProposalCategory.Erc ? 'erc' : 'eip'
 				)

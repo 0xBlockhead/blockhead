@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const LifiRestSource = {
+export default {
 	provider: SourceProvider.Lifi,
 	source: Source.Lifi_Rest,
-	label: 'Lifi Rest',
+	label: 'LI.FI REST',
 } satisfies SourceDefinition
-
-export default LifiRestSource

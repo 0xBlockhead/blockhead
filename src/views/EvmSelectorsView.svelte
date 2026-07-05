@@ -22,7 +22,7 @@
 		selection,
 		title = 'EVM selectors',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM selectors...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,27 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Openchain_Rest,
 				],
-			}) : selection
+				fields: {
+					hex: true,
+				},
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmSelector}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmSelectors)}
 			{@const uniqueEvmSelectors = [...new Map(evmSelectors.values.map((evmSelector) => [evmSelector[EntityMetaKey.SelectorKey], evmSelector])).values()]}
 			<EntitiesList
@@ -98,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmSelectors.values.length === uniqueEvmSelectors.length && evmSelectors.totalCount != null && evmSelectors.totalCount >= uniqueEvmSelectors.length ? evmSelectors.totalCount : uniqueEvmSelectors.length}
+				totalCount={evmSelectors.totalCount}
 				getKey={(evmSelector) => evmSelector[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmSelectors}
 			>
@@ -111,14 +101,16 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmSelector }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmSelector> })}
+					{@const evmSelectorFields = { ...evmSelector[EntityMetaKey.Selector], ...evmSelector }}
+					{@const evmSelectorHrefFields = { ...evmSelector, ...evmSelector[EntityMetaKey.Selector] }}
 					<EvmSelectorView
+						selection={select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector])}
+						prefetched={evmSelectorFields}
 						href={
-							resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
-								hex: String(({ ...evmSelector.entitySelector, ...evmSelector }).hex),
-							})
+							(evmSelectorHrefFields.hex !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+								hex: String(evmSelectorHrefFields.hex ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmSelector, evmSelector.entitySelector)}
-						prefetched={evmSelector}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

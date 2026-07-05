@@ -20,7 +20,7 @@
 		selection,
 		title = 'Transactions',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Bridge transactions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					createdAt: true,
 					$sourceTx: true,
 					$account: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadBridgeTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadBridgeTransactions)}
 			{@const uniqueBlockheadBridgeTransactions = [...new Map(blockheadBridgeTransactions.values.map((blockheadBridgeTransaction) => [blockheadBridgeTransaction[EntityMetaKey.SelectorKey], blockheadBridgeTransaction])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadBridgeTransactions.values.length === uniqueBlockheadBridgeTransactions.length && blockheadBridgeTransactions.totalCount != null && blockheadBridgeTransactions.totalCount >= uniqueBlockheadBridgeTransactions.length ? blockheadBridgeTransactions.totalCount : uniqueBlockheadBridgeTransactions.length}
+				totalCount={blockheadBridgeTransactions.totalCount}
 				getKey={(blockheadBridgeTransaction) => blockheadBridgeTransaction[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadBridgeTransactions}
 			>
@@ -106,14 +93,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No bridge transactions yet.</p>
+						<p data-text="muted">No Bridge transactions yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadBridgeTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadBridgeTransaction> })}
+					{@const blockheadBridgeTransactionFields = { ...blockheadBridgeTransaction[EntityMetaKey.Selector], ...blockheadBridgeTransaction }}
 					<BlockheadBridgeTransactionView
-						selection={select(EntityType.BlockheadBridgeTransaction, blockheadBridgeTransaction.entitySelector)}
-						prefetched={blockheadBridgeTransaction}
+						selection={select(EntityType.BlockheadBridgeTransaction, blockheadBridgeTransaction[EntityMetaKey.Selector])}
+						prefetched={blockheadBridgeTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

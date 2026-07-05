@@ -37,6 +37,6 @@
 				],
 			})
 		}
-		id='FarcasterUsersView-page'
+		id='users'
 	/>
 </Page>

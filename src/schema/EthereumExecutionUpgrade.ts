@@ -3,10 +3,12 @@
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ExecutionProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum EthereumExecutionUpgradeSelector {
 	EvmNetworkUpgradeId = 'EvmNetworkUpgradeId',
+	EvmNetworkSlug = 'EvmNetworkSlug',
 }
 export default {
 	entityType: EntityType.EthereumExecutionUpgrade,
@@ -18,6 +20,13 @@ export default {
 			fields: [
 				'$network',
 				'upgradeId',
+			],
+		},
+		{
+			name: EthereumExecutionUpgradeSelector.EvmNetworkSlug,
+			fields: [
+				'$network',
+				'slug',
 			],
 		},
 	],
@@ -43,6 +52,9 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: 'slug',
@@ -51,6 +63,9 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: 'activationBlock',
@@ -58,6 +73,9 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: 'activationTimestampMs',
@@ -65,6 +83,9 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: 'activationEpoch',
@@ -72,6 +93,9 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: 'protocol',

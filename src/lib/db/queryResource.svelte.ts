@@ -132,7 +132,10 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 		) {
 			this.#loading = true
 			this.#error = undefined
-			if (!this.#pending)
+			if (
+				!this.#ready
+				&& !this.#pending
+			)
 				this.#resetPending()
 
 			return

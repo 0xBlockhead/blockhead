@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const IpfsRestSource = {
+export default {
 	provider: SourceProvider.Ipfs,
 	source: Source.Ipfs_Rest,
-	label: 'Ipfs Rest',
+	label: 'IPFS gateway',
 } satisfies SourceDefinition
-
-export default IpfsRestSource

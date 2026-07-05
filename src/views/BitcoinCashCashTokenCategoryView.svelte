@@ -6,10 +6,11 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -41,11 +42,11 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitcoinCashCashTokenCategory = $derived(selection({}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).categoryId) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken category')
+	const titleFallback = $derived([String((selection.entitySelector.categoryId ?? prefetched.categoryId) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken category')
 	const viewDomId = $derived('bitcoin-cash-cash-token-category-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -54,121 +55,145 @@
 
 <EntityView
 	entityType={EntityType.BitcoinCashCashTokenCategory}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).$network.slug),
-			categoryId: String(({ ...selection.entitySelector, ...prefetched }).categoryId),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
+			networkSlug: String(networkByCaip2[String(String(pendingEntity.$network.caip2.namespace) + ':' + String(pendingEntity.$network.caip2.reference))].slug ?? ''),
+			categoryId: String(pendingEntity.categoryId ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const categoryId0 = ({ ...selection.entitySelector, ...prefetched }).categoryId}
-			{#if categoryId0 !== undefined && categoryId0 !== null}
-				<TruncatedValue value={String(categoryId0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bitcoinCashCashTokenCategory}>
-				{#snippet Pending()}
-					{@const categoryId0 = ({ ...selection.entitySelector, ...prefetched }).categoryId}
-					{#if categoryId0 !== undefined && categoryId0 !== null}
-						<TruncatedValue value={String(categoryId0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={bitcoinCashCashTokenCategory}>
+			{#snippet Pending()}
+				{@const categoryId0 = selection.entitySelector.categoryId ?? prefetched.categoryId}
+				{#if categoryId0 !== undefined && categoryId0 !== null}
+					<TruncatedValue value={String((categoryId0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const categoryId0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).categoryId}
-					{#if categoryId0 !== undefined && categoryId0 !== null}
-						<TruncatedValue value={String(categoryId0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const categoryId0 = resolvedEntity.categoryId}
+				{#if categoryId0 !== undefined && categoryId0 !== null}
+					<TruncatedValue value={String((categoryId0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const categoryId0 = ({ ...selection.entitySelector, ...prefetched }).categoryId}
-			{#if categoryId0 !== undefined && categoryId0 !== null}
-				<TruncatedValue value={String(categoryId0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bitcoinCashCashTokenCategory}>
-				{#snippet Pending()}
-					{@const categoryId0 = ({ ...selection.entitySelector, ...prefetched }).categoryId}
-					{#if categoryId0 !== undefined && categoryId0 !== null}
-						<TruncatedValue value={String(categoryId0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={bitcoinCashCashTokenCategory}>
+			{#snippet Pending()}
+				{@const categoryId0 = selection.entitySelector.categoryId ?? prefetched.categoryId}
+				{#if categoryId0 !== undefined && categoryId0 !== null}
+					<TruncatedValue value={String((categoryId0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const categoryId0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).categoryId}
-					{#if categoryId0 !== undefined && categoryId0 !== null}
-						<TruncatedValue value={String(categoryId0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const categoryId0 = resolvedEntity.categoryId}
+				{#if categoryId0 !== undefined && categoryId0 !== null}
+					<TruncatedValue value={String((categoryId0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<span data-text="muted">
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
-						(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-						}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={bitcoinCashCashTokenCategory}>
-				{#snippet Pending()}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
+		<ResourceBoundary resource={bitcoinCashCashTokenCategory}>
+			{#snippet Pending()}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>Category ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									categoryId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const categoryId = selection.entitySelector.categoryId ?? prefetched.categoryId}
+							{#if categoryId !== undefined && categoryId !== null}
+								<TruncatedValue value={String((categoryId) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const categoryId = resolvedEntity.categoryId}
+							{#if categoryId !== undefined && categoryId !== null}
+								<TruncatedValue value={String((categoryId) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Network</dt>
+				<dd>
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 </EntityView>

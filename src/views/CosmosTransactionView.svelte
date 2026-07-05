@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -42,27 +41,16 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cosmosTransaction = $derived(selection({
 		fields: {
 			code: true,
 			gasUsed: true,
-			codespace: true,
-			gasWanted: true,
-			feeAmount: true,
-			feeGasLimit: true,
-			memo: true,
-			timeoutHeight: true,
-			signerAddresses: true,
-			signatures: true,
-			eventTypes: true,
-			$block: true,
-			rawLog: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).txHash) ?? '')].filter(Boolean).join(' ') || 'Cosmos transaction')
+	const titleFallback = $derived([String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || 'Cosmos transaction')
 	const viewDomId = $derived('cosmos-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CosmosMessagesView from '$/views/CosmosMessagesView.svelte'
@@ -73,123 +61,170 @@
 
 <EntityView
 	entityType={EntityType.CosmosTransaction}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.reference)}`,
-			txHash: String(({ ...selection.entitySelector, ...prefetched }).txHash),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			txHash: String(pendingEntity.txHash ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const txHash0 = ({ ...selection.entitySelector, ...prefetched }).txHash}
-			{#if txHash0 !== undefined && txHash0 !== null}
-				<TruncatedValue value={String(txHash0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cosmosTransaction}>
-				{#snippet Pending()}
-					{@const txHash0 = ({ ...selection.entitySelector, ...prefetched }).txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String(txHash0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={cosmosTransaction}>
+			{#snippet Pending()}
+				{@const txHash0 = selection.entitySelector.txHash ?? prefetched.txHash}
+				{#if txHash0 !== undefined && txHash0 !== null}
+					<TruncatedValue value={String((txHash0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const txHash0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String(txHash0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const txHash0 = resolvedEntity.txHash}
+				{#if txHash0 !== undefined && txHash0 !== null}
+					<TruncatedValue value={String((txHash0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const txHash0 = ({ ...selection.entitySelector, ...prefetched }).txHash}
-			{#if txHash0 !== undefined && txHash0 !== null}
-				<TruncatedValue value={String(txHash0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cosmosTransaction}>
-				{#snippet Pending()}
-					{@const txHash0 = ({ ...selection.entitySelector, ...prefetched }).txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String(txHash0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={cosmosTransaction}>
+			{#snippet Pending()}
+				{@const txHash0 = selection.entitySelector.txHash ?? prefetched.txHash}
+				{#if txHash0 !== undefined && txHash0 !== null}
+					<TruncatedValue value={String((txHash0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const txHash0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).txHash}
-					{#if txHash0 !== undefined && txHash0 !== null}
-						<TruncatedValue value={String(txHash0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const txHash0 = resolvedEntity.txHash}
+				{#if txHash0 !== undefined && txHash0 !== null}
+					<TruncatedValue value={String((txHash0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const code0 = prefetched.code}
-			{#if code0 !== undefined && code0 !== null}
-				<span data-text="muted">
-					{String((code0) ?? '')}
-				</span>
-			{/if}
-			{@const gasUsed1 = prefetched.gasUsed}
-			{#if gasUsed1 !== undefined && gasUsed1 !== null}
-				<span data-text="muted">
-					{String((gasUsed1) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cosmosTransaction}>
-				{#snippet Pending()}
-					{@const code0 = prefetched.code}
-					{#if code0 !== undefined && code0 !== null}
-						<span data-text="muted">
-							{String((code0) ?? '')}
-						</span>
-					{/if}
-					{@const gasUsed1 = prefetched.gasUsed}
-					{#if gasUsed1 !== undefined && gasUsed1 !== null}
-						<span data-text="muted">
-							{String((gasUsed1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={cosmosTransaction}>
+			{#snippet Pending()}
+				{@const code0 = prefetched.code}
+				{#if code0 !== undefined && code0 !== null}
+					<span data-text="muted">
+						{String((code0) ?? '')}
+					</span>
+				{/if}
+				{@const gasUsed1 = prefetched.gasUsed}
+				{#if gasUsed1 !== undefined && gasUsed1 !== null}
+					<span data-text="muted">
+						{String((gasUsed1) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const code0 = entity.code}
-					{#if code0 !== undefined && code0 !== null}
-						<span data-text="muted">
-							{String((code0) ?? '')}
-						</span>
-					{/if}
-					{@const gasUsed1 = entity.gasUsed}
-					{#if gasUsed1 !== undefined && gasUsed1 !== null}
-						<span data-text="muted">
-							{String((gasUsed1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const code0 = resolvedEntity.code}
+				{#if code0 !== undefined && code0 !== null}
+					<span data-text="muted">
+						{String((code0) ?? '')}
+					</span>
+				{/if}
+				{@const gasUsed1 = resolvedEntity.gasUsed}
+				{#if gasUsed1 !== undefined && gasUsed1 !== null}
+					<span data-text="muted">
+						{String((gasUsed1) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={cosmosTransaction}>
+			<div>
+				<dt>Transaction hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									txHash: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const txHash = selection.entitySelector.txHash ?? prefetched.txHash}
+							{#if txHash !== undefined && txHash !== null}
+								<TruncatedValue value={String((txHash) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const txHash = resolvedEntity.txHash}
+							{#if txHash !== undefined && txHash !== null}
+								<TruncatedValue value={String((txHash) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							code: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const codespace = prefetched.codespace ?? selection.entitySelector.codespace}
+					{@const code = prefetched.code}
+					{#if code !== undefined && code !== null}
+						<div>
+							<dt>Code</dt>
+							<dd>
+								{String((code) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const code = resolvedEntity.code}
+					{#if code !== undefined && code !== null}
+						<div>
+							<dt>Code</dt>
+							<dd>
+								{String((code) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							codespace: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const codespace = prefetched.codespace}
 					{#if codespace !== undefined && codespace !== null}
 						<div>
 							<dt>Codespace</dt>
@@ -201,7 +236,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const codespace = entity.codespace ?? selection.entitySelector.codespace ?? prefetched.codespace}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const codespace = resolvedEntity.codespace}
 					{#if codespace !== undefined && codespace !== null}
 						<div>
 							<dt>Codespace</dt>
@@ -213,9 +249,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={cosmosTransaction}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							gasWanted: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const gasWanted = prefetched.gasWanted ?? selection.entitySelector.gasWanted}
+					{@const gasWanted = prefetched.gasWanted}
 					{#if gasWanted !== undefined && gasWanted !== null}
 						<div>
 							<dt>Gas wanted</dt>
@@ -227,12 +271,48 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const gasWanted = entity.gasWanted ?? selection.entitySelector.gasWanted ?? prefetched.gasWanted}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const gasWanted = resolvedEntity.gasWanted}
 					{#if gasWanted !== undefined && gasWanted !== null}
 						<div>
 							<dt>Gas wanted</dt>
 							<dd>
 								{String((gasWanted) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							gasUsed: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const gasUsed = prefetched.gasUsed}
+					{#if gasUsed !== undefined && gasUsed !== null}
+						<div>
+							<dt>Gas used</dt>
+							<dd>
+								{String((gasUsed) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const gasUsed = resolvedEntity.gasUsed}
+					{#if gasUsed !== undefined && gasUsed !== null}
+						<div>
+							<dt>Gas used</dt>
+							<dd>
+								{String((gasUsed) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -242,27 +322,44 @@
 			<div>
 				<dt>Fee amount</dt>
 				<dd>
-					<ResourceBoundary resource={cosmosTransaction}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									feeAmount: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const feeAmount = prefetched.feeAmount ?? selection.entitySelector.feeAmount}
+							{@const feeAmount = prefetched.feeAmount}
 							{#if feeAmount !== undefined && feeAmount !== null}
-								{feeAmount.map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
+								{(feeAmount?.values ?? []).map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const feeAmount = entity.feeAmount ?? selection.entitySelector.feeAmount ?? prefetched.feeAmount}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const feeAmount = resolvedEntity.feeAmount}
 							{#if feeAmount !== undefined && feeAmount !== null}
-								{feeAmount.map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
+								{(feeAmount?.values ?? []).map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={cosmosTransaction}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							feeGasLimit: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const feeGasLimit = prefetched.feeGasLimit ?? selection.entitySelector.feeGasLimit}
+					{@const feeGasLimit = prefetched.feeGasLimit}
 					{#if feeGasLimit !== undefined && feeGasLimit !== null}
 						<div>
 							<dt>Fee gas limit</dt>
@@ -274,7 +371,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const feeGasLimit = entity.feeGasLimit ?? selection.entitySelector.feeGasLimit ?? prefetched.feeGasLimit}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const feeGasLimit = resolvedEntity.feeGasLimit}
 					{#if feeGasLimit !== undefined && feeGasLimit !== null}
 						<div>
 							<dt>Fee gas limit</dt>
@@ -288,9 +386,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={cosmosTransaction}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							memo: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const memo = prefetched.memo ?? selection.entitySelector.memo}
+					{@const memo = prefetched.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>Memo</dt>
@@ -302,7 +408,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const memo = entity.memo ?? selection.entitySelector.memo ?? prefetched.memo}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const memo = resolvedEntity.memo}
 					{#if memo !== undefined && memo !== null}
 						<div>
 							<dt>Memo</dt>
@@ -314,9 +421,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={cosmosTransaction}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							timeoutHeight: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const timeoutHeight = prefetched.timeoutHeight ?? selection.entitySelector.timeoutHeight}
+					{@const timeoutHeight = prefetched.timeoutHeight}
 					{#if timeoutHeight !== undefined && timeoutHeight !== null}
 						<div>
 							<dt>Timeout height</dt>
@@ -328,7 +443,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const timeoutHeight = entity.timeoutHeight ?? selection.entitySelector.timeoutHeight ?? prefetched.timeoutHeight}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timeoutHeight = resolvedEntity.timeoutHeight}
 					{#if timeoutHeight !== undefined && timeoutHeight !== null}
 						<div>
 							<dt>Timeout height</dt>
@@ -343,18 +459,27 @@
 			<div>
 				<dt>Signer addresses</dt>
 				<dd>
-					<ResourceBoundary resource={cosmosTransaction}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									signerAddresses: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const signerAddresses = prefetched.signerAddresses ?? selection.entitySelector.signerAddresses}
+							{@const signerAddresses = prefetched.signerAddresses}
 							{#if signerAddresses !== undefined && signerAddresses !== null}
-								{String((signerAddresses) ?? '')}
+								<TruncatedValue value={(signerAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const signerAddresses = entity.signerAddresses ?? selection.entitySelector.signerAddresses ?? prefetched.signerAddresses}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const signerAddresses = resolvedEntity.signerAddresses}
 							{#if signerAddresses !== undefined && signerAddresses !== null}
-								{String((signerAddresses) ?? '')}
+								<TruncatedValue value={(signerAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -364,18 +489,27 @@
 			<div>
 				<dt>Signatures</dt>
 				<dd>
-					<ResourceBoundary resource={cosmosTransaction}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									signatures: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const signatures = prefetched.signatures ?? selection.entitySelector.signatures}
+							{@const signatures = prefetched.signatures}
 							{#if signatures !== undefined && signatures !== null}
-								{String((signatures) ?? '')}
+								<TruncatedValue value={(signatures?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const signatures = entity.signatures ?? selection.entitySelector.signatures ?? prefetched.signatures}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const signatures = resolvedEntity.signatures}
 							{#if signatures !== undefined && signatures !== null}
-								{String((signatures) ?? '')}
+								<TruncatedValue value={(signatures?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -385,18 +519,27 @@
 			<div>
 				<dt>Event types</dt>
 				<dd>
-					<ResourceBoundary resource={cosmosTransaction}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									eventTypes: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const eventTypes = prefetched.eventTypes ?? selection.entitySelector.eventTypes}
+							{@const eventTypes = prefetched.eventTypes}
 							{#if eventTypes !== undefined && eventTypes !== null}
-								{String((eventTypes) ?? '')}
+								{(eventTypes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const eventTypes = entity.eventTypes ?? selection.entitySelector.eventTypes ?? prefetched.eventTypes}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const eventTypes = resolvedEntity.eventTypes}
 							{#if eventTypes !== undefined && eventTypes !== null}
-								{String((eventTypes) ?? '')}
+								{(eventTypes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -407,18 +550,18 @@
 				resource={selection[EntityProxyField]<EntityType.CosmosBlock, false>('$block')}
 			>
 				{#snippet children(cosmosBlock)}
-					{#if cosmosBlock != null}
+					{#if cosmosBlock != null && cosmosBlock[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Block</dt>
 							<dd>
 								<CosmosBlockView
-									selection={select(EntityType.CosmosBlock, cosmosBlock.entitySelector)}
+									selection={select(EntityType.CosmosBlock, cosmosBlock[EntityMetaKey.Selector])}
 									prefetched={cosmosBlock}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/block/[height=nonNegativeInteger]', {
-											caip2: `${String(cosmosBlock.entitySelector.$network.caip2.namespace)}:${String(cosmosBlock.entitySelector.$network.caip2.reference)}`,
-											height: String(cosmosBlock.entitySelector.height),
-										})
+										(({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2 !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2.namespace !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2 !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2.reference !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).height !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/block/[height=nonNegativeInteger]', {
+											caip2: `${String(({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2.namespace ?? '')}:${String(({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2.reference ?? '')}`,
+											height: String(({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).height ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -435,10 +578,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -448,13 +591,22 @@
 			</div>
 		</dl>
 
-		<ResourceBoundary resource={cosmosTransaction}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						rawLog: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const rawLog = entity.rawLog ?? selection.entitySelector.rawLog ?? prefetched.rawLog}
-				{#if rawLog === undefined || rawLog === null || rawLog === ''}
-					<p data-text="muted">No raw log available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const rawLog = resolvedEntity.rawLog}
+				{#if rawLog !== undefined && rawLog !== null && rawLog !== ''}
 					<code>{String((rawLog) ?? '')}</code>
+				{:else}
+					<p data-text="muted">No raw log available.</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -22,7 +22,7 @@
 		selection,
 		title = 'Bitcoin Cash CashToken NFTs',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Bitcoin Cash CashToken NFTs...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,29 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					capability: true,
 					$category: true,
 					$commitment: true,
+					$output: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitcoinCashCashTokenNft}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(bitcoinCashCashTokenNFTs)}
 			{@const uniqueBitcoinCashCashTokenNFTs = [...new Map(bitcoinCashCashTokenNFTs.values.map((bitcoinCashCashTokenNft) => [bitcoinCashCashTokenNft[EntityMetaKey.SelectorKey], bitcoinCashCashTokenNft])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitcoinCashCashTokenNFTs.values.length === uniqueBitcoinCashCashTokenNFTs.length && bitcoinCashCashTokenNFTs.totalCount != null && bitcoinCashCashTokenNFTs.totalCount >= uniqueBitcoinCashCashTokenNFTs.length ? bitcoinCashCashTokenNFTs.totalCount : uniqueBitcoinCashCashTokenNFTs.length}
+				totalCount={bitcoinCashCashTokenNFTs.totalCount}
 				getKey={(bitcoinCashCashTokenNft) => bitcoinCashCashTokenNft[EntityMetaKey.SelectorKey]}
 				items={uniqueBitcoinCashCashTokenNFTs}
 			>
@@ -113,16 +101,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: bitcoinCashCashTokenNft }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitcoinCashCashTokenNft> })}
+					{@const bitcoinCashCashTokenNftFields = { ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }}
+					{@const bitcoinCashCashTokenNftHrefFields = { ...bitcoinCashCashTokenNft, ...bitcoinCashCashTokenNft[EntityMetaKey.Selector] }}
 					<BitcoinCashCashTokenNftView
+						selection={select(EntityType.BitcoinCashCashTokenNft, bitcoinCashCashTokenNft[EntityMetaKey.Selector])}
+						prefetched={bitcoinCashCashTokenNftFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
-								networkSlug: String(networkByCaip2[String(({ ...bitcoinCashCashTokenNft.entitySelector, ...bitcoinCashCashTokenNft }).$output.$transaction.$network.caip2)].slug),
-								txId: String(({ ...bitcoinCashCashTokenNft.entitySelector, ...bitcoinCashCashTokenNft }).$output.$transaction.txId),
-								outputIndex: String(({ ...bitcoinCashCashTokenNft.entitySelector, ...bitcoinCashCashTokenNft }).$output.indexInTransaction),
-							})
+							(bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2.namespace !== undefined && bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2.reference !== undefined && bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenNftHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenNftHrefFields.$output !== undefined && bitcoinCashCashTokenNftHrefFields.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
+								networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenNftHrefFields.$output.$transaction.$network.caip2.reference))].slug ?? ''),
+								txId: String(bitcoinCashCashTokenNftHrefFields.$output.$transaction.txId ?? ''),
+								outputIndex: String(bitcoinCashCashTokenNftHrefFields.$output.indexInTransaction ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BitcoinCashCashTokenNft, bitcoinCashCashTokenNft.entitySelector)}
-						prefetched={bitcoinCashCashTokenNft}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

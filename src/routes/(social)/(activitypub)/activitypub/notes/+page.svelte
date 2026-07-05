@@ -37,6 +37,6 @@
 				],
 			})
 		}
-		id='ActivityPubNotesView-page'
+		id='activity-pub-notes'
 	/>
 </Page>

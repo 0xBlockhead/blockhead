@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -45,35 +44,19 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmNetwork = $derived(selection({
-		sources: open ? [
-			Source.Constants_Internal,
-			Source.Chainlist_Rest,
-			Source.EthereumLists_Rest,
-			Source.Lifi_Rest,
-		] : [
+		sources: [
 			Source.Constants_Internal,
 		],
 		fields: {
 			name: true,
-			environment: true,
 			$icon: true,
-			shortName: true,
-			registryStatus: true,
-			consensusProtocol: true,
-			peeringId: true,
-			slip44: true,
-			...(open && {
-				$nativeCoinInstance: true,
-				$parent: true,
-				$mainnet: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [selection.entitySelector.caip2 == null ? '' : String((`${(selection.entitySelector.caip2).namespace}:${(selection.entitySelector.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'EVM network')
+	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [prefetched.caip2 == null ? '' : String((`${(prefetched.caip2).namespace}:${(prefetched.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'EVM network')
 	const viewDomId = $derived('evm-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -105,6 +88,8 @@
 	import BeaconEpochsView from '$/views/BeaconEpochsView.svelte'
 	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
 	import MevRelaysView from '$/views/MevRelaysView.svelte'
+	import MevBuildersView from '$/views/MevBuildersView.svelte'
+	import MevRelay_ProposerPayloadDeliveredRowsView from '$/views/MevRelay_ProposerPayloadDeliveredRowsView.svelte'
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
 	import EvmPrecompilesView from '$/views/EvmPrecompilesView.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
@@ -128,14 +113,12 @@
 
 <EntityView
 	entityType={EntityType.EvmNetwork}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (({ ...selection.entitySelector, ...prefetched })?.caip2 != null && ({ ...selection.entitySelector, ...prefetched })?.caip2?.namespace != null && ({ ...selection.entitySelector, ...prefetched })?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).caip2.reference)}`,
-		}) : ({ ...selection.entitySelector, ...prefetched })?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).slug),
+		href ?? (pendingEntity.caip2 !== undefined && pendingEntity.caip2.namespace !== undefined && pendingEntity.caip2 !== undefined && pendingEntity.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+			caip2: `${String(pendingEntity.caip2.namespace ?? '')}:${String(pendingEntity.caip2.reference ?? '')}`,
 		}) : undefined)
 	}
 	{layout}
@@ -169,7 +152,7 @@
 			placeholderText="Resolving name..."
 		>
 			{#snippet Pending()}
-				{@const caip2 = ({ ...selection.entitySelector, ...prefetched }).caip2}
+				{@const caip2 = selection.entitySelector.caip2 ?? prefetched.caip2}
 				{#if caip2 != null}
 					<span>
 						Chain {String(caip2.reference ?? '')}
@@ -183,9 +166,10 @@
 				{@const name = entity.name}
 				{#if name}
 					{String(name ?? '')}
-				{:else if entity.caip2 != null}
+				{:else if (selection.entitySelector.caip2 ?? prefetched.caip2) != null}
+					{@const caip2 = selection.entitySelector.caip2 ?? prefetched.caip2}
 					<span>
-						Chain {String(entity.caip2.reference ?? '')}
+						Chain {String(caip2.reference ?? '')}
 					</span>
 				{:else}
 					EVM network
@@ -197,7 +181,7 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmNetwork}>
 			{#snippet Pending()}
-				{@const caip2 = ({ ...selection.entitySelector, ...prefetched }).caip2}
+				{@const caip2 = selection.entitySelector.caip2 ?? prefetched.caip2}
 				{#if caip2 != null}
 					<span>
 						Chain {String(caip2.reference ?? '')}
@@ -235,19 +219,15 @@
 								],
 								limit: 1,
 								orderBy: [
-									[({ fieldRow }) => fieldRow.entitySelector.activationTimestampMs ?? fieldRow.activationTimestampMs, 'desc'],
+									[({ fieldRow }) => fieldRow.valueIndex ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							}).first()
+							})
 						}
-						placeholderText='Loading latest upgrade...'
 					>
-						{#snippet Pending()}
-							<span data-text="muted">-</span>
-						{/snippet}
-
-						{#snippet children(ethereumNetworkUpgrade)}
+						{#snippet children(ethereumNetworkUpgrades)}
+							{@const ethereumNetworkUpgrade = ethereumNetworkUpgrades.values[0]}
 							{#if ethereumNetworkUpgrade != null}
-								{@const ethereumNetworkUpgradeSelector = ethereumNetworkUpgrade.entitySelector}
+								{@const ethereumNetworkUpgradeSelector = ethereumNetworkUpgrade[EntityMetaKey.Selector]}
 								<EthereumNetworkUpgradeView
 									selection={
 										select(EntityType.EthereumNetworkUpgrade, ethereumNetworkUpgradeSelector, {
@@ -257,17 +237,15 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-											caip2: `${String(({ ...ethereumNetworkUpgradeSelector, ...ethereumNetworkUpgrade }).$network.caip2.namespace)}:${String(({ ...ethereumNetworkUpgradeSelector, ...ethereumNetworkUpgrade }).$network.caip2.reference)}`,
-											upgradeSlug: String(({ ...ethereumNetworkUpgradeSelector, ...ethereumNetworkUpgrade }).slug),
-										})
+										(({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2 !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2.namespace !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2 !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2.reference !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+											caip2: `${String(({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2.namespace ?? '')}:${String(({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2.reference ?? '')}`,
+											upgradeSlug: String(({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).slug ?? ''),
+										}) : undefined)
 									}
 									prefetched={{ ...ethereumNetworkUpgradeSelector, ...ethereumNetworkUpgrade }}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							{:else}
-								<span data-text="muted">-</span>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -286,19 +264,15 @@
 								limit: 1,
 								count: true,
 								orderBy: [
-									[({ fieldRow }) => fieldRow.entitySelector.blockNumber ?? fieldRow.blockNumber, 'desc'],
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].blockNumber ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							}).first()
+							})
 						}
-						placeholderText='Loading latest block...'
 					>
-						{#snippet Pending()}
-							<span data-text="muted">-</span>
-						{/snippet}
-
-						{#snippet children(evmBlock)}
+						{#snippet children(evmBlocks)}
+							{@const evmBlock = evmBlocks.values[0]}
 							{#if evmBlock != null}
-								{@const evmBlockSelector = evmBlock.entitySelector}
+								{@const evmBlockSelector = evmBlock[EntityMetaKey.Selector]}
 								<EvmBlockView
 									selection={
 										select(EntityType.EvmBlock, evmBlockSelector, {
@@ -308,128 +282,152 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-											caip2: `${String(({ ...evmBlockSelector, ...evmBlock }).$network.caip2.namespace)}:${String(({ ...evmBlockSelector, ...evmBlock }).$network.caip2.reference)}`,
-											blockNumber: String(({ ...evmBlockSelector, ...evmBlock }).blockNumber),
-										})
+										(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+											caip2: `${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace ?? '')}:${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference ?? '')}`,
+											blockNumber: String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber ?? ''),
+										}) : undefined)
 									}
 									prefetched={{ ...evmBlockSelector, ...evmBlock }}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							{:else}
-								<span data-text="muted">-</span>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
-			<div>
-				<dt>Epoch</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection[EntityProxyField]<EntityType.BeaconEpoch>('$$beaconEpochs', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 1,
-								orderBy: [
-									[({ fieldRow }) => fieldRow.entitySelector.epoch ?? fieldRow.epoch, 'desc'],
-								],
-							}).first()
-						}
-						placeholderText='Loading latest epoch...'
-					>
-						{#snippet Pending()}
-							<span data-text="muted">-</span>
-						{/snippet}
-
-						{#snippet children(beaconEpoch)}
-							{#if beaconEpoch != null}
-								{@const beaconEpochSelector = beaconEpoch.entitySelector}
-								<BeaconEpochView
-									selection={
-										select(EntityType.BeaconEpoch, beaconEpochSelector, {
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							consensusProtocol: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{#if resolvedEntity.consensusProtocol === 'EthereumBeacon'}
+						<div>
+							<dt>Epoch</dt>
+							<dd>
+								<ResourceBoundary
+									resource={
+										selection[EntityProxyField]<EntityType.BeaconEpoch>('$$beaconEpochs', {
 											sources: [
 												Source.Beacon_Rest,
 											],
-										})
-									}
-									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-											caip2: `${String(({ ...beaconEpochSelector, ...beaconEpoch }).$network.caip2.namespace)}:${String(({ ...beaconEpochSelector, ...beaconEpoch }).$network.caip2.reference)}`,
-											epoch: String(({ ...beaconEpochSelector, ...beaconEpoch }).epoch),
-										})
-									}
-									prefetched={{ ...beaconEpochSelector, ...beaconEpoch }}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">-</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Slot</dt>
-				<dd>
-					<ResourceBoundary
-						resource={
-							selection[EntityProxyField]<EntityType.BeaconSlot>('$$beaconSlots', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 1,
-								orderBy: [
-									[({ fieldRow }) => fieldRow.entitySelector.slot ?? fieldRow.slot, 'desc'],
-								],
-							}).first()
-						}
-						placeholderText='Loading latest slot...'
-					>
-						{#snippet Pending()}
-							<span data-text="muted">-</span>
-						{/snippet}
-
-						{#snippet children(beaconSlot)}
-							{#if beaconSlot != null}
-								{@const beaconSlotSelector = beaconSlot.entitySelector}
-								<BeaconSlotView
-									selection={
-										select(EntityType.BeaconSlot, beaconSlotSelector, {
-											sources: [
-												Source.Beacon_Rest,
+											limit: 1,
+											orderBy: [
+												[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].epoch ?? Number.NEGATIVE_INFINITY, 'desc'],
 											],
 										})
 									}
-									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]', {
-											caip2: `${String(({ ...beaconSlotSelector, ...beaconSlot }).$network.caip2.namespace)}:${String(({ ...beaconSlotSelector, ...beaconSlot }).$network.caip2.reference)}`,
-											slot: String(({ ...beaconSlotSelector, ...beaconSlot }).slot),
+								>
+									{#snippet children(beaconEpochs)}
+										{@const beaconEpoch = beaconEpochs.values[0]}
+										{#if beaconEpoch != null}
+											{@const beaconEpochSelector = beaconEpoch[EntityMetaKey.Selector]}
+											<BeaconEpochView
+												selection={
+													select(EntityType.BeaconEpoch, beaconEpochSelector, {
+														sources: [
+															Source.Beacon_Rest,
+														],
+													})
+												}
+												href={
+													(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+														caip2: `${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace ?? '')}:${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference ?? '')}`,
+														epoch: String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch ?? ''),
+													}) : undefined)
+												}
+												prefetched={{ ...beaconEpochSelector, ...beaconEpoch }}
+												layout={EntityLayout.Value}
+												open={false}
+											/>
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							consensusProtocol: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{#if resolvedEntity.consensusProtocol === 'EthereumBeacon'}
+						<div>
+							<dt>Slot</dt>
+							<dd>
+								<ResourceBoundary
+									resource={
+										selection[EntityProxyField]<EntityType.BeaconSlot>('$$beaconSlots', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 1,
+											orderBy: [
+												[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].slot ?? Number.NEGATIVE_INFINITY, 'desc'],
+											],
 										})
 									}
-									prefetched={{ ...beaconSlotSelector, ...beaconSlot }}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">-</span>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+								>
+									{#snippet children(beaconSlots)}
+										{@const beaconSlot = beaconSlots.values[0]}
+										{#if beaconSlot != null}
+											{@const beaconSlotSelector = beaconSlot[EntityMetaKey.Selector]}
+											<BeaconSlotView
+												selection={
+													select(EntityType.BeaconSlot, beaconSlotSelector, {
+														sources: [
+															Source.Beacon_Rest,
+														],
+													})
+												}
+												href={
+													(({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2 !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2.namespace !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2 !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2.reference !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).slot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]', {
+														caip2: `${String(({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2.namespace ?? '')}:${String(({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2.reference ?? '')}`,
+														slot: String(({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).slot ?? ''),
+													}) : undefined)
+												}
+												prefetched={{ ...beaconSlotSelector, ...beaconSlot }}
+												layout={EntityLayout.Value}
+												open={false}
+											/>
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={evmNetwork}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							environment: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const environment = prefetched.environment ?? selection.entitySelector.environment}
+					{@const environment = prefetched.environment}
 					{#if environment !== undefined && environment !== null}
 						<div>
 							<dt>Environment</dt>
@@ -441,7 +439,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const environment = entity.environment ?? selection.entitySelector.environment ?? prefetched.environment}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const environment = resolvedEntity.environment}
 					{#if environment !== undefined && environment !== null}
 						<div>
 							<dt>Environment</dt>
@@ -452,33 +451,62 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<div>
+				<dt>CAIP-2</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									caip2: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const caip2 = prefetched.caip2}
+							{#if caip2 !== undefined && caip2 !== null}
+								<TruncatedValue value={caip2 == null ? '' : String((`${(caip2).namespace}:${(caip2).reference}`) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const caip2 = resolvedEntity.caip2}
+							{#if caip2 !== undefined && caip2 !== null}
+								<TruncatedValue value={caip2 == null ? '' : String((`${(caip2).namespace}:${(caip2).reference}`) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.EvmCoinInstance, false>('$nativeCoinInstance')}
+					resource={
+						selection[EntityProxyField]<EntityType.EvmCoinInstance, false>('$nativeCoinInstance', {
+							sources: [
+								Source.Constants_Internal,
+							],
+						})
+					}
 				>
 					{#snippet children(evmCoinInstance)}
-						{#if evmCoinInstance != null}
+						{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Native currency</dt>
 								<dd>
 									<EvmCoinInstanceView
-										selection={select(EntityType.EvmCoinInstance, evmCoinInstance.entitySelector)}
+										selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 										prefetched={evmCoinInstance}
 										href={
-											resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
-												chainId: String(evmCoinInstance.entitySelector.$network.caip2.reference),
-												coinInstanceSlug: String(
-													(
-														evmCoinInstance.entitySelector.type === 'NativeCurrency' ?
-															'native'
-														:
-															evmCoinInstance.entitySelector.$contract.address
-													)
-												),
-											})
+											(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2 !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? true : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+												chainId: String(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference ?? ''),
+												coinInstanceSlug: String((({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? 'native' : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address)),
+											}) : undefined)
 										}
 										layout={EntityLayout.Title}
 										open={false}
@@ -495,18 +523,18 @@
 					resource={selection[EntityProxyField]<EntityType.Network, false>('$parent')}
 				>
 					{#snippet children(network)}
-						{#if network != null}
+						{#if network != null && network[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Parent</dt>
 								<dd>
 									<NetworkView
-										selection={select(EntityType.Network, network.entitySelector)}
+										selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 										prefetched={network}
 										href={
-											(network.entitySelector?.caip2 != null && network.entitySelector?.caip2?.namespace != null && network.entitySelector?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-												caip2: `${String(network.entitySelector.caip2.namespace)}:${String(network.entitySelector.caip2.reference)}`,
-											}) : network.entitySelector?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-												networkSlug: String(network.entitySelector.slug),
+											(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+												caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
+											}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+												networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Title}
@@ -524,18 +552,18 @@
 					resource={selection[EntityProxyField]<EntityType.Network, false>('$mainnet')}
 				>
 					{#snippet children(network)}
-						{#if network != null}
+						{#if network != null && network[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Mainnet</dt>
 								<dd>
 									<NetworkView
-										selection={select(EntityType.Network, network.entitySelector)}
+										selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 										prefetched={network}
 										href={
-											(network.entitySelector?.caip2 != null && network.entitySelector?.caip2?.namespace != null && network.entitySelector?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-												caip2: `${String(network.entitySelector.caip2.namespace)}:${String(network.entitySelector.caip2.reference)}`,
-											}) : network.entitySelector?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-												networkSlug: String(network.entitySelector.slug),
+											(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+												caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
+											}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+												networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
 											}) : undefined)
 										}
 										layout={EntityLayout.Title}
@@ -549,9 +577,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmNetwork}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								consensusProtocol: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const consensusProtocol = prefetched.consensusProtocol ?? selection.entitySelector.consensusProtocol}
+						{@const consensusProtocol = prefetched.consensusProtocol}
 						{#if consensusProtocol !== undefined && consensusProtocol !== null}
 							<div>
 								<dt>Consensus</dt>
@@ -563,7 +599,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const consensusProtocol = entity.consensusProtocol ?? selection.entitySelector.consensusProtocol ?? prefetched.consensusProtocol}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const consensusProtocol = resolvedEntity.consensusProtocol}
 						{#if consensusProtocol !== undefined && consensusProtocol !== null}
 							<div>
 								<dt>Consensus</dt>
@@ -577,9 +614,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmNetwork}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								registryStatus: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const registryStatus = prefetched.registryStatus ?? selection.entitySelector.registryStatus}
+						{@const registryStatus = prefetched.registryStatus}
 						{#if registryStatus !== undefined && registryStatus !== null}
 							<div>
 								<dt>Registry status</dt>
@@ -591,7 +636,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const registryStatus = entity.registryStatus ?? selection.entitySelector.registryStatus ?? prefetched.registryStatus}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const registryStatus = resolvedEntity.registryStatus}
 						{#if registryStatus !== undefined && registryStatus !== null}
 							<div>
 								<dt>Registry status</dt>
@@ -605,9 +651,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmNetwork}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								peeringId: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const peeringId = prefetched.peeringId ?? selection.entitySelector.peeringId}
+						{@const peeringId = prefetched.peeringId}
 						{#if peeringId !== undefined && peeringId !== null}
 							<div>
 								<dt>Peering ID</dt>
@@ -619,7 +673,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const peeringId = entity.peeringId ?? selection.entitySelector.peeringId ?? prefetched.peeringId}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const peeringId = resolvedEntity.peeringId}
 						{#if peeringId !== undefined && peeringId !== null}
 							<div>
 								<dt>Peering ID</dt>
@@ -633,9 +688,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmNetwork}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								slip44: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const slip44 = prefetched.slip44 ?? selection.entitySelector.slip44}
+						{@const slip44 = prefetched.slip44}
 						{#if slip44 !== undefined && slip44 !== null}
 							<div>
 								<dt>SLIP-44</dt>
@@ -647,7 +710,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const slip44 = entity.slip44 ?? selection.entitySelector.slip44 ?? prefetched.slip44}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const slip44 = resolvedEntity.slip44}
 						{#if slip44 !== undefined && slip44 !== null}
 							<div>
 								<dt>SLIP-44</dt>
@@ -724,7 +788,7 @@
 						}
 						href={
 							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/upgrades', {
-								caip2: `${String(selection.entitySelector.caip2.namespace)}:${String(selection.entitySelector.caip2.reference)}`,
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -745,6 +809,11 @@
 								count: true,
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blocks', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -758,9 +827,13 @@
 							selection[EntityProxyField]<EntityType.EvmTransaction>('$$transactions', {
 								sources: [
 									Source.Blockscout_Rest,
-									Source.Voltaire_JsonRpc,
 								],
 								limit: 16,
+							})
+						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/transactions', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -780,6 +853,11 @@
 								limit: 16,
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mempool', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -797,6 +875,11 @@
 								limit: 16,
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/fee-market', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -810,8 +893,14 @@
 							selection[EntityProxyField]<EntityType.EvmNetwork_GasEstimate_Timestamp>('$$gasEstimateTimestamps', {
 								sources: [
 									Source.Blockscout_Rest,
+									Source.Etherscan_Rest,
 								],
 								limit: 16,
+							})
+						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/gas-estimates', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -833,6 +922,11 @@
 								],
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rpc-urls', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -842,257 +936,430 @@
 
 			</CollapsibleTabs>
 
-			<CollapsibleTabs
-				id={viewDomId + '-carousel-consensus-block-production'}
-				sectionIdPrefix={viewDomId}
-				sections={
-					[
-						{
-							id: 'consensus-upgrades',
-							label: 'Upgrades',
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							consensusProtocol: true,
 						},
-						{
-							id: 'consensus-finality',
-							label: 'Finality',
-						},
-						{
-							id: 'consensus-committees',
-							label: 'Committees',
-						},
-						{
-							id: 'consensus-sync-committees',
-							label: 'Sync committees',
-						},
-						{
-							id: 'consensus-attestations',
-							label: 'Attestations',
-						},
-						{
-							id: 'consensus-withdrawals',
-							label: 'Withdrawals',
-						},
-						{
-							id: 'consensus-slashings',
-							label: 'Slashings',
-						},
-						{
-							id: 'consensus-validators',
-							label: 'Validators',
-						},
-						{
-							id: 'consensus-epochs',
-							label: 'Epochs',
-						},
-						{
-							id: 'consensus-slots',
-							label: 'Slots',
-						},
-						{
-							id: 'consensus-mev-relays',
-							label: 'Relays',
-						},
-					]
+					})
 				}
-				data-card
-				class='network-view-collapsible-consensus'
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
-				{#snippet Summary({})}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Consensus and block production</HeadingComponent>
-					</header>
-				{/snippet}
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{#if resolvedEntity.consensusProtocol === 'EthereumBeacon'}
+						<CollapsibleTabs
+							id={viewDomId + '-carousel-consensus-block-production'}
+							sectionIdPrefix={viewDomId}
+							sections={
+								[
+									{
+										id: 'consensus-upgrades',
+										label: 'Upgrades',
+									},
+									{
+										id: 'consensus-finality',
+										label: 'Finality',
+									},
+									{
+										id: 'consensus-committees',
+										label: 'Committees',
+									},
+									{
+										id: 'consensus-sync-committees',
+										label: 'Sync committees',
+									},
+									{
+										id: 'consensus-attestations',
+										label: 'Attestations',
+									},
+									{
+										id: 'consensus-withdrawals',
+										label: 'Withdrawals',
+									},
+									{
+										id: 'consensus-slashings',
+										label: 'Slashings',
+									},
+									{
+										id: 'consensus-validators',
+										label: 'Validators',
+									},
+									{
+										id: 'consensus-epochs',
+										label: 'Epochs',
+									},
+									{
+										id: 'consensus-slots',
+										label: 'Slots',
+									},
+									{
+										id: 'consensus-mev-relays',
+										label: 'Relays',
+									},
+									{
+										id: 'consensus-mev-builders',
+										label: 'Builders',
+									},
+									{
+										id: 'consensus-mev-boost',
+										label: 'MEV-Boost',
+									},
+									{
+										id: 'consensus-endpoints',
+										label: 'Endpoints',
+									},
+								]
+							}
+							data-card
+							class='network-view-collapsible-consensus'
+							scrollContainerProps={{
+								'data-row': 'start align-start',
+							}}
+						>
+							{#snippet Summary({})}
+								<header data-row-item="flexible" data-row="wrap gap-4">
+									<HeadingComponent>Consensus and block production</HeadingComponent>
+								</header>
+							{/snippet}
 
-				{#snippet SectionConsensusUpgrades({ id, label, open })}
-					<EthereumConsensusUpgradesView
-						selection={
-							selection[EntityProxyField]<EntityType.EthereumConsensusUpgrade>('$$consensusUpgrades', {
-								sources: [
-									Source.Constants_Internal,
-								],
-								limit: 512,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusUpgrades({ id, label, open })}
+								<EthereumConsensusUpgradesView
+									selection={
+										selection[EntityProxyField]<EntityType.EthereumConsensusUpgrade>('$$consensusUpgrades', {
+											sources: [
+												Source.Constants_Internal,
+											],
+											limit: 512,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/upgrades', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusFinality({ id, label, open })}
-					<EthereumBeaconFinality_TimestampsView
-						selection={
-							selection[EntityProxyField]<EntityType.EthereumBeaconFinality_Timestamp>('$$beaconFinalityTimestamps', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusFinality({ id, label, open })}
+								<EthereumBeaconFinality_TimestampsView
+									selection={
+										selection[EntityProxyField]<EntityType.EthereumBeaconFinality_Timestamp>('$$beaconFinalityTimestamps', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/finality', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusCommittees({ id, label, open })}
-					<BeaconCommitteesView
-						selection={
-							selection[EntityProxyField]<EntityType.BeaconCommittee>('$$beaconCommittees', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusCommittees({ id, label, open })}
+								<BeaconCommitteesView
+									selection={
+										selection[EntityProxyField]<EntityType.BeaconCommittee>('$$beaconCommittees', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/committees', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusSyncCommittees({ id, label, open })}
-					<BeaconSyncCommitteesView
-						selection={
-							selection[EntityProxyField]<EntityType.BeaconSyncCommittee>('$$beaconSyncCommittees', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusSyncCommittees({ id, label, open })}
+								<BeaconSyncCommitteesView
+									selection={
+										selection[EntityProxyField]<EntityType.BeaconSyncCommittee>('$$beaconSyncCommittees', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/sync-committees', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusAttestations({ id, label, open })}
-					<BeaconAttestationsView
-						selection={
-							selection[EntityProxyField]<EntityType.BeaconAttestation>('$$beaconAttestations', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusAttestations({ id, label, open })}
+								<BeaconAttestationsView
+									selection={
+										selection[EntityProxyField]<EntityType.BeaconAttestation>('$$beaconAttestations', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/attestations', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusWithdrawals({ id, label, open })}
-					<BeaconWithdrawalsView
-						selection={
-							selection[EntityProxyField]<EntityType.BeaconWithdrawal>('$$beaconWithdrawals', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusWithdrawals({ id, label, open })}
+								<BeaconWithdrawalsView
+									selection={
+										selection[EntityProxyField]<EntityType.BeaconWithdrawal>('$$beaconWithdrawals', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/withdrawals', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusSlashings({ id, label, open })}
-					<BeaconSlashingsView
-						selection={
-							selection[EntityProxyField]<EntityType.BeaconSlashing>('$$beaconSlashings', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusSlashings({ id, label, open })}
+								<BeaconSlashingsView
+									selection={
+										selection[EntityProxyField]<EntityType.BeaconSlashing>('$$beaconSlashings', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slashings', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusValidators({ id, label, open })}
-					<BeaconValidatorsView
-						selection={
-							selection[EntityProxyField]<EntityType.BeaconValidator>('$$beaconValidators', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusValidators({ id, label, open })}
+								<BeaconValidatorsView
+									selection={
+										selection[EntityProxyField]<EntityType.BeaconValidator>('$$beaconValidators', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validators', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusEpochs({ id, label, open })}
-					<BeaconEpochsView
-						selection={
-							selection[EntityProxyField]<EntityType.BeaconEpoch>('$$beaconEpochs', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusEpochs({ id, label, open })}
+								<BeaconEpochsView
+									selection={
+										selection[EntityProxyField]<EntityType.BeaconEpoch>('$$beaconEpochs', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epochs', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusSlots({ id, label, open })}
-					<BeaconSlotsView
-						selection={
-							selection[EntityProxyField]<EntityType.BeaconSlot>('$$beaconSlots', {
-								sources: [
-									Source.Beacon_Rest,
-								],
-								limit: 16,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusSlots({ id, label, open })}
+								<BeaconSlotsView
+									selection={
+										selection[EntityProxyField]<EntityType.BeaconSlot>('$$beaconSlots', {
+											sources: [
+												Source.Beacon_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slots', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-				{#snippet SectionConsensusMevRelays({ id, label, open })}
-					<MevRelaysView
-						selection={
-							selection[EntityProxyField]<EntityType.MevRelay>('$$mevRelays', {
-								sources: [
-									Source.Constants_Internal,
-								],
-								limit: 64,
-							})
-						}
-						CollapsibleProps={{ canToggle: false }}
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
-				{/snippet}
+							{#snippet SectionConsensusMevRelays({ id, label, open })}
+								<MevRelaysView
+									selection={
+										selection[EntityProxyField]<EntityType.MevRelay>('$$mevRelays', {
+											sources: [
+												Source.Constants_Internal,
+											],
+											limit: 64,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relays', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
 
-			</CollapsibleTabs>
+							{#snippet SectionConsensusMevBuilders({ id, label, open })}
+								<MevBuildersView
+									selection={
+										selection[EntityProxyField]<EntityType.MevBuilder>('$$mevBuilders', {
+											sources: [
+												Source.MevRelay_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builders', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
+
+							{#snippet SectionConsensusMevBoost({ id, label, open })}
+								<MevRelay_ProposerPayloadDeliveredRowsView
+									selection={
+										selection[EntityProxyField]<EntityType.MevRelay_ProposerPayloadDelivered>('$$mevProposerPayloadDelivered', {
+											sources: [
+												Source.MevRelay_Rest,
+											],
+											limit: 16,
+										})
+									}
+									href={
+										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/payloads', {
+											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+										})
+									}
+									CollapsibleProps={{ canToggle: false }}
+									open={open}
+									title={label}
+									id={`${id}-list`}
+								/>
+							{/snippet}
+
+							{#snippet SectionConsensusEndpoints({ id, label, open })}
+								<ResourceBoundary
+									resource={
+										selection({
+											fields: {
+												consensusEndpoints: true,
+											},
+										})
+									}
+								>
+									{#snippet children(entity)}
+										{@const consensusEndpoints = entity.consensusEndpoints}
+										{#if consensusEndpoints.length > 0}
+											<ul data-column="gap-2">
+												{#each consensusEndpoints as consensusEndpoint, consensusEndpointIndex (consensusEndpointIndex)}
+													{@const restBaseUrlValue = consensusEndpoint.restBaseUrl}
+													{@const consensusProtocolValue = consensusEndpoint.consensusProtocol}
+													<li>
+														<dl data-column-item="center">
+															<div>
+																<dt>REST</dt>
+																<dd>
+																	{#if restBaseUrlValue !== undefined && restBaseUrlValue !== null}
+																		{String((restBaseUrlValue) ?? '')}
+																	{/if}
+																</dd>
+															</div>
+
+															<div>
+																<dt>Protocol</dt>
+																<dd>
+																	{#if consensusProtocolValue !== undefined && consensusProtocolValue !== null}
+																		{String((consensusProtocolByProtocol[String(consensusProtocolValue)]?.label ?? (String((consensusProtocolValue) ?? ''))) ?? '')}
+																	{/if}
+																</dd>
+															</div>
+														</dl>
+													</li>
+												{/each}
+											</ul>
+										{:else}
+											<p data-text="muted">Consensus endpoints are not listed for this network.</p>
+										{/if}
+									{/snippet}
+								</ResourceBoundary>
+							{/snippet}
+
+						</CollapsibleTabs>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<CollapsibleTabs
 				id={viewDomId + '-carousel-data-availability'}
@@ -1123,9 +1390,13 @@
 							selection[EntityProxyField]<EntityType.EvmBlob>('$$blobs', {
 								sources: [
 									Source.Voltaire_JsonRpc,
-									Source.Blobscan_Rest,
 								],
 								limit: 16,
+							})
+						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blobs', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -1145,6 +1416,7 @@
 						{
 							id: 'contracts-precompiles',
 							label: 'Precompiles',
+							description: 'Catalog precompiles active at the chain head according to the execution upgrade schedule.',
 						},
 						{
 							id: 'contracts-verified',
@@ -1199,7 +1471,7 @@
 						}
 						href={
 							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/precompiles', {
-								caip2: `${String(selection.entitySelector.caip2.namespace)}:${String(selection.entitySelector.caip2.reference)}`,
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -1221,7 +1493,7 @@
 						}
 						href={
 							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/contracts', {
-								caip2: `${String(selection.entitySelector.caip2.namespace)}:${String(selection.entitySelector.caip2.reference)}`,
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -1241,6 +1513,11 @@
 								limit: 16,
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-accounts', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -1256,6 +1533,11 @@
 									Source.Blockscout_Rest,
 								],
 								limit: 16,
+							})
+						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundlers', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -1275,6 +1557,11 @@
 								limit: 16,
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymasters', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -1292,6 +1579,11 @@
 								limit: 16,
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/user-operations', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -1307,6 +1599,11 @@
 									Source.Blockscout_Rest,
 								],
 								limit: 16,
+							})
+						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factories', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -1363,80 +1660,82 @@
 
 				{#snippet SectionAssetsNativeCoin({ id, label, open })}
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.Coin, false>('$nativeCoin')}
+						resource={
+							selection[EntityProxyField]<EntityType.Coin, false>('$nativeCoin', {
+								sources: [
+									Source.Constants_Internal,
+								],
+								fields: {
+									name: true,
+									symbol: true,
+								},
+							})
+						}
 					>
 						{#snippet children(coin)}
-							<EntitiesList
-								entityType={EntityType.Coin}
-								id={`${id}-list`}
-								title={label}
-								collapsible={false}
-								items={coin == null ? [] : [coin]}
-								getKey={(coin) => coin[EntityMetaKey.SelectorKey]}
-							>
-								{#snippet Item({ item: coin })}
-									<CoinView
-										selection={select(EntityType.Coin, coin.entitySelector)}
-										prefetched={coin}
-										href={
-											resolve('/(assets)/coin/[coinId]', {
-												coinId: String(coin.entitySelector.coinId),
-											})
-										}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/snippet}
-							</EntitiesList>
+							{#if coin != null && coin[EntityMetaKey.Selector] != null}
+								<CoinView
+									selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
+									prefetched={coin}
+									href={
+										(({ ...coin[EntityMetaKey.Selector], ...coin }).coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+											coinId: String(({ ...coin[EntityMetaKey.Selector], ...coin }).coinId ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
 
 				{#snippet SectionAssetsNativeInstance({ id, label, open })}
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.EvmCoinInstance, false>('$nativeCoinInstance')}
+						resource={
+							selection[EntityProxyField]<EntityType.EvmCoinInstance, false>('$nativeCoinInstance', {
+								sources: [
+									Source.Constants_Internal,
+								],
+								fields: {
+									symbol: true,
+									name: true,
+									$network: true,
+								},
+							})
+						}
 					>
 						{#snippet children(evmCoinInstance)}
-							<EntitiesList
-								entityType={EntityType.EvmCoinInstance}
-								id={`${id}-list`}
-								title={label}
-								collapsible={false}
-								items={evmCoinInstance == null ? [] : [evmCoinInstance]}
-								getKey={(evmCoinInstance) => evmCoinInstance[EntityMetaKey.SelectorKey]}
-							>
-								{#snippet Item({ item: evmCoinInstance })}
-									<EvmCoinInstanceView
-										selection={select(EntityType.EvmCoinInstance, evmCoinInstance.entitySelector)}
-										prefetched={evmCoinInstance}
-										href={
-											resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
-												chainId: String(evmCoinInstance.entitySelector.$network.caip2.reference),
-												coinInstanceSlug: String(
-													(
-														evmCoinInstance.entitySelector.type === 'NativeCurrency' ?
-															'native'
-														:
-															evmCoinInstance.entitySelector.$contract.address
-													)
-												),
-											})
-										}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/snippet}
-							</EntitiesList>
+							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
+								<EvmCoinInstanceView
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									prefetched={evmCoinInstance}
+									href={
+										(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2 !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? true : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+											chainId: String(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference ?? ''),
+											coinInstanceSlug: String((({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? 'native' : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address)),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
 
 				{#snippet SectionAssetsNativeAssets({ id, label, open })}
 					<AssetInstancesView
-						selection={selection[EntityProxyField]<EntityType.AssetInstance>('$$nativeAssets')}
+						selection={
+							selection[EntityProxyField]<EntityType.AssetInstance>('$$nativeAssets', {
+								sources: [
+									Source.Constants_Internal,
+								],
+							})
+						}
 						href={
 							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/native-assets', {
-								caip2: `${String(selection.entitySelector.caip2.namespace)}:${String(selection.entitySelector.caip2.reference)}`,
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -1457,6 +1756,11 @@
 								],
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/bridges', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -1474,6 +1778,11 @@
 								limit: 16,
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-20-transfers', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -1489,6 +1798,11 @@
 									Source.Blockscout_Rest,
 								],
 								limit: 16,
+							})
+						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/nft-transfers', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -1537,7 +1851,13 @@
 								],
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/faucets', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
+						emptyText='No faucet URLs listed for this network yet.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -1555,7 +1875,13 @@
 								],
 							})
 						}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/block-explorers', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
+						emptyText='No block explorer URLs listed for this network yet.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -1625,7 +1951,11 @@
 								limit: 512,
 							})
 						}
-						href={resolve('/upgrades')}
+						href={
+							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/upgrades', {
+								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -1646,30 +1976,23 @@
 						}
 					>
 						{#snippet children(network)}
-							<EntitiesList
-								entityType={EntityType.Network}
-								id={`${id}-list`}
-								title={label}
-								collapsible={false}
-								items={network == null ? [] : [network]}
-								getKey={(network) => network[EntityMetaKey.SelectorKey]}
-							>
-								{#snippet Item({ item: network })}
-									<NetworkView
-										selection={select(EntityType.Network, network.entitySelector)}
-										prefetched={network}
-										href={
-											(network.entitySelector?.caip2 != null && network.entitySelector?.caip2?.namespace != null && network.entitySelector?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-												caip2: `${String(network.entitySelector.caip2.namespace)}:${String(network.entitySelector.caip2.reference)}`,
-											}) : network.entitySelector?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-												networkSlug: String(network.entitySelector.slug),
-											}) : undefined)
-										}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/snippet}
-							</EntitiesList>
+							{#if network == null || network[EntityMetaKey.Selector] == null}
+								<p data-text="muted">Parent network is not listed for this network.</p>
+							{:else}
+								<NetworkView
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									prefetched={network}
+									href={
+										(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+											caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
+										}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+											networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
@@ -1685,29 +2008,22 @@
 						}
 					>
 						{#snippet children(evmRollup)}
-							<EntitiesList
-								entityType={EntityType.EvmRollup}
-								id={`${id}-list`}
-								title={label}
-								collapsible={false}
-								items={evmRollup == null ? [] : [evmRollup]}
-								getKey={(evmRollup) => evmRollup[EntityMetaKey.SelectorKey]}
-							>
-								{#snippet Item({ item: evmRollup })}
-									<EvmRollupView
-										selection={select(EntityType.EvmRollup, evmRollup.entitySelector)}
-										prefetched={evmRollup}
-										href={
-											resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-												caip2: `${String(evmRollup.entitySelector.$network.caip2.namespace)}:${String(evmRollup.entitySelector.$network.caip2.reference)}`,
-												projectId: String(evmRollup.entitySelector.projectId),
-											})
-										}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/snippet}
-							</EntitiesList>
+							{#if evmRollup == null || evmRollup[EntityMetaKey.Selector] == null}
+								<p data-text="muted">Rollup is not listed for this network.</p>
+							{:else}
+								<EvmRollupView
+									selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector])}
+									prefetched={evmRollup}
+									href={
+										(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2 !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.namespace !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2 !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.reference !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
+											caip2: `${String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.namespace ?? '')}:${String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.reference ?? '')}`,
+											projectId: String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).projectId ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
@@ -1725,6 +2041,7 @@
 						}
 						href={resolve('/(explore)/evm-networks')}
 						CollapsibleProps={{ canToggle: false }}
+						emptyText='No sibling shard networks listed for this network yet.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -1744,6 +2061,7 @@
 						}
 						href={resolve('/(explore)/networks')}
 						CollapsibleProps={{ canToggle: false }}
+						emptyText='No testnets listed for this network yet.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -1762,30 +2080,23 @@
 						}
 					>
 						{#snippet children(network)}
-							<EntitiesList
-								entityType={EntityType.Network}
-								id={`${id}-list`}
-								title={label}
-								collapsible={false}
-								items={network == null ? [] : [network]}
-								getKey={(network) => network[EntityMetaKey.SelectorKey]}
-							>
-								{#snippet Item({ item: network })}
-									<NetworkView
-										selection={select(EntityType.Network, network.entitySelector)}
-										prefetched={network}
-										href={
-											(network.entitySelector?.caip2 != null && network.entitySelector?.caip2?.namespace != null && network.entitySelector?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-												caip2: `${String(network.entitySelector.caip2.namespace)}:${String(network.entitySelector.caip2.reference)}`,
-											}) : network.entitySelector?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-												networkSlug: String(network.entitySelector.slug),
-											}) : undefined)
-										}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/snippet}
-							</EntitiesList>
+							{#if network == null || network[EntityMetaKey.Selector] == null}
+								<p data-text="muted">Mainnet is not listed for this network.</p>
+							{:else}
+								<NetworkView
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									prefetched={network}
+									href={
+										(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+											caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
+										}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+											networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
@@ -1804,6 +2115,7 @@
 						}
 						href={resolve('/(explore)/networks')}
 						CollapsibleProps={{ canToggle: false }}
+						emptyText='No child layer networks listed for this network yet.'
 						open={open}
 						title={label}
 						id={`${id}-list`}
@@ -1821,6 +2133,7 @@
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
+						emptyText='No settled rollups listed for this network yet.'
 						open={open}
 						title={label}
 						id={`${id}-list`}

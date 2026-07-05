@@ -24,8 +24,9 @@ describe('blockscoutErc4337OperationSupportByChainId', () => {
 		}
 	})
 
-	it('matches registry list helper on supported chains', () => {
-		expect(blockscoutErc4337RegistryListSupportByChainId[42161]).toEqual({ chainId: 42161 })
+	it('does not inherit registry leaderboard support from operations', () => {
+		expect(blockscoutErc4337RegistryListSupportByChainId[1]).toBeUndefined()
+		expect(blockscoutErc4337RegistryListSupportByChainId[42161]).toBeUndefined()
 		expect(blockscoutErc4337RegistryListSupportByChainId[5]).toBeUndefined()
 	})
 })

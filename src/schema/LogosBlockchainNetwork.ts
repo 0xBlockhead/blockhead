@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum LogosBlockchainNetworkSelector {
-	Network = '$network',
+	Network = 'Network',
 }
 export default {
 	entityType: EntityType.LogosBlockchainNetwork,
@@ -22,18 +21,18 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.LogosBlockchainNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'Timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.LogosBlockchainNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

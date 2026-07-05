@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const FarcasterRestSource = {
+export default {
 	provider: SourceProvider.Farcaster,
 	source: Source.Farcaster_Rest,
-	label: 'Farcaster Rest',
+	label: 'Farcaster REST',
 } satisfies SourceDefinition
-
-export default FarcasterRestSource

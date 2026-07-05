@@ -1,13 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum LitecoinMwebBlockSelector {
-	UtxoBlock = 'utxoBlock',
-	Block = '$block',
+	UtxoBlock = 'UtxoBlock',
 }
 export default {
 	entityType: EntityType.LitecoinMwebBlock,
@@ -23,32 +21,32 @@ export default {
 	],
 	fields: [
 		{
-			name: '$block',
-			label: 'block',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoBlock,
-			cardinality: EntityFieldCardinality.One,
+				name: '$block',
+				label: 'block',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.UtxoBlock,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'hogExTransactionId',
-			label: 'hog ex transaction ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'hogExTransactionId',
+				label: 'hog ex transaction ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'kernelRoot',
-			label: 'kernel root',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'kernelRoot',
+				label: 'kernel root',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$transactions',
-			label: 'transactions',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.LitecoinMwebTransaction,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$transactions',
+				label: 'transactions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.LitecoinMwebTransaction,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

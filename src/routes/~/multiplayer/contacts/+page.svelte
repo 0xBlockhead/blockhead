@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='BlockheadRoomPeersView-page'
+		id='blockhead-room-peers'
 	/>
 </Page>

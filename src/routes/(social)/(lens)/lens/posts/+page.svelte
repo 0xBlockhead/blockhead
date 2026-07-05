@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='LensPostsView-page'
+		id='lens-posts'
 	/>
 </Page>

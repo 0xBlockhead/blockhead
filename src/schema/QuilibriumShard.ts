@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum QuilibriumShardSelector {
-	NetworkShardKey = 'networkShardKey',
+	NetworkShardKey = 'NetworkShardKey',
 }
 export default {
 	entityType: EntityType.QuilibriumShard,
@@ -23,39 +22,39 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'shardKey',
-			label: 'shard key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'shardKey',
+				label: 'shard key',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'shardKind',
-			label: 'shard kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'shardKind',
+				label: 'shard kind',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$applicationAccount',
-			label: 'application account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.QuilibriumAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$applicationAccount',
+				label: 'application account',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.QuilibriumAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$frames',
-			label: 'frames',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.QuilibriumFrame,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$frames',
+				label: 'frames',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.QuilibriumFrame,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -1,13 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum NearExecutionOutcomeSelector {
-	NearTransactionOutcomeId = 'nearTransactionOutcomeId',
-	TransactionOutcomeId = '$transaction+outcomeId',
+	NearTransactionOutcomeId = 'NearTransactionOutcomeId',
 }
 export default {
 	entityType: EntityType.NearExecutionOutcome,
@@ -24,39 +23,48 @@ export default {
 	],
 	fields: [
 		{
-			name: '$transaction',
-			label: 'transaction',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.NearTransaction,
-			cardinality: EntityFieldCardinality.One,
+				name: '$transaction',
+				label: 'Transaction',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.NearTransaction,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'outcomeId',
-			label: 'outcome ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'outcomeId',
+				label: 'Outcome ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'status',
-			label: 'status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'status',
+				label: 'Status',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 		},
 		{
-			name: 'gasBurnt',
-			label: 'gas burnt',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'gasBurnt',
+				label: 'Gas burnt',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 		},
 		{
-			name: '$$receipts',
-			label: 'receipts',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NearReceipt,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$receipts',
+				label: 'Receipts',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NearReceipt,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

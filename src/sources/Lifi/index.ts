@@ -1,38 +1,11 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { lifiBindings } from '$/sources/Lifi/bindings.ts'
+// Generated from APP.ts. Do not edit by hand.
 
-export const lifiOrigins = [
-	...new Map(
-		lifiBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+import type { SourceDefinition } from '$/sources/index.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.Lifi,
-	label: 'LI.FI',
-	sources: [
-		{
-			provider: SourceProvider.Lifi,
-			source: Source.LifiStatus_Rest,
-			label: 'LI.FI status REST',
-		},
-		{
-			provider: SourceProvider.Lifi,
-			source: Source.Lifi_Rest,
-			label: 'LI.FI REST',
-		},
-	],
-	bindings: lifiBindings,
-} satisfies SourceProviderDefinition
+	source: Source.LifiStatus_Rest,
+	label: 'LI.FI status REST',
+} satisfies SourceDefinition

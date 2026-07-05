@@ -23,7 +23,6 @@ export const ogmiosBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:OGMIOS_URL',
-				origin: 'env:OGMIOS_URL',
 				corsEnabled: false,
 			},
 		],

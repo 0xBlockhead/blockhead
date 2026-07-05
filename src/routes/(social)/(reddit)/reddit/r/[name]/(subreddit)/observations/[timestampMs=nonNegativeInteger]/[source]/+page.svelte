@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.RedditSubreddit_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					subscriberCount: true,
 					activeUserCount: true,

@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.Erc4337Paymaster_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					userOperationsCount: true,
 				},

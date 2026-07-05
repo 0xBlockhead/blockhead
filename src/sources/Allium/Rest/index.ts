@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const AlliumRestSource = {
+export default {
 	provider: SourceProvider.Allium,
 	source: Source.Allium_Rest,
-	label: 'Allium Rest',
+	label: 'Allium REST',
 } satisfies SourceDefinition
-
-export default AlliumRestSource

@@ -82,9 +82,6 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: [
-					Source.Dexscreener_OpenApi,
-				],
 		},
 		{
 				name: 'quoteTokenDecimals',
@@ -92,9 +89,6 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('number'),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: [
-					Source.Dexscreener_OpenApi,
-				],
 		},
 		{
 				name: 'pairCreatedAtMs',

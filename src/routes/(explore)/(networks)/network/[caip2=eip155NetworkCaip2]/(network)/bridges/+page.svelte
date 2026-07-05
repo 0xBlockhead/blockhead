@@ -43,6 +43,6 @@
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 			})[EntityProxyField]<EntityType.EvmNetworkBridge>('$$bridges')
 		}
-		id='EvmNetworkBridgesView-page'
+		id='bridges'
 	/>
 </Page>

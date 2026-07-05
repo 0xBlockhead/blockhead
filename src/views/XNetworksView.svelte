@@ -20,7 +20,7 @@
 		selection,
 		title = 'X',
 		typeAnnotationParagraphs = ['X profiles and posts surfaced through configured public HTTP sources.'],
-		placeholderText = 'Loading X...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,27 +64,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(xNetworks)}
 			{@const uniqueXNetworks = [...new Map(xNetworks.values.map((xNetwork) => [xNetwork[EntityMetaKey.SelectorKey], xNetwork])).values()]}
 			<EntitiesList
@@ -96,7 +83,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xNetworks.values.length === uniqueXNetworks.length && xNetworks.totalCount != null && xNetworks.totalCount >= uniqueXNetworks.length ? xNetworks.totalCount : uniqueXNetworks.length}
+				totalCount={xNetworks.totalCount}
 				getKey={(xNetwork) => xNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueXNetworks}
 			>
@@ -109,9 +96,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: xNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XNetwork> })}
+					{@const xNetworkFields = { ...xNetwork[EntityMetaKey.Selector], ...xNetwork }}
 					<XNetworkView
-						selection={select(EntityType.XNetwork, xNetwork.entitySelector)}
-						prefetched={xNetwork}
+						selection={select(EntityType.XNetwork, xNetwork[EntityMetaKey.Selector])}
+						prefetched={xNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

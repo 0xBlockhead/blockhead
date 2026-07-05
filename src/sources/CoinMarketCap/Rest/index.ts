@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const CoinMarketCapRestSource = {
+export default {
 	provider: SourceProvider.CoinMarketCap,
 	source: Source.CoinMarketCap_Rest,
-	label: 'Coin Market Cap Rest',
+	label: 'CoinMarketCap REST',
 } satisfies SourceDefinition
-
-export default CoinMarketCapRestSource

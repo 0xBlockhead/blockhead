@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,52 +41,43 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const beaconValidatorTimestamp = $derived(selection({
 		fields: {
 			status: true,
-			balanceGwei: true,
-			effectiveBalanceGwei: true,
-			slashed: true,
-			activationEligibilityEpoch: true,
-			activationEpoch: true,
-			exitEpoch: true,
-			withdrawableEpoch: true,
-			withdrawalCredentials: true,
-			finalized: true,
-			executionOptimistic: true,
-			timestampMs: true,
 		},
 	}))
-	const titleFallback = $derived((String((({ ...selection.entitySelector, ...prefetched }).slot) ?? '') ? 'Slot #' + String((({ ...selection.entitySelector, ...prefetched }).slot) ?? '') : '') || 'beacon validator timestamp')
+	const titleFallback = $derived((String((selection.entitySelector.slot ?? prefetched.slot) ?? '') ? 'Slot #' + String((selection.entitySelector.slot ?? prefetched.slot) ?? '') : '') || 'beacon validator timestamp')
 	const viewDomId = $derived('beacon-validator-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.BeaconValidator_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(({ ...selection.entitySelector, ...prefetched }).slot ?? '')}
+	idDragPlainText={String(selection.entitySelector.slot ?? prefetched.slot ?? '')}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]/observations/[slot=nonNegativeInteger]/[source]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$validator.$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$validator.$network.caip2.reference)}`,
-			validatorIndex: String(({ ...selection.entitySelector, ...prefetched }).$validator.indexInNetwork),
-			slot: String(({ ...selection.entitySelector, ...prefetched }).slot),
-			source: String(({ ...selection.entitySelector, ...prefetched }).source),
-		})
+		href ?? (pendingEntity.$validator !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.caip2 !== undefined && pendingEntity.$validator.$network.caip2.namespace !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.$network !== undefined && pendingEntity.$validator.$network.caip2 !== undefined && pendingEntity.$validator.$network.caip2.reference !== undefined && pendingEntity.$validator !== undefined && pendingEntity.$validator.indexInNetwork !== undefined && pendingEntity.slot !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]/observations/[slot=nonNegativeInteger]/[source]', {
+			caip2: `${String(pendingEntity.$validator.$network.caip2.namespace ?? '')}:${String(pendingEntity.$validator.$network.caip2.reference ?? '')}`,
+			validatorIndex: String(pendingEntity.$validator.indexInNetwork ?? ''),
+			slot: String(pendingEntity.slot ?? ''),
+			source: String(pendingEntity.source ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).slot}
+		{@const serialValue = selection.entitySelector.slot ?? prefetched.slot}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Slot </span>
@@ -98,7 +89,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).slot}
+		{@const serialValue = selection.entitySelector.slot ?? prefetched.slot}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -107,34 +98,26 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const status0 = prefetched.status}
-			{#if status0 !== undefined && status0 !== null}
-				<span data-text="muted">
-					{String((status0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
-				{#snippet Pending()}
-					{@const status0 = prefetched.status}
-					{#if status0 !== undefined && status0 !== null}
-						<span data-text="muted">
-							{String((status0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={beaconValidatorTimestamp}>
+			{#snippet Pending()}
+				{@const status0 = prefetched.status}
+				{#if status0 !== undefined && status0 !== null}
+					<span data-text="muted">
+						{String((status0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const status0 = entity.status}
-					{#if status0 !== undefined && status0 !== null}
-						<span data-text="muted">
-							{String((status0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const status0 = resolvedEntity.status}
+				{#if status0 !== undefined && status0 !== null}
+					<span data-text="muted">
+						{String((status0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -142,16 +125,25 @@
 			<div>
 				<dt>Slot</dt>
 				<dd>
-					<ResourceBoundary resource={beaconValidatorTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									slot: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const slot = prefetched.slot ?? selection.entitySelector.slot}
+							{@const slot = selection.entitySelector.slot ?? prefetched.slot}
 							{#if slot !== undefined && slot !== null}
 								<NumberValue value={Number(slot)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const slot = entity.slot ?? selection.entitySelector.slot ?? prefetched.slot}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const slot = resolvedEntity.slot}
 							{#if slot !== undefined && slot !== null}
 								<NumberValue value={Number(slot)} />
 							{/if}
@@ -163,16 +155,25 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary resource={beaconValidatorTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const source = prefetched.source ?? selection.entitySelector.source}
+							{@const source = selection.entitySelector.source ?? prefetched.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const source = entity.source ?? selection.entitySelector.source ?? prefetched.source}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -181,9 +182,17 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							balanceGwei: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const balanceGwei = prefetched.balanceGwei ?? selection.entitySelector.balanceGwei}
+					{@const balanceGwei = prefetched.balanceGwei}
 					{#if balanceGwei !== undefined && balanceGwei !== null}
 						<div>
 							<dt>Balance</dt>
@@ -195,7 +204,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const balanceGwei = entity.balanceGwei ?? selection.entitySelector.balanceGwei ?? prefetched.balanceGwei}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const balanceGwei = resolvedEntity.balanceGwei}
 					{#if balanceGwei !== undefined && balanceGwei !== null}
 						<div>
 							<dt>Balance</dt>
@@ -207,9 +217,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							effectiveBalanceGwei: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const effectiveBalanceGwei = prefetched.effectiveBalanceGwei ?? selection.entitySelector.effectiveBalanceGwei}
+					{@const effectiveBalanceGwei = prefetched.effectiveBalanceGwei}
 					{#if effectiveBalanceGwei !== undefined && effectiveBalanceGwei !== null}
 						<div>
 							<dt>Effective balance</dt>
@@ -221,7 +239,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const effectiveBalanceGwei = entity.effectiveBalanceGwei ?? selection.entitySelector.effectiveBalanceGwei ?? prefetched.effectiveBalanceGwei}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const effectiveBalanceGwei = resolvedEntity.effectiveBalanceGwei}
 					{#if effectiveBalanceGwei !== undefined && effectiveBalanceGwei !== null}
 						<div>
 							<dt>Effective balance</dt>
@@ -233,26 +252,70 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							status: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const slashed = prefetched.slashed ?? selection.entitySelector.slashed}
-					{#if slashed !== undefined && slashed !== null}
+					{@const status = prefetched.status}
+					{#if status !== undefined && status !== null}
 						<div>
-							<dt>Slashed</dt>
+							<dt>Status</dt>
 							<dd>
-								{String((slashed) ?? '')}
+								{String((status) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const slashed = entity.slashed ?? selection.entitySelector.slashed ?? prefetched.slashed}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const status = resolvedEntity.status}
+					{#if status !== undefined && status !== null}
+						<div>
+							<dt>Status</dt>
+							<dd>
+								{String((status) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							slashed: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const slashed = prefetched.slashed}
 					{#if slashed !== undefined && slashed !== null}
 						<div>
 							<dt>Slashed</dt>
 							<dd>
-								{String((slashed) ?? '')}
+								{slashed ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slashed = resolvedEntity.slashed}
+					{#if slashed !== undefined && slashed !== null}
+						<div>
+							<dt>Slashed</dt>
+							<dd>
+								{slashed ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
@@ -261,9 +324,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							activationEligibilityEpoch: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activationEligibilityEpoch = prefetched.activationEligibilityEpoch ?? selection.entitySelector.activationEligibilityEpoch}
+					{@const activationEligibilityEpoch = prefetched.activationEligibilityEpoch}
 					{#if activationEligibilityEpoch !== undefined && activationEligibilityEpoch !== null}
 						<div>
 							<dt>Activation eligibility epoch</dt>
@@ -275,7 +346,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activationEligibilityEpoch = entity.activationEligibilityEpoch ?? selection.entitySelector.activationEligibilityEpoch ?? prefetched.activationEligibilityEpoch}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationEligibilityEpoch = resolvedEntity.activationEligibilityEpoch}
 					{#if activationEligibilityEpoch !== undefined && activationEligibilityEpoch !== null}
 						<div>
 							<dt>Activation eligibility epoch</dt>
@@ -287,9 +359,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							activationEpoch: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activationEpoch = prefetched.activationEpoch ?? selection.entitySelector.activationEpoch}
+					{@const activationEpoch = prefetched.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -301,7 +381,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activationEpoch = entity.activationEpoch ?? selection.entitySelector.activationEpoch ?? prefetched.activationEpoch}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationEpoch = resolvedEntity.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -313,9 +394,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							exitEpoch: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const exitEpoch = prefetched.exitEpoch ?? selection.entitySelector.exitEpoch}
+					{@const exitEpoch = prefetched.exitEpoch}
 					{#if exitEpoch !== undefined && exitEpoch !== null}
 						<div>
 							<dt>Exit epoch</dt>
@@ -327,7 +416,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const exitEpoch = entity.exitEpoch ?? selection.entitySelector.exitEpoch ?? prefetched.exitEpoch}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const exitEpoch = resolvedEntity.exitEpoch}
 					{#if exitEpoch !== undefined && exitEpoch !== null}
 						<div>
 							<dt>Exit epoch</dt>
@@ -339,9 +429,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							withdrawableEpoch: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const withdrawableEpoch = prefetched.withdrawableEpoch ?? selection.entitySelector.withdrawableEpoch}
+					{@const withdrawableEpoch = prefetched.withdrawableEpoch}
 					{#if withdrawableEpoch !== undefined && withdrawableEpoch !== null}
 						<div>
 							<dt>Withdrawable epoch</dt>
@@ -353,7 +451,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const withdrawableEpoch = entity.withdrawableEpoch ?? selection.entitySelector.withdrawableEpoch ?? prefetched.withdrawableEpoch}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const withdrawableEpoch = resolvedEntity.withdrawableEpoch}
 					{#if withdrawableEpoch !== undefined && withdrawableEpoch !== null}
 						<div>
 							<dt>Withdrawable epoch</dt>
@@ -365,104 +464,140 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							withdrawalCredentials: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const withdrawalCredentials = prefetched.withdrawalCredentials ?? selection.entitySelector.withdrawalCredentials}
+					{@const withdrawalCredentials = prefetched.withdrawalCredentials}
 					{#if withdrawalCredentials !== undefined && withdrawalCredentials !== null}
 						<div>
 							<dt>Withdrawal credentials</dt>
 							<dd>
-								{String((withdrawalCredentials) ?? '')}
+								<TruncatedValue value={String((withdrawalCredentials) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const withdrawalCredentials = entity.withdrawalCredentials ?? selection.entitySelector.withdrawalCredentials ?? prefetched.withdrawalCredentials}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const withdrawalCredentials = resolvedEntity.withdrawalCredentials}
 					{#if withdrawalCredentials !== undefined && withdrawalCredentials !== null}
 						<div>
 							<dt>Withdrawal credentials</dt>
 							<dd>
-								{String((withdrawalCredentials) ?? '')}
+								<TruncatedValue value={String((withdrawalCredentials) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							finalized: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const finalized = prefetched.finalized ?? selection.entitySelector.finalized}
+					{@const finalized = prefetched.finalized}
 					{#if finalized !== undefined && finalized !== null}
 						<div>
 							<dt>Finalized</dt>
 							<dd>
-								{String((finalized) ?? '')}
+								{finalized ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const finalized = entity.finalized ?? selection.entitySelector.finalized ?? prefetched.finalized}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const finalized = resolvedEntity.finalized}
 					{#if finalized !== undefined && finalized !== null}
 						<div>
 							<dt>Finalized</dt>
 							<dd>
-								{String((finalized) ?? '')}
+								{finalized ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							executionOptimistic: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const executionOptimistic = prefetched.executionOptimistic ?? selection.entitySelector.executionOptimistic}
+					{@const executionOptimistic = prefetched.executionOptimistic}
 					{#if executionOptimistic !== undefined && executionOptimistic !== null}
 						<div>
 							<dt>Execution optimistic</dt>
 							<dd>
-								{String((executionOptimistic) ?? '')}
+								{executionOptimistic ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const executionOptimistic = entity.executionOptimistic ?? selection.entitySelector.executionOptimistic ?? prefetched.executionOptimistic}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const executionOptimistic = resolvedEntity.executionOptimistic}
 					{#if executionOptimistic !== undefined && executionOptimistic !== null}
 						<div>
 							<dt>Execution optimistic</dt>
 							<dd>
-								{String((executionOptimistic) ?? '')}
+								{executionOptimistic ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidatorTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							timestampMs: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const timestampMs = prefetched.timestampMs ?? selection.entitySelector.timestampMs}
+					{@const timestampMs = prefetched.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								{String((timestampMs) ?? '')}
+								<Timestamp timestamp={Number(timestampMs)} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const timestampMs = entity.timestampMs ?? selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestampMs = resolvedEntity.timestampMs}
 					{#if timestampMs !== undefined && timestampMs !== null}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
-								{String((timestampMs) ?? '')}
+								<Timestamp timestamp={Number(timestampMs)} />
 							</dd>
 						</div>
 					{/if}
@@ -475,10 +610,10 @@
 					<BeaconValidatorView
 						selection={select(EntityType.BeaconValidator, selection.entitySelector.$validator)}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
-								caip2: `${String(selection.entitySelector.$validator.caip2.namespace)}:${String(selection.entitySelector.$validator.caip2.reference)}`,
-								validatorIndex: String(selection.entitySelector.$validator.indexInNetwork),
-							})
+							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.namespace !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.reference !== undefined && selection.entitySelector.$validator.indexInNetwork !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
+								caip2: `${String(selection.entitySelector.$validator.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$validator.$network.caip2.reference ?? '')}`,
+								validatorIndex: String(selection.entitySelector.$validator.indexInNetwork ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}

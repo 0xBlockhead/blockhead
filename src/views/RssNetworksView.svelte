@@ -20,7 +20,7 @@
 		selection,
 		title = 'RSS / Atom',
 		typeAnnotationParagraphs = ['RSS and Atom syndication feeds publish ordered item streams keyed by feed URL.'],
-		placeholderText = 'Loading RSS / Atom...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,27 +64,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(rssNetworks)}
 			{@const uniqueRssNetworks = [...new Map(rssNetworks.values.map((rssNetwork) => [rssNetwork[EntityMetaKey.SelectorKey], rssNetwork])).values()]}
 			<EntitiesList
@@ -96,7 +83,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={rssNetworks.values.length === uniqueRssNetworks.length && rssNetworks.totalCount != null && rssNetworks.totalCount >= uniqueRssNetworks.length ? rssNetworks.totalCount : uniqueRssNetworks.length}
+				totalCount={rssNetworks.totalCount}
 				getKey={(rssNetwork) => rssNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueRssNetworks}
 			>
@@ -109,9 +96,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: rssNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RssNetwork> })}
+					{@const rssNetworkFields = { ...rssNetwork[EntityMetaKey.Selector], ...rssNetwork }}
 					<RssNetworkView
-						selection={select(EntityType.RssNetwork, rssNetwork.entitySelector)}
-						prefetched={rssNetwork}
+						selection={select(EntityType.RssNetwork, rssNetwork[EntityMetaKey.Selector])}
+						prefetched={rssNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -21,7 +21,7 @@
 		selection,
 		title = 'Coin bridge capabilities',
 		typeAnnotationParagraphs = ['A supported bridge path between two EVM coin instances through a specific bridge tool.'],
-		placeholderText = 'Loading Coin bridge capabilities...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					toolKey: true,
 					railId: true,
+					$fromInstance: true,
+					$toInstance: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CoinBridgeCapability}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(coinBridgeCapabilities)}
 			{@const uniqueCoinBridgeCapabilities = [...new Map(coinBridgeCapabilities.values.map((coinBridgeCapability) => [coinBridgeCapability[EntityMetaKey.SelectorKey], coinBridgeCapability])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={coinBridgeCapabilities.values.length === uniqueCoinBridgeCapabilities.length && coinBridgeCapabilities.totalCount != null && coinBridgeCapabilities.totalCount >= uniqueCoinBridgeCapabilities.length ? coinBridgeCapabilities.totalCount : uniqueCoinBridgeCapabilities.length}
+				totalCount={coinBridgeCapabilities.totalCount}
 				getKey={(coinBridgeCapability) => coinBridgeCapability[EntityMetaKey.SelectorKey]}
 				items={uniqueCoinBridgeCapabilities}
 			>
@@ -106,24 +95,26 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No coin bridge capabilities yet.</p>
+						<p data-text="muted">No Coin bridge capabilities yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: coinBridgeCapability }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CoinBridgeCapability> })}
+					{@const coinBridgeCapabilityFields = { ...coinBridgeCapability[EntityMetaKey.Selector], ...coinBridgeCapability }}
+					{@const coinBridgeCapabilityHrefFields = { ...coinBridgeCapability, ...coinBridgeCapability[EntityMetaKey.Selector] }}
 					<CoinBridgeCapabilityView
+						selection={select(EntityType.CoinBridgeCapability, coinBridgeCapability[EntityMetaKey.Selector])}
+						prefetched={coinBridgeCapabilityFields}
 						href={
-							resolve('/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug]/[toChainId=eip155ChainId]/[toCoinInstanceSlug]/[toolKey]', {
-								fromChainId: String(({ ...coinBridgeCapability.entitySelector, ...coinBridgeCapability }).$fromInstance.$network.chainId),
-								fromCoinInstanceSlug: String(({ ...coinBridgeCapability.entitySelector, ...coinBridgeCapability }).$fromInstance.slug),
-								toChainId: String(({ ...coinBridgeCapability.entitySelector, ...coinBridgeCapability }).$toInstance.$network.chainId),
-								toCoinInstanceSlug: String(({ ...coinBridgeCapability.entitySelector, ...coinBridgeCapability }).$toInstance.slug),
-								toolKey: String(({ ...coinBridgeCapability.entitySelector, ...coinBridgeCapability }).toolKey),
-							})
+							(coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network.chainId !== undefined && coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.slug !== undefined && coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network.chainId !== undefined && coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.slug !== undefined && coinBridgeCapabilityHrefFields.toolKey !== undefined ? resolve('/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug]/[toChainId=eip155ChainId]/[toCoinInstanceSlug]/[toolKey]', {
+								fromChainId: String(coinBridgeCapabilityHrefFields.$fromInstance.$network.chainId ?? ''),
+								fromCoinInstanceSlug: String(coinBridgeCapabilityHrefFields.$fromInstance.slug ?? ''),
+								toChainId: String(coinBridgeCapabilityHrefFields.$toInstance.$network.chainId ?? ''),
+								toCoinInstanceSlug: String(coinBridgeCapabilityHrefFields.$toInstance.slug ?? ''),
+								toolKey: String(coinBridgeCapabilityHrefFields.toolKey ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CoinBridgeCapability, coinBridgeCapability.entitySelector)}
-						prefetched={coinBridgeCapability}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

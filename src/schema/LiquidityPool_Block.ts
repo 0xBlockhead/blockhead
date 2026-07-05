@@ -2,6 +2,7 @@
 
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum LiquidityPool_BlockSelector {
@@ -42,6 +43,9 @@ export default {
 				type: EntityFieldType.EntityReference,
 				entityType: EntityType.LiquidityPool,
 				cardinality: EntityFieldCardinality.One,
+				defaultSources: [
+					Source.Dexscreener_OpenApi,
+				],
 		},
 		{
 				name: 'sqrtPriceX96',

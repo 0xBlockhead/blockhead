@@ -237,6 +237,20 @@ export default {
 				cardinality: EntityFieldCardinality.Many,
 		},
 		{
+				name: '$$authorizations',
+				label: 'EIP-7702 authorizations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.Eip7702Authorization,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
+				name: '$$traces',
+				label: 'Traces',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.EvmTrace,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
 				name: 'traceRoot',
 				label: 'Trace root',
 				type: EntityFieldType.Primitive,

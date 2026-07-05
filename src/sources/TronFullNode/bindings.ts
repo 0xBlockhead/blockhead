@@ -16,9 +16,7 @@ import {
 
 const tronFullNodeOrigin = 'http://127.0.0.1:8090' as const
 
-export const tronFullNodePublicEnv = arktype({
-	PUBLIC_TRON_FULL_NODE_REST_BASE_URL: 'string',
-})
+export const tronFullNodePublicEnv = arktype({})
 
 export const tronFullNodeBindings = [
 	{
@@ -44,10 +42,7 @@ export const tronFullNodeBindings = [
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
-				scope: SourceCredentialScope.PublicConfig,
-				keys: [
-					'PUBLIC_TRON_FULL_NODE_REST_BASE_URL',
-				],
+				scope: SourceCredentialScope.None,
 			},
 		],
 		artifacts: [

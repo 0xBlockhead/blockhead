@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM transactions',
 		typeAnnotationParagraphs = ['A transaction submitted to or included in an EVM-compatible network.'],
-		placeholderText = 'Loading EVM transactions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					txHash: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmTransactions)}
 			{@const uniqueEvmTransactions = [...new Map(evmTransactions.values.map((evmTransaction) => [evmTransaction[EntityMetaKey.SelectorKey], evmTransaction])).values()]}
 			<EntitiesList
@@ -97,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmTransactions.values.length === uniqueEvmTransactions.length && evmTransactions.totalCount != null && evmTransactions.totalCount >= uniqueEvmTransactions.length ? evmTransactions.totalCount : uniqueEvmTransactions.length}
+				totalCount={evmTransactions.totalCount}
 				getKey={(evmTransaction) => evmTransaction[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmTransactions}
 			>
@@ -110,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTransaction> })}
+					{@const evmTransactionFields = { ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }}
+					{@const evmTransactionHrefFields = { ...evmTransaction, ...evmTransaction[EntityMetaKey.Selector] }}
 					<EvmTransactionView
+						selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
+						prefetched={evmTransactionFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${String(({ ...evmTransaction.entitySelector, ...evmTransaction }).$network.caip2.namespace)}:${String(({ ...evmTransaction.entitySelector, ...evmTransaction }).$network.caip2.reference)}`,
-								transactionId: String(({ ...evmTransaction.entitySelector, ...evmTransaction }).txHash),
-							})
+							(evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.caip2 !== undefined && evmTransactionHrefFields.$network.caip2.namespace !== undefined && evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.caip2 !== undefined && evmTransactionHrefFields.$network.caip2.reference !== undefined && evmTransactionHrefFields.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+								caip2: `${String(evmTransactionHrefFields.$network.caip2.namespace ?? '')}:${String(evmTransactionHrefFields.$network.caip2.reference ?? '')}`,
+								transactionId: String(evmTransactionHrefFields.txHash ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmTransaction, evmTransaction.entitySelector)}
-						prefetched={evmTransaction}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

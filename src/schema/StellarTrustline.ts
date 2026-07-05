@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum StellarTrustlineSelector {
-	AccountAsset = '$account+$asset',
+	AccountAsset = 'AccountAsset',
 }
 export default {
 	entityType: EntityType.StellarTrustline,
@@ -23,25 +22,25 @@ export default {
 	],
 	fields: [
 		{
-			name: '$account',
-			label: 'account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.StellarAccount,
-			cardinality: EntityFieldCardinality.One,
+				name: '$account',
+				label: 'account',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.StellarAccount,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$asset',
-			label: 'asset',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.StellarAsset,
-			cardinality: EntityFieldCardinality.One,
+				name: '$asset',
+				label: 'asset',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.StellarAsset,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.StellarTrustline_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.StellarTrustline_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

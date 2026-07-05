@@ -47,7 +47,7 @@ describe('EVM route params', () => {
 	})
 
 	it('indexes selector definitions by entity type and selector name', () => {
-		expect(schemaMeta.entitySelectorDefinitionByEntityTypeAndName[EntityType.EvmBlock].evmNetworkBlockNumber.fields).toEqual([
+		expect(schemaMeta.entitySelectorDefinitionByEntityTypeAndName[EntityType.EvmBlock].EvmNetworkBlockNumber.fields).toEqual([
 			'$network',
 			'blockNumber',
 		])

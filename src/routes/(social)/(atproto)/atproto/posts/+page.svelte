@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='AtprotoPostsView-page'
+		id='source-window-posts'
 	/>
 </Page>

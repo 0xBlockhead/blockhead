@@ -23,7 +23,6 @@ export const libtorrentSessionBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:LIBTORRENT_SESSION_API_URL',
-				origin: 'env:LIBTORRENT_SESSION_API_URL',
 				corsEnabled: false,
 			},
 		],

@@ -10,8 +10,8 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
-	import { MarketAssetKind, marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
 
 
 	// Context
@@ -23,7 +23,7 @@
 		selection,
 		title = 'Market prices',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Market prices...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -77,7 +77,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Constants_Internal,
 					Source.Coingecko_Rest,
@@ -91,23 +91,10 @@
 				fields: {
 					$market: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MarketPrice}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-			/>
-		{/snippet}
-
 		{#snippet children(marketPrices)}
 			{@const uniqueMarketPrices = [...new Map(marketPrices.values.map((marketPrice) => [marketPrice[EntityMetaKey.SelectorKey], marketPrice])).values()]}
 			<EntitiesList
@@ -119,7 +106,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={marketPrices.values.length === uniqueMarketPrices.length && marketPrices.totalCount != null && marketPrices.totalCount >= uniqueMarketPrices.length ? marketPrices.totalCount : uniqueMarketPrices.length}
+				totalCount={marketPrices.totalCount}
 				getKey={(marketPrice) => marketPrice[EntityMetaKey.SelectorKey]}
 				items={uniqueMarketPrices}
 			>
@@ -127,27 +114,26 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No market prices yet.</p>
+						<p data-text="muted">No Market prices yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: marketPrice }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MarketPrice> })}
-					{@const baseLabel = marketPrice.entitySelector.$market.$base.kind === MarketAssetKind.Coin ? marketPrice.entitySelector.$market.$base.$coin.coinId : marketPrice.entitySelector.$market.$base.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[String(marketPrice.entitySelector.$market.$base.$coinInstance.type)] : marketPrice.entitySelector.$market.$base.$currency.iso4217}
-					{@const quoteLabel = marketPrice.entitySelector.$market.$quote.kind === MarketAssetKind.Coin ? marketPrice.entitySelector.$market.$quote.$coin.coinId : marketPrice.entitySelector.$market.$quote.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[String(marketPrice.entitySelector.$market.$quote.$coinInstance.type)] : marketPrice.entitySelector.$market.$quote.$currency.iso4217}
-					{@const marketPriceLabel = `${marketPrice.entitySelector.$market.$marketVenue.marketVenueId}:${baseLabel}/${quoteLabel}`}
+					{@const marketPriceFields = { ...marketPrice[EntityMetaKey.Selector], ...marketPrice }}
+					{@const marketPriceHrefFields = { ...marketPrice, ...marketPrice[EntityMetaKey.Selector] }}
 					<MarketPriceView
+						selection={select(EntityType.MarketPrice, marketPrice[EntityMetaKey.Selector])}
+						prefetched={marketPriceFields}
 						href={
 							resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
-								marketVenue: String(marketPrice.entitySelector.$market.$marketVenue.marketVenueId),
-								baseKind: String(marketAssetRouteLabelByKind[String(marketPrice.entitySelector.$market.$base.kind)]),
-								base: String(baseLabel),
-								quoteKind: String(marketAssetRouteLabelByKind[String(marketPrice.entitySelector.$market.$quote.kind)]),
-								quote: String(quoteLabel),
-								marketKind: String(marketPrice.entitySelector.$market.marketKind),
+								marketVenue: String(marketPriceHrefFields.$market.$marketVenue.marketVenueId ?? ''),
+								baseKind: String(marketAssetRouteLabelByKind[String(marketPriceHrefFields.$market.$base.kind)] ?? ''),
+								base: String((marketPriceHrefFields.$market.$base.kind === 'Coin' ? marketPriceHrefFields.$market.$base.$coin.coinId : marketPriceHrefFields.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketPriceHrefFields.$market.$base.$coinInstance.type)] : marketPriceHrefFields.$market.$base.$currency.iso4217)),
+								quoteKind: String(marketAssetRouteLabelByKind[String(marketPriceHrefFields.$market.$quote.kind)] ?? ''),
+								quote: String((marketPriceHrefFields.$market.$quote.kind === 'Coin' ? marketPriceHrefFields.$market.$quote.$coin.coinId : marketPriceHrefFields.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketPriceHrefFields.$market.$quote.$coinInstance.type)] : marketPriceHrefFields.$market.$quote.$currency.iso4217)),
+								marketKind: String(marketPriceHrefFields.$market.marketKind ?? ''),
 							})
 						}
-						selection={select(EntityType.MarketPrice, marketPrice.entitySelector)}
-						prefetched={marketPrice}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

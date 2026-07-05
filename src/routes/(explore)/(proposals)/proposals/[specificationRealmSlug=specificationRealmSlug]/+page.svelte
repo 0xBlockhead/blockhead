@@ -40,6 +40,8 @@
 			select(EntityType.SpecificationRealm, data.selector, {
 				fields: {
 					label: true,
+					labelPlural: true,
+					slug: true,
 				},
 			})
 		}

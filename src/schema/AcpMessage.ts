@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum AcpMessageSelector {
-	SessionMessageId = '$session+messageId',
+	SessionMessageId = 'SessionMessageId',
 }
 export default {
 	entityType: EntityType.AcpMessage,
@@ -23,40 +22,40 @@ export default {
 	],
 	fields: [
 		{
-			name: '$session',
-			label: 'session',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AcpSession,
-			cardinality: EntityFieldCardinality.One,
+				name: '$session',
+				label: 'session',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.AcpSession,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'messageId',
-			label: 'message ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'messageId',
+				label: 'message ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'role',
-			label: 'role',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'role',
+				label: 'role',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'createdAt',
-			label: 'Created',
-			description: 'The time when the subject was created according to the source.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'createdAt',
+				label: 'Created',
+				description: 'The time when the subject was created according to the source.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$parts',
-			label: 'parts',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.AcpMessagePart,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$parts',
+				label: 'parts',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.AcpMessagePart,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

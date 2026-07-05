@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -43,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const redditSubreddit = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -50,18 +50,11 @@
 		fields: {
 			$icon: true,
 			title: true,
-			publicDescription: true,
-			createdAt: true,
-			over18: true,
-			...(open && {
-				$$links: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).title) ?? '')].filter(Boolean).join(' ') || ['r/' + String((selection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit')
+	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [(String((selection.entitySelector.name ?? prefetched.name) ?? '') ? 'r/' + String((selection.entitySelector.name ?? prefetched.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit')
 	const viewDomId = $derived('reddit-subreddit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -72,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.RedditSubreddit}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -102,27 +95,99 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).title) ?? '')].filter(Boolean).join(' ') || title || ['r/' + String((selection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit'}
-		{:else}
-			<ResourceBoundary resource={redditSubreddit}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).title) ?? '')].filter(Boolean).join(' ') || title || ['r/' + String((selection.entitySelector.name) ?? '')].filter(Boolean).join(' ') || 'Reddit subreddit'}
-				{/snippet}
+		<ResourceBoundary resource={redditSubreddit}>
+			{#snippet Pending()}
+				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [(String((selection.entitySelector.name ?? prefetched.name) ?? '') ? 'r/' + String((selection.entitySelector.name ?? prefetched.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<div>
+				<dt>Subreddit</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									name: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const name = selection.entitySelector.name ?? prefetched.name}
+							{#if name !== undefined && name !== null}
+								<span>r/</span>
+								{String((name) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const name = resolvedEntity.name}
+							{#if name !== undefined && name !== null}
+								<span>r/</span>
+								{String((name) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							title: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const title = prefetched.title}
+					{#if title !== undefined && title !== null}
+						<div>
+							<dt>Title</dt>
+							<dd>
+								{String((title) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const title = resolvedEntity.title}
+					{#if title !== undefined && title !== null}
+						<div>
+							<dt>Title</dt>
+							<dd>
+								{String((title) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			{#if contentOpen}
-				<ResourceBoundary resource={redditSubreddit}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								publicDescription: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const publicDescription = prefetched.publicDescription ?? selection.entitySelector.publicDescription}
+						{@const publicDescription = prefetched.publicDescription}
 						{#if publicDescription !== undefined && publicDescription !== null}
 							<div>
 								<dt>Public description</dt>
@@ -134,7 +199,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const publicDescription = entity.publicDescription ?? selection.entitySelector.publicDescription ?? prefetched.publicDescription}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const publicDescription = resolvedEntity.publicDescription}
 						{#if publicDescription !== undefined && publicDescription !== null}
 							<div>
 								<dt>Public description</dt>
@@ -148,9 +214,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={redditSubreddit}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								createdAt: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const createdAt = prefetched.createdAt ?? selection.entitySelector.createdAt}
+						{@const createdAt = prefetched.createdAt}
 						{#if createdAt !== undefined && createdAt !== null}
 							<div>
 								<dt>Created</dt>
@@ -162,7 +236,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const createdAt = entity.createdAt ?? selection.entitySelector.createdAt ?? prefetched.createdAt}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const createdAt = resolvedEntity.createdAt}
 						{#if createdAt !== undefined && createdAt !== null}
 							<div>
 								<dt>Created</dt>
@@ -176,26 +251,35 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={redditSubreddit}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								over18: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const over18 = prefetched.over18 ?? selection.entitySelector.over18}
+						{@const over18 = prefetched.over18}
 						{#if over18 !== undefined && over18 !== null}
 							<div>
 								<dt>NSFW</dt>
 								<dd>
-									{String((over18) ?? '')}
+									{over18 ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const over18 = entity.over18 ?? selection.entitySelector.over18 ?? prefetched.over18}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const over18 = resolvedEntity.over18}
 						{#if over18 !== undefined && over18 !== null}
 							<div>
 								<dt>NSFW</dt>
 								<dd>
-									{String((over18) ?? '')}
+									{over18 ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
@@ -208,7 +292,14 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<RedditLinksView
-				selection={selection[EntityProxyField]<EntityType.RedditLink>('$$links')}
+				selection={
+						selection[EntityProxyField]<EntityType.RedditLink>('$$links', {
+							sources: [
+								Source.Constants_Internal,
+								Source.Reddit_PublicJson,
+							],
+						})
+					}
 				title='Submissions'
 				href={resolve('/(social)/(reddit)/reddit/links')}
 				id='RedditLinksView-$$links'

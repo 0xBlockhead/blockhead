@@ -21,7 +21,7 @@
 		selection,
 		title = 'Attestations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Beacon attestations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					indexInSlot: true,
 					slot: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconAttestation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(beaconAttestations)}
 			{@const uniqueBeaconAttestations = [...new Map(beaconAttestations.values.map((beaconAttestation) => [beaconAttestation[EntityMetaKey.SelectorKey], beaconAttestation])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconAttestations.values.length === uniqueBeaconAttestations.length && beaconAttestations.totalCount != null && beaconAttestations.totalCount >= uniqueBeaconAttestations.length ? beaconAttestations.totalCount : uniqueBeaconAttestations.length}
+				totalCount={beaconAttestations.totalCount}
 				getKey={(beaconAttestation) => beaconAttestation[EntityMetaKey.SelectorKey]}
 				items={uniqueBeaconAttestations}
 			>
@@ -111,16 +99,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: beaconAttestation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconAttestation> })}
+					{@const beaconAttestationFields = { ...beaconAttestation[EntityMetaKey.Selector], ...beaconAttestation }}
+					{@const beaconAttestationHrefFields = { ...beaconAttestation, ...beaconAttestation[EntityMetaKey.Selector] }}
 					<BeaconAttestationView
+						selection={select(EntityType.BeaconAttestation, beaconAttestation[EntityMetaKey.Selector])}
+						prefetched={beaconAttestationFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
-								caip2: `${String(({ ...beaconAttestation.entitySelector, ...beaconAttestation }).caip2.namespace)}:${String(({ ...beaconAttestation.entitySelector, ...beaconAttestation }).caip2.reference)}`,
-								slot: String(({ ...beaconAttestation.entitySelector, ...beaconAttestation }).slot),
-								index: String(({ ...beaconAttestation.entitySelector, ...beaconAttestation }).indexInSlot),
-							})
+							(beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.caip2 !== undefined && beaconAttestationHrefFields.$network.caip2.namespace !== undefined && beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.caip2 !== undefined && beaconAttestationHrefFields.$network.caip2.reference !== undefined && beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {
+								caip2: `${String(beaconAttestationHrefFields.$network.caip2.namespace ?? '')}:${String(beaconAttestationHrefFields.$network.caip2.reference ?? '')}`,
+								slot: String(beaconAttestationHrefFields.slot ?? ''),
+								index: String(beaconAttestationHrefFields.indexInSlot ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BeaconAttestation, beaconAttestation.entitySelector)}
-						prefetched={beaconAttestation}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

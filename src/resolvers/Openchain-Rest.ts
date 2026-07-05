@@ -100,6 +100,15 @@ export default {
 			resolve: {
 				[EvmErrorSelector.Hex]: async ({ hex }) => {
 					const { getErrorEntries } = await import('$/sources/Openchain/Rest/queries.ts')
+					const errorObservation = await getErrorEntries({ hex })
+						.then((signatureEntries) => ({
+							signatures: signatureEntries.map((signatureEntry) => signatureEntry.name),
+							reachable: true,
+						}))
+						.catch(() => ({
+							signatures: [],
+							reachable: false,
+						}))
 					return [
 						{
 							[EntityMetaKey.Selector]: {
@@ -107,13 +116,14 @@ export default {
 								timestampMs: Date.now(),
 								source: Source.Openchain_Rest,
 							},
-							signatures: (await getErrorEntries({ hex })).map((signatureEntry) => signatureEntry.name),
+							...errorObservation,
 						},
 					]
 				},
 			},
 		})({
 			fields: {
+				signatures: (timestamps) => timestamps.flatMap((timestamp) => timestamp.signatures),
 				$$timestamps: (timestamps) => timestamps,
 			},
 		}),
@@ -123,14 +133,21 @@ export default {
 			resolve: {
 				[EvmError_TimestampSelector.ErrorTimestampMsSource]: async ({ $error }) => {
 					const { getErrorEntries } = await import('$/sources/Openchain/Rest/queries.ts')
-					return {
-						signatures: (await getErrorEntries({ hex: $error.hex })).map((signatureEntry) => signatureEntry.name),
-					}
+					return getErrorEntries({ hex: $error.hex })
+						.then((signatureEntries) => ({
+							signatures: signatureEntries.map((signatureEntry) => signatureEntry.name),
+							reachable: true,
+						}))
+						.catch(() => ({
+							signatures: [],
+							reachable: false,
+						}))
 				},
 			},
 		})({
 			fields: {
 				signatures: (snapshot) => snapshot.signatures,
+				reachable: (snapshot) => snapshot.reachable,
 			},
 		}),
 	],

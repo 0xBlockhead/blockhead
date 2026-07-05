@@ -1,17 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum CctpAllowanceSelector {
-	ApiHost = 'apiHost',
+	ApiHost = 'ApiHost',
 }
 export default {
 	entityType: EntityType.CctpAllowance,
-	label: 'cctp allowance',
-	labelPlural: 'cctp allowances',
+	label: 'CCTP allowance',
+	labelPlural: 'CCTP allowances',
 	selectors: [
 		{
 			name: CctpAllowanceSelector.ApiHost,
@@ -22,25 +21,25 @@ export default {
 	],
 	fields: [
 		{
-			name: 'apiHost',
-			label: 'API host',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'apiHost',
+				label: 'API host',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'allowance',
-			label: 'allowance',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number | null"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'allowance',
+				label: 'Allowance',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'fetchedAt',
-			label: 'fetched AT',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'fetchedAt',
+				label: 'Fetched at',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

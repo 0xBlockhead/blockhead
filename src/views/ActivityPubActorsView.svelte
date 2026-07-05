@@ -21,7 +21,7 @@
 		selection,
 		title = 'ActivityPub actors',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ActivityPub actors...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,31 +65,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$icon: true,
 					displayName: true,
 					acct: true,
 					username: true,
 					localAccountId: true,
+					instanceOrigin: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubActor}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(activityPubActors)}
 			{@const uniqueActivityPubActors = [...new Map(activityPubActors.values.map((activityPubActor) => [activityPubActor[EntityMetaKey.SelectorKey], activityPubActor])).values()]}
 			<EntitiesList
@@ -101,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubActors.values.length === uniqueActivityPubActors.length && activityPubActors.totalCount != null && activityPubActors.totalCount >= uniqueActivityPubActors.length ? activityPubActors.totalCount : uniqueActivityPubActors.length}
+				totalCount={activityPubActors.totalCount}
 				getKey={(activityPubActor) => activityPubActor[EntityMetaKey.SelectorKey]}
 				items={uniqueActivityPubActors}
 			>
@@ -114,15 +102,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: activityPubActor }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubActor> })}
+					{@const activityPubActorFields = { ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }}
+					{@const activityPubActorHrefFields = { ...activityPubActor, ...activityPubActor[EntityMetaKey.Selector] }}
 					<ActivityPubActorView
+						selection={select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector])}
+						prefetched={activityPubActorFields}
 						href={
-							resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-								instanceOrigin: String(({ ...activityPubActor.entitySelector, ...activityPubActor }).instanceOrigin),
-								localAccountId: String(({ ...activityPubActor.entitySelector, ...activityPubActor }).localAccountId),
-							})
+							(activityPubActorHrefFields.instanceOrigin !== undefined && activityPubActorHrefFields.localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+								instanceOrigin: String(activityPubActorHrefFields.instanceOrigin ?? ''),
+								localAccountId: String(activityPubActorHrefFields.localAccountId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.ActivityPubActor, activityPubActor.entitySelector)}
-						prefetched={activityPubActor}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

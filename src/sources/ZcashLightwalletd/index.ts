@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { zcashLightwalletdBindings } from '$/sources/ZcashLightwalletd/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.ZcashLightwalletd,
-	label: 'Zcash lightwalletd',
-	sources: [
-		{
-			provider: SourceProvider.ZcashLightwalletd,
-			source: Source.ZcashLightwalletd_Grpc,
-			label: 'Zcash lightwalletd gRPC',
-		},
-	],
-	bindings: zcashLightwalletdBindings,
-} satisfies SourceProviderDefinition
+	source: Source.ZcashLightwalletd_Grpc,
+	label: 'Zcash lightwalletd gRPC',
+} satisfies SourceDefinition

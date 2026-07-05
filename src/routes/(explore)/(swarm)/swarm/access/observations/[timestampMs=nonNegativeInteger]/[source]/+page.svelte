@@ -39,6 +39,7 @@
 		}
 		selection={
 			select(EntityType._GlobalSwarmAccess_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					configuredAccessEndpointCount: true,
 					reachableAccessEndpointCount: true,

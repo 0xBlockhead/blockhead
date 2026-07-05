@@ -21,7 +21,7 @@
 		selection,
 		title = 'Validators',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Beacon validators...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					indexInNetwork: true,
 					status: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(beaconValidators)}
 			{@const uniqueBeaconValidators = [...new Map(beaconValidators.values.map((beaconValidator) => [beaconValidator[EntityMetaKey.SelectorKey], beaconValidator])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconValidators.values.length === uniqueBeaconValidators.length && beaconValidators.totalCount != null && beaconValidators.totalCount >= uniqueBeaconValidators.length ? beaconValidators.totalCount : uniqueBeaconValidators.length}
+				totalCount={beaconValidators.totalCount}
 				getKey={(beaconValidator) => beaconValidator[EntityMetaKey.SelectorKey]}
 				items={uniqueBeaconValidators}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: beaconValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconValidator> })}
+					{@const beaconValidatorFields = { ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }}
+					{@const beaconValidatorHrefFields = { ...beaconValidator, ...beaconValidator[EntityMetaKey.Selector] }}
 					<BeaconValidatorView
+						selection={select(EntityType.BeaconValidator, beaconValidator[EntityMetaKey.Selector])}
+						prefetched={beaconValidatorFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
-								caip2: `${String(({ ...beaconValidator.entitySelector, ...beaconValidator }).caip2.namespace)}:${String(({ ...beaconValidator.entitySelector, ...beaconValidator }).caip2.reference)}`,
-								validatorIndex: String(({ ...beaconValidator.entitySelector, ...beaconValidator }).indexInNetwork),
-							})
+							(beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.caip2 !== undefined && beaconValidatorHrefFields.$network.caip2.namespace !== undefined && beaconValidatorHrefFields.$network !== undefined && beaconValidatorHrefFields.$network.caip2 !== undefined && beaconValidatorHrefFields.$network.caip2.reference !== undefined && beaconValidatorHrefFields.indexInNetwork !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
+								caip2: `${String(beaconValidatorHrefFields.$network.caip2.namespace ?? '')}:${String(beaconValidatorHrefFields.$network.caip2.reference ?? '')}`,
+								validatorIndex: String(beaconValidatorHrefFields.indexInNetwork ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BeaconValidator, beaconValidator.entitySelector)}
-						prefetched={beaconValidator}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

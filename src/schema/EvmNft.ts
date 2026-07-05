@@ -13,7 +13,7 @@ export default {
 	entityType: EntityType.EvmNft,
 	label: 'EVM NFT',
 	labelPlural: 'EVM NFTs',
-	description: 'A non-fungible token on an EVM contract, including ERC-8004 agent registration metadata when available.',
+	description: 'A non-fungible token on an EVM contract, with ERC-8004 agent registration fields shown when the resolver supplies registry evidence.',
 	selectors: [
 		{
 			name: EvmNftSelector.EvmContractTokenId,

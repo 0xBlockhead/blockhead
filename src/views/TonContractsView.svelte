@@ -1,0 +1,115 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'TON contracts',
+		typeAnnotationParagraphs = [],
+		placeholderText,
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'TonContracts-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.TonContract>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import TonContractView from '$/views/TonContractView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={selection}
+		{placeholderText}
+	>
+		{#snippet children(tonContracts)}
+			{@const uniqueTonContracts = [...new Map(tonContracts.values.map((tonContract) => [tonContract[EntityMetaKey.SelectorKey], tonContract])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TonContract}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={tonContracts.totalCount}
+				getKey={(tonContract) => tonContract[EntityMetaKey.SelectorKey]}
+				items={uniqueTonContracts}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No TON contracts yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: tonContract }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonContract> })}
+					{@const tonContractFields = { ...tonContract[EntityMetaKey.Selector], ...tonContract }}
+					<TonContractView
+						selection={select(EntityType.TonContract, tonContract[EntityMetaKey.Selector])}
+						prefetched={tonContractFields}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.TonContract}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

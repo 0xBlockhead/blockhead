@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Zcash shielded pools',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Zcash shielded pools...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					pool: true,
 					noteProtocol: true,
 					activationNetworkUpgrade: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ZcashShieldedPool}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(zcashShieldedPools)}
 			{@const uniqueZcashShieldedPools = [...new Map(zcashShieldedPools.values.map((zcashShieldedPool) => [zcashShieldedPool[EntityMetaKey.SelectorKey], zcashShieldedPool])).values()]}
 			<EntitiesList
@@ -99,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={zcashShieldedPools.values.length === uniqueZcashShieldedPools.length && zcashShieldedPools.totalCount != null && zcashShieldedPools.totalCount >= uniqueZcashShieldedPools.length ? zcashShieldedPools.totalCount : uniqueZcashShieldedPools.length}
+				totalCount={zcashShieldedPools.totalCount}
 				getKey={(zcashShieldedPool) => zcashShieldedPool[EntityMetaKey.SelectorKey]}
 				items={uniqueZcashShieldedPools}
 			>
@@ -112,15 +101,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: zcashShieldedPool }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZcashShieldedPool> })}
+					{@const zcashShieldedPoolFields = { ...zcashShieldedPool[EntityMetaKey.Selector], ...zcashShieldedPool }}
+					{@const zcashShieldedPoolHrefFields = { ...zcashShieldedPool, ...zcashShieldedPool[EntityMetaKey.Selector] }}
 					<ZcashShieldedPoolView
+						selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
+						prefetched={zcashShieldedPoolFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/zcash/shielded-pool/[pool]', {
-								networkSlug: String(({ ...zcashShieldedPool.entitySelector, ...zcashShieldedPool }).$network.slug),
-								pool: String(({ ...zcashShieldedPool.entitySelector, ...zcashShieldedPool }).pool),
-							})
+							(zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined && zcashShieldedPoolHrefFields.$network.caip2.namespace !== undefined && zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined && zcashShieldedPoolHrefFields.$network.caip2.reference !== undefined && zcashShieldedPoolHrefFields.pool !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/zcash/shielded-pool/[pool]', {
+								networkSlug: String(networkByCaip2[String(String(zcashShieldedPoolHrefFields.$network.caip2.namespace) + ':' + String(zcashShieldedPoolHrefFields.$network.caip2.reference))].slug ?? ''),
+								pool: String(zcashShieldedPoolHrefFields.pool ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool.entitySelector)}
-						prefetched={zcashShieldedPool}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -20,7 +20,7 @@
 		selection,
 		title = 'Lens',
 		typeAnnotationParagraphs = ['Lens is a social graph protocol. This hub shows bounded account and post windows from the configured Lens GraphQL source.'],
-		placeholderText = 'Loading Lens...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,27 +64,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(lensNetworks)}
 			{@const uniqueLensNetworks = [...new Map(lensNetworks.values.map((lensNetwork) => [lensNetwork[EntityMetaKey.SelectorKey], lensNetwork])).values()]}
 			<EntitiesList
@@ -96,7 +83,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lensNetworks.values.length === uniqueLensNetworks.length && lensNetworks.totalCount != null && lensNetworks.totalCount >= uniqueLensNetworks.length ? lensNetworks.totalCount : uniqueLensNetworks.length}
+				totalCount={lensNetworks.totalCount}
 				getKey={(lensNetwork) => lensNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueLensNetworks}
 			>
@@ -109,9 +96,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: lensNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensNetwork> })}
+					{@const lensNetworkFields = { ...lensNetwork[EntityMetaKey.Selector], ...lensNetwork }}
 					<LensNetworkView
-						selection={select(EntityType.LensNetwork, lensNetwork.entitySelector)}
-						prefetched={lensNetwork}
+						selection={select(EntityType.LensNetwork, lensNetwork[EntityMetaKey.Selector])}
+						prefetched={lensNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

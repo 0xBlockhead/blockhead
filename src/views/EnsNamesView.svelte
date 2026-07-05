@@ -21,7 +21,7 @@
 		selection,
 		title = 'ENS names',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ENS names...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					name: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsName}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(ensNames)}
 			{@const uniqueEnsNames = [...new Map(ensNames.values.map((ensName) => [ensName[EntityMetaKey.SelectorKey], ensName])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ensNames.values.length === uniqueEnsNames.length && ensNames.totalCount != null && ensNames.totalCount >= uniqueEnsNames.length ? ensNames.totalCount : uniqueEnsNames.length}
+				totalCount={ensNames.totalCount}
 				getKey={(ensName) => ensName[EntityMetaKey.SelectorKey]}
 				items={uniqueEnsNames}
 			>
@@ -110,15 +97,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: ensName }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsName> })}
+					{@const ensNameFields = { ...ensName[EntityMetaKey.Selector], ...ensName }}
+					{@const ensNameHrefFields = { ...ensName, ...ensName[EntityMetaKey.Selector] }}
 					<EnsNameView
+						selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
+						prefetched={ensNameFields}
 						href={
-							resolve('/(explore)/(ens)/ens/name/[ensName]', {
-								ensName: String(({ ...ensName.entitySelector, ...ensName }).name),
-							})
+							(ensNameHrefFields.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+								ensName: String(ensNameHrefFields.name ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EnsName, ensName.entitySelector)}
-						prefetched={ensName}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

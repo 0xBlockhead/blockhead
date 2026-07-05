@@ -81,6 +81,7 @@ export default {
 				name: '$$timestamps',
 				label: 'Observations',
 				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.SolanaTransaction_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
 		},
 		{

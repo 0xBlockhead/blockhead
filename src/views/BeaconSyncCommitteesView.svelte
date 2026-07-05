@@ -21,7 +21,7 @@
 		selection,
 		title = 'Sync committees',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Beacon sync committees...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					period: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconSyncCommittee}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(beaconSyncCommittees)}
 			{@const uniqueBeaconSyncCommittees = [...new Map(beaconSyncCommittees.values.map((beaconSyncCommittee) => [beaconSyncCommittee[EntityMetaKey.SelectorKey], beaconSyncCommittee])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconSyncCommittees.values.length === uniqueBeaconSyncCommittees.length && beaconSyncCommittees.totalCount != null && beaconSyncCommittees.totalCount >= uniqueBeaconSyncCommittees.length ? beaconSyncCommittees.totalCount : uniqueBeaconSyncCommittees.length}
+				totalCount={beaconSyncCommittees.totalCount}
 				getKey={(beaconSyncCommittee) => beaconSyncCommittee[EntityMetaKey.SelectorKey]}
 				items={uniqueBeaconSyncCommittees}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: beaconSyncCommittee }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconSyncCommittee> })}
+					{@const beaconSyncCommitteeFields = { ...beaconSyncCommittee[EntityMetaKey.Selector], ...beaconSyncCommittee }}
+					{@const beaconSyncCommitteeHrefFields = { ...beaconSyncCommittee, ...beaconSyncCommittee[EntityMetaKey.Selector] }}
 					<BeaconSyncCommitteeView
+						selection={select(EntityType.BeaconSyncCommittee, beaconSyncCommittee[EntityMetaKey.Selector])}
+						prefetched={beaconSyncCommitteeFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/sync-committee/[period=nonNegativeInteger]', {
-								caip2: `${String(({ ...beaconSyncCommittee.entitySelector, ...beaconSyncCommittee }).caip2.namespace)}:${String(({ ...beaconSyncCommittee.entitySelector, ...beaconSyncCommittee }).caip2.reference)}`,
-								period: String(({ ...beaconSyncCommittee.entitySelector, ...beaconSyncCommittee }).period),
-							})
+							(beaconSyncCommitteeHrefFields.$network !== undefined && beaconSyncCommitteeHrefFields.$network.caip2 !== undefined && beaconSyncCommitteeHrefFields.$network.caip2.namespace !== undefined && beaconSyncCommitteeHrefFields.$network !== undefined && beaconSyncCommitteeHrefFields.$network.caip2 !== undefined && beaconSyncCommitteeHrefFields.$network.caip2.reference !== undefined && beaconSyncCommitteeHrefFields.period !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/sync-committee/[period=nonNegativeInteger]', {
+								caip2: `${String(beaconSyncCommitteeHrefFields.$network.caip2.namespace ?? '')}:${String(beaconSyncCommitteeHrefFields.$network.caip2.reference ?? '')}`,
+								period: String(beaconSyncCommitteeHrefFields.period ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BeaconSyncCommittee, beaconSyncCommittee.entitySelector)}
-						prefetched={beaconSyncCommittee}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const DuneRestSource = {
+export default {
 	provider: SourceProvider.Dune,
 	source: Source.Dune_Rest,
-	label: 'Dune Rest',
+	label: 'Dune REST',
 } satisfies SourceDefinition
-
-export default DuneRestSource

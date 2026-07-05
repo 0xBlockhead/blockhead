@@ -21,7 +21,7 @@
 		selection,
 		title = 'ERC-4337 smart accounts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ERC-4337 smart accounts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					address: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337SmartAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(erc4337SmartAccounts)}
 			{@const uniqueErc4337SmartAccounts = [...new Map(erc4337SmartAccounts.values.map((erc4337SmartAccount) => [erc4337SmartAccount[EntityMetaKey.SelectorKey], erc4337SmartAccount])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4337SmartAccounts.values.length === uniqueErc4337SmartAccounts.length && erc4337SmartAccounts.totalCount != null && erc4337SmartAccounts.totalCount >= uniqueErc4337SmartAccounts.length ? erc4337SmartAccounts.totalCount : uniqueErc4337SmartAccounts.length}
+				totalCount={erc4337SmartAccounts.totalCount}
 				getKey={(erc4337SmartAccount) => erc4337SmartAccount[EntityMetaKey.SelectorKey]}
 				items={uniqueErc4337SmartAccounts}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: erc4337SmartAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337SmartAccount> })}
+					{@const erc4337SmartAccountFields = { ...erc4337SmartAccount[EntityMetaKey.Selector], ...erc4337SmartAccount }}
+					{@const erc4337SmartAccountHrefFields = { ...erc4337SmartAccount, ...erc4337SmartAccount[EntityMetaKey.Selector] }}
 					<Erc4337SmartAccountView
+						selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount[EntityMetaKey.Selector])}
+						prefetched={erc4337SmartAccountFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]', {
-								caip2: `${String(({ ...erc4337SmartAccount.entitySelector, ...erc4337SmartAccount }).caip2.namespace)}:${String(({ ...erc4337SmartAccount.entitySelector, ...erc4337SmartAccount }).caip2.reference)}`,
-								address: String(({ ...erc4337SmartAccount.entitySelector, ...erc4337SmartAccount }).address),
-							})
+							(erc4337SmartAccountHrefFields.$network !== undefined && erc4337SmartAccountHrefFields.$network.caip2 !== undefined && erc4337SmartAccountHrefFields.$network.caip2.namespace !== undefined && erc4337SmartAccountHrefFields.$network !== undefined && erc4337SmartAccountHrefFields.$network.caip2 !== undefined && erc4337SmartAccountHrefFields.$network.caip2.reference !== undefined && erc4337SmartAccountHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]', {
+								caip2: `${String(erc4337SmartAccountHrefFields.$network.caip2.namespace ?? '')}:${String(erc4337SmartAccountHrefFields.$network.caip2.reference ?? '')}`,
+								address: String(erc4337SmartAccountHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Erc4337SmartAccount, erc4337SmartAccount.entitySelector)}
-						prefetched={erc4337SmartAccount}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

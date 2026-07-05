@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum MoneroTransactionSelector {
-	NetworkTxHash = 'networkTxHash',
+	NetworkTxHash = 'NetworkTxHash',
 }
 export default {
 	entityType: EntityType.MoneroTransaction,
@@ -23,61 +23,78 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'txHash',
-			label: 'Transaction hash',
-			description: 'The transaction hash in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'txHash',
+				label: 'Transaction hash',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$block',
-			label: 'block',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.MoneroBlock,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$block',
+				label: 'Block',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.MoneroBlock,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 		},
 		{
-			name: 'version',
-			label: 'version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'version',
+				label: 'Version',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 		},
 		{
-			name: 'unlockTime',
-			label: 'unlock time',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'unlockTime',
+				label: 'Unlock time',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 		},
 		{
-			name: 'feeAtomicUnits',
-			label: 'fee atomic units',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'feeAtomicUnits',
+				label: 'Fee atomic units',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 		},
 		{
-			name: '$$keyImages',
-			label: 'key images',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MoneroKeyImage,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$keyImages',
+				label: 'Key images',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.MoneroKeyImage,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 		},
 		{
-			name: '$$stealthOutputs',
-			label: 'stealth outputs',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MoneroStealthOutput,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$stealthOutputs',
+				label: 'Stealth outputs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.MoneroStealthOutput,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.Network_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					latestHeight: true,
 					health: true,

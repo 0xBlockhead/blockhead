@@ -1,26 +1,11 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { mempoolSpaceBindings } from '$/sources/MempoolSpace/bindings.ts'
+// Generated from APP.ts. Do not edit by hand.
 
-export const mempoolSpaceOrigins = mempoolSpaceBindings.flatMap((binding) => (
-	binding.endpoints.map((endpoint) => ({
-		origin: endpoint.origin,
-		corsEnabled: endpoint.corsEnabled,
-	}))
-))
+import type { SourceDefinition } from '$/sources/index.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.MempoolSpace,
-	label: 'mempool.space',
-	sources: [
-		{
-			provider: SourceProvider.MempoolSpace,
-			source: Source.MempoolSpace_Rest,
-			label: 'mempool.space REST',
-		},
-	],
-	bindings: mempoolSpaceBindings,
-} satisfies SourceProviderDefinition
+	source: Source.MempoolSpace_Rest,
+	label: 'mempool.space REST',
+} satisfies SourceDefinition

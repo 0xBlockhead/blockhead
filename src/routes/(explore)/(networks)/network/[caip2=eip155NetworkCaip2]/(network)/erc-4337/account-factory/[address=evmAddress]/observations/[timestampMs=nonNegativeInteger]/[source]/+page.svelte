@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.Erc4337AccountFactory_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					userOperationsCount: true,
 					smartAccountsCount: true,

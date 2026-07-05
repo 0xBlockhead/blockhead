@@ -20,7 +20,7 @@
 		selection,
 		title = 'X users',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading X users...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,7 +64,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$icon: true,
 					name: true,
@@ -72,23 +72,10 @@
 					id: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XUser}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(xUsers)}
 			{@const uniqueXUsers = [...new Map(xUsers.values.map((xUser) => [xUser[EntityMetaKey.SelectorKey], xUser])).values()]}
 			<EntitiesList
@@ -100,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xUsers.values.length === uniqueXUsers.length && xUsers.totalCount != null && xUsers.totalCount >= uniqueXUsers.length ? xUsers.totalCount : uniqueXUsers.length}
+				totalCount={xUsers.totalCount}
 				getKey={(xUser) => xUser[EntityMetaKey.SelectorKey]}
 				items={uniqueXUsers}
 			>
@@ -113,9 +100,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: xUser }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XUser> })}
+					{@const xUserFields = { ...xUser[EntityMetaKey.Selector], ...xUser }}
 					<XUserView
-						selection={select(EntityType.XUser, xUser.entitySelector)}
-						prefetched={xUser}
+						selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector])}
+						prefetched={xUserFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -89,6 +89,13 @@ export default {
 				cardinality: EntityFieldCardinality.Many,
 		},
 		{
+				name: '$$intentInvocations',
+				label: 'intent invocations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.BlockheadIntentInvocation,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
 				name: '$$simulations',
 				label: 'Simulations',
 				type: EntityFieldType.EntitiesReference,

@@ -4,10 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { bridgeRouteTagByTag } from '$/constants/Bridge.ts'
@@ -45,6 +45,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bridgeRoute = $derived(selection({
 		sources: [
 			Source.Lifi_Rest,
@@ -54,20 +55,11 @@
 			$toNetwork: true,
 			estimatedCostUsd: true,
 			estimatedDurationSeconds: true,
-			...(open && {
-				fromAmount: true,
-				toAmount: true,
-				toAmountMin: true,
-				estimatedCostUsd: true,
-				estimatedDurationSeconds: true,
-				tags: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).fromChainId) ?? ''), 'to', String((({ ...selection.entitySelector, ...prefetched }).toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route')
+	const titleFallback = $derived([String((selection.entitySelector.fromChainId ?? prefetched.fromChainId) ?? ''), 'to', String((selection.entitySelector.toChainId ?? prefetched.toChainId) ?? '')].filter(Boolean).join(' ') || 'bridge route')
 	const viewDomId = $derived('bridge-route-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -78,93 +70,84 @@
 
 <EntityView
 	entityType={EntityType.BridgeRoute}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.fromChainId !== undefined && pendingEntity.toChainId !== undefined && pendingEntity.fromToken !== undefined && pendingEntity.toToken !== undefined && pendingEntity.fromAmount !== undefined && pendingEntity.fromAddress !== undefined && pendingEntity.slippage !== undefined && pendingEntity.toAddress !== undefined ? resolve('/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]', {
+			fromChainId: String(pendingEntity.fromChainId ?? ''),
+			toChainId: String(pendingEntity.toChainId ?? ''),
+			fromToken: String(pendingEntity.fromToken ?? ''),
+			toToken: String(pendingEntity.toToken ?? ''),
+			fromAmount: String(pendingEntity.fromAmount ?? ''),
+			fromAddress: String(pendingEntity.fromAddress ?? ''),
+			slippage: String(pendingEntity.slippage ?? ''),
+			toAddress: String(pendingEntity.toAddress ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).fromChainId) ?? ''), 'to', String((({ ...selection.entitySelector, ...prefetched }).toChainId) ?? '')].filter(Boolean).join(' ') || title || 'bridge route'}
-		{:else}
-			<ResourceBoundary resource={bridgeRoute}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).fromChainId) ?? ''), 'to', String((({ ...selection.entitySelector, ...prefetched }).toChainId) ?? '')].filter(Boolean).join(' ') || title || 'bridge route'}
-				{/snippet}
+		<ResourceBoundary resource={bridgeRoute}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.fromChainId ?? prefetched.fromChainId) ?? ''), 'to', String((selection.entitySelector.toChainId ?? prefetched.toChainId) ?? '')].filter(Boolean).join(' ') || title || 'bridge route'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.fromChainId) ?? ''), 'to', String((entity.toChainId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.fromChainId) ?? ''), 'to', String((resolvedEntity.toChainId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{['LI.FI quote'].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).fromChainId) ?? ''), 'to', String((({ ...selection.entitySelector, ...prefetched }).toChainId) ?? '')].filter(Boolean).join(' ') || title || 'bridge route'}
-		{:else}
-			<ResourceBoundary resource={bridgeRoute}>
-				{#snippet Pending()}
-					{['LI.FI quote'].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).fromChainId) ?? ''), 'to', String((({ ...selection.entitySelector, ...prefetched }).toChainId) ?? '')].filter(Boolean).join(' ') || title || 'bridge route'}
-				{/snippet}
+		<ResourceBoundary resource={bridgeRoute}>
+			{#snippet Pending()}
+				{['LI.FI quote'].filter(Boolean).join(' ') || [String((selection.entitySelector.fromChainId ?? prefetched.fromChainId) ?? ''), 'to', String((selection.entitySelector.toChainId ?? prefetched.toChainId) ?? '')].filter(Boolean).join(' ') || title || 'bridge route'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{['LI.FI quote'].filter(Boolean).join(' ') || [String((entity.fromChainId) ?? ''), 'to', String((entity.toChainId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{['LI.FI quote'].filter(Boolean).join(' ') || [String((resolvedEntity.fromChainId) ?? ''), 'to', String((resolvedEntity.toChainId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const estimatedCostUsd0 = prefetched.estimatedCostUsd}
-			{#if estimatedCostUsd0 !== undefined && estimatedCostUsd0 !== null}
-				<span data-text="muted">
-					{String((estimatedCostUsd0) ?? '')}
-				</span>
-			{/if}
-			{@const estimatedDurationSeconds1 = prefetched.estimatedDurationSeconds}
-			{#if estimatedDurationSeconds1 !== undefined && estimatedDurationSeconds1 !== null}
-				<span data-text="muted">
-					{String((estimatedDurationSeconds1) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={bridgeRoute}>
-				{#snippet Pending()}
-					{@const estimatedCostUsd0 = prefetched.estimatedCostUsd}
-					{#if estimatedCostUsd0 !== undefined && estimatedCostUsd0 !== null}
-						<span data-text="muted">
-							{String((estimatedCostUsd0) ?? '')}
-						</span>
-					{/if}
-					{@const estimatedDurationSeconds1 = prefetched.estimatedDurationSeconds}
-					{#if estimatedDurationSeconds1 !== undefined && estimatedDurationSeconds1 !== null}
-						<span data-text="muted">
-							{String((estimatedDurationSeconds1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={bridgeRoute}>
+			{#snippet Pending()}
+				{@const estimatedCostUsd0 = prefetched.estimatedCostUsd}
+				{#if estimatedCostUsd0 !== undefined && estimatedCostUsd0 !== null}
+					<span data-text="muted">
+						{String((estimatedCostUsd0) ?? '')}
+					</span>
+				{/if}
+				{@const estimatedDurationSeconds1 = prefetched.estimatedDurationSeconds}
+				{#if estimatedDurationSeconds1 !== undefined && estimatedDurationSeconds1 !== null}
+					<span data-text="muted">
+						{String((estimatedDurationSeconds1) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const estimatedCostUsd0 = entity.estimatedCostUsd}
-					{#if estimatedCostUsd0 !== undefined && estimatedCostUsd0 !== null}
-						<span data-text="muted">
-							{String((estimatedCostUsd0) ?? '')}
-						</span>
-					{/if}
-					{@const estimatedDurationSeconds1 = entity.estimatedDurationSeconds}
-					{#if estimatedDurationSeconds1 !== undefined && estimatedDurationSeconds1 !== null}
-						<span data-text="muted">
-							{String((estimatedDurationSeconds1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const estimatedCostUsd0 = resolvedEntity.estimatedCostUsd}
+				{#if estimatedCostUsd0 !== undefined && estimatedCostUsd0 !== null}
+					<span data-text="muted">
+						{String((estimatedCostUsd0) ?? '')}
+					</span>
+				{/if}
+				{@const estimatedDurationSeconds1 = resolvedEntity.estimatedDurationSeconds}
+				{#if estimatedDurationSeconds1 !== undefined && estimatedDurationSeconds1 !== null}
+					<span data-text="muted">
+						{String((estimatedDurationSeconds1) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -176,19 +159,19 @@
 						resource={selection[EntityProxyField]<EntityType.EvmNetwork, false>('$fromNetwork')}
 					>
 						{#snippet children(evmNetwork)}
-							<EvmNetworkView
-								selection={select(EntityType.EvmNetwork, evmNetwork.entitySelector)}
-								prefetched={evmNetwork}
-								href={
-									(evmNetwork.entitySelector?.caip2 != null && evmNetwork.entitySelector?.caip2?.namespace != null && evmNetwork.entitySelector?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-										caip2: `${String(evmNetwork.entitySelector.caip2.namespace)}:${String(evmNetwork.entitySelector.caip2.reference)}`,
-									}) : evmNetwork.entitySelector?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-										networkSlug: String(evmNetwork.entitySelector.slug),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
+							{#if evmNetwork[EntityMetaKey.Selector] != null}
+								<EvmNetworkView
+									selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
+									prefetched={evmNetwork}
+									href={
+										(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2 !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.namespace !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2 !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+											caip2: `${String(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.namespace ?? '')}:${String(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.reference ?? '')}`,
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -201,19 +184,19 @@
 						resource={selection[EntityProxyField]<EntityType.EvmNetwork, false>('$toNetwork')}
 					>
 						{#snippet children(evmNetwork)}
-							<EvmNetworkView
-								selection={select(EntityType.EvmNetwork, evmNetwork.entitySelector)}
-								prefetched={evmNetwork}
-								href={
-									(evmNetwork.entitySelector?.caip2 != null && evmNetwork.entitySelector?.caip2?.namespace != null && evmNetwork.entitySelector?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-										caip2: `${String(evmNetwork.entitySelector.caip2.namespace)}:${String(evmNetwork.entitySelector.caip2.reference)}`,
-									}) : evmNetwork.entitySelector?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-										networkSlug: String(evmNetwork.entitySelector.slug),
-									}) : undefined)
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
+							{#if evmNetwork[EntityMetaKey.Selector] != null}
+								<EvmNetworkView
+									selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
+									prefetched={evmNetwork}
+									href={
+										(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2 !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.namespace !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2 !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+											caip2: `${String(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.namespace ?? '')}:${String(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.reference ?? '')}`,
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -224,18 +207,27 @@
 			<div>
 				<dt>From token</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									fromToken: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const fromToken = prefetched.fromToken ?? selection.entitySelector.fromToken}
+							{@const fromToken = selection.entitySelector.fromToken ?? prefetched.fromToken}
 							{#if fromToken !== undefined && fromToken !== null}
-								<TruncatedValue value={String(fromToken)} />
+								<TruncatedValue value={String((fromToken) ?? '')} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const fromToken = entity.fromToken ?? selection.entitySelector.fromToken ?? prefetched.fromToken}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const fromToken = resolvedEntity.fromToken}
 							{#if fromToken !== undefined && fromToken !== null}
-								<TruncatedValue value={String(fromToken)} />
+								<TruncatedValue value={String((fromToken) ?? '')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -245,18 +237,27 @@
 			<div>
 				<dt>To token</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									toToken: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const toToken = prefetched.toToken ?? selection.entitySelector.toToken}
+							{@const toToken = selection.entitySelector.toToken ?? prefetched.toToken}
 							{#if toToken !== undefined && toToken !== null}
-								<TruncatedValue value={String(toToken)} />
+								<TruncatedValue value={String((toToken) ?? '')} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const toToken = entity.toToken ?? selection.entitySelector.toToken ?? prefetched.toToken}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const toToken = resolvedEntity.toToken}
 							{#if toToken !== undefined && toToken !== null}
-								<TruncatedValue value={String(toToken)} />
+								<TruncatedValue value={String((toToken) ?? '')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -266,18 +267,27 @@
 			<div>
 				<dt>From address</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									fromAddress: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const fromAddress = prefetched.fromAddress ?? selection.entitySelector.fromAddress}
+							{@const fromAddress = selection.entitySelector.fromAddress ?? prefetched.fromAddress}
 							{#if fromAddress !== undefined && fromAddress !== null}
-								{String((fromAddress) ?? '')}
+								<TruncatedValue value={String(fromAddress)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const fromAddress = entity.fromAddress ?? selection.entitySelector.fromAddress ?? prefetched.fromAddress}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const fromAddress = resolvedEntity.fromAddress}
 							{#if fromAddress !== undefined && fromAddress !== null}
-								{String((fromAddress) ?? '')}
+								<TruncatedValue value={String(fromAddress)} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -287,18 +297,27 @@
 			<div>
 				<dt>To address</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									toAddress: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const toAddress = prefetched.toAddress ?? selection.entitySelector.toAddress}
+							{@const toAddress = selection.entitySelector.toAddress ?? prefetched.toAddress}
 							{#if toAddress !== undefined && toAddress !== null}
-								{String((toAddress) ?? '')}
+								<TruncatedValue value={String(toAddress)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const toAddress = entity.toAddress ?? selection.entitySelector.toAddress ?? prefetched.toAddress}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const toAddress = resolvedEntity.toAddress}
 							{#if toAddress !== undefined && toAddress !== null}
-								{String((toAddress) ?? '')}
+								<TruncatedValue value={String(toAddress)} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -308,16 +327,25 @@
 			<div>
 				<dt>From amount</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									fromAmount: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const fromAmount = prefetched.fromAmount ?? selection.entitySelector.fromAmount}
+							{@const fromAmount = selection.entitySelector.fromAmount ?? prefetched.fromAmount}
 							{#if fromAmount !== undefined && fromAmount !== null}
 								<NumberValue value={Number(fromAmount)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const fromAmount = entity.fromAmount ?? selection.entitySelector.fromAmount ?? prefetched.fromAmount}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const fromAmount = resolvedEntity.fromAmount}
 							{#if fromAmount !== undefined && fromAmount !== null}
 								<NumberValue value={Number(fromAmount)} />
 							{/if}
@@ -329,16 +357,25 @@
 			<div>
 				<dt>To amount</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									toAmount: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const toAmount = prefetched.toAmount ?? selection.entitySelector.toAmount}
+							{@const toAmount = prefetched.toAmount}
 							{#if toAmount !== undefined && toAmount !== null}
 								<NumberValue value={Number(toAmount)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const toAmount = entity.toAmount ?? selection.entitySelector.toAmount ?? prefetched.toAmount}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const toAmount = resolvedEntity.toAmount}
 							{#if toAmount !== undefined && toAmount !== null}
 								<NumberValue value={Number(toAmount)} />
 							{/if}
@@ -350,16 +387,25 @@
 			<div>
 				<dt>To amount min</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									toAmountMin: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const toAmountMin = prefetched.toAmountMin ?? selection.entitySelector.toAmountMin}
+							{@const toAmountMin = prefetched.toAmountMin}
 							{#if toAmountMin !== undefined && toAmountMin !== null}
 								<NumberValue value={Number(toAmountMin)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const toAmountMin = entity.toAmountMin ?? selection.entitySelector.toAmountMin ?? prefetched.toAmountMin}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const toAmountMin = resolvedEntity.toAmountMin}
 							{#if toAmountMin !== undefined && toAmountMin !== null}
 								<NumberValue value={Number(toAmountMin)} />
 							{/if}
@@ -371,16 +417,25 @@
 			<div>
 				<dt>Slippage</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									slippage: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const slippage = prefetched.slippage ?? selection.entitySelector.slippage}
+							{@const slippage = selection.entitySelector.slippage ?? prefetched.slippage}
 							{#if slippage !== undefined && slippage !== null}
 								{String((slippage) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const slippage = entity.slippage ?? selection.entitySelector.slippage ?? prefetched.slippage}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const slippage = resolvedEntity.slippage}
 							{#if slippage !== undefined && slippage !== null}
 								{String((slippage) ?? '')}
 							{/if}
@@ -390,18 +445,87 @@
 			</div>
 
 			<div>
+				<dt>Estimated cost USD</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									estimatedCostUsd: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const estimatedCostUsd = prefetched.estimatedCostUsd}
+							{#if estimatedCostUsd !== undefined && estimatedCostUsd !== null}
+								{String((estimatedCostUsd) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const estimatedCostUsd = resolvedEntity.estimatedCostUsd}
+							{#if estimatedCostUsd !== undefined && estimatedCostUsd !== null}
+								{String((estimatedCostUsd) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Estimated duration seconds</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									estimatedDurationSeconds: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const estimatedDurationSeconds = prefetched.estimatedDurationSeconds}
+							{#if estimatedDurationSeconds !== undefined && estimatedDurationSeconds !== null}
+								{String((estimatedDurationSeconds) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const estimatedDurationSeconds = resolvedEntity.estimatedDurationSeconds}
+							{#if estimatedDurationSeconds !== undefined && estimatedDurationSeconds !== null}
+								{String((estimatedDurationSeconds) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Tags</dt>
 				<dd>
-					<ResourceBoundary resource={bridgeRoute}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									tags: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const tags = prefetched.tags ?? selection.entitySelector.tags}
+							{@const tags = prefetched.tags}
 							{#if tags !== undefined && tags !== null}
 								{tags == null ? '' : String(((tags).map((tag) => bridgeRouteTagByTag[tag].label).join(', ')) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const tags = entity.tags ?? selection.entitySelector.tags ?? prefetched.tags}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const tags = resolvedEntity.tags}
 							{#if tags !== undefined && tags !== null}
 								{tags == null ? '' : String(((tags).map((tag) => bridgeRouteTagByTag[tag].label).join(', ')) ?? '')}
 							{/if}
@@ -415,7 +539,13 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BridgeRouteStepsView
-				selection={selection[EntityProxyField]<EntityType.BridgeRouteStep>('$$steps')}
+				selection={
+						selection[EntityProxyField]<EntityType.BridgeRouteStep>('$$steps', {
+							sources: [
+								Source.Lifi_Rest,
+							],
+						})
+					}
 				title='Steps'
 				emptyText='No steps on this route.'
 				id='BridgeRouteStepsView-$$steps'

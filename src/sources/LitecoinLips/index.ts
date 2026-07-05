@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { litecoinLipsBindings } from '$/sources/LitecoinLips/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.LitecoinLips,
-	label: 'Litecoin LIPs',
-	sources: [
-		{
-			provider: SourceProvider.LitecoinLips,
-			source: Source.LitecoinLips_Github,
-			label: 'Litecoin LIPs GitHub',
-		},
-	],
-	bindings: litecoinLipsBindings,
-} satisfies SourceProviderDefinition
+	source: Source.LitecoinLips_Github,
+	label: 'Litecoin LIPs GitHub',
+} satisfies SourceDefinition

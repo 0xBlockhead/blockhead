@@ -64,3 +64,9 @@ export type LotusMinerPower = {
 	TotalPower: LotusPowerClaim
 	HasMinPower: boolean
 }
+
+export type LotusMinerInfo = {
+	Owner: string
+	Worker: string
+	PeerId?: string
+}

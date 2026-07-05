@@ -46,6 +46,6 @@
 				address: decodeURIComponent(params.address),
 			})[EntityProxyField]<EntityType.UtxoAddress_Timestamp>('$$timestamps')
 		}
-		id='UtxoAddress_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

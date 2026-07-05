@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM calldata',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM calldata...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					hex: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmCalldata}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmCalldatas)}
 			{@const uniqueEvmCalldatas = [...new Map(evmCalldatas.values.map((evmCalldata) => [evmCalldata[EntityMetaKey.SelectorKey], evmCalldata])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmCalldatas.values.length === uniqueEvmCalldatas.length && evmCalldatas.totalCount != null && evmCalldatas.totalCount >= uniqueEvmCalldatas.length ? evmCalldatas.totalCount : uniqueEvmCalldatas.length}
+				totalCount={evmCalldatas.totalCount}
 				getKey={(evmCalldata) => evmCalldata[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmCalldatas}
 			>
@@ -110,14 +97,12 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmCalldata }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmCalldata> })}
+					{@const evmCalldataFields = { ...evmCalldata[EntityMetaKey.Selector], ...evmCalldata }}
+					{@const evmCalldataHrefFields = { ...evmCalldata, ...evmCalldata[EntityMetaKey.Selector] }}
 					<EvmCalldataView
-						href={
-							(({ ...evmCalldata.entitySelector, ...evmCalldata })?.hex != null ? resolve('/(explore)/(evm)/evm/(calldata)/calldata') : ({ ...evmCalldata.entitySelector, ...evmCalldata })?.hex != null ? resolve('/(explore)/(evm)/evm/(calldata)/calldata/[hex]', {
-								hex: String(({ ...evmCalldata.entitySelector, ...evmCalldata }).hex),
-							}) : undefined)
-						}
-						selection={select(EntityType.EvmCalldata, evmCalldata.entitySelector)}
-						prefetched={evmCalldata}
+						selection={select(EntityType.EvmCalldata, evmCalldata[EntityMetaKey.Selector])}
+						prefetched={evmCalldataFields}
+						href={resolve('/(explore)/(evm)/evm/(calldata)/calldata')}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

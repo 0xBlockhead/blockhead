@@ -1,6 +1,6 @@
 # Blockhead Schema
 
-Schema Language v1. `APP.ts` is the schema design source of truth. Run `pnpm run app:sync` after editing it, and run `pnpm run app:check` in review to verify generated schema output.
+Schema Language v1. `APP.ts` is the schema design source of truth. Run `pnpm run app:generate` after editing it, and run `pnpm run app:check` in review to verify generated schema output.
 
 Each entity block starts with `Entity Name`, then `Selectors :: selectorName: field+field` and `Fields :: field! p:type, field? p:type, field* $:Entity`. Field suffixes mean required (`!`), optional (`?`), many (`*`), or impossible (`0`). `$field` references one entity and `$$field` references many entities. `Field name :: ...` lines hold user-facing language only; modeling notes stay in `Notes ::`.
 
@@ -2839,13 +2839,13 @@ SchemaVersion 1
 
   Entity BlockheadSessionSimulationLog
     Selectors :: simulationId+logIndex: simulationId+logIndex
-    Fields :: simulationId! p:str, logIndex! p:num, $simulation! $:BlockheadSessionSimulation, callPath? p:str, address? p:evmAddress, topic0 p:hex, topics* p:hex, dataHash? p:hex, removed? p:bool
+    Fields :: simulationId! p:str, logIndex! p:num, $simulation! $:BlockheadSessionSimulation, callPath? p:str, address? p:evmAddress, topic0? p:hex, topics* p:hex, dataHash? p:hex, decodedEventName? p:str, decodedArgs? p:json, removed? p:bool
     Label :: blockhead session simulation log
     LabelPlural :: blockhead session simulation logs
     Field address :: Label :: Address ; Description :: The address or account identifier used by the source protocol.
     Sources ::
       - SourceBinding.Local_Internal
-    View :: {"closed":["$simulation","logIndex","address"],"content":{"dl":[["$simulation","logIndex","callPath","address","topic"],["topics","dataHash","removed"]]},"details":{"tabs":[{"label":"Simulation","items":["$simulation"]},{"label":"Call","items":["$simulation","callPath"]},{"label":"Topics","items":["topic"]}]}}
+    View :: {"closed":["$simulation","logIndex","address"],"content":{"dl":[["$simulation","logIndex","callPath","address","topic0"],["topics","dataHash","decodedEventName","removed"]]},"details":{"tabs":[{"label":"Simulation","items":["$simulation"]},{"label":"Call","items":["$simulation","callPath"]},{"label":"Topics","items":["topic0","topics"]}]}}
     Notes :: Local runtime log artifact emitted by a simulation. It is not a canonical public EvmLog, receipt log, indexed event, or proof of chain execution. Link to public logs only when a submitted transaction later resolves through public chain sources.
 
   Entity BlockheadSharedAddress

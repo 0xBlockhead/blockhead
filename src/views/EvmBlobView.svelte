@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -44,6 +43,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmBlob = $derived(selection({
 		sources: [
 			Source.Voltaire_JsonRpc,
@@ -52,15 +52,11 @@
 		fields: {
 			versionedHash: true,
 			$block: true,
-			...(open && {
-				kzgCommitment: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived((String((({ ...selection.entitySelector, ...prefetched }).indexInTransaction) ?? '') ? 'Blob #' + String((({ ...selection.entitySelector, ...prefetched }).indexInTransaction) ?? '') : '') || 'EVM blob')
+	const titleFallback = $derived((String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '') ? 'Blob #' + String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '') : '') || 'EVM blob')
 	const viewDomId = $derived('evm-blob-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -71,23 +67,23 @@
 
 <EntityView
 	entityType={EntityType.EvmBlob}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(({ ...selection.entitySelector, ...prefetched }).indexInTransaction ?? '')}
+	idDragPlainText={String(selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction ?? '')}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$transaction.$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$transaction.$network.caip2.reference)}`,
-			transactionId: String(({ ...selection.entitySelector, ...prefetched }).$transaction.txHash),
-			indexInTransaction: String(({ ...selection.entitySelector, ...prefetched }).indexInTransaction),
-		})
+		href ?? (pendingEntity.$transaction !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined && pendingEntity.$transaction.$network.caip2.namespace !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.$network !== undefined && pendingEntity.$transaction.$network.caip2 !== undefined && pendingEntity.$transaction.$network.caip2.reference !== undefined && pendingEntity.$transaction !== undefined && pendingEntity.$transaction.txHash !== undefined && pendingEntity.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
+			caip2: `${String(pendingEntity.$transaction.$network.caip2.namespace ?? '')}:${String(pendingEntity.$transaction.$network.caip2.reference ?? '')}`,
+			transactionId: String(pendingEntity.$transaction.txHash ?? ''),
+			indexInTransaction: String(pendingEntity.indexInTransaction ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).indexInTransaction}
+		{@const serialValue = selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Blob </span>
@@ -99,7 +95,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).indexInTransaction}
+		{@const serialValue = selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -108,34 +104,26 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const versionedHash0 = prefetched.versionedHash}
-			{#if versionedHash0 !== undefined && versionedHash0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String(versionedHash0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmBlob}>
-				{#snippet Pending()}
-					{@const versionedHash0 = prefetched.versionedHash}
-					{#if versionedHash0 !== undefined && versionedHash0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String(versionedHash0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={evmBlob}>
+			{#snippet Pending()}
+				{@const versionedHash0 = prefetched.versionedHash}
+				{#if versionedHash0 !== undefined && versionedHash0 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((versionedHash0) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const versionedHash0 = entity.versionedHash}
-					{#if versionedHash0 !== undefined && versionedHash0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String(versionedHash0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const versionedHash0 = resolvedEntity.versionedHash}
+				{#if versionedHash0 !== undefined && versionedHash0 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((versionedHash0) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -149,9 +137,17 @@
 			<div>
 				<dt>Index in transaction</dt>
 				<dd>
-					<ResourceBoundary resource={evmBlob}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									indexInTransaction: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const indexInTransaction = prefetched.indexInTransaction ?? selection.entitySelector.indexInTransaction}
+							{@const indexInTransaction = selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction}
 							{#if indexInTransaction !== undefined && indexInTransaction !== null}
 								<span>#</span>
 								{String((indexInTransaction) ?? '')}
@@ -159,10 +155,41 @@
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const indexInTransaction = entity.indexInTransaction ?? selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const indexInTransaction = resolvedEntity.indexInTransaction}
 							{#if indexInTransaction !== undefined && indexInTransaction !== null}
 								<span>#</span>
 								{String((indexInTransaction) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Versioned hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									versionedHash: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const versionedHash = prefetched.versionedHash}
+							{#if versionedHash !== undefined && versionedHash !== null}
+								<TruncatedValue value={String((versionedHash) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const versionedHash = resolvedEntity.versionedHash}
+							{#if versionedHash !== undefined && versionedHash !== null}
+								<TruncatedValue value={String((versionedHash) ?? '')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -177,10 +204,10 @@
 					<EvmTransactionView
 						selection={select(EntityType.EvmTransaction, selection.entitySelector.$transaction)}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-								caip2: `${String(selection.entitySelector.$transaction.$network.caip2.namespace)}:${String(selection.entitySelector.$transaction.$network.caip2.reference)}`,
-								transactionId: String(selection.entitySelector.$transaction.txHash),
-							})
+							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+								caip2: `${String(selection.entitySelector.$transaction.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$transaction.$network.caip2.reference ?? '')}`,
+								transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}
@@ -196,18 +223,20 @@
 							resource={selection[EntityProxyField]<EntityType.EvmBlock, false>('$block')}
 						>
 							{#snippet children(evmBlock)}
-								<EvmBlockView
-									selection={select(EntityType.EvmBlock, evmBlock.entitySelector)}
-									prefetched={evmBlock}
-									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-											caip2: `${String(evmBlock.entitySelector.$network.caip2.namespace)}:${String(evmBlock.entitySelector.$network.caip2.reference)}`,
-											blockNumber: String(evmBlock.entitySelector.blockNumber),
-										})
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
+								{#if evmBlock[EntityMetaKey.Selector] != null}
+									<EvmBlockView
+										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
+										prefetched={evmBlock}
+										href={
+											(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+												caip2: `${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace ?? '')}:${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference ?? '')}`,
+												blockNumber: String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber ?? ''),
+											}) : undefined)
+										}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -215,26 +244,35 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmBlob}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								kzgCommitment: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const kzgCommitment = prefetched.kzgCommitment ?? selection.entitySelector.kzgCommitment}
+						{@const kzgCommitment = prefetched.kzgCommitment}
 						{#if kzgCommitment !== undefined && kzgCommitment !== null}
 							<div>
 								<dt>KZG commitment</dt>
 								<dd>
-									<TruncatedValue value={String(kzgCommitment)} />
+									<TruncatedValue value={String((kzgCommitment) ?? '')} />
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const kzgCommitment = entity.kzgCommitment ?? selection.entitySelector.kzgCommitment ?? prefetched.kzgCommitment}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const kzgCommitment = resolvedEntity.kzgCommitment}
 						{#if kzgCommitment !== undefined && kzgCommitment !== null}
 							<div>
 								<dt>KZG commitment</dt>
 								<dd>
-									<TruncatedValue value={String(kzgCommitment)} />
+									<TruncatedValue value={String((kzgCommitment) ?? '')} />
 								</dd>
 							</div>
 						{/if}

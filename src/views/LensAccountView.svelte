@@ -5,7 +5,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -42,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lensAccount = $derived(selection({
 		sources: [
 			Source.Lens_Graphql,
@@ -51,21 +52,11 @@
 			bio: true,
 			createdAt: true,
 			$icon: true,
-			...(open && {
-				legacyProfileId: true,
-				owner: true,
-				score: true,
-				isMemberOf: true,
-				iconUrl: true,
-				$$posts: true,
-				$$timestamps: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).localName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).address) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account')
+	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account')
 	const viewDomId = $derived('lens-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -77,7 +68,7 @@
 
 <EntityView
 	entityType={EntityType.LensAccount}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -107,90 +98,117 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).localName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).address) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
-		{:else}
-			<ResourceBoundary resource={lensAccount}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).localName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).address) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
-				{/snippet}
+		<ResourceBoundary resource={lensAccount}>
+			{#snippet Pending()}
+				{[String((prefetched.displayName) ?? ''), String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.displayName) ?? ''), String((entity.localName) ?? ''), String((entity.address) ?? ''), String((entity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).localName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).address) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).localName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).address) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
-		{:else}
-			<ResourceBoundary resource={lensAccount}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).localName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).address) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).localName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).address) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
-				{/snippet}
+		<ResourceBoundary resource={lensAccount}>
+			{#snippet Pending()}
+				{[String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.displayName) ?? ''), String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || title || 'Lens account'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.localName) ?? ''), String((entity.address) ?? ''), String((entity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((entity.displayName) ?? ''), String((entity.localName) ?? ''), String((entity.address) ?? ''), String((entity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.localName) ?? ''), String((resolvedEntity.address) ?? ''), String((resolvedEntity.legacyProfileId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const createdAt0 = prefetched.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={lensAccount}>
-				{#snippet Pending()}
-					{@const createdAt0 = prefetched.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={lensAccount}>
+			{#snippet Pending()}
+				{@const createdAt0 = prefetched.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const createdAt0 = entity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const createdAt0 = resolvedEntity.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensAccount}>
+			<div>
+				<dt>Address</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									address: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const address = prefetched.address}
+							{#if address !== undefined && address !== null}
+								<TruncatedValue value={String((address) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const address = resolvedEntity.address}
+							{#if address !== undefined && address !== null}
+								<TruncatedValue value={String((address) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							localName: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const owner = prefetched.owner ?? selection.entitySelector.owner}
-					{#if owner !== undefined && owner !== null}
+					{@const localName = prefetched.localName}
+					{#if localName !== undefined && localName !== null}
 						<div>
-							<dt>Owner</dt>
+							<dt>Local name</dt>
 							<dd>
-								<TruncatedValue value={String(owner)} />
+								{String((localName) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const owner = entity.owner ?? selection.entitySelector.owner ?? prefetched.owner}
-					{#if owner !== undefined && owner !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const localName = resolvedEntity.localName}
+					{#if localName !== undefined && localName !== null}
 						<div>
-							<dt>Owner</dt>
+							<dt>Local name</dt>
 							<dd>
-								<TruncatedValue value={String(owner)} />
+								{String((localName) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -199,9 +217,128 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensAccount}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							legacyProfileId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const score = prefetched.score ?? selection.entitySelector.score}
+					{@const legacyProfileId = prefetched.legacyProfileId}
+					{#if legacyProfileId !== undefined && legacyProfileId !== null}
+						<div>
+							<dt>Legacy profile ID</dt>
+							<dd>
+								{String((legacyProfileId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const legacyProfileId = resolvedEntity.legacyProfileId}
+					{#if legacyProfileId !== undefined && legacyProfileId !== null}
+						<div>
+							<dt>Legacy profile ID</dt>
+							<dd>
+								{String((legacyProfileId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							owner: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const owner = prefetched.owner}
+					{#if owner !== undefined && owner !== null}
+						<div>
+							<dt>Owner</dt>
+							<dd>
+								<TruncatedValue value={String((owner) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const owner = resolvedEntity.owner}
+					{#if owner !== undefined && owner !== null}
+						<div>
+							<dt>Owner</dt>
+							<dd>
+								<TruncatedValue value={String((owner) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							createdAt: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const createdAt = prefetched.createdAt}
+					{#if createdAt !== undefined && createdAt !== null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={Number(createdAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt = resolvedEntity.createdAt}
+					{#if createdAt !== undefined && createdAt !== null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={Number(createdAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							score: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const score = prefetched.score}
 					{#if score !== undefined && score !== null}
 						<div>
 							<dt>Score</dt>
@@ -213,7 +350,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const score = entity.score ?? selection.entitySelector.score ?? prefetched.score}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const score = resolvedEntity.score}
 					{#if score !== undefined && score !== null}
 						<div>
 							<dt>Score</dt>
@@ -227,9 +365,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensAccount}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							iconUrl: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const iconUrl = prefetched.iconUrl ?? selection.entitySelector.iconUrl}
+					{@const iconUrl = prefetched.iconUrl}
 					{#if iconUrl !== undefined && iconUrl !== null}
 						<div>
 							<dt>Icon URL</dt>
@@ -248,7 +394,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const iconUrl = entity.iconUrl ?? selection.entitySelector.iconUrl ?? prefetched.iconUrl}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const iconUrl = resolvedEntity.iconUrl}
 					{#if iconUrl !== undefined && iconUrl !== null}
 						<div>
 							<dt>Icon URL</dt>
@@ -268,12 +415,19 @@
 			</ResourceBoundary>
 		</dl>
 
-		<ResourceBoundary resource={lensAccount}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						bio: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const bio = entity.bio ?? selection.entitySelector.bio ?? prefetched.bio}
-				{#if bio === undefined || bio === null || bio === ''}
-					<p data-text="muted">No bio available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const bio = resolvedEntity.bio}
+				{#if bio !== undefined && bio !== null && bio !== ''}
 					<p data-text="long-text">{String((bio) ?? '')}</p>
 				{/if}
 			{/snippet}

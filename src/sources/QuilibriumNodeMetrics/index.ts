@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { quilibriumNodeMetricsBindings } from '$/sources/QuilibriumNodeMetrics/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.QuilibriumNodeMetrics,
-	label: 'Quilibrium node metrics',
-	sources: [
-		{
-			provider: SourceProvider.QuilibriumNodeMetrics,
-			source: Source.QuilibriumNodeMetrics_Prometheus,
-			label: 'Quilibrium node Prometheus metrics',
-		},
-	],
-	bindings: quilibriumNodeMetricsBindings,
-} satisfies SourceProviderDefinition
+	source: Source.QuilibriumNodeMetrics_Prometheus,
+	label: 'Quilibrium node Prometheus',
+} satisfies SourceDefinition

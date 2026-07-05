@@ -21,7 +21,7 @@
 		selection,
 		title = 'Liquidity positions',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Liquidity positions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -71,28 +71,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					id: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPosition}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-			/>
-		{/snippet}
-
 		{#snippet children(liquidityPositions)}
 			{@const uniqueLiquidityPositions = [...new Map(liquidityPositions.values.map((liquidityPosition) => [liquidityPosition[EntityMetaKey.SelectorKey], liquidityPosition])).values()]}
 			<EntitiesList
@@ -104,7 +91,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={liquidityPositions.values.length === uniqueLiquidityPositions.length && liquidityPositions.totalCount != null && liquidityPositions.totalCount >= uniqueLiquidityPositions.length ? liquidityPositions.totalCount : uniqueLiquidityPositions.length}
+				totalCount={liquidityPositions.totalCount}
 				getKey={(liquidityPosition) => liquidityPosition[EntityMetaKey.SelectorKey]}
 				items={uniqueLiquidityPositions}
 			>
@@ -112,19 +99,21 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No liquidity positions yet.</p>
+						<p data-text="muted">No Liquidity positions yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: liquidityPosition }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LiquidityPosition> })}
+					{@const liquidityPositionFields = { ...liquidityPosition[EntityMetaKey.Selector], ...liquidityPosition }}
+					{@const liquidityPositionHrefFields = { ...liquidityPosition, ...liquidityPosition[EntityMetaKey.Selector] }}
 					<LiquidityPositionView
+						selection={select(EntityType.LiquidityPosition, liquidityPosition[EntityMetaKey.Selector])}
+						prefetched={liquidityPositionFields}
 						href={
-							resolve('/(assets)/position/[positionId]', {
-								positionId: String(({ ...liquidityPosition.entitySelector, ...liquidityPosition }).id),
-							})
+							(liquidityPositionHrefFields.id !== undefined ? resolve('/(assets)/position/[positionId]', {
+								positionId: String(liquidityPositionHrefFields.id ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.LiquidityPosition, liquidityPosition.entitySelector)}
-						prefetched={liquidityPosition}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

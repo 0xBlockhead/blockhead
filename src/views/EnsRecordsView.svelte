@@ -20,7 +20,7 @@
 		selection,
 		title = 'ENS records',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ENS records...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,28 +64,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					recordKey: true,
 					$name: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsRecord}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(ensRecords)}
 			{@const uniqueEnsRecords = [...new Map(ensRecords.values.map((ensRecord) => [ensRecord[EntityMetaKey.SelectorKey], ensRecord])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ensRecords.values.length === uniqueEnsRecords.length && ensRecords.totalCount != null && ensRecords.totalCount >= uniqueEnsRecords.length ? ensRecords.totalCount : uniqueEnsRecords.length}
+				totalCount={ensRecords.totalCount}
 				getKey={(ensRecord) => ensRecord[EntityMetaKey.SelectorKey]}
 				items={uniqueEnsRecords}
 			>
@@ -110,9 +97,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: ensRecord }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsRecord> })}
+					{@const ensRecordFields = { ...ensRecord[EntityMetaKey.Selector], ...ensRecord }}
 					<EnsRecordView
-						selection={select(EntityType.EnsRecord, ensRecord.entitySelector)}
-						prefetched={ensRecord}
+						selection={select(EntityType.EnsRecord, ensRecord[EntityMetaKey.Selector])}
+						prefetched={ensRecordFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

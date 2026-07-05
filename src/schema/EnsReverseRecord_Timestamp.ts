@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum EnsReverseRecord_TimestampSelector {
-	ReverseRecordTimestampMsSource = '$reverseRecord+timestampMs+source',
+	ReverseRecordTimestampMsSource = 'ReverseRecordTimestampMsSource',
 }
 export default {
 	entityType: EntityType.EnsReverseRecord_Timestamp,
@@ -24,41 +23,41 @@ export default {
 	],
 	fields: [
 		{
-			name: '$reverseRecord',
-			label: 'reverse record',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EnsReverseRecord,
-			cardinality: EntityFieldCardinality.One,
+				name: '$reverseRecord',
+				label: 'Reverse record',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EnsReverseRecord,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'verified',
-			label: 'verified',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'verified',
+				label: 'Verified',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'resolverSelector',
-			label: 'resolver selector',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("unknown"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'resolverSelector',
+				label: 'Resolver selector',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('unknown'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

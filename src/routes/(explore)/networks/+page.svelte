@@ -31,6 +31,6 @@
 				scope: '$$networks',
 			})[EntityProxyField]<EntityType.Network>('$$networks')
 		}
-		id='NetworksView-page'
+		id='networks'
 	/>
 </Page>

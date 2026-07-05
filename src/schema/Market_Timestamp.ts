@@ -67,20 +67,6 @@ export default {
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-				name: 'marketCap',
-				label: 'Market cap',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('bigint'),
-				cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-				name: 'volume24h',
-				label: '24h volume',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('bigint'),
-				cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 				name: 'caip19',
 				label: 'CAIP-19',
 				type: EntityFieldType.Primitive,

@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum ZeroGDaQuorumSelector {
-	NetworkQuorumId = 'networkQuorumId',
+	NetworkQuorumId = 'NetworkQuorumId',
 }
 export default {
 	entityType: EntityType.ZeroGDaQuorum,
@@ -23,39 +22,39 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'quorumId',
-			label: 'quorum ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'quorumId',
+				label: 'quorum ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$consensusNetwork',
-			label: 'consensus network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ZeroGConsensusNetwork,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$consensusNetwork',
+				label: 'consensus network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.ZeroGConsensusNetwork,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'selectionMethod',
-			label: 'selection method',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'selectionMethod',
+				label: 'selection method',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$daNodes',
-			label: 'da nodes',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ZeroGDaNode,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$daNodes',
+				label: 'DA nodes',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.ZeroGDaNode,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

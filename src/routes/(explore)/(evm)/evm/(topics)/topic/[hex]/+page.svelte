@@ -36,6 +36,12 @@
 				hex: params.hex,
 			})
 		}
-		selection={select(EntityType.EvmTopic, data.selector)}
+		selection={
+			select(EntityType.EvmTopic, data.selector, {
+				fields: {
+					signatures: true,
+				},
+			})
+		}
 	/>
 </Page>

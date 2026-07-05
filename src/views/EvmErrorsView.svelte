@@ -22,7 +22,7 @@
 		selection,
 		title = 'EVM errors',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM errors...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,27 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Openchain_Rest,
 				],
-			}) : selection
+				fields: {
+					hex: true,
+				},
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmError}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmErrors)}
 			{@const uniqueEvmErrors = [...new Map(evmErrors.values.map((evmError) => [evmError[EntityMetaKey.SelectorKey], evmError])).values()]}
 			<EntitiesList
@@ -98,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmErrors.values.length === uniqueEvmErrors.length && evmErrors.totalCount != null && evmErrors.totalCount >= uniqueEvmErrors.length ? evmErrors.totalCount : uniqueEvmErrors.length}
+				totalCount={evmErrors.totalCount}
 				getKey={(evmError) => evmError[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmErrors}
 			>
@@ -111,14 +101,16 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmError }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmError> })}
+					{@const evmErrorFields = { ...evmError[EntityMetaKey.Selector], ...evmError }}
+					{@const evmErrorHrefFields = { ...evmError, ...evmError[EntityMetaKey.Selector] }}
 					<EvmErrorView
+						selection={select(EntityType.EvmError, evmError[EntityMetaKey.Selector])}
+						prefetched={evmErrorFields}
 						href={
-							resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
-								hex: String(({ ...evmError.entitySelector, ...evmError }).hex),
-							})
+							(evmErrorHrefFields.hex !== undefined ? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
+								hex: String(evmErrorHrefFields.hex ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmError, evmError.entitySelector)}
-						prefetched={evmError}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

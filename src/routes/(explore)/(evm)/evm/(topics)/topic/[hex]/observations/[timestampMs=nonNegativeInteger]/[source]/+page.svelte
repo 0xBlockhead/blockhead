@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.EvmTopic_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					signatures: true,
 					filteredSignatureCount: true,

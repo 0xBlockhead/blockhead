@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='BlockheadSourcesView-page'
+		id='blockhead-sources'
 	/>
 </Page>

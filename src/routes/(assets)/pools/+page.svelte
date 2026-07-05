@@ -37,6 +37,6 @@
 				limit: 300,
 			})
 		}
-		id='LiquidityPoolsView-page'
+		id='liquidity-pools'
 	/>
 </Page>

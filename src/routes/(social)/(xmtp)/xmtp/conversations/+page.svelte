@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,12 @@
 		selection={
 			select(EntityType.XmtpNetwork, {
 				scope: 'XmtpNetwork',
-			})[EntityProxyField]<EntityType.XmtpConversation>('$$xmtpConversations')
+			})[EntityProxyField]<EntityType.XmtpConversation>('$$xmtpConversations', {
+				sources: [
+					Source.Local_Internal,
+				],
+			})
 		}
-		id='XmtpConversationsView-page'
+		id='xmtp-conversations'
 	/>
 </Page>

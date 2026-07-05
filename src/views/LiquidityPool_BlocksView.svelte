@@ -21,7 +21,7 @@
 		selection,
 		title = 'Liquidity pool blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Liquidity pool blocks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					blockNumber: true,
 					tick: true,
 					$liquidityPool: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPool_Block}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(liquidityPoolBlocks)}
 			{@const uniqueLiquidityPoolBlocks = [...new Map(liquidityPoolBlocks.values.map((liquidityPoolBlock) => [liquidityPoolBlock[EntityMetaKey.SelectorKey], liquidityPoolBlock])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={liquidityPoolBlocks.values.length === uniqueLiquidityPoolBlocks.length && liquidityPoolBlocks.totalCount != null && liquidityPoolBlocks.totalCount >= uniqueLiquidityPoolBlocks.length ? liquidityPoolBlocks.totalCount : uniqueLiquidityPoolBlocks.length}
+				totalCount={liquidityPoolBlocks.totalCount}
 				getKey={(liquidityPoolBlock) => liquidityPoolBlock[EntityMetaKey.SelectorKey]}
 				items={uniqueLiquidityPoolBlocks}
 			>
@@ -107,21 +94,23 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No liquidity pool blocks yet.</p>
+						<p data-text="muted">No Liquidity pool blocks yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: liquidityPoolBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LiquidityPool_Block> })}
+					{@const liquidityPoolBlockFields = { ...liquidityPoolBlock[EntityMetaKey.Selector], ...liquidityPoolBlock }}
+					{@const liquidityPoolBlockHrefFields = { ...liquidityPoolBlock, ...liquidityPoolBlock[EntityMetaKey.Selector] }}
 					<LiquidityPool_BlockView
+						selection={select(EntityType.LiquidityPool_Block, liquidityPoolBlock[EntityMetaKey.Selector])}
+						prefetched={liquidityPoolBlockFields}
 						href={
-							resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]/block/[blockNumber=nonNegativeInteger]', {
-								chainId: String(({ ...liquidityPoolBlock.entitySelector, ...liquidityPoolBlock }).$liquidityPool.$network.caip2.reference),
-								poolId: String(({ ...liquidityPoolBlock.entitySelector, ...liquidityPoolBlock }).$liquidityPool.id),
-								blockNumber: String(({ ...liquidityPoolBlock.entitySelector, ...liquidityPoolBlock }).blockNumber),
-							})
+							(liquidityPoolBlockHrefFields.$liquidityPool !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2 !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2.reference !== undefined && liquidityPoolBlockHrefFields.$liquidityPool !== undefined && liquidityPoolBlockHrefFields.$liquidityPool.id !== undefined && liquidityPoolBlockHrefFields.blockNumber !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]/block/[blockNumber=nonNegativeInteger]', {
+								chainId: String(liquidityPoolBlockHrefFields.$liquidityPool.$network.caip2.reference ?? ''),
+								poolId: String(liquidityPoolBlockHrefFields.$liquidityPool.id ?? ''),
+								blockNumber: String(liquidityPoolBlockHrefFields.blockNumber ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.LiquidityPool_Block, liquidityPoolBlock.entitySelector)}
-						prefetched={liquidityPoolBlock}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

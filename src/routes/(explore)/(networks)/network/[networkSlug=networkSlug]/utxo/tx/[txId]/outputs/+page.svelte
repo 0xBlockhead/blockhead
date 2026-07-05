@@ -46,6 +46,6 @@
 				txId: decodeURIComponent(params.txId),
 			})[EntityProxyField]<EntityType.UtxoOutput>('$$outputs')
 		}
-		id='UtxoOutputsView-page'
+		id='outputs'
 	/>
 </Page>

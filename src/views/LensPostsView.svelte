@@ -20,7 +20,7 @@
 		selection,
 		title = 'Lens posts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Lens posts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					text: true,
 					id: true,
 					timestamp: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensPost}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(lensPosts)}
 			{@const uniqueLensPosts = [...new Map(lensPosts.values.map((lensPost) => [lensPost[EntityMetaKey.SelectorKey], lensPost])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lensPosts.values.length === uniqueLensPosts.length && lensPosts.totalCount != null && lensPosts.totalCount >= uniqueLensPosts.length ? lensPosts.totalCount : uniqueLensPosts.length}
+				totalCount={lensPosts.totalCount}
 				getKey={(lensPost) => lensPost[EntityMetaKey.SelectorKey]}
 				items={uniqueLensPosts}
 			>
@@ -111,9 +98,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: lensPost }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensPost> })}
+					{@const lensPostFields = { ...lensPost[EntityMetaKey.Selector], ...lensPost }}
 					<LensPostView
-						selection={select(EntityType.LensPost, lensPost.entitySelector)}
-						prefetched={lensPost}
+						selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
+						prefetched={lensPostFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

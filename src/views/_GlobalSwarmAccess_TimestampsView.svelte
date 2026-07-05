@@ -21,7 +21,7 @@
 		selection,
 		title = 'Global Swarm access observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Global Swarm access observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$hub: true,
 					timestampMs: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalSwarmAccess_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalSwarmAccessTimestamps)}
 			{@const uniqueGlobalSwarmAccessTimestamps = [...new Map(globalSwarmAccessTimestamps.values.map((globalSwarmAccessTimestamp) => [globalSwarmAccessTimestamp[EntityMetaKey.SelectorKey], globalSwarmAccessTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalSwarmAccessTimestamps.values.length === uniqueGlobalSwarmAccessTimestamps.length && globalSwarmAccessTimestamps.totalCount != null && globalSwarmAccessTimestamps.totalCount >= uniqueGlobalSwarmAccessTimestamps.length ? globalSwarmAccessTimestamps.totalCount : uniqueGlobalSwarmAccessTimestamps.length}
+				totalCount={globalSwarmAccessTimestamps.totalCount}
 				getKey={(globalSwarmAccessTimestamp) => globalSwarmAccessTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalSwarmAccessTimestamps}
 			>
@@ -106,20 +94,22 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No global Swarm access observations yet.</p>
+						<p data-text="muted">No Global Swarm access observations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: globalSwarmAccessTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalSwarmAccess_Timestamp> })}
+					{@const globalSwarmAccessTimestampFields = { ...globalSwarmAccessTimestamp[EntityMetaKey.Selector], ...globalSwarmAccessTimestamp }}
+					{@const globalSwarmAccessTimestampHrefFields = { ...globalSwarmAccessTimestamp, ...globalSwarmAccessTimestamp[EntityMetaKey.Selector] }}
 					<GlobalSwarmAccess_TimestampView
+						selection={select(EntityType._GlobalSwarmAccess_Timestamp, globalSwarmAccessTimestamp[EntityMetaKey.Selector])}
+						prefetched={globalSwarmAccessTimestampFields}
 						href={
-							resolve('/(explore)/(swarm)/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								timestampMs: String(globalSwarmAccessTimestamp.entitySelector.timestampMs),
-								source: String(globalSwarmAccessTimestamp.entitySelector.source),
-							})
+							(globalSwarmAccessTimestampHrefFields.timestampMs !== undefined && globalSwarmAccessTimestampHrefFields.source !== undefined ? resolve('/(explore)/(swarm)/swarm/access/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								timestampMs: String(globalSwarmAccessTimestampHrefFields.timestampMs ?? ''),
+								source: String(globalSwarmAccessTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType._GlobalSwarmAccess_Timestamp, globalSwarmAccessTimestamp.entitySelector)}
-						prefetched={globalSwarmAccessTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

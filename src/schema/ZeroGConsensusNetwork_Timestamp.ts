@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { type } from 'arktype'
+
 export enum ZeroGConsensusNetwork_TimestampSelector {
-	ConsensusNetworkTimestampMsSource = '$consensusNetwork+timestampMs+source',
+	ConsensusNetworkTimestampMsSource = 'ConsensusNetworkTimestampMsSource',
 }
 export default {
 	entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
@@ -24,34 +24,34 @@ export default {
 	],
 	fields: [
 		{
-			name: '$consensusNetwork',
-			label: 'consensus network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ZeroGConsensusNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$consensusNetwork',
+				label: 'consensus network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.ZeroGConsensusNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'sharedStakingStatusSource',
-			label: 'shared staking status source',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'sharedStakingStatusSource',
+				label: 'shared staking status source',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

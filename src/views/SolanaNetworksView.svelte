@@ -22,7 +22,7 @@
 		selection,
 		title = 'Solana networks',
 		typeAnnotationParagraphs = ['A Solana cluster identified by its CAIP-2 namespace and reference.'],
-		placeholderText = 'Loading Solana networks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,28 +66,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					name: true,
 					caip2: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(solanaNetworks)}
 			{@const uniqueSolanaNetworks = [...new Map(solanaNetworks.values.map((solanaNetwork) => [solanaNetwork[EntityMetaKey.SelectorKey], solanaNetwork])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaNetworks.values.length === uniqueSolanaNetworks.length && solanaNetworks.totalCount != null && solanaNetworks.totalCount >= uniqueSolanaNetworks.length ? solanaNetworks.totalCount : uniqueSolanaNetworks.length}
+				totalCount={solanaNetworks.totalCount}
 				getKey={(solanaNetwork) => solanaNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueSolanaNetworks}
 			>
@@ -112,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: solanaNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaNetwork> })}
+					{@const solanaNetworkFields = { ...solanaNetwork[EntityMetaKey.Selector], ...solanaNetwork }}
+					{@const solanaNetworkHrefFields = { ...solanaNetwork, ...solanaNetwork[EntityMetaKey.Selector] }}
 					<SolanaNetworkView
+						selection={select(EntityType.SolanaNetwork, solanaNetwork[EntityMetaKey.Selector])}
+						prefetched={solanaNetworkFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana', {
-								networkSlug: String(networkByCaip2[String(String(({ ...solanaNetwork.entitySelector, ...solanaNetwork }).caip2.namespace) + ':' + String(({ ...solanaNetwork.entitySelector, ...solanaNetwork }).caip2.reference))].slug),
-							})
+							(solanaNetworkHrefFields.caip2 !== undefined && solanaNetworkHrefFields.caip2.namespace !== undefined && solanaNetworkHrefFields.caip2 !== undefined && solanaNetworkHrefFields.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana', {
+								networkSlug: String(networkByCaip2[String(String(solanaNetworkHrefFields.caip2.namespace) + ':' + String(solanaNetworkHrefFields.caip2.reference))].slug ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.SolanaNetwork, solanaNetwork.entitySelector)}
-						prefetched={solanaNetwork}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

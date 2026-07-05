@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { type } from 'arktype'
+
 export enum BlockheadAgentConnectionSelector {
-	ConnectionId = 'connectionId',
+	ConnectionId = 'ConnectionId',
 }
 export default {
 	entityType: EntityType.BlockheadAgentConnection,
@@ -22,61 +22,61 @@ export default {
 	],
 	fields: [
 		{
-			name: 'connectionId',
-			label: 'connection ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'connectionId',
+				label: 'connection ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$profile',
-			label: 'profile',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadAgentProfile,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$profile',
+				label: 'profile',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BlockheadAgentProfile,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadSource,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BlockheadSource,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'connectionKind',
-			label: 'connection kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'connectionKind',
+				label: 'connection kind',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'endpointUrl',
-			label: 'endpoint URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'endpointUrl',
+				label: 'endpoint URL',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'authKind',
-			label: 'auth kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'authKind',
+				label: 'auth kind',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'enabled',
-			label: 'enabled',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'enabled',
+				label: 'enabled',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.BlockheadAgentConnection_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.BlockheadAgentConnection_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

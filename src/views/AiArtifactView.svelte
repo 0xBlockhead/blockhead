@@ -1,0 +1,510 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { UrlString } from '$/schema/UrlString.ts'
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { Source } from '$/sources/Source.ts'
+
+
+	// State
+	let {
+		selection,
+		prefetched = {},
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.AiArtifact>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.AiArtifact>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
+
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	const aiArtifact = $derived(selection({
+		sources: [
+			Source.Ipfs_Rest,
+		],
+		fields: {
+			artifactType: true,
+			mediaType: true,
+			size: true,
+		},
+	}))
+	const titleFallback = $derived([String((prefetched.artifactType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.ociDigest) ?? ''), String((prefetched.ipfsCid) ?? ''), String((prefetched.arweaveId) ?? ''), String((prefetched.gitObject) ?? ''), String((prefetched.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact')
+	const viewDomId = $derived('ai-artifact-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	// Components
+	import NumberValue from '$/components/NumberValue.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import AiDocumentsView from '$/views/AiDocumentsView.svelte'
+	import AiArtifactAttestationsView from '$/views/AiArtifactAttestationsView.svelte'
+</script>
+
+
+<EntityView
+	entityType={EntityType.AiArtifact}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	{href}
+	{layout}
+	bind:open
+	{...EntityViewProps}
+>
+	{#snippet Title()}
+		<ResourceBoundary resource={aiArtifact}>
+			{#snippet Pending()}
+				{[String((prefetched.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.ociDigest) ?? ''), String((prefetched.ipfsCid) ?? ''), String((prefetched.arweaveId) ?? ''), String((prefetched.gitObject) ?? ''), String((prefetched.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.artifactType) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary resource={aiArtifact}>
+			{#snippet Pending()}
+				{[String((prefetched.mediaType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.artifactType) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.ociDigest) ?? ''), String((prefetched.ipfsCid) ?? ''), String((prefetched.arweaveId) ?? ''), String((prefetched.gitObject) ?? ''), String((prefetched.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact'}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.mediaType) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.artifactType) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={aiArtifact}>
+			{#snippet Pending()}
+				{@const size0 = prefetched.size}
+				{#if size0 !== undefined && size0 !== null}
+					<span data-text="muted">
+						<NumberValue value={Number(size0)} />
+					</span>
+				{/if}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const size0 = resolvedEntity.size}
+				{#if size0 !== undefined && size0 !== null}
+					<span data-text="muted">
+						<NumberValue value={Number(size0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							digestAlgorithm: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const digestAlgorithm = prefetched.digestAlgorithm}
+					{#if digestAlgorithm !== undefined && digestAlgorithm !== null}
+						<div>
+							<dt>digest algorithm</dt>
+							<dd>
+								<TruncatedValue value={String((digestAlgorithm) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const digestAlgorithm = resolvedEntity.digestAlgorithm}
+					{#if digestAlgorithm !== undefined && digestAlgorithm !== null}
+						<div>
+							<dt>digest algorithm</dt>
+							<dd>
+								<TruncatedValue value={String((digestAlgorithm) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							digest: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const digest = prefetched.digest}
+					{#if digest !== undefined && digest !== null}
+						<div>
+							<dt>digest</dt>
+							<dd>
+								<TruncatedValue value={String((digest) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const digest = resolvedEntity.digest}
+					{#if digest !== undefined && digest !== null}
+						<div>
+							<dt>digest</dt>
+							<dd>
+								<TruncatedValue value={String((digest) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							ociDigest: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const ociDigest = prefetched.ociDigest}
+					{#if ociDigest !== undefined && ociDigest !== null}
+						<div>
+							<dt>OCI digest</dt>
+							<dd>
+								<TruncatedValue value={String((ociDigest) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const ociDigest = resolvedEntity.ociDigest}
+					{#if ociDigest !== undefined && ociDigest !== null}
+						<div>
+							<dt>OCI digest</dt>
+							<dd>
+								<TruncatedValue value={String((ociDigest) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							ipfsCid: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const ipfsCid = prefetched.ipfsCid}
+					{#if ipfsCid !== undefined && ipfsCid !== null}
+						<div>
+							<dt>IPFS CID</dt>
+							<dd>
+								{String((ipfsCid) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const ipfsCid = resolvedEntity.ipfsCid}
+					{#if ipfsCid !== undefined && ipfsCid !== null}
+						<div>
+							<dt>IPFS CID</dt>
+							<dd>
+								{String((ipfsCid) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							arweaveId: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const arweaveId = prefetched.arweaveId}
+					{#if arweaveId !== undefined && arweaveId !== null}
+						<div>
+							<dt>Arweave ID</dt>
+							<dd>
+								{String((arweaveId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const arweaveId = resolvedEntity.arweaveId}
+					{#if arweaveId !== undefined && arweaveId !== null}
+						<div>
+							<dt>Arweave ID</dt>
+							<dd>
+								{String((arweaveId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							gitObject: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const gitObject = prefetched.gitObject}
+					{#if gitObject !== undefined && gitObject !== null}
+						<div>
+							<dt>Git object</dt>
+							<dd>
+								{String((gitObject) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const gitObject = resolvedEntity.gitObject}
+					{#if gitObject !== undefined && gitObject !== null}
+						<div>
+							<dt>Git object</dt>
+							<dd>
+								{String((gitObject) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							uri: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const uri = prefetched.uri}
+					{#if uri !== undefined && uri !== null}
+						<div>
+							<dt>URI</dt>
+							<dd>
+								<svelte:element
+									this={'a'}
+									href={String(uri)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(uri)} />
+								</svelte:element>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const uri = resolvedEntity.uri}
+					{#if uri !== undefined && uri !== null}
+						<div>
+							<dt>URI</dt>
+							<dd>
+								<svelte:element
+									this={'a'}
+									href={String(uri)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(uri)} />
+								</svelte:element>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							mediaType: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const mediaType = prefetched.mediaType}
+					{#if mediaType !== undefined && mediaType !== null}
+						<div>
+							<dt>media type</dt>
+							<dd>
+								{String((mediaType) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mediaType = resolvedEntity.mediaType}
+					{#if mediaType !== undefined && mediaType !== null}
+						<div>
+							<dt>media type</dt>
+							<dd>
+								{String((mediaType) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							artifactType: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const artifactType = prefetched.artifactType}
+					{#if artifactType !== undefined && artifactType !== null}
+						<div>
+							<dt>artifact type</dt>
+							<dd>
+								{String((artifactType) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const artifactType = resolvedEntity.artifactType}
+					{#if artifactType !== undefined && artifactType !== null}
+						<div>
+							<dt>artifact type</dt>
+							<dd>
+								{String((artifactType) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							size: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const size = prefetched.size}
+					{#if size !== undefined && size !== null}
+						<div>
+							<dt>size</dt>
+							<dd>
+								<NumberValue value={Number(size)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const size = resolvedEntity.size}
+					{#if size !== undefined && size !== null}
+						<div>
+							<dt>size</dt>
+							<dd>
+								<NumberValue value={Number(size)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<AiDocumentsView
+				selection={selection[EntityProxyField]<EntityType.AiDocument>('$$documents')}
+				title='documents'
+				emptyText='No linked documents.'
+				id='AiDocumentsView-$$documents'
+			/>
+
+			<AiArtifactAttestationsView
+				selection={selection[EntityProxyField]<EntityType.AiArtifactAttestation>('$$attestations')}
+				title='attestations'
+				emptyText='No AI artifact attestations.'
+				id='AiArtifactAttestationsView-$$attestations'
+			/>
+		{/if}
+	{/snippet}
+</EntityView>

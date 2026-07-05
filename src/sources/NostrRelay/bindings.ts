@@ -58,7 +58,6 @@ export const nostrRelayBindings = [
 			{
 				endpointKind: SourceEndpointKind.WebSocketUrl,
 				locator: 'wss://{relay-host}',
-				origin: 'wss://{relay-host}',
 			},
 		],
 		wireProtocol: WireProtocol.JsonRpc2,

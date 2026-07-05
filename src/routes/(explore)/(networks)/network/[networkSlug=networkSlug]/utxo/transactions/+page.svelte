@@ -44,6 +44,6 @@
 				},
 			})[EntityProxyField]<EntityType.UtxoTransaction>('$$transactions')
 		}
-		id='UtxoTransactionsView-page'
+		id='transactions'
 	/>
 </Page>

@@ -46,6 +46,6 @@
 				txId: decodeURIComponent(params.txId),
 			})[EntityProxyField]<EntityType.ZcashShieldedAction>('$$zcashShieldedActions')
 		}
-		id='ZcashShieldedActionsView-page'
+		id='zcash-shielded-actions'
 	/>
 </Page>

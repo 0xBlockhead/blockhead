@@ -20,7 +20,7 @@
 		selection,
 		title = 'Dashboards',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Dashboards...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,27 +64,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					id: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadPanelTree}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadPanelTrees)}
 			{@const uniqueBlockheadPanelTrees = [...new Map(blockheadPanelTrees.values.map((blockheadPanelTree) => [blockheadPanelTree[EntityMetaKey.SelectorKey], blockheadPanelTree])).values()]}
 			<EntitiesList
@@ -96,7 +83,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadPanelTrees.values.length === uniqueBlockheadPanelTrees.length && blockheadPanelTrees.totalCount != null && blockheadPanelTrees.totalCount >= uniqueBlockheadPanelTrees.length ? blockheadPanelTrees.totalCount : uniqueBlockheadPanelTrees.length}
+				totalCount={blockheadPanelTrees.totalCount}
 				getKey={(blockheadPanelTree) => blockheadPanelTree[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadPanelTrees}
 			>
@@ -104,14 +91,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No dashboards yet.</p>
+						<p data-text="muted">No Dashboards yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadPanelTree }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadPanelTree> })}
+					{@const blockheadPanelTreeFields = { ...blockheadPanelTree[EntityMetaKey.Selector], ...blockheadPanelTree }}
 					<BlockheadPanelTreeView
-						selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree.entitySelector)}
-						prefetched={blockheadPanelTree}
+						selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector])}
+						prefetched={blockheadPanelTreeFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

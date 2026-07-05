@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Accounts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Polkadot accounts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					accountId: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(polkadotAccounts)}
 			{@const uniquePolkadotAccounts = [...new Map(polkadotAccounts.values.map((polkadotAccount) => [polkadotAccount[EntityMetaKey.SelectorKey], polkadotAccount])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotAccounts.values.length === uniquePolkadotAccounts.length && polkadotAccounts.totalCount != null && polkadotAccounts.totalCount >= uniquePolkadotAccounts.length ? polkadotAccounts.totalCount : uniquePolkadotAccounts.length}
+				totalCount={polkadotAccounts.totalCount}
 				getKey={(polkadotAccount) => polkadotAccount[EntityMetaKey.SelectorKey]}
 				items={uniquePolkadotAccounts}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: polkadotAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotAccount> })}
+					{@const polkadotAccountFields = { ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }}
+					{@const polkadotAccountHrefFields = { ...polkadotAccount, ...polkadotAccount[EntityMetaKey.Selector] }}
 					<PolkadotAccountView
+						selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
+						prefetched={polkadotAccountFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
-								networkSlug: String(({ ...polkadotAccount.entitySelector, ...polkadotAccount }).$network.slug),
-								accountId: String(({ ...polkadotAccount.entitySelector, ...polkadotAccount }).accountId),
-							})
+							(polkadotAccountHrefFields.$network !== undefined && polkadotAccountHrefFields.$network.caip2 !== undefined && polkadotAccountHrefFields.$network.caip2.namespace !== undefined && polkadotAccountHrefFields.$network !== undefined && polkadotAccountHrefFields.$network.caip2 !== undefined && polkadotAccountHrefFields.$network.caip2.reference !== undefined && polkadotAccountHrefFields.accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
+								networkSlug: String(networkByCaip2[String(String(polkadotAccountHrefFields.$network.caip2.namespace) + ':' + String(polkadotAccountHrefFields.$network.caip2.reference))].slug ?? ''),
+								accountId: String(polkadotAccountHrefFields.accountId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.PolkadotAccount, polkadotAccount.entitySelector)}
-						prefetched={polkadotAccount}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

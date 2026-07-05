@@ -11,8 +11,10 @@ import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
+import { walletConnectionMethodById } from '$/constants/Wallet.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { XmtpConversationSelector } from '$/schema/XmtpConversation.ts'
+import { WalletConnectionMethodSelector } from '$/schema/WalletConnectionMethod.ts'
 import { BlockheadSourceSelector } from '$/schema/BlockheadSource.ts'
 import { BlockheadWalletSelector } from '$/schema/BlockheadWallet.ts'
 import { BlockheadWalletAccountSelector } from '$/schema/BlockheadWalletAccount.ts'
@@ -23,19 +25,26 @@ import { BlockheadSessionSelector } from '$/schema/BlockheadSession.ts'
 import { BlockheadSessionActionSelector } from '$/schema/BlockheadSessionAction.ts'
 import { BlockheadRoomPeerSelector } from '$/schema/BlockheadRoomPeer.ts'
 import { BlockheadSharedAddressSelector } from '$/schema/BlockheadSharedAddress.ts'
+import { BlockheadSiweChallengeSelector } from '$/schema/BlockheadSiweChallenge.ts'
+import { BlockheadSocialPostSessionSelector } from '$/schema/BlockheadSocialPostSession.ts'
 import { BlockheadStateChannelSelector } from '$/schema/BlockheadStateChannel.ts'
 import { BlockheadStateChannel_TimestampSelector } from '$/schema/BlockheadStateChannel_Timestamp.ts'
 import { BlockheadStateChannelDepositSelector } from '$/schema/BlockheadStateChannelDeposit.ts'
 import { BlockheadStateChannelDeposit_TimestampSelector } from '$/schema/BlockheadStateChannelDeposit_Timestamp.ts'
 import { BlockheadStateChannelTransferSelector } from '$/schema/BlockheadStateChannelTransfer.ts'
 import { BlockheadStateChannelStateSelector } from '$/schema/BlockheadStateChannelState.ts'
+import { BlockheadTransferRequestSelector } from '$/schema/BlockheadTransferRequest.ts'
 import { BlockheadAgentConversationSelector } from '$/schema/BlockheadAgentConversation.ts'
 import { BlockheadAgentConversationTurnSelector } from '$/schema/BlockheadAgentConversationTurn.ts'
 import { BlockheadEnsNameSearchSelector } from '$/schema/BlockheadEnsNameSearch.ts'
+import { BlockheadFilecoinPendingMessageSelector } from '$/schema/BlockheadFilecoinPendingMessage.ts'
+import { BlockheadBridgeTransactionSelector } from '$/schema/BlockheadBridgeTransaction.ts'
+import { BlockheadFarcasterAccountConnectionSelector } from '$/schema/BlockheadFarcasterAccountConnection.ts'
 import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import { EvmContractSelector } from '$/schema/EvmContract.ts'
 import { XmtpNetworkSelector } from '$/schema/XmtpNetwork.ts'
 import { _GlobalEvmAbiCatalogSelector } from '$/schema/_GlobalEvmAbiCatalog.ts'
+import { _GlobalEvmAbiCatalog_TimestampSelector } from '$/schema/_GlobalEvmAbiCatalog_Timestamp.ts'
 
 const sliceNormalizedRowsForSubset = <_Row>(
 	normalizedCatalogRows: readonly _Row[],
@@ -47,6 +56,36 @@ const sliceNormalizedRowsForSubset = <_Row>(
 const readNormalizedLocalInternal = async () => (
 	(await import('$/sources/Local/Internal/catalog.ts')).readNormalizedLocalInternal()
 )
+
+const globalEvmAbiCatalogTimestampFields = async ({
+	scope,
+	timestampMs,
+}: {
+	scope: string
+	timestampMs: number
+}) => {
+	const normalizedLocalInternal = await readNormalizedLocalInternal()
+	return {
+		[EntityMetaKey.Selector]: {
+			$hub: {
+				scope,
+			},
+			timestampMs,
+			source: Source.Local_Internal,
+		},
+		$hub: {
+			[EntityMetaKey.Selector]: {
+				scope,
+			},
+		},
+		timestampMs,
+		source: Source.Local_Internal,
+		localCatalogSelectorCount: normalizedLocalInternal.evmSelectors.length,
+		localCatalogTopicCount: normalizedLocalInternal.evmTopics.length,
+		localCatalogErrorCount: normalizedLocalInternal.evmErrors.length,
+		reachable: true,
+	}
+}
 
 const blockheadConnectionStatusByLocalStatus = {
 	disconnected: BlockheadConnectionStatus.Disconnected,
@@ -136,6 +175,12 @@ const normalizedBlockheadEnsNameSearchQuery = (query: string): string => {
 	}
 }
 
+const findNormalizedBridgeTransactionRow = async (
+	...args: Parameters<typeof import('$/sources/Local/Internal/catalog.ts').findNormalizedBridgeTransactionRow>
+			) => (
+	(await import('$/sources/Local/Internal/catalog.ts')).findNormalizedBridgeTransactionRow(...args)
+)
+
 export default {
 	source: Source.Local_Internal,
 
@@ -197,6 +242,41 @@ export default {
 				rdns: (wallet) => wallet.rdns,
 				websiteUrl: (wallet) => wallet.websiteUrl,
 				capabilities: (wallet) => wallet.capabilities,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.WalletConnectionMethod,
+			resolve: {
+				[WalletConnectionMethodSelector.Id]: async ({ id }) => {
+				const walletConnectionMethod = walletConnectionMethodById[id]
+				if (walletConnectionMethod == null) throw new Error('Local_Internal: WalletConnectionMethod not present in local catalog')
+				return {
+					label: walletConnectionMethod.label,
+					protocol: walletConnectionMethod.protocol,
+					discoveryKind: walletConnectionMethod.discoveryKind,
+					transportKind: walletConnectionMethod.transportKind,
+					formFactors: walletConnectionMethod.formFactors,
+					networkNamespaces: walletConnectionMethod.networkNamespaces,
+					caipNamespaces: walletConnectionMethod.caipNamespaces,
+					capabilities: walletConnectionMethod.capabilities,
+					implementationStatus: walletConnectionMethod.implementationStatus,
+					dependencyPolicy: walletConnectionMethod.dependencyPolicy,
+				}
+			}
+			},
+		})({
+				fields: {
+				label: (method) => method.label,
+				protocol: (method) => method.protocol,
+				discoveryKind: (method) => method.discoveryKind,
+				transportKind: (method) => method.transportKind,
+				formFactors: (method) => method.formFactors,
+				networkNamespaces: (method) => method.networkNamespaces,
+				caipNamespaces: (method) => method.caipNamespaces,
+				capabilities: (method) => method.capabilities,
+				implementationStatus: (method) => method.implementationStatus,
+				dependencyPolicy: (method) => method.dependencyPolicy,
 			},
 			}),
 
@@ -376,6 +456,38 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadSocialPostSession,
+			resolve: {
+				[BlockheadSocialPostSessionSelector.Id]: async ({ id }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadSocialPostSession = catalog.blockheadSocialPostSessions.find((candidate) => candidate.id === id)
+				if (blockheadSocialPostSession == null) {
+					throw new Error('Local_Internal: BlockheadSocialPostSession not present in local catalog')
+				}
+				return {
+					...(blockheadSocialPostSession.name != null && { name: blockheadSocialPostSession.name }),
+					status: blockheadSocialPostSession.status,
+					protocol: blockheadSocialPostSession.protocol,
+					authorId: blockheadSocialPostSession.authorId,
+					createdAt: blockheadSocialPostSession.createdAt,
+					updatedAt: blockheadSocialPostSession.updatedAt,
+					...(blockheadSocialPostSession.lockedAt != null && { lockedAt: blockheadSocialPostSession.lockedAt }),
+				}
+			}
+			},
+		})({
+				fields: {
+				name: (session) => session.name,
+				status: (session) => session.status,
+				protocol: (session) => session.protocol,
+				authorId: (session) => session.authorId,
+				createdAt: (session) => session.createdAt,
+				updatedAt: (session) => session.updatedAt,
+				lockedAt: (session) => session.lockedAt,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoomPeer,
 			resolve: {
 				[BlockheadRoomPeerSelector.Id]: async ({ id }) => {
@@ -434,6 +546,149 @@ export default {
 				$account: (address) => address.$account,
 				targetPeerIds: (address) => address.targetPeerIds,
 				sharedAt: (address) => address.sharedAt,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadSiweChallenge,
+			resolve: {
+				[BlockheadSiweChallengeSelector.Id]: async ({ id }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadSiweChallenge = catalog.blockheadSiweChallenges.find((candidate) => candidate.id === id)
+				if (blockheadSiweChallenge == null) {
+					throw new Error('Local_Internal: BlockheadSiweChallenge not present in local catalog')
+				}
+				return {
+					$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(blockheadSiweChallenge.chainId) } } },
+					$room: { [EntityMetaKey.Selector]: { id: blockheadSiweChallenge.roomId } },
+					fromPeerId: blockheadSiweChallenge.fromPeerId,
+					toPeerId: blockheadSiweChallenge.toPeerId,
+					$signer: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(blockheadSiweChallenge.signerAddress) } },
+					message: blockheadSiweChallenge.message,
+					...(blockheadSiweChallenge.scheme != null && { scheme: blockheadSiweChallenge.scheme }),
+					domain: blockheadSiweChallenge.domain,
+					address: EvmAddress.assert(blockheadSiweChallenge.address),
+					uri: blockheadSiweChallenge.uri,
+					version: blockheadSiweChallenge.version,
+					chainId: blockheadSiweChallenge.chainId,
+					nonce: blockheadSiweChallenge.nonce,
+					...(blockheadSiweChallenge.statement != null && { statement: blockheadSiweChallenge.statement }),
+					issuedAt: blockheadSiweChallenge.issuedAt,
+					...(blockheadSiweChallenge.expiresAt != null && { expiresAt: blockheadSiweChallenge.expiresAt }),
+					...(blockheadSiweChallenge.notBefore != null && { notBefore: blockheadSiweChallenge.notBefore }),
+					...(blockheadSiweChallenge.requestId != null && { requestId: blockheadSiweChallenge.requestId }),
+					resources: [...blockheadSiweChallenge.resources],
+					...(blockheadSiweChallenge.requestOrigin != null && { requestOrigin: blockheadSiweChallenge.requestOrigin }),
+					...(blockheadSiweChallenge.signature != null && { signature: blockheadSiweChallenge.signature }),
+					...(blockheadSiweChallenge.signatureKind != null && { signatureKind: blockheadSiweChallenge.signatureKind }),
+					verified: blockheadSiweChallenge.verified,
+					...(blockheadSiweChallenge.verificationMethod != null && { verificationMethod: blockheadSiweChallenge.verificationMethod }),
+					...(blockheadSiweChallenge.verifiedAt != null && { verifiedAt: blockheadSiweChallenge.verifiedAt }),
+					...(blockheadSiweChallenge.verificationError != null && { verificationError: blockheadSiweChallenge.verificationError }),
+				}
+			}
+			},
+		})({
+				fields: {
+				$network: (challenge) => challenge.$network,
+				$room: (challenge) => challenge.$room,
+				fromPeerId: (challenge) => challenge.fromPeerId,
+				toPeerId: (challenge) => challenge.toPeerId,
+				$signer: (challenge) => challenge.$signer,
+				message: (challenge) => challenge.message,
+				scheme: (challenge) => challenge.scheme,
+				domain: (challenge) => challenge.domain,
+				address: (challenge) => challenge.address,
+				uri: (challenge) => challenge.uri,
+				version: (challenge) => challenge.version,
+				chainId: (challenge) => challenge.chainId,
+				nonce: (challenge) => challenge.nonce,
+				statement: (challenge) => challenge.statement,
+				issuedAt: (challenge) => challenge.issuedAt,
+				expiresAt: (challenge) => challenge.expiresAt,
+				notBefore: (challenge) => challenge.notBefore,
+				requestId: (challenge) => challenge.requestId,
+				resources: (challenge) => challenge.resources,
+				requestOrigin: (challenge) => challenge.requestOrigin,
+				signature: (challenge) => challenge.signature,
+				signatureKind: (challenge) => challenge.signatureKind,
+				verified: (challenge) => challenge.verified,
+				verificationMethod: (challenge) => challenge.verificationMethod,
+				verifiedAt: (challenge) => challenge.verifiedAt,
+				verificationError: (challenge) => challenge.verificationError,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadFilecoinPendingMessage,
+			resolve: {
+				[BlockheadFilecoinPendingMessageSelector.NodeIdMessageCidObservedAtMs]: async ({ messageCid, nodeId, observedAtMs }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadFilecoinPendingMessage = catalog.blockheadFilecoinPendingMessages.find((candidate) => (
+					candidate.nodeId === nodeId
+					&& candidate.messageCid === messageCid
+					&& candidate.observedAtMs === observedAtMs
+				))
+				if (blockheadFilecoinPendingMessage == null) {
+					throw new Error('Local_Internal: BlockheadFilecoinPendingMessage not present in local catalog')
+				}
+				return {
+					...(blockheadFilecoinPendingMessage.networkCaip2Reference != null && {
+						$network: {
+							[EntityMetaKey.Selector]: {
+								$network: { caip2: { namespace: 'fil' as const, reference: blockheadFilecoinPendingMessage.networkCaip2Reference } },
+							},
+						},
+						$message: {
+							[EntityMetaKey.Selector]: {
+								$network: { caip2: { namespace: 'fil' as const, reference: blockheadFilecoinPendingMessage.networkCaip2Reference } },
+								cid: blockheadFilecoinPendingMessage.messageCid,
+							},
+						},
+					}),
+					...(blockheadFilecoinPendingMessage.networkCaip2Reference != null && blockheadFilecoinPendingMessage.fromAddress != null && {
+						$from: {
+							[EntityMetaKey.Selector]: {
+								$network: { caip2: { namespace: 'fil' as const, reference: blockheadFilecoinPendingMessage.networkCaip2Reference } },
+								address: blockheadFilecoinPendingMessage.fromAddress,
+							},
+						},
+					}),
+					...(blockheadFilecoinPendingMessage.networkCaip2Reference != null && blockheadFilecoinPendingMessage.toAddress != null && {
+						$to: {
+							[EntityMetaKey.Selector]: {
+								$network: { caip2: { namespace: 'fil' as const, reference: blockheadFilecoinPendingMessage.networkCaip2Reference } },
+								address: blockheadFilecoinPendingMessage.toAddress,
+							},
+						},
+					}),
+					...(blockheadFilecoinPendingMessage.nonce != null && { nonce: blockheadFilecoinPendingMessage.nonce }),
+					...(blockheadFilecoinPendingMessage.method != null && { method: blockheadFilecoinPendingMessage.method }),
+					...(blockheadFilecoinPendingMessage.valueAttoFil != null && { valueAttoFil: blockheadFilecoinPendingMessage.valueAttoFil }),
+					...(blockheadFilecoinPendingMessage.gasLimit != null && { gasLimit: blockheadFilecoinPendingMessage.gasLimit }),
+					...(blockheadFilecoinPendingMessage.gasFeeCapAttoFil != null && { gasFeeCapAttoFil: blockheadFilecoinPendingMessage.gasFeeCapAttoFil }),
+					...(blockheadFilecoinPendingMessage.gasPremiumAttoFil != null && { gasPremiumAttoFil: blockheadFilecoinPendingMessage.gasPremiumAttoFil }),
+					...(blockheadFilecoinPendingMessage.signatureType != null && { signatureType: blockheadFilecoinPendingMessage.signatureType }),
+					...(blockheadFilecoinPendingMessage.local != null && { local: blockheadFilecoinPendingMessage.local }),
+					...(blockheadFilecoinPendingMessage.payload != null && { payload: blockheadFilecoinPendingMessage.payload }),
+				}
+			}
+			},
+		})({
+				fields: {
+				$network: (message) => message.$network,
+				$message: (message) => message.$message,
+				$from: (message) => message.$from,
+				$to: (message) => message.$to,
+				nonce: (message) => message.nonce,
+				method: (message) => message.method,
+				valueAttoFil: (message) => message.valueAttoFil,
+				gasLimit: (message) => message.gasLimit,
+				gasFeeCapAttoFil: (message) => message.gasFeeCapAttoFil,
+				gasPremiumAttoFil: (message) => message.gasPremiumAttoFil,
+				signatureType: (message) => message.signatureType,
+				local: (message) => message.local,
+				payload: (message) => message.payload,
 			},
 			}),
 
@@ -636,6 +891,47 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadTransferRequest,
+			resolve: {
+				[BlockheadTransferRequestSelector.IdEvmNetwork]: async ({ id, $network }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadTransferRequest = catalog.blockheadTransferRequests.find((candidate) => (
+					candidate.id === id
+					&& String(candidate.chainId) === $network.caip2.reference
+				))
+				if (blockheadTransferRequest == null) {
+					throw new Error('Local_Internal: BlockheadTransferRequest not present in local catalog')
+				}
+				return {
+					$network: { [EntityMetaKey.Selector]: { caip2: { namespace: 'eip155' as const, reference: String(blockheadTransferRequest.chainId) } } },
+					$room: { [EntityMetaKey.Selector]: { id: blockheadTransferRequest.roomId } },
+					$from: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(blockheadTransferRequest.from) } },
+					$to: { [EntityMetaKey.Selector]: { address: EvmAddress.assert(blockheadTransferRequest.to) } },
+					allocations: blockheadTransferRequest.allocations.map((allocation) => ({
+						destination: EvmAddress.assert(allocation.destination),
+						token: EvmAddress.assert(allocation.token),
+						amount: allocation.amount,
+					})),
+					status: blockheadTransferRequest.status,
+					createdAt: blockheadTransferRequest.createdAt,
+					expiresAt: blockheadTransferRequest.expiresAt,
+				}
+			}
+			},
+		})({
+				fields: {
+				$network: (request) => request.$network,
+				$room: (request) => request.$room,
+				$from: (request) => request.$from,
+				$to: (request) => request.$to,
+				allocations: (request) => request.allocations,
+				status: (request) => request.status,
+				createdAt: (request) => request.createdAt,
+				expiresAt: (request) => request.expiresAt,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadAgentConversation,
 			resolve: {
 				[BlockheadAgentConversationSelector.Id]: async ({ id }) => {
@@ -673,6 +969,29 @@ export default {
 				[BlockheadAgentConversationTurnSelector.Id]: async ({ id }) => {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadAgentConversationTurn = catalog.blockheadAgentConversationTurns.find((candidate) => candidate.id === id)
+				if (blockheadAgentConversationTurn == null) {
+					throw new Error('Local_Internal: BlockheadAgentConversationTurn not present in local catalog')
+				}
+				return {
+					$conversation: {
+						[EntityMetaKey.Selector]: { id: blockheadAgentConversationTurn.conversationId },
+					},
+					parentId: blockheadAgentConversationTurn.parentId,
+					userPrompt: blockheadAgentConversationTurn.userPrompt,
+					assistantText: blockheadAgentConversationTurn.assistantText,
+					providerId: blockheadAgentConversationTurn.providerId,
+					status: blockheadAgentConversationTurn.status,
+					...(blockheadAgentConversationTurn.error != null && { error: blockheadAgentConversationTurn.error }),
+					createdAt: blockheadAgentConversationTurn.createdAt,
+					promptVersion: blockheadAgentConversationTurn.promptVersion,
+				}
+			},
+				[BlockheadAgentConversationTurnSelector.ConversationTurnId]: async ({ $conversation, id }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadAgentConversationTurn = catalog.blockheadAgentConversationTurns.find((candidate) => (
+					candidate.id === id
+					&& candidate.conversationId === $conversation.id
+				))
 				if (blockheadAgentConversationTurn == null) {
 					throw new Error('Local_Internal: BlockheadAgentConversationTurn not present in local catalog')
 				}
@@ -777,6 +1096,56 @@ export default {
 		})({
 				fields: {
 				$$xmtpConversations: (entity) => entity,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadPanelTree,
+			resolve: {
+				[BlockheadPanelTreeSelector.Id]: async ({ id }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadPanelTree = catalog.blockheadPanelTrees.find((candidate) => candidate.id === id)
+				if (blockheadPanelTree == null) throw new Error('Local_Internal: BlockheadPanelTree not present in local catalog')
+				return {}
+			}
+			},
+		})({
+				fields: {
+				id: (blockheadPanelTree) => blockheadPanelTree[EntityMetaKey.Selector].id,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadSource,
+			resolve: {
+				[BlockheadSourceSelector.Id]: async ({ id }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadSource = catalog.blockheadSources.find((candidate) => candidate.id === id)
+				if (blockheadSource == null) throw new Error('Local_Internal: BlockheadSource not present in local catalog')
+				return {}
+			}
+			},
+		})({
+				fields: {
+				id: (blockheadSource) => blockheadSource[EntityMetaKey.Selector].id,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadFarcasterAccountConnection,
+			resolve: {
+				[BlockheadFarcasterAccountConnectionSelector.Fid]: async ({ fid }) => {
+				const catalog = await readNormalizedLocalInternal()
+				const blockheadFarcasterAccountConnection = catalog.blockheadFarcasterAccountConnections.find((candidate) => candidate.fid === fid)
+				if (blockheadFarcasterAccountConnection == null) {
+					throw new Error('Local_Internal: BlockheadFarcasterAccountConnection not present in local catalog')
+				}
+				return {}
+			}
+			},
+		})({
+				fields: {
+				fid: (blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.Selector].fid,
 			},
 			}),
 
@@ -1019,6 +1388,41 @@ export default {
 			}),
 
 		defineResolver(Source.Local_Internal, {
+			entityType: EntityType.BlockheadBridgeTransaction,
+			resolve: {
+				[BlockheadBridgeTransactionSelector.AccountSourceTxCreatedAt]: async (
+				scopedEntitySelector: EntitySelector<typeof schema, EntityType.BlockheadBridgeTransaction>
+			) => {
+				const blockheadBridgeTransaction = await findNormalizedBridgeTransactionRow(
+					await readNormalizedLocalInternal(),
+					scopedEntitySelector
+				)
+				if (blockheadBridgeTransaction == null) {
+					throw new Error('Local_Internal: BlockheadBridgeTransaction not present in local catalog')
+				}
+				return {
+					$account: {
+						[EntityMetaKey.Selector]: { address: EvmAddress.assert(blockheadBridgeTransaction.accountAddress) },
+					},
+					$sourceTx: {
+						[EntityMetaKey.Selector]: {
+							$network: { caip2: { namespace: 'eip155' as const, reference: String(blockheadBridgeTransaction.chainId) } },
+							txHash: ZeroExHex.assert(blockheadBridgeTransaction.txHash),
+						},
+					},
+					createdAt: blockheadBridgeTransaction.createdAt,
+				}
+			}
+			},
+		})({
+				fields: {
+				$account: (transaction) => transaction.$account,
+				$sourceTx: (transaction) => transaction.$sourceTx,
+				createdAt: (transaction) => transaction.createdAt,
+			},
+			}),
+
+		defineResolver(Source.Local_Internal, {
 			entityType: EntityType.BlockheadRoom,
 			resolve: {
 				[BlockheadRoomSelector.Id]: async ({ id }, context) => (
@@ -1253,5 +1657,52 @@ export default {
 					$$sourceWindowErrors: (entity) => entity,
 			},
 			}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType._GlobalEvmAbiCatalog,
+			resolve: {
+				[_GlobalEvmAbiCatalogSelector.Scope]: async ({ scope }) => [
+					await globalEvmAbiCatalogTimestampFields({
+						scope,
+						timestampMs: Date.now(),
+					}),
+				],
+			},
+		})({
+			fields: {
+				$$timestamps: (timestamps) => timestamps.map((timestamp) => ({
+					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
+				})),
+			},
+		}),
+
+		defineResolver(Source.Local_Internal, {
+			entityType: EntityType._GlobalEvmAbiCatalog_Timestamp,
+			resolve: {
+				[_GlobalEvmAbiCatalog_TimestampSelector.HubTimestampMsSource]: async ({
+					$hub,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.Local_Internal)
+						throw new Error(`Local_Internal: unsupported EVM ABI catalog timestamp source ${source}`)
+
+					return globalEvmAbiCatalogTimestampFields({
+						scope: $hub.scope,
+						timestampMs,
+					})
+				},
+			},
+		})({
+			fields: {
+				$hub: (timestamp) => timestamp.$hub,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
+				localCatalogSelectorCount: (timestamp) => timestamp.localCatalogSelectorCount,
+				localCatalogTopicCount: (timestamp) => timestamp.localCatalogTopicCount,
+				localCatalogErrorCount: (timestamp) => timestamp.localCatalogErrorCount,
+				reachable: (timestamp) => timestamp.reachable,
+			},
+		}),
 	],
 }

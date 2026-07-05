@@ -2,6 +2,7 @@
 
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum MevBuilderSelector {
@@ -41,6 +42,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.MevBuilder_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MevRelay_Rest,
+				],
 		},
 		{
 				name: '$$deliveredPayloads',
@@ -48,6 +52,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MevRelay_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

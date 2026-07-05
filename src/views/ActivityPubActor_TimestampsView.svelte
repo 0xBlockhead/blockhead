@@ -21,7 +21,7 @@
 		selection,
 		title = 'ActivityPub actor observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ActivityPub actor observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$actor: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubActor_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(activityPubActorTimestamps)}
 			{@const uniqueActivityPubActorTimestamps = [...new Map(activityPubActorTimestamps.values.map((activityPubActorTimestamp) => [activityPubActorTimestamp[EntityMetaKey.SelectorKey], activityPubActorTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubActorTimestamps.values.length === uniqueActivityPubActorTimestamps.length && activityPubActorTimestamps.totalCount != null && activityPubActorTimestamps.totalCount >= uniqueActivityPubActorTimestamps.length ? activityPubActorTimestamps.totalCount : uniqueActivityPubActorTimestamps.length}
+				totalCount={activityPubActorTimestamps.totalCount}
 				getKey={(activityPubActorTimestamp) => activityPubActorTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueActivityPubActorTimestamps}
 			>
@@ -111,16 +98,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: activityPubActorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubActor_Timestamp> })}
+					{@const activityPubActorTimestampFields = { ...activityPubActorTimestamp[EntityMetaKey.Selector], ...activityPubActorTimestamp }}
+					{@const activityPubActorTimestampHrefFields = { ...activityPubActorTimestamp, ...activityPubActorTimestamp[EntityMetaKey.Selector] }}
 					<ActivityPubActor_TimestampView
+						selection={select(EntityType.ActivityPubActor_Timestamp, activityPubActorTimestamp[EntityMetaKey.Selector])}
+						prefetched={activityPubActorTimestampFields}
 						href={
-							resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/(actor)/observations/[timestampMs=nonNegativeInteger]', {
-								instanceOrigin: String(activityPubActorTimestamp.entitySelector.$actor.instanceOrigin),
-								localAccountId: String(activityPubActorTimestamp.entitySelector.$actor.localAccountId),
-								timestampMs: String(activityPubActorTimestamp.entitySelector.timestampMs),
-							})
+							(activityPubActorTimestampHrefFields.$actor !== undefined && activityPubActorTimestampHrefFields.$actor.instanceOrigin !== undefined && activityPubActorTimestampHrefFields.$actor !== undefined && activityPubActorTimestampHrefFields.$actor.localAccountId !== undefined && activityPubActorTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/(actor)/observations/[timestampMs=nonNegativeInteger]', {
+								instanceOrigin: String(activityPubActorTimestampHrefFields.$actor.instanceOrigin ?? ''),
+								localAccountId: String(activityPubActorTimestampHrefFields.$actor.localAccountId ?? ''),
+								timestampMs: String(activityPubActorTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.ActivityPubActor_Timestamp, activityPubActorTimestamp.entitySelector)}
-						prefetched={activityPubActorTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

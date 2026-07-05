@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { hyperliquidDocsBindings } from '$/sources/HyperliquidDocs/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.HyperliquidDocs,
-	label: 'Hyperliquid docs',
-	sources: [
-		{
-			provider: SourceProvider.HyperliquidDocs,
-			source: Source.HyperliquidDocs_Rest,
-			label: 'Hyperliquid docs',
-		},
-	],
-	bindings: hyperliquidDocsBindings,
-} satisfies SourceProviderDefinition
+	source: Source.HyperliquidDocs_Rest,
+	label: 'Hyperliquid docs REST',
+} satisfies SourceDefinition

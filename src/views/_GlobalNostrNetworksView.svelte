@@ -20,7 +20,7 @@
 		selection,
 		title = 'Nostr',
 		typeAnnotationParagraphs = ['Nostr is a relay-based social protocol for signed events. Profiles, notes, reposts, and articles are event kinds; relays are transport endpoints and are not global proof that an event exists everywhere.'],
-		placeholderText = 'Loading Nostr...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,19 +66,6 @@
 		resource={selection}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalNostrNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalNostrNetworks)}
 			{@const uniqueGlobalNostrNetworks = [...new Map(globalNostrNetworks.values.map((globalNostrNetwork) => [globalNostrNetwork[EntityMetaKey.SelectorKey], globalNostrNetwork])).values()]}
 			<EntitiesList
@@ -90,7 +77,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalNostrNetworks.values.length === uniqueGlobalNostrNetworks.length && globalNostrNetworks.totalCount != null && globalNostrNetworks.totalCount >= uniqueGlobalNostrNetworks.length ? globalNostrNetworks.totalCount : uniqueGlobalNostrNetworks.length}
+				totalCount={globalNostrNetworks.totalCount}
 				getKey={(globalNostrNetwork) => globalNostrNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalNostrNetworks}
 			>
@@ -103,9 +90,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: globalNostrNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalNostrNetwork> })}
+					{@const globalNostrNetworkFields = { ...globalNostrNetwork[EntityMetaKey.Selector], ...globalNostrNetwork }}
 					<GlobalNostrNetworkView
-						selection={select(EntityType._GlobalNostrNetwork, globalNostrNetwork.entitySelector)}
-						prefetched={globalNostrNetwork}
+						selection={select(EntityType._GlobalNostrNetwork, globalNostrNetwork[EntityMetaKey.Selector])}
+						prefetched={globalNostrNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -107,5 +107,12 @@ export default {
 					Source.NostrRelay_Nip11_Http,
 				],
 		},
+		{
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NostrRelay_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+		},
 	],
 } as const satisfies EntityDefinition

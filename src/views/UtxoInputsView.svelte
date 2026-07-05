@@ -22,7 +22,7 @@
 		selection,
 		title = 'UTXO inputs',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading UTXO inputs...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,28 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					indexInTransaction: true,
 					$spentOutput: true,
+					$transaction: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoInput}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(utxoInputs)}
 			{@const uniqueUtxoInputs = [...new Map(utxoInputs.values.map((utxoInput) => [utxoInput[EntityMetaKey.SelectorKey], utxoInput])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoInputs.values.length === uniqueUtxoInputs.length && utxoInputs.totalCount != null && utxoInputs.totalCount >= uniqueUtxoInputs.length ? utxoInputs.totalCount : uniqueUtxoInputs.length}
+				totalCount={utxoInputs.totalCount}
 				getKey={(utxoInput) => utxoInput[EntityMetaKey.SelectorKey]}
 				items={uniqueUtxoInputs}
 			>
@@ -112,16 +100,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: utxoInput }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoInput> })}
+					{@const utxoInputFields = { ...utxoInput[EntityMetaKey.Selector], ...utxoInput }}
+					{@const utxoInputHrefFields = { ...utxoInput, ...utxoInput[EntityMetaKey.Selector] }}
 					<UtxoInputView
+						selection={select(EntityType.UtxoInput, utxoInput[EntityMetaKey.Selector])}
+						prefetched={utxoInputFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/input/[inputIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(({ ...utxoInput.entitySelector, ...utxoInput }).$transaction.$network.caip2)].slug),
-								txId: String(({ ...utxoInput.entitySelector, ...utxoInput }).$transaction.txId),
-								inputIndex: String(({ ...utxoInput.entitySelector, ...utxoInput }).indexInTransaction),
-							})
+							(utxoInputHrefFields.$transaction !== undefined && utxoInputHrefFields.$transaction.$network !== undefined && utxoInputHrefFields.$transaction.$network.caip2 !== undefined && utxoInputHrefFields.$transaction.$network.caip2.namespace !== undefined && utxoInputHrefFields.$transaction !== undefined && utxoInputHrefFields.$transaction.$network !== undefined && utxoInputHrefFields.$transaction.$network.caip2 !== undefined && utxoInputHrefFields.$transaction.$network.caip2.reference !== undefined && utxoInputHrefFields.$transaction !== undefined && utxoInputHrefFields.$transaction.txId !== undefined && utxoInputHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/input/[inputIndex=nonNegativeInteger]', {
+								networkSlug: String(networkByCaip2[String(String(utxoInputHrefFields.$transaction.$network.caip2.namespace) + ':' + String(utxoInputHrefFields.$transaction.$network.caip2.reference))].slug ?? ''),
+								txId: String(utxoInputHrefFields.$transaction.txId ?? ''),
+								inputIndex: String(utxoInputHrefFields.indexInTransaction ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.UtxoInput, utxoInput.entitySelector)}
-						prefetched={utxoInput}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

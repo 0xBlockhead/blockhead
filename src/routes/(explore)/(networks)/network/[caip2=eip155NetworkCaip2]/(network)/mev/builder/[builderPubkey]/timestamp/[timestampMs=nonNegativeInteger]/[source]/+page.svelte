@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.MevBuilder_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					deliveredPayloadCount: true,
 					deliveredValueWei: true,

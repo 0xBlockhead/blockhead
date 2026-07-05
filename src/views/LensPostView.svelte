@@ -3,10 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -41,6 +41,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lensPost = $derived(selection({
 		sources: [
 			Source.Lens_Graphql,
@@ -50,23 +51,11 @@
 			timestamp: true,
 			$author: true,
 			isDeleted: true,
-			...(open && {
-				isEdited: true,
-				contentUri: true,
-				metadataHash: true,
-				$commentOn: true,
-				$quoteOf: true,
-				$repostOf: true,
-				$root: true,
-				$$comments: true,
-				$$timestamps: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).text) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || 'Lens post')
+	const titleFallback = $derived([String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'Lens post')
 	const viewDomId = $derived('lens-post-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -77,7 +66,7 @@
 
 <EntityView
 	entityType={EntityType.LensPost}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -86,35 +75,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).text) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
-		{:else}
-			<ResourceBoundary resource={lensPost}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).text) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
-				{/snippet}
+		<ResourceBoundary resource={lensPost}>
+			{#snippet Pending()}
+				{[String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.text) ?? ''), String((entity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.text) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).timestamp) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).text) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
-		{:else}
-			<ResourceBoundary resource={lensPost}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).timestamp) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).text) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
-				{/snippet}
+		<ResourceBoundary resource={lensPost}>
+			{#snippet Pending()}
+				{[String((prefetched.timestamp) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || [String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'Lens post'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.timestamp) ?? ''), String((entity.id) ?? '')].filter(Boolean).join(' ') || [String((entity.text) ?? ''), String((entity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.timestamp) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.text) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -123,12 +106,12 @@
 				resource={selection[EntityProxyField]<EntityType.LensAccount, false>('$author')}
 			>
 				{#snippet children(lensAccount)}
-					{#if lensAccount != null}
+					{#if lensAccount != null && lensAccount[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<LensAccountView
-									selection={select(EntityType.LensAccount, lensAccount.entitySelector)}
+									selection={select(EntityType.LensAccount, lensAccount[EntityMetaKey.Selector])}
 									prefetched={lensAccount}
 									layout={EntityLayout.Title}
 									open={false}
@@ -141,26 +124,35 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPost}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							timestamp: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const isEdited = prefetched.isEdited ?? selection.entitySelector.isEdited}
-					{#if isEdited !== undefined && isEdited !== null}
+					{@const timestamp = prefetched.timestamp}
+					{#if timestamp !== undefined && timestamp !== null}
 						<div>
-							<dt>Edited</dt>
+							<dt>Timestamp</dt>
 							<dd>
-								{String((isEdited) ?? '')}
+								<Timestamp timestamp={Number(timestamp)} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const isEdited = entity.isEdited ?? selection.entitySelector.isEdited ?? prefetched.isEdited}
-					{#if isEdited !== undefined && isEdited !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestamp = resolvedEntity.timestamp}
+					{#if timestamp !== undefined && timestamp !== null}
 						<div>
-							<dt>Edited</dt>
+							<dt>Timestamp</dt>
 							<dd>
-								{String((isEdited) ?? '')}
+								<Timestamp timestamp={Number(timestamp)} />
 							</dd>
 						</div>
 					{/if}
@@ -169,26 +161,35 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPost}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							isEdited: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const isDeleted = prefetched.isDeleted ?? selection.entitySelector.isDeleted}
-					{#if isDeleted !== undefined && isDeleted !== null}
+					{@const isEdited = prefetched.isEdited}
+					{#if isEdited !== undefined && isEdited !== null}
 						<div>
-							<dt>Deleted</dt>
+							<dt>Edited</dt>
 							<dd>
-								{String((isDeleted) ?? '')}
+								{isEdited ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const isDeleted = entity.isDeleted ?? selection.entitySelector.isDeleted ?? prefetched.isDeleted}
-					{#if isDeleted !== undefined && isDeleted !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const isEdited = resolvedEntity.isEdited}
+					{#if isEdited !== undefined && isEdited !== null}
 						<div>
-							<dt>Deleted</dt>
+							<dt>Edited</dt>
 							<dd>
-								{String((isDeleted) ?? '')}
+								{isEdited ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
@@ -197,9 +198,54 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPost}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							isDeleted: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const contentUri = prefetched.contentUri ?? selection.entitySelector.contentUri}
+					{@const isDeleted = prefetched.isDeleted}
+					{#if isDeleted !== undefined && isDeleted !== null}
+						<div>
+							<dt>Deleted</dt>
+							<dd>
+								{isDeleted ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const isDeleted = resolvedEntity.isDeleted}
+					{#if isDeleted !== undefined && isDeleted !== null}
+						<div>
+							<dt>Deleted</dt>
+							<dd>
+								{isDeleted ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							contentUri: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const contentUri = prefetched.contentUri}
 					{#if contentUri !== undefined && contentUri !== null}
 						<div>
 							<dt>Content URI</dt>
@@ -218,7 +264,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const contentUri = entity.contentUri ?? selection.entitySelector.contentUri ?? prefetched.contentUri}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const contentUri = resolvedEntity.contentUri}
 					{#if contentUri !== undefined && contentUri !== null}
 						<div>
 							<dt>Content URI</dt>
@@ -239,26 +286,35 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPost}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							metadataHash: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const metadataHash = prefetched.metadataHash ?? selection.entitySelector.metadataHash}
+					{@const metadataHash = prefetched.metadataHash}
 					{#if metadataHash !== undefined && metadataHash !== null}
 						<div>
 							<dt>Metadata hash</dt>
 							<dd>
-								<TruncatedValue value={String(metadataHash)} />
+								<TruncatedValue value={String((metadataHash) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const metadataHash = entity.metadataHash ?? selection.entitySelector.metadataHash ?? prefetched.metadataHash}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const metadataHash = resolvedEntity.metadataHash}
 					{#if metadataHash !== undefined && metadataHash !== null}
 						<div>
 							<dt>Metadata hash</dt>
 							<dd>
-								<TruncatedValue value={String(metadataHash)} />
+								<TruncatedValue value={String((metadataHash) ?? '')} />
 							</dd>
 						</div>
 					{/if}
@@ -271,12 +327,12 @@
 				resource={selection[EntityProxyField]<EntityType.LensPost, false>('$commentOn')}
 			>
 				{#snippet children(lensPost)}
-					{#if lensPost != null}
+					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Comment on</dt>
 							<dd>
 								<LensPostView
-									selection={select(EntityType.LensPost, lensPost.entitySelector)}
+									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									layout={EntityLayout.Title}
 									open={false}
@@ -293,12 +349,12 @@
 				resource={selection[EntityProxyField]<EntityType.LensPost, false>('$quoteOf')}
 			>
 				{#snippet children(lensPost)}
-					{#if lensPost != null}
+					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Quote of</dt>
 							<dd>
 								<LensPostView
-									selection={select(EntityType.LensPost, lensPost.entitySelector)}
+									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									layout={EntityLayout.Title}
 									open={false}
@@ -315,12 +371,12 @@
 				resource={selection[EntityProxyField]<EntityType.LensPost, false>('$repostOf')}
 			>
 				{#snippet children(lensPost)}
-					{#if lensPost != null}
+					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Repost of</dt>
 							<dd>
 								<LensPostView
-									selection={select(EntityType.LensPost, lensPost.entitySelector)}
+									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									layout={EntityLayout.Title}
 									open={false}
@@ -337,12 +393,12 @@
 				resource={selection[EntityProxyField]<EntityType.LensPost, false>('$root')}
 			>
 				{#snippet children(lensPost)}
-					{#if lensPost != null}
+					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Root</dt>
 							<dd>
 								<LensPostView
-									selection={select(EntityType.LensPost, lensPost.entitySelector)}
+									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
 									layout={EntityLayout.Title}
 									open={false}
@@ -354,12 +410,19 @@
 			</ResourceBoundary>
 		</dl>
 
-		<ResourceBoundary resource={lensPost}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						text: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const text = entity.text ?? selection.entitySelector.text ?? prefetched.text}
-				{#if text === undefined || text === null || text === ''}
-					<p data-text="muted">No text available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const text = resolvedEntity.text}
+				{#if text !== undefined && text !== null && text !== ''}
 					<p data-text="long-text">{String((text) ?? '')}</p>
 				{/if}
 			{/snippet}

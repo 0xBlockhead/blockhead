@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { eigenLayerBindings } from '$/sources/EigenLayer/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.EigenLayer,
-	label: 'EigenLayer',
-	sources: [
-		{
-			provider: SourceProvider.EigenLayer,
-			source: Source.EigenLayerContracts_Evm,
-			label: 'EigenLayer contract catalog',
-		},
-	],
-	bindings: eigenLayerBindings,
-} satisfies SourceProviderDefinition
+	source: Source.EigenLayerContracts_Evm,
+	label: 'EigenLayer contract catalog',
+} satisfies SourceDefinition

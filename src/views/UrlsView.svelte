@@ -21,7 +21,7 @@
 		selection,
 		title = 'URLs',
 		typeAnnotationParagraphs = ['A web URL that is modeled as a referenced resource rather than an inline string.'],
-		placeholderText = 'Loading URLs...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					url: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Url}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(urls)}
 			{@const uniqueUrls = [...new Map(urls.values.map((url) => [url[EntityMetaKey.SelectorKey], url])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={urls.values.length === uniqueUrls.length && urls.totalCount != null && urls.totalCount >= uniqueUrls.length ? urls.totalCount : uniqueUrls.length}
+				totalCount={urls.totalCount}
 				getKey={(url) => url[EntityMetaKey.SelectorKey]}
 				items={uniqueUrls}
 			>
@@ -110,15 +97,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: url }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Url> })}
+					{@const urlFields = { ...url[EntityMetaKey.Selector], ...url }}
+					{@const urlHrefFields = { ...url, ...url[EntityMetaKey.Selector] }}
 					<UrlView
+						selection={select(EntityType.Url, url[EntityMetaKey.Selector])}
+						prefetched={urlFields}
 						href={
-							resolve('/(explore)/url/[url]', {
-								url: encodeURIComponent(String(({ ...url.entitySelector, ...url }).url)),
-							})
+							(urlHrefFields.url !== undefined ? resolve('/(explore)/url/[url]', {
+								url: encodeURIComponent(String(urlHrefFields.url ?? '')),
+							}) : undefined)
 						}
-						selection={select(EntityType.Url, url.entitySelector)}
-						prefetched={url}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

@@ -43,6 +43,6 @@
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 			})[EntityProxyField]<EntityType.Url>('$$faucetUrls')
 		}
-		id='UrlsView-page'
+		id='faucet-urls'
 	/>
 </Page>

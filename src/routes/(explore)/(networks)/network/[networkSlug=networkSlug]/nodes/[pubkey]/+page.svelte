@@ -4,35 +4,50 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import LightningNodeView from '$/views/LightningNodeView.svelte'
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
+		data,
 		params,
 	}: PageProps = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import LightningNodeView from '$/views/LightningNodeView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>Node • Blockhead</title>
+	<title>Lightning node • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<LightningNodeView
-		selection={select(EntityType.LightningNode, {
-			$network: { slug: params.networkSlug },
-			publicKey: params.pubkey,
-		})}
-		open={true}
+		href={
+			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
+				networkSlug: params.networkSlug,
+				pubkey: params.pubkey,
+			})
+		}
+		selection={
+			select(EntityType.LightningNode, data.selector, {
+				fields: {
+					alias: true,
+					channelCount: true,
+					capacitySats: true,
+					countryCode: true,
+					city: true,
+					networkAddresses: true,
+				},
+			})
+		}
 	/>
 </Page>

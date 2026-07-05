@@ -67,8 +67,37 @@ export type SolanaRpcParsedTokenMintAccountInfo = {
 				info: {
 					supply: string
 					decimals: number
+					isInitialized?: boolean
 					mintAuthority?: string | null
 					freezeAuthority?: string | null
+				}
+			}
+		}
+	} | null
+}
+
+export type SolanaRpcParsedTokenAccountInfo = {
+	value: {
+		data: {
+			parsed: {
+				info: {
+					mint: string
+					owner: string
+					tokenAmount: {
+						amount: string
+						decimals: number
+						uiAmountString?: string
+					}
+					state?: string
+					isNative?: boolean
+					delegate?: string
+					delegatedAmount?: {
+						amount: string
+					}
+					rentExemptReserve?: {
+						amount: string
+					}
+					closeAuthority?: string
 				}
 			}
 		}
@@ -91,6 +120,7 @@ export type SolanaRpcVoteAccount = {
 	activatedStake: number
 	commission: number
 	epochVoteAccount: boolean
+	epochCredits?: JsonValue
 	lastVote: number
 	nodePubkey: string
 	rootSlot: number

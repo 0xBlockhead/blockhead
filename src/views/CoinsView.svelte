@@ -4,12 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import { EntityProxyField, type EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { CoinId } from '$/constants/Coin.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
@@ -28,7 +29,7 @@
 		selection,
 		title = 'Coins',
 		typeAnnotationParagraphs = ['A market-facing coin or crypto asset identity used across price, market, and network contexts.'],
-		placeholderText = 'Loading Coins...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -57,6 +58,9 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import CoinView from '$/views/CoinView.svelte'
 </script>
 
 
@@ -66,6 +70,73 @@
 	{/each}
 {/snippet}
 
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection({
+				fields: {
+					$logo: true,
+					symbol: true,
+					name: true,
+					coinId: true,
+				},
+			})
+		}
+		{placeholderText}
+	>
+		{#snippet children(coins)}
+			{@const uniqueCoins = [...new Map(coins.values.map((coin) => [coin[EntityMetaKey.SelectorKey], coin])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Coin}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={coins.totalCount}
+				getKey={(coin) => coin[EntityMetaKey.SelectorKey]}
+				items={uniqueCoins}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Coins yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: coin }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Coin> })}
+					{@const coinFields = { ...coin[EntityMetaKey.Selector], ...coin }}
+					{@const coinHrefFields = { ...coin, ...coin[EntityMetaKey.Selector] }}
+					<CoinView
+						selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
+						prefetched={coinFields}
+						href={
+							(coinHrefFields.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+								coinId: String(coinHrefFields.coinId ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.Coin}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}
 
 <CollapsibleTabs
 	id={`${id}:hub-spot-quotes`}
@@ -102,7 +173,7 @@
 				{ scope: '$$marketPrices' }
 			)[EntityProxyField]<EntityType.MarketPrice>('$$marketPrices')}
 			{id}
-			open
+			open={false}
 			title={label}
 		/>
 	{/snippet}
@@ -207,7 +278,7 @@
 				{ scope: '$$markets' }
 			)[EntityProxyField]<EntityType.Market>('$$markets')}
 			{id}
-			open
+			open={false}
 			title={label}
 		/>
 	{/snippet}

@@ -20,7 +20,7 @@
 		selection,
 		title = 'Contacts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Contacts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					displayName: true,
 					isConnected: true,
 					peerId: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRoomPeer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadRoomPeers)}
 			{@const uniqueBlockheadRoomPeers = [...new Map(blockheadRoomPeers.values.map((blockheadRoomPeer) => [blockheadRoomPeer[EntityMetaKey.SelectorKey], blockheadRoomPeer])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadRoomPeers.values.length === uniqueBlockheadRoomPeers.length && blockheadRoomPeers.totalCount != null && blockheadRoomPeers.totalCount >= uniqueBlockheadRoomPeers.length ? blockheadRoomPeers.totalCount : uniqueBlockheadRoomPeers.length}
+				totalCount={blockheadRoomPeers.totalCount}
 				getKey={(blockheadRoomPeer) => blockheadRoomPeer[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadRoomPeers}
 			>
@@ -106,14 +93,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No contacts yet.</p>
+						<p data-text="muted">No Contacts yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadRoomPeer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadRoomPeer> })}
+					{@const blockheadRoomPeerFields = { ...blockheadRoomPeer[EntityMetaKey.Selector], ...blockheadRoomPeer }}
 					<BlockheadRoomPeerView
-						selection={select(EntityType.BlockheadRoomPeer, blockheadRoomPeer.entitySelector)}
-						prefetched={blockheadRoomPeer}
+						selection={select(EntityType.BlockheadRoomPeer, blockheadRoomPeer[EntityMetaKey.Selector])}
+						prefetched={blockheadRoomPeerFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

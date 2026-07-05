@@ -12,12 +12,16 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'Reddit comments',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Reddit comments...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,9 +51,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import RedditCommentView from '$/views/RedditCommentView.svelte'
 </script>
 
 
@@ -62,7 +65,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Constants_Internal,
 				],
@@ -71,23 +74,10 @@
 					fullname: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditComment}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(redditComments)}
 			{@const uniqueRedditComments = [...new Map(redditComments.values.map((redditComment) => [redditComment[EntityMetaKey.SelectorKey], redditComment])).values()]}
 			<EntitiesList
@@ -99,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={redditComments.values.length === uniqueRedditComments.length && redditComments.totalCount != null && redditComments.totalCount >= uniqueRedditComments.length ? redditComments.totalCount : uniqueRedditComments.length}
+				totalCount={redditComments.totalCount}
 				getKey={(redditComment) => redditComment[EntityMetaKey.SelectorKey]}
 				items={uniqueRedditComments}
 			>
@@ -112,28 +102,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: redditComment }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditComment> })}
-					<EntityView
-						entityType={EntityType.RedditComment}
-						entitySelector={redditComment.entitySelector}
+					{@const redditCommentFields = { ...redditComment[EntityMetaKey.Selector], ...redditComment }}
+					<RedditCommentView
+						selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector])}
+						prefetched={redditCommentFields}
 						layout={EntityLayout.Summary}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const body0 = ({ ...redditComment.entitySelector, ...redditComment }).body}
-							<span data-text="long-text">{String((body0) ?? '')}</span>
-							{@const fullname1 = ({ ...redditComment.entitySelector, ...redditComment }).fullname}
-							<TruncatedValue value={String(fullname1)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const createdAtAfter0 = ({ ...redditComment.entitySelector, ...redditComment }).createdAt}
-							{#if createdAtAfter0 != null}
-								<span data-text="muted">
-									<Timestamp timestamp={Number(createdAtAfter0)} />
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

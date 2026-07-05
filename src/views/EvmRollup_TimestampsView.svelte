@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM rollup observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM rollup observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					listingStage: true,
 					timestampMs: true,
 					$rollup: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmRollup_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmRollupTimestamps)}
 			{@const uniqueEvmRollupTimestamps = [...new Map(evmRollupTimestamps.values.map((evmRollupTimestamp) => [evmRollupTimestamp[EntityMetaKey.SelectorKey], evmRollupTimestamp])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmRollupTimestamps.values.length === uniqueEvmRollupTimestamps.length && evmRollupTimestamps.totalCount != null && evmRollupTimestamps.totalCount >= uniqueEvmRollupTimestamps.length ? evmRollupTimestamps.totalCount : uniqueEvmRollupTimestamps.length}
+				totalCount={evmRollupTimestamps.totalCount}
 				getKey={(evmRollupTimestamp) => evmRollupTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmRollupTimestamps}
 			>
@@ -112,18 +100,20 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmRollupTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmRollup_Timestamp> })}
+					{@const evmRollupTimestampFields = { ...evmRollupTimestamp[EntityMetaKey.Selector], ...evmRollupTimestamp }}
+					{@const evmRollupTimestampHrefFields = { ...evmRollupTimestamp, ...evmRollupTimestamp[EntityMetaKey.Selector] }}
 					<EvmRollup_TimestampView
+						selection={select(EntityType.EvmRollup_Timestamp, evmRollupTimestamp[EntityMetaKey.Selector])}
+						prefetched={evmRollupTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...evmRollupTimestamp.entitySelector, ...evmRollupTimestamp }).$rollup.$network.caip2.namespace)}:${String(({ ...evmRollupTimestamp.entitySelector, ...evmRollupTimestamp }).$rollup.$network.caip2.reference)}`,
-								projectId: String(({ ...evmRollupTimestamp.entitySelector, ...evmRollupTimestamp }).$rollup.projectId),
-								timestampMs: String(({ ...evmRollupTimestamp.entitySelector, ...evmRollupTimestamp }).timestampMs),
-								source: String(({ ...evmRollupTimestamp.entitySelector, ...evmRollupTimestamp }).source),
-							})
+							(evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.$network !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2 !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2.namespace !== undefined && evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.$network !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2 !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2.reference !== undefined && evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.projectId !== undefined && evmRollupTimestampHrefFields.timestampMs !== undefined && evmRollupTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(evmRollupTimestampHrefFields.$rollup.$network.caip2.namespace ?? '')}:${String(evmRollupTimestampHrefFields.$rollup.$network.caip2.reference ?? '')}`,
+								projectId: String(evmRollupTimestampHrefFields.$rollup.projectId ?? ''),
+								timestampMs: String(evmRollupTimestampHrefFields.timestampMs ?? ''),
+								source: String(evmRollupTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmRollup_Timestamp, evmRollupTimestamp.entitySelector)}
-						prefetched={evmRollupTimestamp}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

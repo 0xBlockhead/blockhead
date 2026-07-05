@@ -21,7 +21,7 @@
 		selection,
 		title = 'Lightning payments',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Lightning payments...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					paymentHash: true,
 					valueMsat: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadLightningPayment}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadLightningPayments)}
 			{@const uniqueBlockheadLightningPayments = [...new Map(blockheadLightningPayments.values.map((blockheadLightningPayment) => [blockheadLightningPayment[EntityMetaKey.SelectorKey], blockheadLightningPayment])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadLightningPayments.values.length === uniqueBlockheadLightningPayments.length && blockheadLightningPayments.totalCount != null && blockheadLightningPayments.totalCount >= uniqueBlockheadLightningPayments.length ? blockheadLightningPayments.totalCount : uniqueBlockheadLightningPayments.length}
+				totalCount={blockheadLightningPayments.totalCount}
 				getKey={(blockheadLightningPayment) => blockheadLightningPayment[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadLightningPayments}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: blockheadLightningPayment }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadLightningPayment> })}
+					{@const blockheadLightningPaymentFields = { ...blockheadLightningPayment[EntityMetaKey.Selector], ...blockheadLightningPayment }}
+					{@const blockheadLightningPaymentHrefFields = { ...blockheadLightningPayment, ...blockheadLightningPayment[EntityMetaKey.Selector] }}
 					<BlockheadLightningPaymentView
+						selection={select(EntityType.BlockheadLightningPayment, blockheadLightningPayment[EntityMetaKey.Selector])}
+						prefetched={blockheadLightningPaymentFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/payments/[paymentHash]', {
-								networkSlug: String(({ ...blockheadLightningPayment.entitySelector, ...blockheadLightningPayment }).$network.slug),
-								paymentHash: String(({ ...blockheadLightningPayment.entitySelector, ...blockheadLightningPayment }).paymentHash),
-							})
+							(blockheadLightningPaymentHrefFields.$network !== undefined && blockheadLightningPaymentHrefFields.$network.slug !== undefined && blockheadLightningPaymentHrefFields.paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/payments/[paymentHash]', {
+								networkSlug: String(blockheadLightningPaymentHrefFields.$network.slug ?? ''),
+								paymentHash: String(blockheadLightningPaymentHrefFields.paymentHash ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BlockheadLightningPayment, blockheadLightningPayment.entitySelector)}
-						prefetched={blockheadLightningPayment}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

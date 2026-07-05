@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { solanaSimdsBindings } from '$/sources/SolanaSimds/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.SolanaSimds,
-	label: 'Solana SIMDs',
-	sources: [
-		{
-			provider: SourceProvider.SolanaSimds,
-			source: Source.SolanaSimds_Github,
-			label: 'Solana SIMDs GitHub',
-		},
-	],
-	bindings: solanaSimdsBindings,
-} satisfies SourceProviderDefinition
+	source: Source.SolanaSimds_Github,
+	label: 'Solana SIMDs GitHub',
+} satisfies SourceDefinition

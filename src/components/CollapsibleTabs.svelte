@@ -17,6 +17,7 @@
 	export type CollapsibleTabsSectionRow<SectionId extends string = string> = {
 		id: SectionId
 		label: string
+		description?: string
 	}
 
 
@@ -133,6 +134,7 @@
 
 	// Components
 	import CollapsibleTabs1 from '$/components/CollapsibleTabs1.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 
@@ -150,14 +152,31 @@
 >
 	{#snippet Markers(_markersContext)}
 		{#each sections as section (section.id)}
-			<a
-				data-scroll-marker-label={section.label}
-				data-active={section.id === activeSectionId}
-				href={`#${sectionAnchorId(section.id)}`}
-				onclick={() => {
-					selectedSectionId = section.id
-				}}
-			>{section.label}</a>
+			{#if section.description}
+				<Tooltip contentProps={{ side: 'top' }}>
+					{#snippet Content()}
+						<p>{section.description}</p>
+					{/snippet}
+
+					<a
+						data-scroll-marker-label={section.label}
+						data-active={section.id === activeSectionId}
+						href={`#${sectionAnchorId(section.id)}`}
+						onclick={() => {
+							selectedSectionId = section.id
+						}}
+					>{section.label}</a>
+				</Tooltip>
+			{:else}
+				<a
+					data-scroll-marker-label={section.label}
+					data-active={section.id === activeSectionId}
+					href={`#${sectionAnchorId(section.id)}`}
+					onclick={() => {
+						selectedSectionId = section.id
+					}}
+				>{section.label}</a>
+			{/if}
 		{/each}
 	{/snippet}
 

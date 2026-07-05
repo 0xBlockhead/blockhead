@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { polkadotRfcsBindings } from '$/sources/PolkadotRfcs/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.PolkadotRfcs,
-	label: 'Polkadot RFCs',
-	sources: [
-		{
-			provider: SourceProvider.PolkadotRfcs,
-			source: Source.PolkadotRfcs_Github,
-			label: 'Polkadot RFCs GitHub',
-		},
-	],
-	bindings: polkadotRfcsBindings,
-} satisfies SourceProviderDefinition
+	source: Source.PolkadotRfcs_Github,
+	label: 'Polkadot RFCs GitHub',
+} satisfies SourceDefinition

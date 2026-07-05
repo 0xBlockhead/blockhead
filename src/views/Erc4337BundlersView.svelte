@@ -21,7 +21,7 @@
 		selection,
 		title = 'ERC-4337 bundlers',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ERC-4337 bundlers...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					address: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337Bundler}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(erc4337Bundlers)}
 			{@const uniqueErc4337Bundlers = [...new Map(erc4337Bundlers.values.map((erc4337Bundler) => [erc4337Bundler[EntityMetaKey.SelectorKey], erc4337Bundler])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4337Bundlers.values.length === uniqueErc4337Bundlers.length && erc4337Bundlers.totalCount != null && erc4337Bundlers.totalCount >= uniqueErc4337Bundlers.length ? erc4337Bundlers.totalCount : uniqueErc4337Bundlers.length}
+				totalCount={erc4337Bundlers.totalCount}
 				getKey={(erc4337Bundler) => erc4337Bundler[EntityMetaKey.SelectorKey]}
 				items={uniqueErc4337Bundlers}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: erc4337Bundler }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337Bundler> })}
+					{@const erc4337BundlerFields = { ...erc4337Bundler[EntityMetaKey.Selector], ...erc4337Bundler }}
+					{@const erc4337BundlerHrefFields = { ...erc4337Bundler, ...erc4337Bundler[EntityMetaKey.Selector] }}
 					<Erc4337BundlerView
+						selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector])}
+						prefetched={erc4337BundlerFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {
-								caip2: `${String(({ ...erc4337Bundler.entitySelector, ...erc4337Bundler }).caip2.namespace)}:${String(({ ...erc4337Bundler.entitySelector, ...erc4337Bundler }).caip2.reference)}`,
-								address: String(({ ...erc4337Bundler.entitySelector, ...erc4337Bundler }).address),
-							})
+							(erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.caip2 !== undefined && erc4337BundlerHrefFields.$network.caip2.namespace !== undefined && erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.caip2 !== undefined && erc4337BundlerHrefFields.$network.caip2.reference !== undefined && erc4337BundlerHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {
+								caip2: `${String(erc4337BundlerHrefFields.$network.caip2.namespace ?? '')}:${String(erc4337BundlerHrefFields.$network.caip2.reference ?? '')}`,
+								address: String(erc4337BundlerHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Erc4337Bundler, erc4337Bundler.entitySelector)}
-						prefetched={erc4337Bundler}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -21,7 +21,7 @@
 		selection,
 		title = 'Cosmos networks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos networks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosNetworks)}
 			{@const uniqueCosmosNetworks = [...new Map(cosmosNetworks.values.map((cosmosNetwork) => [cosmosNetwork[EntityMetaKey.SelectorKey], cosmosNetwork])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosNetworks.values.length === uniqueCosmosNetworks.length && cosmosNetworks.totalCount != null && cosmosNetworks.totalCount >= uniqueCosmosNetworks.length ? cosmosNetworks.totalCount : uniqueCosmosNetworks.length}
+				totalCount={cosmosNetworks.totalCount}
 				getKey={(cosmosNetwork) => cosmosNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosNetworks}
 			>
@@ -110,14 +97,16 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosNetwork> })}
+					{@const cosmosNetworkFields = { ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }}
+					{@const cosmosNetworkHrefFields = { ...cosmosNetwork, ...cosmosNetwork[EntityMetaKey.Selector] }}
 					<CosmosNetworkView
+						selection={select(EntityType.CosmosNetwork, cosmosNetwork[EntityMetaKey.Selector])}
+						prefetched={cosmosNetworkFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-								caip2: `${String(({ ...cosmosNetwork.entitySelector, ...cosmosNetwork }).$network.caip2.namespace)}:${String(({ ...cosmosNetwork.entitySelector, ...cosmosNetwork }).$network.caip2.reference)}`,
-							})
+							(cosmosNetworkHrefFields.$network !== undefined && cosmosNetworkHrefFields.$network.caip2 !== undefined && cosmosNetworkHrefFields.$network.caip2.namespace !== undefined && cosmosNetworkHrefFields.$network !== undefined && cosmosNetworkHrefFields.$network.caip2 !== undefined && cosmosNetworkHrefFields.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+								caip2: `${String(cosmosNetworkHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosNetworkHrefFields.$network.caip2.reference ?? '')}`,
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosNetwork, cosmosNetwork.entitySelector)}
-						prefetched={cosmosNetwork}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

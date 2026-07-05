@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='BlockheadWalletConnectionsView-page'
+		id='blockhead-wallet-connections'
 	/>
 </Page>

@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Bitcoin Cash CashToken categories',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Bitcoin Cash CashToken categories...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					categoryId: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitcoinCashCashTokenCategory}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(bitcoinCashCashTokenCategories)}
 			{@const uniqueBitcoinCashCashTokenCategories = [...new Map(bitcoinCashCashTokenCategories.values.map((bitcoinCashCashTokenCategory) => [bitcoinCashCashTokenCategory[EntityMetaKey.SelectorKey], bitcoinCashCashTokenCategory])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitcoinCashCashTokenCategories.values.length === uniqueBitcoinCashCashTokenCategories.length && bitcoinCashCashTokenCategories.totalCount != null && bitcoinCashCashTokenCategories.totalCount >= uniqueBitcoinCashCashTokenCategories.length ? bitcoinCashCashTokenCategories.totalCount : uniqueBitcoinCashCashTokenCategories.length}
+				totalCount={bitcoinCashCashTokenCategories.totalCount}
 				getKey={(bitcoinCashCashTokenCategory) => bitcoinCashCashTokenCategory[EntityMetaKey.SelectorKey]}
 				items={uniqueBitcoinCashCashTokenCategories}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: bitcoinCashCashTokenCategory }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitcoinCashCashTokenCategory> })}
+					{@const bitcoinCashCashTokenCategoryFields = { ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }}
+					{@const bitcoinCashCashTokenCategoryHrefFields = { ...bitcoinCashCashTokenCategory, ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector] }}
 					<BitcoinCashCashTokenCategoryView
+						selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
+						prefetched={bitcoinCashCashTokenCategoryFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-								networkSlug: String(({ ...bitcoinCashCashTokenCategory.entitySelector, ...bitcoinCashCashTokenCategory }).$network.slug),
-								categoryId: String(({ ...bitcoinCashCashTokenCategory.entitySelector, ...bitcoinCashCashTokenCategory }).categoryId),
-							})
+							(bitcoinCashCashTokenCategoryHrefFields.$network !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network.caip2 !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network.caip2.namespace !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network.caip2 !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network.caip2.reference !== undefined && bitcoinCashCashTokenCategoryHrefFields.categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
+								networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCategoryHrefFields.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCategoryHrefFields.$network.caip2.reference))].slug ?? ''),
+								categoryId: String(bitcoinCashCashTokenCategoryHrefFields.categoryId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory.entitySelector)}
-						prefetched={bitcoinCashCashTokenCategory}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

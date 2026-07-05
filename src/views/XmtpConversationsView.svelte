@@ -20,7 +20,7 @@
 		selection,
 		title = 'XMTP conversations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading XMTP conversations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,30 +64,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					topic: true,
 					peerInboxId: true,
 					id: true,
 					createdAtMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XmtpConversation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(xmtpConversations)}
 			{@const uniqueXmtpConversations = [...new Map(xmtpConversations.values.map((xmtpConversation) => [xmtpConversation[EntityMetaKey.SelectorKey], xmtpConversation])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xmtpConversations.values.length === uniqueXmtpConversations.length && xmtpConversations.totalCount != null && xmtpConversations.totalCount >= uniqueXmtpConversations.length ? xmtpConversations.totalCount : uniqueXmtpConversations.length}
+				totalCount={xmtpConversations.totalCount}
 				getKey={(xmtpConversation) => xmtpConversation[EntityMetaKey.SelectorKey]}
 				items={uniqueXmtpConversations}
 			>
@@ -112,9 +99,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: xmtpConversation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XmtpConversation> })}
+					{@const xmtpConversationFields = { ...xmtpConversation[EntityMetaKey.Selector], ...xmtpConversation }}
 					<XmtpConversationView
-						selection={select(EntityType.XmtpConversation, xmtpConversation.entitySelector)}
-						prefetched={xmtpConversation}
+						selection={select(EntityType.XmtpConversation, xmtpConversation[EntityMetaKey.Selector])}
+						prefetched={xmtpConversationFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

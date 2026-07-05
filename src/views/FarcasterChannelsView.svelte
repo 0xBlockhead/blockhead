@@ -20,7 +20,7 @@
 		selection,
 		title = 'Farcaster channels',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Farcaster channels...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,30 +64,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$icon: true,
 					name: true,
 					id: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(farcasterChannels)}
 			{@const uniqueFarcasterChannels = [...new Map(farcasterChannels.values.map((farcasterChannel) => [farcasterChannel[EntityMetaKey.SelectorKey], farcasterChannel])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterChannels.values.length === uniqueFarcasterChannels.length && farcasterChannels.totalCount != null && farcasterChannels.totalCount >= uniqueFarcasterChannels.length ? farcasterChannels.totalCount : uniqueFarcasterChannels.length}
+				totalCount={farcasterChannels.totalCount}
 				getKey={(farcasterChannel) => farcasterChannel[EntityMetaKey.SelectorKey]}
 				items={uniqueFarcasterChannels}
 			>
@@ -112,9 +99,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: farcasterChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterChannel> })}
+					{@const farcasterChannelFields = { ...farcasterChannel[EntityMetaKey.Selector], ...farcasterChannel }}
 					<FarcasterChannelView
-						selection={select(EntityType.FarcasterChannel, farcasterChannel.entitySelector)}
-						prefetched={farcasterChannel}
+						selection={select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector])}
+						prefetched={farcasterChannelFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

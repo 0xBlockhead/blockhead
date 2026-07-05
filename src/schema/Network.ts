@@ -1,7 +1,9 @@
 // Generated from APP.ts. Do not edit by hand.
 
+import { Caip2Namespace, Caip2Reference } from '$/constants/Network.ts'
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum NetworkSelector {
@@ -33,7 +35,7 @@ export default {
 				label: 'CAIP-2',
 				description: 'The chain identifier in CAIP-2 namespace and reference form.',
 				type: EntityFieldType.Primitive,
-				primitiveType: type({ 'namespace': type('string'), 'reference': type('string') }),
+				primitiveType: type({ 'namespace': type.enumerated(...Object.values(Caip2Namespace)), 'reference': type.enumerated(...Object.values(Caip2Reference)) }),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
@@ -59,6 +61,16 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: type('string'),
 				cardinality: EntityFieldCardinality.One,
+		},
+		{
+				name: '$networkStack',
+				label: 'Network stack',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.NetworkStack,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: 'environment',

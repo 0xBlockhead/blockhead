@@ -22,7 +22,7 @@
 		selection,
 		title = 'EVM topic observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM topic observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,32 +66,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Openchain_Rest,
 				],
 				fields: {
-					signatures: true,
 					timestampMs: true,
 					source: true,
+					$topic: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmTopic_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmTopicTimestamps)}
 			{@const uniqueEvmTopicTimestamps = [...new Map(evmTopicTimestamps.values.map((evmTopicTimestamp) => [evmTopicTimestamp[EntityMetaKey.SelectorKey], evmTopicTimestamp])).values()]}
 			<EntitiesList
@@ -103,7 +90,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmTopicTimestamps.values.length === uniqueEvmTopicTimestamps.length && evmTopicTimestamps.totalCount != null && evmTopicTimestamps.totalCount >= uniqueEvmTopicTimestamps.length ? evmTopicTimestamps.totalCount : uniqueEvmTopicTimestamps.length}
+				totalCount={evmTopicTimestamps.totalCount}
 				getKey={(evmTopicTimestamp) => evmTopicTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmTopicTimestamps}
 			>
@@ -116,16 +103,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmTopicTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTopic_Timestamp> })}
+					{@const evmTopicTimestampFields = { ...evmTopicTimestamp[EntityMetaKey.Selector], ...evmTopicTimestamp }}
+					{@const evmTopicTimestampHrefFields = { ...evmTopicTimestamp, ...evmTopicTimestamp[EntityMetaKey.Selector] }}
 					<EvmTopic_TimestampView
+						selection={select(EntityType.EvmTopic_Timestamp, evmTopicTimestamp[EntityMetaKey.Selector])}
+						prefetched={evmTopicTimestampFields}
 						href={
-							resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								hex: String(evmTopicTimestamp.entitySelector.$topic.hex),
-								timestampMs: String(evmTopicTimestamp.entitySelector.timestampMs),
-								source: String(evmTopicTimestamp.entitySelector.source),
-							})
+							(evmTopicTimestampHrefFields.$topic !== undefined && evmTopicTimestampHrefFields.$topic.hex !== undefined && evmTopicTimestampHrefFields.timestampMs !== undefined && evmTopicTimestampHrefFields.source !== undefined ? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								hex: String(evmTopicTimestampHrefFields.$topic.hex ?? ''),
+								timestampMs: String(evmTopicTimestampHrefFields.timestampMs ?? ''),
+								source: String(evmTopicTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmTopic_Timestamp, evmTopicTimestamp.entitySelector)}
-						prefetched={evmTopicTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -21,7 +21,7 @@
 		selection,
 		title = 'Lightning channels',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Lightning channels...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					shortChannelId: true,
 					$node1: true,
 					channelId: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(lightningChannels)}
 			{@const uniqueLightningChannels = [...new Map(lightningChannels.values.map((lightningChannel) => [lightningChannel[EntityMetaKey.SelectorKey], lightningChannel])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lightningChannels.values.length === uniqueLightningChannels.length && lightningChannels.totalCount != null && lightningChannels.totalCount >= uniqueLightningChannels.length ? lightningChannels.totalCount : uniqueLightningChannels.length}
+				totalCount={lightningChannels.totalCount}
 				getKey={(lightningChannel) => lightningChannel[EntityMetaKey.SelectorKey]}
 				items={uniqueLightningChannels}
 			>
@@ -112,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: lightningChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LightningChannel> })}
+					{@const lightningChannelFields = { ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }}
+					{@const lightningChannelHrefFields = { ...lightningChannel, ...lightningChannel[EntityMetaKey.Selector] }}
 					<LightningChannelView
+						selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
+						prefetched={lightningChannelFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-								networkSlug: String(({ ...lightningChannel.entitySelector, ...lightningChannel }).$network.slug),
-								channelId: String(({ ...lightningChannel.entitySelector, ...lightningChannel }).channelId),
-							})
+							(lightningChannelHrefFields.$network !== undefined && lightningChannelHrefFields.$network.slug !== undefined && lightningChannelHrefFields.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
+								networkSlug: String(lightningChannelHrefFields.$network.slug ?? ''),
+								channelId: String(lightningChannelHrefFields.channelId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.LightningChannel, lightningChannel.entitySelector)}
-						prefetched={lightningChannel}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

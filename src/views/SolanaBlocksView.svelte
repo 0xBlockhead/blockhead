@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Solana blocks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					slot: true,
 					blockHeight: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(solanaBlocks)}
 			{@const uniqueSolanaBlocks = [...new Map(solanaBlocks.values.map((solanaBlock) => [solanaBlock[EntityMetaKey.SelectorKey], solanaBlock])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaBlocks.values.length === uniqueSolanaBlocks.length && solanaBlocks.totalCount != null && solanaBlocks.totalCount >= uniqueSolanaBlocks.length ? solanaBlocks.totalCount : uniqueSolanaBlocks.length}
+				totalCount={solanaBlocks.totalCount}
 				getKey={(solanaBlock) => solanaBlock[EntityMetaKey.SelectorKey]}
 				items={uniqueSolanaBlocks}
 			>
@@ -111,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: solanaBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaBlock> })}
+					{@const solanaBlockFields = { ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }}
+					{@const solanaBlockHrefFields = { ...solanaBlock, ...solanaBlock[EntityMetaKey.Selector] }}
 					<SolanaBlockView
+						selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
+						prefetched={solanaBlockFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/block/[slot]', {
-								networkSlug: String(({ ...solanaBlock.entitySelector, ...solanaBlock }).$network.slug),
-								slot: String(({ ...solanaBlock.entitySelector, ...solanaBlock }).slot),
-							})
+							(solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.caip2 !== undefined && solanaBlockHrefFields.$network.caip2.namespace !== undefined && solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.caip2 !== undefined && solanaBlockHrefFields.$network.caip2.reference !== undefined && solanaBlockHrefFields.slot !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/block/[slot]', {
+								networkSlug: String(networkByCaip2[String(String(solanaBlockHrefFields.$network.caip2.namespace) + ':' + String(solanaBlockHrefFields.$network.caip2.reference))].slug ?? ''),
+								slot: String(solanaBlockHrefFields.slot ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.SolanaBlock, solanaBlock.entitySelector)}
-						prefetched={solanaBlock}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

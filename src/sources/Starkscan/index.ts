@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { starkscanBindings } from '$/sources/Starkscan/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.Starkscan,
-	label: 'Starkscan',
-	sources: [
-		{
-			provider: SourceProvider.Starkscan,
-			source: Source.Starkscan_Rest,
-			label: 'Starkscan REST',
-		},
-	],
-	bindings: starkscanBindings,
-} satisfies SourceProviderDefinition
+	source: Source.Starkscan_Rest,
+	label: 'Starkscan REST',
+} satisfies SourceDefinition

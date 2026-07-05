@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -42,20 +41,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cosmosValidator = $derived(selection({
 		fields: {
 			moniker: true,
-			consensusPubkey: true,
-			identity: true,
-			website: true,
-			securityContact: true,
-			details: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).moniker) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).operatorAddress) ?? '')].filter(Boolean).join(' ') || 'Cosmos validator')
+	const titleFallback = $derived([String((prefetched.moniker) ?? ''), String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'Cosmos validator')
 	const viewDomId = $derived('cosmos-validator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CosmosValidator_TimestampsView from '$/views/CosmosValidator_TimestampsView.svelte'
@@ -65,148 +59,223 @@
 
 <EntityView
 	entityType={EntityType.CosmosValidator}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.reference)}`,
-			operatorAddress: String(({ ...selection.entitySelector, ...prefetched }).operatorAddress),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.operatorAddress !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			operatorAddress: String(pendingEntity.operatorAddress ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).moniker) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).operatorAddress) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos validator'}
-		{:else}
-			<ResourceBoundary resource={cosmosValidator}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).moniker) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).operatorAddress) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos validator'}
-				{/snippet}
+		<ResourceBoundary resource={cosmosValidator}>
+			{#snippet Pending()}
+				{[String((prefetched.moniker) ?? ''), String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos validator'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.moniker) ?? ''), String((entity.operatorAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.moniker) ?? ''), String((resolvedEntity.operatorAddress) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const operatorAddress0 = ({ ...selection.entitySelector, ...prefetched }).operatorAddress}
-			{#if operatorAddress0 !== undefined && operatorAddress0 !== null}
-				<TruncatedValue value={String(operatorAddress0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={cosmosValidator}>
-				{#snippet Pending()}
-					{@const operatorAddress0 = ({ ...selection.entitySelector, ...prefetched }).operatorAddress}
-					{#if operatorAddress0 !== undefined && operatorAddress0 !== null}
-						<TruncatedValue value={String(operatorAddress0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={cosmosValidator}>
+			{#snippet Pending()}
+				{@const operatorAddress0 = selection.entitySelector.operatorAddress ?? prefetched.operatorAddress}
+				{#if operatorAddress0 !== undefined && operatorAddress0 !== null}
+					<TruncatedValue value={String((operatorAddress0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const operatorAddress0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).operatorAddress}
-					{#if operatorAddress0 !== undefined && operatorAddress0 !== null}
-						<TruncatedValue value={String(operatorAddress0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const operatorAddress0 = resolvedEntity.operatorAddress}
+				{#if operatorAddress0 !== undefined && operatorAddress0 !== null}
+					<TruncatedValue value={String((operatorAddress0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<span data-text="muted">
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
-						(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-						}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={cosmosValidator}>
-				{#snippet Pending()}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
+		<ResourceBoundary resource={cosmosValidator}>
+			{#snippet Pending()}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={cosmosValidator}>
+			<div>
+				<dt>Operator address</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									operatorAddress: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const operatorAddress = selection.entitySelector.operatorAddress ?? prefetched.operatorAddress}
+							{#if operatorAddress !== undefined && operatorAddress !== null}
+								<TruncatedValue value={String((operatorAddress) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const operatorAddress = resolvedEntity.operatorAddress}
+							{#if operatorAddress !== undefined && operatorAddress !== null}
+								<TruncatedValue value={String((operatorAddress) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							consensusPubkey: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const consensusPubkey = prefetched.consensusPubkey ?? selection.entitySelector.consensusPubkey}
+					{@const consensusPubkey = prefetched.consensusPubkey}
 					{#if consensusPubkey !== undefined && consensusPubkey !== null}
 						<div>
 							<dt>Consensus public key</dt>
 							<dd>
-								<TruncatedValue value={String(consensusPubkey)} />
+								<TruncatedValue value={String((consensusPubkey) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const consensusPubkey = entity.consensusPubkey ?? selection.entitySelector.consensusPubkey ?? prefetched.consensusPubkey}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const consensusPubkey = resolvedEntity.consensusPubkey}
 					{#if consensusPubkey !== undefined && consensusPubkey !== null}
 						<div>
 							<dt>Consensus public key</dt>
 							<dd>
-								<TruncatedValue value={String(consensusPubkey)} />
+								<TruncatedValue value={String((consensusPubkey) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							moniker: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const moniker = prefetched.moniker}
+					{#if moniker !== undefined && moniker !== null}
+						<div>
+							<dt>Moniker</dt>
+							<dd>
+								{String((moniker) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const moniker = resolvedEntity.moniker}
+					{#if moniker !== undefined && moniker !== null}
+						<div>
+							<dt>Moniker</dt>
+							<dd>
+								{String((moniker) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<div>
+				<dt>Network</dt>
+				<dd>
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={cosmosValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							identity: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const identity = prefetched.identity ?? selection.entitySelector.identity}
+					{@const identity = prefetched.identity}
 					{#if identity !== undefined && identity !== null}
 						<div>
 							<dt>Identity</dt>
@@ -218,7 +287,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const identity = entity.identity ?? selection.entitySelector.identity ?? prefetched.identity}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const identity = resolvedEntity.identity}
 					{#if identity !== undefined && identity !== null}
 						<div>
 							<dt>Identity</dt>
@@ -230,9 +300,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={cosmosValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							website: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const website = prefetched.website ?? selection.entitySelector.website}
+					{@const website = prefetched.website}
 					{#if website !== undefined && website !== null}
 						<div>
 							<dt>Website</dt>
@@ -251,7 +329,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const website = entity.website ?? selection.entitySelector.website ?? prefetched.website}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const website = resolvedEntity.website}
 					{#if website !== undefined && website !== null}
 						<div>
 							<dt>Website</dt>
@@ -270,35 +349,66 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={cosmosValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							securityContact: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const securityContact = prefetched.securityContact ?? selection.entitySelector.securityContact}
+					{@const securityContact = prefetched.securityContact}
 					{#if securityContact !== undefined && securityContact !== null}
 						<div>
 							<dt>Security contact</dt>
 							<dd>
-								{String((securityContact) ?? '')}
+								<svelte:element
+									this={'a'}
+									href={String(securityContact)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(securityContact)} />
+								</svelte:element>
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const securityContact = entity.securityContact ?? selection.entitySelector.securityContact ?? prefetched.securityContact}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const securityContact = resolvedEntity.securityContact}
 					{#if securityContact !== undefined && securityContact !== null}
 						<div>
 							<dt>Security contact</dt>
 							<dd>
-								{String((securityContact) ?? '')}
+								<svelte:element
+									this={'a'}
+									href={String(securityContact)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(securityContact)} />
+								</svelte:element>
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={cosmosValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							details: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const details = prefetched.details ?? selection.entitySelector.details}
+					{@const details = prefetched.details}
 					{#if details !== undefined && details !== null}
 						<div>
 							<dt>Details</dt>
@@ -310,7 +420,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const details = entity.details ?? selection.entitySelector.details ?? prefetched.details}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const details = resolvedEntity.details}
 					{#if details !== undefined && details !== null}
 						<div>
 							<dt>Details</dt>

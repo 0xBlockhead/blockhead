@@ -42,6 +42,6 @@
 				limit: 96,
 			})
 		}
-		id='MarketPricesView-page'
+		id='market-prices'
 	/>
 </Page>

@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const SwarmRestSource = {
+export default {
 	provider: SourceProvider.Swarm,
 	source: Source.Swarm_Rest,
-	label: 'Swarm Rest',
+	label: 'Swarm gateway',
 } satisfies SourceDefinition
-
-export default SwarmRestSource

@@ -3,13 +3,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -42,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nostrRepost = $derived(selection({
 		sources: [
 			Source.Primal_Rest,
@@ -57,13 +58,11 @@
 			$repostedArticle: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost')
+	const titleFallback = $derived([String((prefetched.repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost')
 	const viewDomId = $derived('nostr-repost-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NostrProfileView from '$/views/NostrProfileView.svelte'
 	import NostrNoteView from '$/views/NostrNoteView.svelte'
 	import NostrArticleView from '$/views/NostrArticleView.svelte'
@@ -72,7 +71,7 @@
 
 <EntityView
 	entityType={EntityType.NostrRepost}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -81,28 +80,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const repostedEventId0 = ({ ...selection.entitySelector, ...prefetched }).repostedEventId}
-			{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
-				<TruncatedValue value={String(repostedEventId0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nostrRepost}>
-				{#snippet Pending()}
-					{@const repostedEventId0 = ({ ...selection.entitySelector, ...prefetched }).repostedEventId}
-					{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
-						<TruncatedValue value={String(repostedEventId0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={nostrRepost}>
+			{#snippet Pending()}
+				{@const repostedEventId0 = prefetched.repostedEventId}
+				{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
+					<TruncatedValue value={String((repostedEventId0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const repostedEventId0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).repostedEventId}
-					{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
-						<TruncatedValue value={String(repostedEventId0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const repostedEventId0 = resolvedEntity.repostedEventId}
+				{#if repostedEventId0 !== undefined && repostedEventId0 !== null}
+					<TruncatedValue value={String((repostedEventId0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
@@ -113,34 +106,26 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const createdAt0 = prefetched.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nostrRepost}>
-				{#snippet Pending()}
-					{@const createdAt0 = prefetched.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={nostrRepost}>
+			{#snippet Pending()}
+				{@const createdAt0 = prefetched.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const createdAt0 = entity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const createdAt0 = resolvedEntity.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -151,20 +136,100 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<div>
+				<dt>Event ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									eventId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const eventId = selection.entitySelector.eventId ?? prefetched.eventId}
+							{#if eventId !== undefined && eventId !== null}
+								<TruncatedValue value={String((eventId) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const eventId = resolvedEntity.eventId}
+							{#if eventId !== undefined && eventId !== null}
+								<TruncatedValue value={String((eventId) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.NostrBand_Rest,
+						],
+						fields: {
+							createdAt: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const createdAt = prefetched.createdAt}
+					{#if createdAt !== undefined && createdAt !== null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={Number(createdAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt = resolvedEntity.createdAt}
+					{#if createdAt !== undefined && createdAt !== null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={Number(createdAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			{#if contentOpen}
 				<div>
 					<dt>Kind</dt>
 					<dd>
-						<ResourceBoundary resource={nostrRepost}>
+						<ResourceBoundary
+							resource={
+								selection({
+									sources: [
+										Source.NostrBand_Rest,
+									],
+									fields: {
+										kind: true,
+									},
+								})
+							}
+						>
 							{#snippet Pending()}
-								{@const kind = prefetched.kind ?? selection.entitySelector.kind}
+								{@const kind = prefetched.kind}
 								{#if kind !== undefined && kind !== null}
 									{String((kind) ?? '')}
 								{/if}
 							{/snippet}
 
 							{#snippet children(entity)}
-								{@const kind = entity.kind ?? selection.entitySelector.kind ?? prefetched.kind}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{@const kind = resolvedEntity.kind}
 								{#if kind !== undefined && kind !== null}
 									{String((kind) ?? '')}
 								{/if}
@@ -178,18 +243,30 @@
 				<div>
 					<dt>Author pubkey</dt>
 					<dd>
-						<ResourceBoundary resource={nostrRepost}>
+						<ResourceBoundary
+							resource={
+								selection({
+									sources: [
+										Source.NostrBand_Rest,
+									],
+									fields: {
+										pubkey: true,
+									},
+								})
+							}
+						>
 							{#snippet Pending()}
-								{@const pubkey = prefetched.pubkey ?? selection.entitySelector.pubkey}
+								{@const pubkey = prefetched.pubkey}
 								{#if pubkey !== undefined && pubkey !== null}
-									<TruncatedValue value={String(pubkey)} />
+									<TruncatedValue value={String((pubkey) ?? '')} />
 								{/if}
 							{/snippet}
 
 							{#snippet children(entity)}
-								{@const pubkey = entity.pubkey ?? selection.entitySelector.pubkey ?? prefetched.pubkey}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{@const pubkey = resolvedEntity.pubkey}
 								{#if pubkey !== undefined && pubkey !== null}
-									<TruncatedValue value={String(pubkey)} />
+									<TruncatedValue value={String((pubkey) ?? '')} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -199,15 +276,21 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.NostrProfile, false>('$author')}
+					resource={
+						selection[EntityProxyField]<EntityType.NostrProfile, false>('$author', {
+							sources: [
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				>
 					{#snippet children(nostrProfile)}
-						{#if nostrProfile != null}
+						{#if nostrProfile != null && nostrProfile[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Author</dt>
 								<dd>
 									<NostrProfileView
-										selection={select(EntityType.NostrProfile, nostrProfile.entitySelector)}
+										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
 										layout={EntityLayout.Title}
 										open={false}
@@ -221,15 +304,61 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.NostrNote, false>('$repostedNote')}
+					resource={
+						selection({
+							sources: [
+								Source.NostrBand_Rest,
+							],
+							fields: {
+								repostedEventId: true,
+							},
+						})
+					}
+				>
+					{#snippet Pending()}
+						{@const repostedEventId = prefetched.repostedEventId}
+						{#if repostedEventId !== undefined && repostedEventId !== null}
+							<div>
+								<dt>Reposted event ID</dt>
+								<dd>
+									<TruncatedValue value={String((repostedEventId) ?? '')} />
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+
+					{#snippet children(entity)}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const repostedEventId = resolvedEntity.repostedEventId}
+						{#if repostedEventId !== undefined && repostedEventId !== null}
+							<div>
+								<dt>Reposted event ID</dt>
+								<dd>
+									<TruncatedValue value={String((repostedEventId) ?? '')} />
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						selection[EntityProxyField]<EntityType.NostrNote, false>('$repostedNote', {
+							sources: [
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				>
 					{#snippet children(nostrNote)}
-						{#if nostrNote != null}
+						{#if nostrNote != null && nostrNote[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Reposted note</dt>
 								<dd>
 									<NostrNoteView
-										selection={select(EntityType.NostrNote, nostrNote.entitySelector)}
+										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
 										layout={EntityLayout.Title}
 										open={false}
@@ -243,15 +372,21 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.NostrArticle, false>('$repostedArticle')}
+					resource={
+						selection[EntityProxyField]<EntityType.NostrArticle, false>('$repostedArticle', {
+							sources: [
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				>
 					{#snippet children(nostrArticle)}
-						{#if nostrArticle != null}
+						{#if nostrArticle != null && nostrArticle[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Reposted article</dt>
 								<dd>
 									<NostrArticleView
-										selection={select(EntityType.NostrArticle, nostrArticle.entitySelector)}
+										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 										prefetched={nostrArticle}
 										layout={EntityLayout.Title}
 										open={false}

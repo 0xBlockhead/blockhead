@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='BlockheadSessionsView-page'
+		id='blockhead-sessions'
 	/>
 </Page>

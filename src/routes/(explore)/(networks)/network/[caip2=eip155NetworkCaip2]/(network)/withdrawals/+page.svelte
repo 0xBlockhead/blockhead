@@ -6,6 +6,7 @@
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -41,8 +42,12 @@
 		selection={
 			select(EntityType.EvmNetwork, {
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-			})[EntityProxyField]<EntityType.BeaconWithdrawal>('$$beaconWithdrawals')
+			})[EntityProxyField]<EntityType.BeaconWithdrawal>('$$beaconWithdrawals', {
+				sources: [
+					Source.Beacon_Rest,
+				],
+			})
 		}
-		id='BeaconWithdrawalsView-page'
+		id='beacon-withdrawals'
 	/>
 </Page>

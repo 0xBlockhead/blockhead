@@ -21,7 +21,7 @@
 		selection,
 		title = 'Validators',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos validators...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					moniker: true,
 					operatorAddress: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosValidators)}
 			{@const uniqueCosmosValidators = [...new Map(cosmosValidators.values.map((cosmosValidator) => [cosmosValidator[EntityMetaKey.SelectorKey], cosmosValidator])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosValidators.values.length === uniqueCosmosValidators.length && cosmosValidators.totalCount != null && cosmosValidators.totalCount >= uniqueCosmosValidators.length ? cosmosValidators.totalCount : uniqueCosmosValidators.length}
+				totalCount={cosmosValidators.totalCount}
 				getKey={(cosmosValidator) => cosmosValidator[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosValidators}
 			>
@@ -112,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosValidator> })}
+					{@const cosmosValidatorFields = { ...cosmosValidator[EntityMetaKey.Selector], ...cosmosValidator }}
+					{@const cosmosValidatorHrefFields = { ...cosmosValidator, ...cosmosValidator[EntityMetaKey.Selector] }}
 					<CosmosValidatorView
+						selection={select(EntityType.CosmosValidator, cosmosValidator[EntityMetaKey.Selector])}
+						prefetched={cosmosValidatorFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {
-								caip2: `${String(({ ...cosmosValidator.entitySelector, ...cosmosValidator }).$network.caip2.namespace)}:${String(({ ...cosmosValidator.entitySelector, ...cosmosValidator }).$network.caip2.reference)}`,
-								operatorAddress: String(({ ...cosmosValidator.entitySelector, ...cosmosValidator }).operatorAddress),
-							})
+							(cosmosValidatorHrefFields.$network !== undefined && cosmosValidatorHrefFields.$network.caip2 !== undefined && cosmosValidatorHrefFields.$network.caip2.namespace !== undefined && cosmosValidatorHrefFields.$network !== undefined && cosmosValidatorHrefFields.$network.caip2 !== undefined && cosmosValidatorHrefFields.$network.caip2.reference !== undefined && cosmosValidatorHrefFields.operatorAddress !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {
+								caip2: `${String(cosmosValidatorHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosValidatorHrefFields.$network.caip2.reference ?? '')}`,
+								operatorAddress: String(cosmosValidatorHrefFields.operatorAddress ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosValidator, cosmosValidator.entitySelector)}
-						prefetched={cosmosValidator}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

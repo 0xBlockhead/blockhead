@@ -1,24 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { mcpBindings } from '$/sources/Mcp/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.Mcp,
-	label: 'MCP',
-	sources: [
-		{
-			provider: SourceProvider.Mcp,
-			source: Source.McpConfigured_Protocol,
-			label: 'Configured MCP server',
-		},
-		{
-			provider: SourceProvider.Mcp,
-			source: Source.McpPackageRegistry_Rest,
-			label: 'MCP package registry REST',
-		},
-	],
-	bindings: mcpBindings,
-} satisfies SourceProviderDefinition
+	source: Source.McpConfigured_Protocol,
+	label: 'Configured MCP server',
+} satisfies SourceDefinition

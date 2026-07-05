@@ -76,5 +76,12 @@ export default {
 				entityType: EntityType.BlockheadLightningPayment,
 				cardinality: EntityFieldCardinality.Many,
 		},
+		{
+				name: '$$localNodeStates',
+				label: 'Local node states',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.BlockheadLightningNodeState,
+				cardinality: EntityFieldCardinality.Many,
+		},
 	],
 } as const satisfies EntityDefinition

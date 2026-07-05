@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.EnsName_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					$resolvedActor: true,
 					$resolverContract: true,

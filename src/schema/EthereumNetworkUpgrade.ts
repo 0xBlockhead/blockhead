@@ -2,10 +2,12 @@
 
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum EthereumNetworkUpgradeSelector {
 	EvmNetworkUpgradeId = 'EvmNetworkUpgradeId',
+	EvmNetworkSlug = 'EvmNetworkSlug',
 }
 export default {
 	entityType: EntityType.EthereumNetworkUpgrade,
@@ -17,6 +19,13 @@ export default {
 			fields: [
 				'$network',
 				'upgradeId',
+			],
+		},
+		{
+			name: EthereumNetworkUpgradeSelector.EvmNetworkSlug,
+			fields: [
+				'$network',
+				'slug',
 			],
 		},
 	],
@@ -78,6 +87,9 @@ export default {
 				type: EntityFieldType.EntityReference,
 				entityType: EntityType.EthereumExecutionUpgrade,
 				cardinality: EntityFieldCardinality.One,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: '$networkConsensusUpgrade',
@@ -85,6 +97,9 @@ export default {
 				type: EntityFieldType.EntityReference,
 				entityType: EntityType.EthereumConsensusUpgrade,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: '$$proposals',
@@ -92,6 +107,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.SpecificationProposal,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

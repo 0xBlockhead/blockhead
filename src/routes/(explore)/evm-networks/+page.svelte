@@ -31,6 +31,6 @@
 				scope: '$$evmNetworks',
 			})[EntityProxyField]<EntityType.EvmNetwork>('$$evmNetworks')
 		}
-		id='EvmNetworksView-page'
+		id='evm-networks'
 	/>
 </Page>

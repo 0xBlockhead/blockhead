@@ -21,7 +21,7 @@
 		selection,
 		title = 'User operations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading User operations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -71,29 +71,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					hash: true,
 					successful: true,
+					$network: true,
 				},
 				limit: 16,
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmUserOperation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-			/>
-		{/snippet}
-
 		{#snippet children(evmUserOperations)}
 			{@const uniqueEvmUserOperations = [...new Map(evmUserOperations.values.map((evmUserOperation) => [evmUserOperation[EntityMetaKey.SelectorKey], evmUserOperation])).values()]}
 			<EntitiesList
@@ -105,7 +93,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmUserOperations.values.length === uniqueEvmUserOperations.length && evmUserOperations.totalCount != null && evmUserOperations.totalCount >= uniqueEvmUserOperations.length ? evmUserOperations.totalCount : uniqueEvmUserOperations.length}
+				totalCount={evmUserOperations.totalCount}
 				getKey={(evmUserOperation) => evmUserOperation[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmUserOperations}
 			>
@@ -113,20 +101,22 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No user operations yet.</p>
+						<p data-text="muted">No User operations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: evmUserOperation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmUserOperation> })}
+					{@const evmUserOperationFields = { ...evmUserOperation[EntityMetaKey.Selector], ...evmUserOperation }}
+					{@const evmUserOperationHrefFields = { ...evmUserOperation, ...evmUserOperation[EntityMetaKey.Selector] }}
 					<EvmUserOperationView
+						selection={select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector])}
+						prefetched={evmUserOperationFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/user-operation/[userOperationHash=userOperationHash]', {
-								caip2: `${String(({ ...evmUserOperation.entitySelector, ...evmUserOperation }).$network.caip2.namespace)}:${String(({ ...evmUserOperation.entitySelector, ...evmUserOperation }).$network.caip2.reference)}`,
-								userOperationHash: String(({ ...evmUserOperation.entitySelector, ...evmUserOperation }).hash),
-							})
+							(evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined && evmUserOperationHrefFields.$network.caip2.namespace !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined && evmUserOperationHrefFields.$network.caip2.reference !== undefined && evmUserOperationHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/user-operation/[userOperationHash=userOperationHash]', {
+								caip2: `${String(evmUserOperationHrefFields.$network.caip2.namespace ?? '')}:${String(evmUserOperationHrefFields.$network.caip2.reference ?? '')}`,
+								userOperationHash: String(evmUserOperationHrefFields.hash ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmUserOperation, evmUserOperation.entitySelector)}
-						prefetched={evmUserOperation}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

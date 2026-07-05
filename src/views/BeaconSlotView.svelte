@@ -4,14 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 
 
 	// Context
@@ -43,22 +41,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const beaconSlot = $derived(selection({
 		fields: {
-			epoch: true,
-			proposerIndex: true,
-			root: true,
-			canonical: true,
-			parentRoot: true,
-			stateRoot: true,
-			bodyRoot: true,
-			signature: true,
+			$epoch: true,
 		},
 	}))
-	const titleFallback = $derived((String((({ ...selection.entitySelector, ...prefetched }).slot) ?? '') ? 'Slot #' + String((({ ...selection.entitySelector, ...prefetched }).slot) ?? '') : '') || 'beacon slot')
+	const titleFallback = $derived((String((selection.entitySelector.slot ?? prefetched.slot) ?? '') ? 'Slot #' + String((selection.entitySelector.slot ?? prefetched.slot) ?? '') : '') || 'beacon slot')
 	const viewDomId = $derived('beacon-slot-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -66,27 +57,28 @@
 	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
 	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
 	import BeaconSlashingsView from '$/views/BeaconSlashingsView.svelte'
+	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.BeaconSlot}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(({ ...selection.entitySelector, ...prefetched }).slot ?? '')}
+	idDragPlainText={String(selection.entitySelector.slot ?? prefetched.slot ?? '')}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.reference)}`,
-			slot: String(({ ...selection.entitySelector, ...prefetched }).slot),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.slot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			slot: String(pendingEntity.slot ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).slot}
+		{@const serialValue = selection.entitySelector.slot ?? prefetched.slot}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Slot </span>
@@ -98,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).slot}
+		{@const serialValue = selection.entitySelector.slot ?? prefetched.slot}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -107,44 +99,69 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const epoch0 = prefetched.epoch}
-			{#if epoch0 !== undefined && epoch0 !== null}
-				<span data-text="muted">
-					<span>Epoch </span>
-					<NumberValue value={Number(epoch0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={beaconSlot}>
-				{#snippet Pending()}
-					{@const epoch0 = prefetched.epoch}
-					{#if epoch0 !== undefined && epoch0 !== null}
+		<ResourceBoundary resource={beaconSlot}>
+			{#snippet Pending()}
+				<ResourceBoundary
+					resource={selection[EntityProxyField]<EntityType.BeaconEpoch, false>('$epoch')}
+				>
+					{#snippet children(beaconEpoch)}
 						<span data-text="muted">
-							<span>Epoch </span>
-							<NumberValue value={Number(epoch0)} />
+							<BeaconEpochView
+								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
+								prefetched={beaconEpoch}
+								href={
+									(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+										caip2: `${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace ?? '')}:${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference ?? '')}`,
+										epoch: String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
 						</span>
-					{/if}
-				{/snippet}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const epoch0 = entity.epoch}
-					{#if epoch0 !== undefined && epoch0 !== null}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ResourceBoundary
+					resource={selection[EntityProxyField]<EntityType.BeaconEpoch, false>('$epoch')}
+				>
+					{#snippet children(beaconEpoch)}
 						<span data-text="muted">
-							<span>Epoch </span>
-							<NumberValue value={Number(epoch0)} />
+							<BeaconEpochView
+								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
+								prefetched={beaconEpoch}
+								href={
+									(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+										caip2: `${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace ?? '')}:${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference ?? '')}`,
+										epoch: String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
 						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={beaconSlot}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							proposerIndex: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const proposerIndex = prefetched.proposerIndex ?? selection.entitySelector.proposerIndex}
+					{@const proposerIndex = prefetched.proposerIndex}
 					{#if proposerIndex !== undefined && proposerIndex !== null}
 						<div>
 							<dt>Proposer index</dt>
@@ -156,7 +173,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const proposerIndex = entity.proposerIndex ?? selection.entitySelector.proposerIndex ?? prefetched.proposerIndex}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const proposerIndex = resolvedEntity.proposerIndex}
 					{#if proposerIndex !== undefined && proposerIndex !== null}
 						<div>
 							<dt>Proposer index</dt>
@@ -168,47 +186,62 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			{#if contentOpen}
-				<div>
-					<dt>Epoch</dt>
-					<dd>
-						<ResourceBoundary resource={beaconSlot}>
-							{#snippet children(entity)}
+			<div>
+				<dt>Epoch</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection[EntityProxyField]<EntityType.BeaconEpoch, false>('$epoch')}
+					>
+						{#snippet children(beaconEpoch)}
+							{#if beaconEpoch[EntityMetaKey.Selector] != null}
 								<BeaconEpochView
-									selection={select(EntityType.BeaconEpoch, {
-										$network: selection.entitySelector.$network,
-										epoch: entity.epoch,
-									})}
-									layout={EntityLayout.Value}
+									selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
+									prefetched={beaconEpoch}
+									href={
+										(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+											caip2: `${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace ?? '')}:${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference ?? '')}`,
+											epoch: String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
 									open={false}
 								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			{#if contentOpen}
-				<ResourceBoundary resource={beaconSlot}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								root: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const root = prefetched.root ?? selection.entitySelector.root}
+						{@const root = prefetched.root}
 						{#if root !== undefined && root !== null}
 							<div>
 								<dt>Block root</dt>
 								<dd>
-									<TruncatedValue value={String(root)} />
+									<TruncatedValue value={String((root) ?? '')} />
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const root = entity.root ?? selection.entitySelector.root ?? prefetched.root}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const root = resolvedEntity.root}
 						{#if root !== undefined && root !== null}
 							<div>
 								<dt>Block root</dt>
 								<dd>
-									<TruncatedValue value={String(root)} />
+									<TruncatedValue value={String((root) ?? '')} />
 								</dd>
 							</div>
 						{/if}
@@ -217,26 +250,35 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={beaconSlot}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								canonical: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const canonical = prefetched.canonical ?? selection.entitySelector.canonical}
+						{@const canonical = prefetched.canonical}
 						{#if canonical !== undefined && canonical !== null}
 							<div>
 								<dt>Canonical</dt>
 								<dd>
-									{String((canonical) ?? '')}
+									{canonical ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const canonical = entity.canonical ?? selection.entitySelector.canonical ?? prefetched.canonical}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const canonical = resolvedEntity.canonical}
 						{#if canonical !== undefined && canonical !== null}
 							<div>
 								<dt>Canonical</dt>
 								<dd>
-									{String((canonical) ?? '')}
+									{canonical ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
@@ -245,26 +287,35 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={beaconSlot}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								parentRoot: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const parentRoot = prefetched.parentRoot ?? selection.entitySelector.parentRoot}
+						{@const parentRoot = prefetched.parentRoot}
 						{#if parentRoot !== undefined && parentRoot !== null}
 							<div>
 								<dt>Parent root</dt>
 								<dd>
-									<TruncatedValue value={String(parentRoot)} />
+									<TruncatedValue value={String((parentRoot) ?? '')} />
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const parentRoot = entity.parentRoot ?? selection.entitySelector.parentRoot ?? prefetched.parentRoot}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const parentRoot = resolvedEntity.parentRoot}
 						{#if parentRoot !== undefined && parentRoot !== null}
 							<div>
 								<dt>Parent root</dt>
 								<dd>
-									<TruncatedValue value={String(parentRoot)} />
+									<TruncatedValue value={String((parentRoot) ?? '')} />
 								</dd>
 							</div>
 						{/if}
@@ -273,26 +324,35 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={beaconSlot}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								stateRoot: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const stateRoot = prefetched.stateRoot ?? selection.entitySelector.stateRoot}
+						{@const stateRoot = prefetched.stateRoot}
 						{#if stateRoot !== undefined && stateRoot !== null}
 							<div>
 								<dt>State root</dt>
 								<dd>
-									<TruncatedValue value={String(stateRoot)} />
+									<TruncatedValue value={String((stateRoot) ?? '')} />
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const stateRoot = entity.stateRoot ?? selection.entitySelector.stateRoot ?? prefetched.stateRoot}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const stateRoot = resolvedEntity.stateRoot}
 						{#if stateRoot !== undefined && stateRoot !== null}
 							<div>
 								<dt>State root</dt>
 								<dd>
-									<TruncatedValue value={String(stateRoot)} />
+									<TruncatedValue value={String((stateRoot) ?? '')} />
 								</dd>
 							</div>
 						{/if}
@@ -301,26 +361,35 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={beaconSlot}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								bodyRoot: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const bodyRoot = prefetched.bodyRoot ?? selection.entitySelector.bodyRoot}
+						{@const bodyRoot = prefetched.bodyRoot}
 						{#if bodyRoot !== undefined && bodyRoot !== null}
 							<div>
 								<dt>Body root</dt>
 								<dd>
-									<TruncatedValue value={String(bodyRoot)} />
+									<TruncatedValue value={String((bodyRoot) ?? '')} />
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const bodyRoot = entity.bodyRoot ?? selection.entitySelector.bodyRoot ?? prefetched.bodyRoot}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const bodyRoot = resolvedEntity.bodyRoot}
 						{#if bodyRoot !== undefined && bodyRoot !== null}
 							<div>
 								<dt>Body root</dt>
 								<dd>
-									<TruncatedValue value={String(bodyRoot)} />
+									<TruncatedValue value={String((bodyRoot) ?? '')} />
 								</dd>
 							</div>
 						{/if}
@@ -329,26 +398,35 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={beaconSlot}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								signature: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const signature = prefetched.signature ?? selection.entitySelector.signature}
+						{@const signature = prefetched.signature}
 						{#if signature !== undefined && signature !== null}
 							<div>
 								<dt>Signature</dt>
 								<dd>
-									<TruncatedValue value={String(signature)} />
+									<TruncatedValue value={String((signature) ?? '')} />
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const signature = entity.signature ?? selection.entitySelector.signature ?? prefetched.signature}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const signature = resolvedEntity.signature}
 						{#if signature !== undefined && signature !== null}
 							<div>
 								<dt>Signature</dt>
 								<dd>
-									<TruncatedValue value={String(signature)} />
+									<TruncatedValue value={String((signature) ?? '')} />
 								</dd>
 							</div>
 						{/if}

@@ -20,7 +20,7 @@
 		selection,
 		title = 'IPFS protocols',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading IPFS protocols...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,28 +64,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 					topology: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IpfsProtocol}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(ipfsProtocols)}
 			{@const uniqueIpfsProtocols = [...new Map(ipfsProtocols.values.map((ipfsProtocol) => [ipfsProtocol[EntityMetaKey.SelectorKey], ipfsProtocol])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ipfsProtocols.values.length === uniqueIpfsProtocols.length && ipfsProtocols.totalCount != null && ipfsProtocols.totalCount >= uniqueIpfsProtocols.length ? ipfsProtocols.totalCount : uniqueIpfsProtocols.length}
+				totalCount={ipfsProtocols.totalCount}
 				getKey={(ipfsProtocol) => ipfsProtocol[EntityMetaKey.SelectorKey]}
 				items={uniqueIpfsProtocols}
 			>
@@ -110,9 +97,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: ipfsProtocol }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IpfsProtocol> })}
+					{@const ipfsProtocolFields = { ...ipfsProtocol[EntityMetaKey.Selector], ...ipfsProtocol }}
 					<IpfsProtocolView
-						selection={select(EntityType.IpfsProtocol, ipfsProtocol.entitySelector)}
-						prefetched={ipfsProtocol}
+						selection={select(EntityType.IpfsProtocol, ipfsProtocol[EntityMetaKey.Selector])}
+						prefetched={ipfsProtocolFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

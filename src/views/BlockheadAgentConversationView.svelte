@@ -3,13 +3,17 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
@@ -37,6 +41,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadAgentConversation = $derived(selection({
 		sources: [
 			Source.Local_Internal,
@@ -46,28 +51,22 @@
 			pinned: true,
 			createdAt: true,
 			updatedAt: true,
-			...(open && {
-				systemPrompt: true,
-				defaultConnectionId: true,
-				defaultModelId: true,
-				$$turns: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation')
+	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation')
 	const viewDomId = $derived('blockhead-agent-conversation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import BlockheadAgentConversationTurnsView from '$/views/BlockheadAgentConversationTurnsView.svelte'
+	import BlockheadAgentProfileView from '$/views/BlockheadAgentProfileView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.BlockheadAgentConversation}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -76,44 +75,35 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation'}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentConversation}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation'}
-				{/snippet}
+		<ResourceBoundary resource={blockheadAgentConversation}>
+			{#snippet Pending()}
+				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'agent conversation'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const updatedAt0 = ({ ...selection.entitySelector, ...prefetched }).updatedAt}
-			{#if updatedAt0 !== undefined && updatedAt0 !== null}
-				<Timestamp timestamp={Number(updatedAt0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadAgentConversation}>
-				{#snippet Pending()}
-					{@const updatedAt0 = ({ ...selection.entitySelector, ...prefetched }).updatedAt}
-					{#if updatedAt0 !== undefined && updatedAt0 !== null}
-						<Timestamp timestamp={Number(updatedAt0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={blockheadAgentConversation}>
+			{#snippet Pending()}
+				{@const updatedAt0 = prefetched.updatedAt}
+				{#if updatedAt0 !== undefined && updatedAt0 !== null}
+					<Timestamp timestamp={Number(updatedAt0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const updatedAt0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).updatedAt}
-					{#if updatedAt0 !== undefined && updatedAt0 !== null}
-						<Timestamp timestamp={Number(updatedAt0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const updatedAt0 = resolvedEntity.updatedAt}
+				{#if updatedAt0 !== undefined && updatedAt0 !== null}
+					<Timestamp timestamp={Number(updatedAt0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -121,18 +111,27 @@
 			<div>
 				<dt>Pinned</dt>
 				<dd>
-					<ResourceBoundary resource={blockheadAgentConversation}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									pinned: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const pinned = prefetched.pinned ?? selection.entitySelector.pinned}
+							{@const pinned = prefetched.pinned}
 							{#if pinned !== undefined && pinned !== null}
-								{String((pinned) ?? '')}
+								{pinned ? 'Yes' : 'No'}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const pinned = entity.pinned ?? selection.entitySelector.pinned ?? prefetched.pinned}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const pinned = resolvedEntity.pinned}
 							{#if pinned !== undefined && pinned !== null}
-								{String((pinned) ?? '')}
+								{pinned ? 'Yes' : 'No'}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -142,18 +141,57 @@
 			<div>
 				<dt>Created</dt>
 				<dd>
-					<ResourceBoundary resource={blockheadAgentConversation}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									createdAt: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const createdAt = prefetched.createdAt ?? selection.entitySelector.createdAt}
+							{@const createdAt = prefetched.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const createdAt = entity.createdAt ?? selection.entitySelector.createdAt ?? prefetched.createdAt}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const createdAt = resolvedEntity.createdAt}
 							{#if createdAt !== undefined && createdAt !== null}
 								<Timestamp timestamp={Number(createdAt)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Updated</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									updatedAt: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const updatedAt = prefetched.updatedAt}
+							{#if updatedAt !== undefined && updatedAt !== null}
+								<Timestamp timestamp={Number(updatedAt)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const updatedAt = resolvedEntity.updatedAt}
+							{#if updatedAt !== undefined && updatedAt !== null}
+								<Timestamp timestamp={Number(updatedAt)} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -162,9 +200,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={blockheadAgentConversation}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							defaultConnectionId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const defaultConnectionId = prefetched.defaultConnectionId ?? selection.entitySelector.defaultConnectionId}
+					{@const defaultConnectionId = prefetched.defaultConnectionId}
 					{#if defaultConnectionId !== undefined && defaultConnectionId !== null}
 						<div>
 							<dt>Default connection ID</dt>
@@ -176,7 +222,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const defaultConnectionId = entity.defaultConnectionId ?? selection.entitySelector.defaultConnectionId ?? prefetched.defaultConnectionId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const defaultConnectionId = resolvedEntity.defaultConnectionId}
 					{#if defaultConnectionId !== undefined && defaultConnectionId !== null}
 						<div>
 							<dt>Default connection ID</dt>
@@ -188,9 +235,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={blockheadAgentConversation}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							defaultModelId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const defaultModelId = prefetched.defaultModelId ?? selection.entitySelector.defaultModelId}
+					{@const defaultModelId = prefetched.defaultModelId}
 					{#if defaultModelId !== undefined && defaultModelId !== null}
 						<div>
 							<dt>Default model ID</dt>
@@ -202,12 +257,33 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const defaultModelId = entity.defaultModelId ?? selection.entitySelector.defaultModelId ?? prefetched.defaultModelId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const defaultModelId = resolvedEntity.defaultModelId}
 					{#if defaultModelId !== undefined && defaultModelId !== null}
 						<div>
 							<dt>Default model ID</dt>
 							<dd>
 								{String((defaultModelId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection[EntityProxyField]<EntityType.BlockheadAgentProfile, false>('$profile')}
+			>
+				{#snippet children(blockheadAgentProfile)}
+					{#if blockheadAgentProfile != null && blockheadAgentProfile[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>profile</dt>
+							<dd>
+								<BlockheadAgentProfileView
+									selection={select(EntityType.BlockheadAgentProfile, blockheadAgentProfile[EntityMetaKey.Selector])}
+									prefetched={blockheadAgentProfile}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -215,12 +291,19 @@
 			</ResourceBoundary>
 		</dl>
 
-		<ResourceBoundary resource={blockheadAgentConversation}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						systemPrompt: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const systemPrompt = entity.systemPrompt ?? selection.entitySelector.systemPrompt ?? prefetched.systemPrompt}
-				{#if systemPrompt === undefined || systemPrompt === null || systemPrompt === ''}
-					<p data-text="muted">No system prompt available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const systemPrompt = resolvedEntity.systemPrompt}
+				{#if systemPrompt !== undefined && systemPrompt !== null && systemPrompt !== ''}
 					<p data-text="long-text">{String((systemPrompt) ?? '')}</p>
 				{/if}
 			{/snippet}

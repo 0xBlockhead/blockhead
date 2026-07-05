@@ -61,7 +61,6 @@ export const kaspaNodeBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:KASPA_NODE_REST_URL',
-				origin: 'env:KASPA_NODE_REST_URL',
 				corsEnabled: false,
 			},
 		],
@@ -88,7 +87,6 @@ export const kaspaNodeBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:KASPA_NODE_WRPC_URL',
-				origin: 'env:KASPA_NODE_WRPC_URL',
 				corsEnabled: false,
 			},
 		],

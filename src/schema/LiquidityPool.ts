@@ -102,5 +102,12 @@ export default {
 				entityType: EntityType.LiquidityPool_Block,
 				cardinality: EntityFieldCardinality.Many,
 		},
+		{
+				name: '$$leverages',
+				label: 'Leverage positions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.Leverage,
+				cardinality: EntityFieldCardinality.Many,
+		},
 	],
 } as const satisfies EntityDefinition

@@ -9,6 +9,7 @@ import type {
 	SolanaRpcBlock,
 	SolanaRpcEpochInfo,
 	SolanaRpcParsedTokenMintAccountInfo,
+	SolanaRpcParsedTokenAccountInfo,
 	SolanaRpcSignatureStatus,
 	SolanaRpcTransaction,
 	SolanaRpcVersion,
@@ -236,6 +237,25 @@ export const getParsedTokenMintAccountInfo = ({
 	pubkey: string
 }) => (
 	solanaJsonRpc<SolanaRpcParsedTokenMintAccountInfo>({
+		rpcUrl,
+		method: 'getAccountInfo',
+		params: [
+			pubkey,
+			{
+				encoding: 'jsonParsed',
+			},
+		],
+	})
+)
+
+export const getParsedTokenAccountInfo = ({
+	rpcUrl,
+	pubkey,
+}: {
+	rpcUrl: string
+	pubkey: string
+}) => (
+	solanaJsonRpc<SolanaRpcParsedTokenAccountInfo>({
 		rpcUrl,
 		method: 'getAccountInfo',
 		params: [

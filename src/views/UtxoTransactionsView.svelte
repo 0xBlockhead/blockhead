@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'UTXO transactions',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading UTXO transactions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					txId: true,
 					feeSats: true,
 					isCoinbase: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(utxoTransactions)}
 			{@const uniqueUtxoTransactions = [...new Map(utxoTransactions.values.map((utxoTransaction) => [utxoTransaction[EntityMetaKey.SelectorKey], utxoTransaction])).values()]}
 			<EntitiesList
@@ -99,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoTransactions.values.length === uniqueUtxoTransactions.length && utxoTransactions.totalCount != null && utxoTransactions.totalCount >= uniqueUtxoTransactions.length ? utxoTransactions.totalCount : uniqueUtxoTransactions.length}
+				totalCount={utxoTransactions.totalCount}
 				getKey={(utxoTransaction) => utxoTransaction[EntityMetaKey.SelectorKey]}
 				items={uniqueUtxoTransactions}
 			>
@@ -112,15 +101,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: utxoTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoTransaction> })}
+					{@const utxoTransactionFields = { ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }}
+					{@const utxoTransactionHrefFields = { ...utxoTransaction, ...utxoTransaction[EntityMetaKey.Selector] }}
 					<UtxoTransactionView
+						selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
+						prefetched={utxoTransactionFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]', {
-								networkSlug: String(({ ...utxoTransaction.entitySelector, ...utxoTransaction }).$network.slug),
-								txId: String(({ ...utxoTransaction.entitySelector, ...utxoTransaction }).txId),
-							})
+							(utxoTransactionHrefFields.$network !== undefined && utxoTransactionHrefFields.$network.caip2 !== undefined && utxoTransactionHrefFields.$network.caip2.namespace !== undefined && utxoTransactionHrefFields.$network !== undefined && utxoTransactionHrefFields.$network.caip2 !== undefined && utxoTransactionHrefFields.$network.caip2.reference !== undefined && utxoTransactionHrefFields.txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
+								networkSlug: String(networkByCaip2[String(String(utxoTransactionHrefFields.$network.caip2.namespace) + ':' + String(utxoTransactionHrefFields.$network.caip2.reference))].slug ?? ''),
+								txId: String(utxoTransactionHrefFields.txId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.UtxoTransaction, utxoTransaction.entitySelector)}
-						prefetched={utxoTransaction}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

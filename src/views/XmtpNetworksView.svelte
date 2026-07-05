@@ -20,7 +20,7 @@
 		selection,
 		title = 'XMTP',
 		typeAnnotationParagraphs = ['XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the local catalog.'],
-		placeholderText = 'Loading XMTP...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,27 +64,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XmtpNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(xmtpNetworks)}
 			{@const uniqueXmtpNetworks = [...new Map(xmtpNetworks.values.map((xmtpNetwork) => [xmtpNetwork[EntityMetaKey.SelectorKey], xmtpNetwork])).values()]}
 			<EntitiesList
@@ -96,7 +83,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xmtpNetworks.values.length === uniqueXmtpNetworks.length && xmtpNetworks.totalCount != null && xmtpNetworks.totalCount >= uniqueXmtpNetworks.length ? xmtpNetworks.totalCount : uniqueXmtpNetworks.length}
+				totalCount={xmtpNetworks.totalCount}
 				getKey={(xmtpNetwork) => xmtpNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueXmtpNetworks}
 			>
@@ -109,9 +96,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: xmtpNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XmtpNetwork> })}
+					{@const xmtpNetworkFields = { ...xmtpNetwork[EntityMetaKey.Selector], ...xmtpNetwork }}
 					<XmtpNetworkView
-						selection={select(EntityType.XmtpNetwork, xmtpNetwork.entitySelector)}
-						prefetched={xmtpNetwork}
+						selection={select(EntityType.XmtpNetwork, xmtpNetwork[EntityMetaKey.Selector])}
+						prefetched={xmtpNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

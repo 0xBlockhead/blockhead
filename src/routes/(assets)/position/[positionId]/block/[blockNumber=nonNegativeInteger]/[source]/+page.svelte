@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.LiquidityPosition_Block, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					liquidity: true,
 					$owner: true,

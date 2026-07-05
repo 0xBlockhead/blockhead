@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -43,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ensName = $derived(selection({
 		sources: [
 			Source.TheGraph_Graphql,
@@ -54,21 +54,13 @@
 			labelName: true,
 			labelhash: true,
 			$parent: true,
-			...(open && {
-				$resolverContract: true,
-				$subgraphResolvedActor: true,
-				$ownerActor: true,
-				$$subdomains: true,
-				$$records: true,
-				$$timestamps: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || 'ENS name')
+	const titleFallback = $derived([String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || 'ENS name')
 	const viewDomId = $derived('ens-name-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EnsNamesView from '$/views/EnsNamesView.svelte'
 	import EnsRecordsView from '$/views/EnsRecordsView.svelte'
 	import EnsName_TimestampsView from '$/views/EnsName_TimestampsView.svelte'
@@ -80,55 +72,87 @@
 
 <EntityView
 	entityType={EntityType.EnsName}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(ens)/ens/name/[ensName]', {
-			ensName: String(({ ...selection.entitySelector, ...prefetched }).name),
-		})
+		href ?? (pendingEntity.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+			ensName: String(pendingEntity.name ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
-		{:else}
-			<ResourceBoundary resource={ensName}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
-				{/snippet}
+		<ResourceBoundary resource={ensName}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
-		{:else}
-			<ResourceBoundary resource={ensName}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
-				{/snippet}
+		<ResourceBoundary resource={ensName}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'ENS name'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || [String((entity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={ensName}>
+			<div>
+				<dt>Name</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									name: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const name = selection.entitySelector.name ?? prefetched.name}
+							{#if name !== undefined && name !== null}
+								{String((name) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const name = resolvedEntity.name}
+							{#if name !== undefined && name !== null}
+								{String((name) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							normalizedName: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const normalizedName = prefetched.normalizedName ?? selection.entitySelector.normalizedName}
+					{@const normalizedName = prefetched.normalizedName}
 					{#if normalizedName !== undefined && normalizedName !== null}
 						<div>
 							<dt>Normalized name</dt>
@@ -140,7 +164,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const normalizedName = entity.normalizedName ?? selection.entitySelector.normalizedName ?? prefetched.normalizedName}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const normalizedName = resolvedEntity.normalizedName}
 					{#if normalizedName !== undefined && normalizedName !== null}
 						<div>
 							<dt>Normalized name</dt>
@@ -152,9 +177,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={ensName}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							node: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const node = prefetched.node ?? selection.entitySelector.node}
+					{@const node = prefetched.node}
 					{#if node !== undefined && node !== null}
 						<div>
 							<dt>Node</dt>
@@ -166,7 +199,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const node = entity.node ?? selection.entitySelector.node ?? prefetched.node}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const node = resolvedEntity.node}
 					{#if node !== undefined && node !== null}
 						<div>
 							<dt>Node</dt>
@@ -178,9 +212,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={ensName}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							labelName: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const labelName = prefetched.labelName ?? selection.entitySelector.labelName}
+					{@const labelName = prefetched.labelName}
 					{#if labelName !== undefined && labelName !== null}
 						<div>
 							<dt>Label name</dt>
@@ -192,7 +234,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const labelName = entity.labelName ?? selection.entitySelector.labelName ?? prefetched.labelName}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const labelName = resolvedEntity.labelName}
 					{#if labelName !== undefined && labelName !== null}
 						<div>
 							<dt>Label name</dt>
@@ -204,26 +247,35 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={ensName}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							labelhash: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const labelhash = prefetched.labelhash ?? selection.entitySelector.labelhash}
+					{@const labelhash = prefetched.labelhash}
 					{#if labelhash !== undefined && labelhash !== null}
 						<div>
 							<dt>Label hash</dt>
 							<dd>
-								{String((labelhash) ?? '')}
+								<TruncatedValue value={String((labelhash) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const labelhash = entity.labelhash ?? selection.entitySelector.labelhash ?? prefetched.labelhash}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const labelhash = resolvedEntity.labelhash}
 					{#if labelhash !== undefined && labelhash !== null}
 						<div>
 							<dt>Label hash</dt>
 							<dd>
-								{String((labelhash) ?? '')}
+								<TruncatedValue value={String((labelhash) ?? '')} />
 							</dd>
 						</div>
 					{/if}
@@ -236,17 +288,17 @@
 				resource={selection[EntityProxyField]<EntityType.EnsName, false>('$parent')}
 			>
 				{#snippet children(ensName)}
-					{#if ensName != null}
+					{#if ensName != null && ensName[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<EnsNameView
-									selection={select(EntityType.EnsName, ensName.entitySelector)}
+									selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
 									prefetched={ensName}
 									href={
-										resolve('/(explore)/(ens)/ens/name/[ensName]', {
-											ensName: String(ensName.entitySelector.name),
-										})
+										(({ ...ensName[EntityMetaKey.Selector], ...ensName }).name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
+											ensName: String(({ ...ensName[EntityMetaKey.Selector], ...ensName }).name ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -261,18 +313,18 @@
 				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$resolverContract')}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null}
+					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Resolver contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract.entitySelector)}
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract.entitySelector.$network.caip2.namespace)}:${String(evmContract.entitySelector.$network.caip2.reference)}`,
-											address: String(evmContract.entitySelector.address),
-										})
+										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
+											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -287,17 +339,17 @@
 				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$subgraphResolvedActor')}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null}
+					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Resolved actor</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount.entitySelector)}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										resolve('/(explore)/account/[address=evmAddress]', {
-											address: String(evmAccount.entitySelector.address),
-										})
+										(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+											address: String(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -312,17 +364,17 @@
 				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$ownerActor')}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null}
+					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Owner</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount.entitySelector)}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										resolve('/(explore)/account/[address=evmAddress]', {
-											address: String(evmAccount.entitySelector.address),
-										})
+										(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+											address: String(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}

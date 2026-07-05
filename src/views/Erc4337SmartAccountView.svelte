@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -43,17 +42,11 @@
 		>
 	> = $props()
 
-	const erc4337SmartAccount = $derived(selection({
-		fields: {
-			userOperationsCount: true,
-			$contract: true,
-			$factory: true,
-		},
-	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account')
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	const erc4337SmartAccount = $derived(selection({}))
+	const titleFallback = $derived([String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 smart account')
 	const viewDomId = $derived('erc4337smart-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -65,129 +58,135 @@
 
 <EntityView
 	entityType={EntityType.Erc4337SmartAccount}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).caip2.reference)}`,
-			address: String(({ ...selection.entitySelector, ...prefetched }).address),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			address: String(pendingEntity.address ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const address0 = ({ ...selection.entitySelector, ...prefetched }).address}
-			{#if address0 !== undefined && address0 !== null}
-				<TruncatedValue value={String(address0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={erc4337SmartAccount}>
-				{#snippet Pending()}
-					{@const address0 = ({ ...selection.entitySelector, ...prefetched }).address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String(address0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={erc4337SmartAccount}>
+			{#snippet Pending()}
+				{@const address0 = selection.entitySelector.address ?? prefetched.address}
+				{#if address0 !== undefined && address0 !== null}
+					<TruncatedValue value={String((address0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const address0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String(address0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const address0 = resolvedEntity.address}
+				{#if address0 !== undefined && address0 !== null}
+					<TruncatedValue value={String((address0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const address0 = ({ ...selection.entitySelector, ...prefetched }).address}
-			{#if address0 !== undefined && address0 !== null}
-				<TruncatedValue value={String(address0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={erc4337SmartAccount}>
-				{#snippet Pending()}
-					{@const address0 = ({ ...selection.entitySelector, ...prefetched }).address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String(address0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={erc4337SmartAccount}>
+			{#snippet Pending()}
+				{@const address0 = selection.entitySelector.address ?? prefetched.address}
+				{#if address0 !== undefined && address0 !== null}
+					<TruncatedValue value={String((address0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const address0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).address}
-					{#if address0 !== undefined && address0 !== null}
-						<TruncatedValue value={String(address0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const address0 = resolvedEntity.address}
+				{#if address0 !== undefined && address0 !== null}
+					<TruncatedValue value={String((address0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<span data-text="muted">
-				<EvmNetworkView
-					selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
-					href={
-						(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-						}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={erc4337SmartAccount}>
-				{#snippet Pending()}
-					<span data-text="muted">
-						<EvmNetworkView
-							selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
+		<ResourceBoundary resource={erc4337SmartAccount}>
+			{#snippet Pending()}
+				<span data-text="muted">
+					<EvmNetworkView
+						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<span data-text="muted">
-						<EvmNetworkView
-							selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<EvmNetworkView
+						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={erc4337SmartAccount}>
+			<div>
+				<dt>Address</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									address: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const address = selection.entitySelector.address ?? prefetched.address}
+							{#if address !== undefined && address !== null}
+								<TruncatedValue value={String((address) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const address = resolvedEntity.address}
+							{#if address !== undefined && address !== null}
+								<TruncatedValue value={String((address) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							userOperationsCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const userOperationsCount = prefetched.userOperationsCount ?? selection.entitySelector.userOperationsCount}
+					{@const userOperationsCount = prefetched.userOperationsCount}
 					{#if userOperationsCount !== undefined && userOperationsCount !== null}
 						<div>
 							<dt>User operations</dt>
@@ -199,7 +198,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const userOperationsCount = entity.userOperationsCount ?? selection.entitySelector.userOperationsCount ?? prefetched.userOperationsCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const userOperationsCount = resolvedEntity.userOperationsCount}
 					{#if userOperationsCount !== undefined && userOperationsCount !== null}
 						<div>
 							<dt>User operations</dt>
@@ -220,18 +220,20 @@
 						resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$contract')}
 					>
 						{#snippet children(evmContract)}
-							<EvmContractView
-								selection={select(EntityType.EvmContract, evmContract.entitySelector)}
-								prefetched={evmContract}
-								href={
-									resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-										caip2: `${String(evmContract.entitySelector.$network.caip2.namespace)}:${String(evmContract.entitySelector.$network.caip2.reference)}`,
-										address: String(evmContract.entitySelector.address),
-									})
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
+							{#if evmContract[EntityMetaKey.Selector] != null}
+								<EvmContractView
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+									prefetched={evmContract}
+									href={
+										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
+											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -241,18 +243,18 @@
 				resource={selection[EntityProxyField]<EntityType.Erc4337AccountFactory, false>('$factory')}
 			>
 				{#snippet children(erc4337AccountFactory)}
-					{#if erc4337AccountFactory != null}
+					{#if erc4337AccountFactory != null && erc4337AccountFactory[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Factory</dt>
 							<dd>
 								<Erc4337AccountFactoryView
-									selection={select(EntityType.Erc4337AccountFactory, erc4337AccountFactory.entitySelector)}
+									selection={select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector])}
 									prefetched={erc4337AccountFactory}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]', {
-											caip2: `${String(erc4337AccountFactory.entitySelector.caip2.namespace)}:${String(erc4337AccountFactory.entitySelector.caip2.reference)}`,
-											address: String(erc4337AccountFactory.entitySelector.address),
-										})
+										(({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).$network !== undefined && ({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).$network.caip2 !== undefined && ({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).$network.caip2.namespace !== undefined && ({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).$network !== undefined && ({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).$network.caip2 !== undefined && ({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).$network.caip2.reference !== undefined && ({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]', {
+											caip2: `${String(({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).$network.caip2.namespace ?? '')}:${String(({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).$network.caip2.reference ?? '')}`,
+											address: String(({ ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -262,6 +264,22 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<div>
+				<dt>Network</dt>
+				<dd>
+					<EvmNetworkView
+						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 </EntityView>

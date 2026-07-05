@@ -1,13 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum DogecoinBlockAuxPowSelector {
-	UtxoBlock = 'utxoBlock',
-	Block = '$block',
+	Block = 'Block',
 }
 export default {
 	entityType: EntityType.DogecoinBlockAuxPow,
@@ -15,7 +13,7 @@ export default {
 	labelPlural: 'dogecoin block aux pows',
 	selectors: [
 		{
-			name: DogecoinBlockAuxPowSelector.UtxoBlock,
+			name: DogecoinBlockAuxPowSelector.Block,
 			fields: [
 				'$block',
 			],
@@ -23,32 +21,32 @@ export default {
 	],
 	fields: [
 		{
-			name: '$block',
-			label: 'block',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoBlock,
-			cardinality: EntityFieldCardinality.One,
+				name: '$block',
+				label: 'Block',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.UtxoBlock,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$parentBlockHeader',
-			label: 'parent block header',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.DogecoinAuxPowParentBlockHeader,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$parentBlockHeader',
+				label: 'Parent block header',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.DogecoinAuxPowParentBlockHeader,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$coinbaseBranch',
-			label: 'coinbase branch',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.DogecoinAuxPowMerkleBranch,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$coinbaseBranch',
+				label: 'Coinbase branch',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.DogecoinAuxPowMerkleBranch,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$chainBranch',
-			label: 'chain branch',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.DogecoinAuxPowMerkleBranch,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$chainBranch',
+				label: 'Chain branch',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.DogecoinAuxPowMerkleBranch,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

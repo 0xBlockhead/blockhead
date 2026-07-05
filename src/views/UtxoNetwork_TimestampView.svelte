@@ -6,10 +6,11 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -41,28 +42,16 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const utxoNetworkTimestamp = $derived(selection({
 		fields: {
 			bestBlockHeight: true,
 			bestBlockHash: true,
-			bestBlockTimeMs: true,
-			blockCount: true,
-			transactionCount: true,
-			blocks24h: true,
-			transactions24h: true,
-			mempoolTransactionCount: true,
-			mempoolSizeBytes: true,
-			mempoolTps: true,
-			averageTransactionFee24hSats: true,
-			medianTransactionFee24hSats: true,
-			suggestedTransactionFeePerByteSats: true,
-			blockchainSizeBytes: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO network timestamp')
+	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'UTXO network timestamp')
 	const viewDomId = $derived('utxo-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -73,124 +62,176 @@
 
 <EntityView
 	entityType={EntityType.UtxoNetwork_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).$network.slug),
-			timestampMs: String(({ ...selection.entitySelector, ...prefetched }).timestampMs),
-			source: String(({ ...selection.entitySelector, ...prefetched }).source),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/observations/[timestampMs=nonNegativeInteger]/[source]', {
+			networkSlug: String(networkByCaip2[String(String(pendingEntity.$network.caip2.namespace) + ':' + String(pendingEntity.$network.caip2.reference))].slug ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={utxoNetworkTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const bestBlockHeight0 = ({ ...selection.entitySelector, ...prefetched }).bestBlockHeight}
-			{#if bestBlockHeight0 !== undefined && bestBlockHeight0 !== null}
-				<NumberValue value={Number(bestBlockHeight0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
-				{#snippet Pending()}
-					{@const bestBlockHeight0 = ({ ...selection.entitySelector, ...prefetched }).bestBlockHeight}
-					{#if bestBlockHeight0 !== undefined && bestBlockHeight0 !== null}
-						<NumberValue value={Number(bestBlockHeight0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={utxoNetworkTimestamp}>
+			{#snippet Pending()}
+				{@const bestBlockHeight0 = prefetched.bestBlockHeight}
+				{#if bestBlockHeight0 !== undefined && bestBlockHeight0 !== null}
+					<NumberValue value={Number(bestBlockHeight0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const bestBlockHeight0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).bestBlockHeight}
-					{#if bestBlockHeight0 !== undefined && bestBlockHeight0 !== null}
-						<NumberValue value={Number(bestBlockHeight0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const bestBlockHeight0 = resolvedEntity.bestBlockHeight}
+				{#if bestBlockHeight0 !== undefined && bestBlockHeight0 !== null}
+					<NumberValue value={Number(bestBlockHeight0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const source0 = prefetched.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-			{@const bestBlockHash1 = prefetched.bestBlockHash}
-			{#if bestBlockHash1 !== undefined && bestBlockHash1 !== null}
-				<span data-text="muted">
-					{String((bestBlockHash1) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
-				{#snippet Pending()}
-					{@const source0 = prefetched.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-					{@const bestBlockHash1 = prefetched.bestBlockHash}
-					{#if bestBlockHash1 !== undefined && bestBlockHash1 !== null}
-						<span data-text="muted">
-							{String((bestBlockHash1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={utxoNetworkTimestamp}>
+			{#snippet Pending()}
+				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{#if source0 !== undefined && source0 !== null}
+					<span data-text="muted">
+						{String((source0) ?? '')}
+					</span>
+				{/if}
+				{@const bestBlockHash1 = prefetched.bestBlockHash}
+				{#if bestBlockHash1 !== undefined && bestBlockHash1 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((bestBlockHash1) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const source0 = entity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-					{@const bestBlockHash1 = entity.bestBlockHash}
-					{#if bestBlockHash1 !== undefined && bestBlockHash1 !== null}
-						<span data-text="muted">
-							{String((bestBlockHash1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const source0 = resolvedEntity.source}
+				{#if source0 !== undefined && source0 !== null}
+					<span data-text="muted">
+						{String((source0) ?? '')}
+					</span>
+				{/if}
+				{@const bestBlockHash1 = resolvedEntity.bestBlockHash}
+				{#if bestBlockHash1 !== undefined && bestBlockHash1 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((bestBlockHash1) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							bestBlockHeight: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const bestBlockTimeMs = prefetched.bestBlockTimeMs ?? selection.entitySelector.bestBlockTimeMs}
+					{@const bestBlockHeight = prefetched.bestBlockHeight}
+					{#if bestBlockHeight !== undefined && bestBlockHeight !== null}
+						<div>
+							<dt>Best block height</dt>
+							<dd>
+								<NumberValue value={Number(bestBlockHeight)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const bestBlockHeight = resolvedEntity.bestBlockHeight}
+					{#if bestBlockHeight !== undefined && bestBlockHeight !== null}
+						<div>
+							<dt>Best block height</dt>
+							<dd>
+								<NumberValue value={Number(bestBlockHeight)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							bestBlockHash: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const bestBlockHash = prefetched.bestBlockHash}
+					{#if bestBlockHash !== undefined && bestBlockHash !== null}
+						<div>
+							<dt>Best block hash</dt>
+							<dd>
+								<TruncatedValue value={String((bestBlockHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const bestBlockHash = resolvedEntity.bestBlockHash}
+					{#if bestBlockHash !== undefined && bestBlockHash !== null}
+						<div>
+							<dt>Best block hash</dt>
+							<dd>
+								<TruncatedValue value={String((bestBlockHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							bestBlockTimeMs: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const bestBlockTimeMs = prefetched.bestBlockTimeMs}
 					{#if bestBlockTimeMs !== undefined && bestBlockTimeMs !== null}
 						<div>
 							<dt>Best block time</dt>
@@ -202,7 +243,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const bestBlockTimeMs = entity.bestBlockTimeMs ?? selection.entitySelector.bestBlockTimeMs ?? prefetched.bestBlockTimeMs}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const bestBlockTimeMs = resolvedEntity.bestBlockTimeMs}
 					{#if bestBlockTimeMs !== undefined && bestBlockTimeMs !== null}
 						<div>
 							<dt>Best block time</dt>
@@ -214,9 +256,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							blockCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const blockCount = prefetched.blockCount ?? selection.entitySelector.blockCount}
+					{@const blockCount = prefetched.blockCount}
 					{#if blockCount !== undefined && blockCount !== null}
 						<div>
 							<dt>Block count</dt>
@@ -228,7 +278,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const blockCount = entity.blockCount ?? selection.entitySelector.blockCount ?? prefetched.blockCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const blockCount = resolvedEntity.blockCount}
 					{#if blockCount !== undefined && blockCount !== null}
 						<div>
 							<dt>Block count</dt>
@@ -240,9 +291,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							transactionCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount ?? selection.entitySelector.transactionCount}
+					{@const transactionCount = prefetched.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>Transaction count</dt>
@@ -254,7 +313,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const transactionCount = entity.transactionCount ?? selection.entitySelector.transactionCount ?? prefetched.transactionCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionCount = resolvedEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>Transaction count</dt>
@@ -268,9 +328,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							blocks24h: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const blocks24h = prefetched.blocks24h ?? selection.entitySelector.blocks24h}
+					{@const blocks24h = prefetched.blocks24h}
 					{#if blocks24h !== undefined && blocks24h !== null}
 						<div>
 							<dt>Blocks 24h</dt>
@@ -282,7 +350,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const blocks24h = entity.blocks24h ?? selection.entitySelector.blocks24h ?? prefetched.blocks24h}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const blocks24h = resolvedEntity.blocks24h}
 					{#if blocks24h !== undefined && blocks24h !== null}
 						<div>
 							<dt>Blocks 24h</dt>
@@ -294,9 +363,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							transactions24h: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const transactions24h = prefetched.transactions24h ?? selection.entitySelector.transactions24h}
+					{@const transactions24h = prefetched.transactions24h}
 					{#if transactions24h !== undefined && transactions24h !== null}
 						<div>
 							<dt>Transactions 24h</dt>
@@ -308,7 +385,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const transactions24h = entity.transactions24h ?? selection.entitySelector.transactions24h ?? prefetched.transactions24h}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactions24h = resolvedEntity.transactions24h}
 					{#if transactions24h !== undefined && transactions24h !== null}
 						<div>
 							<dt>Transactions 24h</dt>
@@ -320,9 +398,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							mempoolTransactionCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const mempoolTransactionCount = prefetched.mempoolTransactionCount ?? selection.entitySelector.mempoolTransactionCount}
+					{@const mempoolTransactionCount = prefetched.mempoolTransactionCount}
 					{#if mempoolTransactionCount !== undefined && mempoolTransactionCount !== null}
 						<div>
 							<dt>Mempool transaction count</dt>
@@ -334,7 +420,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const mempoolTransactionCount = entity.mempoolTransactionCount ?? selection.entitySelector.mempoolTransactionCount ?? prefetched.mempoolTransactionCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mempoolTransactionCount = resolvedEntity.mempoolTransactionCount}
 					{#if mempoolTransactionCount !== undefined && mempoolTransactionCount !== null}
 						<div>
 							<dt>Mempool transaction count</dt>
@@ -346,9 +433,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							mempoolSizeBytes: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const mempoolSizeBytes = prefetched.mempoolSizeBytes ?? selection.entitySelector.mempoolSizeBytes}
+					{@const mempoolSizeBytes = prefetched.mempoolSizeBytes}
 					{#if mempoolSizeBytes !== undefined && mempoolSizeBytes !== null}
 						<div>
 							<dt>Mempool size</dt>
@@ -360,7 +455,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const mempoolSizeBytes = entity.mempoolSizeBytes ?? selection.entitySelector.mempoolSizeBytes ?? prefetched.mempoolSizeBytes}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mempoolSizeBytes = resolvedEntity.mempoolSizeBytes}
 					{#if mempoolSizeBytes !== undefined && mempoolSizeBytes !== null}
 						<div>
 							<dt>Mempool size</dt>
@@ -372,9 +468,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							mempoolTps: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const mempoolTps = prefetched.mempoolTps ?? selection.entitySelector.mempoolTps}
+					{@const mempoolTps = prefetched.mempoolTps}
 					{#if mempoolTps !== undefined && mempoolTps !== null}
 						<div>
 							<dt>Mempool TPS</dt>
@@ -386,7 +490,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const mempoolTps = entity.mempoolTps ?? selection.entitySelector.mempoolTps ?? prefetched.mempoolTps}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const mempoolTps = resolvedEntity.mempoolTps}
 					{#if mempoolTps !== undefined && mempoolTps !== null}
 						<div>
 							<dt>Mempool TPS</dt>
@@ -400,9 +505,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							averageTransactionFee24hSats: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const averageTransactionFee24hSats = prefetched.averageTransactionFee24hSats ?? selection.entitySelector.averageTransactionFee24hSats}
+					{@const averageTransactionFee24hSats = prefetched.averageTransactionFee24hSats}
 					{#if averageTransactionFee24hSats !== undefined && averageTransactionFee24hSats !== null}
 						<div>
 							<dt>Average transaction fee 24h</dt>
@@ -414,7 +527,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const averageTransactionFee24hSats = entity.averageTransactionFee24hSats ?? selection.entitySelector.averageTransactionFee24hSats ?? prefetched.averageTransactionFee24hSats}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const averageTransactionFee24hSats = resolvedEntity.averageTransactionFee24hSats}
 					{#if averageTransactionFee24hSats !== undefined && averageTransactionFee24hSats !== null}
 						<div>
 							<dt>Average transaction fee 24h</dt>
@@ -426,9 +540,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							medianTransactionFee24hSats: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const medianTransactionFee24hSats = prefetched.medianTransactionFee24hSats ?? selection.entitySelector.medianTransactionFee24hSats}
+					{@const medianTransactionFee24hSats = prefetched.medianTransactionFee24hSats}
 					{#if medianTransactionFee24hSats !== undefined && medianTransactionFee24hSats !== null}
 						<div>
 							<dt>Median transaction fee 24h</dt>
@@ -440,7 +562,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const medianTransactionFee24hSats = entity.medianTransactionFee24hSats ?? selection.entitySelector.medianTransactionFee24hSats ?? prefetched.medianTransactionFee24hSats}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const medianTransactionFee24hSats = resolvedEntity.medianTransactionFee24hSats}
 					{#if medianTransactionFee24hSats !== undefined && medianTransactionFee24hSats !== null}
 						<div>
 							<dt>Median transaction fee 24h</dt>
@@ -452,9 +575,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							suggestedTransactionFeePerByteSats: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const suggestedTransactionFeePerByteSats = prefetched.suggestedTransactionFeePerByteSats ?? selection.entitySelector.suggestedTransactionFeePerByteSats}
+					{@const suggestedTransactionFeePerByteSats = prefetched.suggestedTransactionFeePerByteSats}
 					{#if suggestedTransactionFeePerByteSats !== undefined && suggestedTransactionFeePerByteSats !== null}
 						<div>
 							<dt>Suggested fee per byte</dt>
@@ -466,7 +597,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const suggestedTransactionFeePerByteSats = entity.suggestedTransactionFeePerByteSats ?? selection.entitySelector.suggestedTransactionFeePerByteSats ?? prefetched.suggestedTransactionFeePerByteSats}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const suggestedTransactionFeePerByteSats = resolvedEntity.suggestedTransactionFeePerByteSats}
 					{#if suggestedTransactionFeePerByteSats !== undefined && suggestedTransactionFeePerByteSats !== null}
 						<div>
 							<dt>Suggested fee per byte</dt>
@@ -478,9 +610,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={utxoNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							blockchainSizeBytes: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const blockchainSizeBytes = prefetched.blockchainSizeBytes ?? selection.entitySelector.blockchainSizeBytes}
+					{@const blockchainSizeBytes = prefetched.blockchainSizeBytes}
 					{#if blockchainSizeBytes !== undefined && blockchainSizeBytes !== null}
 						<div>
 							<dt>Blockchain size</dt>
@@ -492,7 +632,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const blockchainSizeBytes = entity.blockchainSizeBytes ?? selection.entitySelector.blockchainSizeBytes ?? prefetched.blockchainSizeBytes}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const blockchainSizeBytes = resolvedEntity.blockchainSizeBytes}
 					{#if blockchainSizeBytes !== undefined && blockchainSizeBytes !== null}
 						<div>
 							<dt>Blockchain size</dt>
@@ -507,15 +648,75 @@
 
 		<dl data-column-item="center">
 			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

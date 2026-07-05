@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='BlockheadRoomsView-page'
+		id='blockhead-rooms'
 	/>
 </Page>

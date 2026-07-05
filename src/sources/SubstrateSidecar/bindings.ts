@@ -16,9 +16,7 @@ import {
 
 const substrateSidecarOrigin = 'http://127.0.0.1:8080' as const
 
-export const substrateSidecarPublicEnv = arktype({
-	PUBLIC_SUBSTRATE_SIDECAR_REST_BASE_URL: 'string',
-})
+export const substrateSidecarPublicEnv = arktype({})
 
 export const substrateSidecarBindings = [
 	{
@@ -44,10 +42,7 @@ export const substrateSidecarBindings = [
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
-				scope: SourceCredentialScope.PublicConfig,
-				keys: [
-					'PUBLIC_SUBSTRATE_SIDECAR_REST_BASE_URL',
-				],
+				scope: SourceCredentialScope.None,
 			},
 		],
 		artifacts: [

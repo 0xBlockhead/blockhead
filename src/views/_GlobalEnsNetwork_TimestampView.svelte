@@ -3,9 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,27 +42,17 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalEnsNetworkTimestamp = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
 			Source.TheGraph_Graphql,
 			Source.Voltaire_JsonRpc,
 		],
-		fields: {
-			sourceWindowNameCount: true,
-			sourceWindowRecordCount: true,
-			sourceWindowReverseRecordCount: true,
-			localCatalogContractCount: true,
-			discoveredResolverContractCount: true,
-			subgraphBlockNumber: true,
-			rpcBlockNumber: true,
-			reachable: true,
-		},
 	}))
 	const titleFallback = $derived('ENS hub observation')
 	const viewDomId = $derived('-global-ens-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -71,82 +62,131 @@
 
 <EntityView
 	entityType={EntityType._GlobalEnsNetwork_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(ens)/ens/observations/[timestampMs=nonNegativeInteger]/[source]', {
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<GlobalEnsNetworkView
-				selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
-				layout={EntityLayout.Title}
-				open={false}
-			/>
-		{:else}
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
-				{#snippet Pending()}
-					<GlobalEnsNetworkView
-						selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
+		<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			{#snippet Pending()}
+				<GlobalEnsNetworkView
+					selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
+					href={resolve('/(explore)/(ens)/ens')}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<GlobalEnsNetworkView
-						selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<GlobalEnsNetworkView
+					selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
+					href={resolve('/(explore)/(ens)/ens')}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
+				<dt>Hub</dt>
+				<dd>
+					<GlobalEnsNetworkView
+						selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
+						href={resolve('/(explore)/(ens)/ens')}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const source = prefetched.source ?? selection.entitySelector.source}
+							{@const source = selection.entitySelector.source ?? prefetched.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const source = entity.source ?? selection.entitySelector.source ?? prefetched.source}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -157,9 +197,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							sourceWindowNameCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const sourceWindowNameCount = prefetched.sourceWindowNameCount ?? selection.entitySelector.sourceWindowNameCount}
+					{@const sourceWindowNameCount = prefetched.sourceWindowNameCount}
 					{#if sourceWindowNameCount !== undefined && sourceWindowNameCount !== null}
 						<div>
 							<dt>Source window names</dt>
@@ -171,7 +219,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const sourceWindowNameCount = entity.sourceWindowNameCount ?? selection.entitySelector.sourceWindowNameCount ?? prefetched.sourceWindowNameCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sourceWindowNameCount = resolvedEntity.sourceWindowNameCount}
 					{#if sourceWindowNameCount !== undefined && sourceWindowNameCount !== null}
 						<div>
 							<dt>Source window names</dt>
@@ -185,9 +234,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							sourceWindowRecordCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const sourceWindowRecordCount = prefetched.sourceWindowRecordCount ?? selection.entitySelector.sourceWindowRecordCount}
+					{@const sourceWindowRecordCount = prefetched.sourceWindowRecordCount}
 					{#if sourceWindowRecordCount !== undefined && sourceWindowRecordCount !== null}
 						<div>
 							<dt>Source window records</dt>
@@ -199,7 +256,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const sourceWindowRecordCount = entity.sourceWindowRecordCount ?? selection.entitySelector.sourceWindowRecordCount ?? prefetched.sourceWindowRecordCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sourceWindowRecordCount = resolvedEntity.sourceWindowRecordCount}
 					{#if sourceWindowRecordCount !== undefined && sourceWindowRecordCount !== null}
 						<div>
 							<dt>Source window records</dt>
@@ -213,9 +271,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							sourceWindowReverseRecordCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const sourceWindowReverseRecordCount = prefetched.sourceWindowReverseRecordCount ?? selection.entitySelector.sourceWindowReverseRecordCount}
+					{@const sourceWindowReverseRecordCount = prefetched.sourceWindowReverseRecordCount}
 					{#if sourceWindowReverseRecordCount !== undefined && sourceWindowReverseRecordCount !== null}
 						<div>
 							<dt>Source window reverse records</dt>
@@ -227,7 +293,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const sourceWindowReverseRecordCount = entity.sourceWindowReverseRecordCount ?? selection.entitySelector.sourceWindowReverseRecordCount ?? prefetched.sourceWindowReverseRecordCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sourceWindowReverseRecordCount = resolvedEntity.sourceWindowReverseRecordCount}
 					{#if sourceWindowReverseRecordCount !== undefined && sourceWindowReverseRecordCount !== null}
 						<div>
 							<dt>Source window reverse records</dt>
@@ -241,9 +308,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							localCatalogContractCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const localCatalogContractCount = prefetched.localCatalogContractCount ?? selection.entitySelector.localCatalogContractCount}
+					{@const localCatalogContractCount = prefetched.localCatalogContractCount}
 					{#if localCatalogContractCount !== undefined && localCatalogContractCount !== null}
 						<div>
 							<dt>Local catalog contracts</dt>
@@ -255,7 +330,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const localCatalogContractCount = entity.localCatalogContractCount ?? selection.entitySelector.localCatalogContractCount ?? prefetched.localCatalogContractCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const localCatalogContractCount = resolvedEntity.localCatalogContractCount}
 					{#if localCatalogContractCount !== undefined && localCatalogContractCount !== null}
 						<div>
 							<dt>Local catalog contracts</dt>
@@ -269,9 +345,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							discoveredResolverContractCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const discoveredResolverContractCount = prefetched.discoveredResolverContractCount ?? selection.entitySelector.discoveredResolverContractCount}
+					{@const discoveredResolverContractCount = prefetched.discoveredResolverContractCount}
 					{#if discoveredResolverContractCount !== undefined && discoveredResolverContractCount !== null}
 						<div>
 							<dt>Discovered resolver contracts</dt>
@@ -283,7 +367,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const discoveredResolverContractCount = entity.discoveredResolverContractCount ?? selection.entitySelector.discoveredResolverContractCount ?? prefetched.discoveredResolverContractCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const discoveredResolverContractCount = resolvedEntity.discoveredResolverContractCount}
 					{#if discoveredResolverContractCount !== undefined && discoveredResolverContractCount !== null}
 						<div>
 							<dt>Discovered resolver contracts</dt>
@@ -297,9 +382,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							subgraphBlockNumber: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const subgraphBlockNumber = prefetched.subgraphBlockNumber ?? selection.entitySelector.subgraphBlockNumber}
+					{@const subgraphBlockNumber = prefetched.subgraphBlockNumber}
 					{#if subgraphBlockNumber !== undefined && subgraphBlockNumber !== null}
 						<div>
 							<dt>Subgraph block</dt>
@@ -311,7 +404,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const subgraphBlockNumber = entity.subgraphBlockNumber ?? selection.entitySelector.subgraphBlockNumber ?? prefetched.subgraphBlockNumber}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const subgraphBlockNumber = resolvedEntity.subgraphBlockNumber}
 					{#if subgraphBlockNumber !== undefined && subgraphBlockNumber !== null}
 						<div>
 							<dt>Subgraph block</dt>
@@ -325,9 +419,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							rpcBlockNumber: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const rpcBlockNumber = prefetched.rpcBlockNumber ?? selection.entitySelector.rpcBlockNumber}
+					{@const rpcBlockNumber = prefetched.rpcBlockNumber}
 					{#if rpcBlockNumber !== undefined && rpcBlockNumber !== null}
 						<div>
 							<dt>RPC block</dt>
@@ -339,7 +441,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const rpcBlockNumber = entity.rpcBlockNumber ?? selection.entitySelector.rpcBlockNumber ?? prefetched.rpcBlockNumber}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const rpcBlockNumber = resolvedEntity.rpcBlockNumber}
 					{#if rpcBlockNumber !== undefined && rpcBlockNumber !== null}
 						<div>
 							<dt>RPC block</dt>
@@ -353,26 +456,35 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalEnsNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							reachable: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const reachable = prefetched.reachable ?? selection.entitySelector.reachable}
+					{@const reachable = prefetched.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
 							<dd>
-								{String((reachable) ?? '')}
+								{reachable ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const reachable = entity.reachable ?? selection.entitySelector.reachable ?? prefetched.reachable}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const reachable = resolvedEntity.reachable}
 					{#if reachable !== undefined && reachable !== null}
 						<div>
 							<dt>Reachable</dt>
 							<dd>
-								{String((reachable) ?? '')}
+								{reachable ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}

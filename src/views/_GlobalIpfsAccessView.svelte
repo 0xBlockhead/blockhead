@@ -3,10 +3,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { resolve } from '$app/paths'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -37,21 +38,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalIpfsAccess = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
 		],
-		fields: {
-			...(open && {
-				$$sourceWindowResources: true,
-				$$timestamps: true,
-			}),
-		},
 	}))
 	const titleFallback = $derived('global IPFS access')
 	const viewDomId = $derived('-global-ipfs-access-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IpfsResourcesView from '$/views/IpfsResourcesView.svelte'
 	import GlobalIpfsAccess_TimestampsView from '$/views/_GlobalIpfsAccess_TimestampsView.svelte'
@@ -60,44 +55,72 @@
 
 <EntityView
 	entityType={EntityType._GlobalIpfsAccess}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={href ?? resolve('/(explore)/(ipfs)/ipfs/access')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{title || 'global IPFS access'}
-		{:else}
-			<ResourceBoundary resource={globalIpfsAccess}>
-				{#snippet Pending()}
-					{title || 'global IPFS access'}
-				{/snippet}
+		<ResourceBoundary resource={globalIpfsAccess}>
+			{#snippet Pending()}
+				{title || 'global IPFS access'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{title || 'global IPFS access'}
-		{:else}
-			<ResourceBoundary resource={globalIpfsAccess}>
-				{#snippet Pending()}
-					{title || 'global IPFS access'}
-				{/snippet}
+		<ResourceBoundary resource={globalIpfsAccess}>
+			{#snippet Pending()}
+				{title || 'global IPFS access'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>Scope</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									scope: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const scope = selection.entitySelector.scope ?? prefetched.scope}
+							{#if scope !== undefined && scope !== null}
+								{String((scope) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const scope = resolvedEntity.scope}
+							{#if scope !== undefined && scope !== null}
+								{String((scope) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}

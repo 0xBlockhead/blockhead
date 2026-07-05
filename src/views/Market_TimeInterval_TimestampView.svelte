@@ -4,13 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
 
 
 	// Context
@@ -42,23 +42,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const marketTimeIntervalTimestamp = $derived(selection({
 		fields: {
 			close: true,
-			open: true,
-			high: true,
-			low: true,
-			volume: true,
-			quoteVolume: true,
-			tradeCount: true,
-			vwap: true,
-			$parentMarket: true,
 		},
 	}))
-	const titleFallback = $derived([({ ...selection.entitySelector, ...prefetched }).timeInterval == null ? '' : String((`${(({ ...selection.entitySelector, ...prefetched }).timeInterval).value}${(({ ...selection.entitySelector, ...prefetched }).timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || 'OHLC candle')
+	const titleFallback = $derived([selection.entitySelector.timeInterval ?? prefetched.timeInterval == null ? '' : String((`${(selection.entitySelector.timeInterval ?? prefetched.timeInterval).value}${(selection.entitySelector.timeInterval ?? prefetched.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || 'OHLC candle')
 	const viewDomId = $derived('market-time-interval-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -68,105 +60,85 @@
 
 <EntityView
 	entityType={EntityType.Market_TimeInterval_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]', {
-			marketVenue: entity.$market.$marketVenue.marketVenueId,
-			baseKind: marketAssetRouteLabelByKind[entity.$market.$base.kind],
-			base: entity.$market.$base.kind === MarketAssetKind.Coin ? entity.$market.$base.$coin.coinId : entity.$market.$base.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$market.$base.$coinInstance.type] : entity.$market.$base.$currency.iso4217,
-			quoteKind: marketAssetRouteLabelByKind[entity.$market.$quote.kind],
-			quote: entity.$market.$quote.kind === MarketAssetKind.Coin ? entity.$market.$quote.$coin.coinId : entity.$market.$quote.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$market.$quote.$coinInstance.type] : entity.$market.$quote.$currency.iso4217,
-			marketKind: entity.$market.marketKind,
-			timeIntervalUnit: String(({ ...selection.entitySelector, ...prefetched }).timeInterval.unit),
-			timeIntervalValue: String(({ ...selection.entitySelector, ...prefetched }).timeInterval.value),
-			timestampMs: String(({ ...selection.entitySelector, ...prefetched }).timestampMs),
-		})
+		href ?? (pendingEntity.$market !== undefined && pendingEntity.$market.$marketVenue !== undefined && pendingEntity.$market.$marketVenue.marketVenueId !== undefined && pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.kind !== undefined && (pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.kind !== undefined && (pendingEntity.$market.$base.kind === 'Coin' ? pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.$coin !== undefined && pendingEntity.$market.$base.$coin.coinId !== undefined : pendingEntity.$market.$base.kind === 'CoinInstance' ? pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.$coinInstance !== undefined && pendingEntity.$market.$base.$coinInstance.type !== undefined : pendingEntity.$market !== undefined && pendingEntity.$market.$base !== undefined && pendingEntity.$market.$base.$currency !== undefined && pendingEntity.$market.$base.$currency.iso4217 !== undefined)) && pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.kind !== undefined && (pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.kind !== undefined && (pendingEntity.$market.$quote.kind === 'Coin' ? pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.$coin !== undefined && pendingEntity.$market.$quote.$coin.coinId !== undefined : pendingEntity.$market.$quote.kind === 'CoinInstance' ? pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.$coinInstance !== undefined && pendingEntity.$market.$quote.$coinInstance.type !== undefined : pendingEntity.$market !== undefined && pendingEntity.$market.$quote !== undefined && pendingEntity.$market.$quote.$currency !== undefined && pendingEntity.$market.$quote.$currency.iso4217 !== undefined)) && pendingEntity.$market !== undefined && pendingEntity.$market.marketKind !== undefined && pendingEntity.timeInterval !== undefined && pendingEntity.timeInterval.unit !== undefined && pendingEntity.timeInterval !== undefined && pendingEntity.timeInterval.value !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]', {
+			marketVenue: String(pendingEntity.$market.$marketVenue.marketVenueId ?? ''),
+			baseKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$market.$base.kind)] ?? ''),
+			base: String((pendingEntity.$market.$base.kind === 'Coin' ? pendingEntity.$market.$base.$coin.coinId : pendingEntity.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(pendingEntity.$market.$base.$coinInstance.type)] : pendingEntity.$market.$base.$currency.iso4217)),
+			quoteKind: String(marketAssetRouteLabelByKind[String(pendingEntity.$market.$quote.kind)] ?? ''),
+			quote: String((pendingEntity.$market.$quote.kind === 'Coin' ? pendingEntity.$market.$quote.$coin.coinId : pendingEntity.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(pendingEntity.$market.$quote.$coinInstance.type)] : pendingEntity.$market.$quote.$currency.iso4217)),
+			marketKind: String(pendingEntity.$market.marketKind ?? ''),
+			timeIntervalUnit: String(pendingEntity.timeInterval.unit ?? ''),
+			timeIntervalValue: String(pendingEntity.timeInterval.value ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[({ ...selection.entitySelector, ...prefetched }).timeInterval == null ? '' : String((`${(({ ...selection.entitySelector, ...prefetched }).timeInterval).value}${(({ ...selection.entitySelector, ...prefetched }).timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || title || 'OHLC candle'}
-		{:else}
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
-				{#snippet Pending()}
-					{[({ ...selection.entitySelector, ...prefetched }).timeInterval == null ? '' : String((`${(({ ...selection.entitySelector, ...prefetched }).timeInterval).value}${(({ ...selection.entitySelector, ...prefetched }).timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || title || 'OHLC candle'}
-				{/snippet}
+		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
+			{#snippet Pending()}
+				{[selection.entitySelector.timeInterval ?? prefetched.timeInterval == null ? '' : String((`${(selection.entitySelector.timeInterval ?? prefetched.timeInterval).value}${(selection.entitySelector.timeInterval ?? prefetched.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || title || 'OHLC candle'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[entity.timeInterval == null ? '' : String((`${(entity.timeInterval).value}${(entity.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[resolvedEntity.timeInterval == null ? '' : String((`${(resolvedEntity.timeInterval).value}${(resolvedEntity.timeInterval).unit}`) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const close0 = ({ ...selection.entitySelector, ...prefetched }).close}
-			{#if close0 !== undefined && close0 !== null}
-				<NumberValue
-					value={Number(close0) / 1e8}
-					formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-				/>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
-				{#snippet Pending()}
-					{@const close0 = ({ ...selection.entitySelector, ...prefetched }).close}
-					{#if close0 !== undefined && close0 !== null}
-						<NumberValue
-							value={Number(close0) / 1e8}
-							formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-						/>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
+			{#snippet Pending()}
+				{@const close0 = prefetched.close}
+				{#if close0 !== undefined && close0 !== null}
+					<NumberValue
+						value={Number(close0) / 1e8}
+						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
+					/>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const close0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).close}
-					{#if close0 !== undefined && close0 !== null}
-						<NumberValue
-							value={Number(close0) / 1e8}
-							formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const close0 = resolvedEntity.close}
+				{#if close0 !== undefined && close0 !== null}
+					<NumberValue
+						value={Number(close0) / 1e8}
+						formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = prefetched.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = prefetched.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={marketTimeIntervalTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = entity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -177,14 +149,14 @@
 					<MarketView
 						selection={select(EntityType.Market, selection.entitySelector.$market)}
 						href={
-							resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
-								marketVenue: entity.$marketVenue.marketVenueId,
-								baseKind: marketAssetRouteLabelByKind[entity.$base.kind],
-								base: entity.$base.kind === MarketAssetKind.Coin ? entity.$base.$coin.coinId : entity.$base.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$base.$coinInstance.type] : entity.$base.$currency.iso4217,
-								quoteKind: marketAssetRouteLabelByKind[entity.$quote.kind],
-								quote: entity.$quote.kind === MarketAssetKind.Coin ? entity.$quote.$coin.coinId : entity.$quote.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$quote.$coinInstance.type] : entity.$quote.$currency.iso4217,
-								marketKind: entity.marketKind,
-							})
+							(selection.entitySelector.$market.$marketVenue !== undefined && selection.entitySelector.$market.$marketVenue.marketVenueId !== undefined && selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.kind !== undefined && (selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.kind !== undefined && (selection.entitySelector.$market.$base.kind === 'Coin' ? selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.$coin !== undefined && selection.entitySelector.$market.$base.$coin.coinId !== undefined : selection.entitySelector.$market.$base.kind === 'CoinInstance' ? selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.$coinInstance !== undefined && selection.entitySelector.$market.$base.$coinInstance.type !== undefined : selection.entitySelector.$market.$base !== undefined && selection.entitySelector.$market.$base.$currency !== undefined && selection.entitySelector.$market.$base.$currency.iso4217 !== undefined)) && selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.kind !== undefined && (selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.kind !== undefined && (selection.entitySelector.$market.$quote.kind === 'Coin' ? selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.$coin !== undefined && selection.entitySelector.$market.$quote.$coin.coinId !== undefined : selection.entitySelector.$market.$quote.kind === 'CoinInstance' ? selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.$coinInstance !== undefined && selection.entitySelector.$market.$quote.$coinInstance.type !== undefined : selection.entitySelector.$market.$quote !== undefined && selection.entitySelector.$market.$quote.$currency !== undefined && selection.entitySelector.$market.$quote.$currency.iso4217 !== undefined)) && selection.entitySelector.$market.marketKind !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+								marketVenue: String(selection.entitySelector.$market.$marketVenue.marketVenueId ?? ''),
+								baseKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$base.kind)] ?? ''),
+								base: String((selection.entitySelector.$market.$base.kind === 'Coin' ? selection.entitySelector.$market.$base.$coin.coinId : selection.entitySelector.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(selection.entitySelector.$market.$base.$coinInstance.type)] : selection.entitySelector.$market.$base.$currency.iso4217)),
+								quoteKind: String(marketAssetRouteLabelByKind[String(selection.entitySelector.$market.$quote.kind)] ?? ''),
+								quote: String((selection.entitySelector.$market.$quote.kind === 'Coin' ? selection.entitySelector.$market.$quote.$coin.coinId : selection.entitySelector.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(selection.entitySelector.$market.$quote.$coinInstance.type)] : selection.entitySelector.$market.$quote.$currency.iso4217)),
+								marketKind: String(selection.entitySelector.$market.marketKind ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}
@@ -192,9 +164,83 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
+			<div>
+				<dt>Time Interval</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timeInterval: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timeInterval = selection.entitySelector.timeInterval ?? prefetched.timeInterval}
+							{#if timeInterval !== undefined && timeInterval !== null}
+								{timeInterval == null ? '' : String((`${(timeInterval).value}${(timeInterval).unit}`) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timeInterval = resolvedEntity.timeInterval}
+							{#if timeInterval !== undefined && timeInterval !== null}
+								{timeInterval == null ? '' : String((`${(timeInterval).value}${(timeInterval).unit}`) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Coingecko_Rest,
+							Source.Coingecko_OpenApi,
+							Source.Coinpaprika_OpenApi,
+							Source.CoinMarketCap_Rest,
+						],
+						fields: {
+							open: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const open = prefetched.open ?? selection.entitySelector.open}
+					{@const open = prefetched.open}
 					{#if open !== undefined && open !== null}
 						<div>
 							<dt>Open</dt>
@@ -209,7 +255,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const open = entity.open ?? selection.entitySelector.open ?? prefetched.open}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const open = resolvedEntity.open}
 					{#if open !== undefined && open !== null}
 						<div>
 							<dt>Open</dt>
@@ -224,9 +271,23 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Coingecko_Rest,
+							Source.Coingecko_OpenApi,
+							Source.Coinpaprika_OpenApi,
+							Source.CoinMarketCap_Rest,
+						],
+						fields: {
+							high: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const high = prefetched.high ?? selection.entitySelector.high}
+					{@const high = prefetched.high}
 					{#if high !== undefined && high !== null}
 						<div>
 							<dt>High</dt>
@@ -241,7 +302,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const high = entity.high ?? selection.entitySelector.high ?? prefetched.high}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const high = resolvedEntity.high}
 					{#if high !== undefined && high !== null}
 						<div>
 							<dt>High</dt>
@@ -256,9 +318,23 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Coingecko_Rest,
+							Source.Coingecko_OpenApi,
+							Source.Coinpaprika_OpenApi,
+							Source.CoinMarketCap_Rest,
+						],
+						fields: {
+							low: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const low = prefetched.low ?? selection.entitySelector.low}
+					{@const low = prefetched.low}
 					{#if low !== undefined && low !== null}
 						<div>
 							<dt>Low</dt>
@@ -273,13 +349,61 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const low = entity.low ?? selection.entitySelector.low ?? prefetched.low}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const low = resolvedEntity.low}
 					{#if low !== undefined && low !== null}
 						<div>
 							<dt>Low</dt>
 							<dd>
 								<NumberValue
 									value={Number(low) / 1e8}
+									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Coingecko_Rest,
+							Source.Coingecko_OpenApi,
+							Source.Coinpaprika_OpenApi,
+							Source.CoinMarketCap_Rest,
+						],
+						fields: {
+							close: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const close = prefetched.close}
+					{#if close !== undefined && close !== null}
+						<div>
+							<dt>Close</dt>
+							<dd>
+								<NumberValue
+									value={Number(close) / 1e8}
+									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const close = resolvedEntity.close}
+					{#if close !== undefined && close !== null}
+						<div>
+							<dt>Close</dt>
+							<dd>
+								<NumberValue
+									value={Number(close) / 1e8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
@@ -290,35 +414,21 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Coinpaprika_OpenApi,
+							Source.CoinMarketCap_Rest,
+						],
+						fields: {
+							quoteVolume: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const volume = prefetched.volume ?? selection.entitySelector.volume}
-					{#if volume !== undefined && volume !== null}
-						<div>
-							<dt>Volume</dt>
-							<dd>
-								{String((volume) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const volume = entity.volume ?? selection.entitySelector.volume ?? prefetched.volume}
-					{#if volume !== undefined && volume !== null}
-						<div>
-							<dt>Volume</dt>
-							<dd>
-								{String((volume) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
-				{#snippet Pending()}
-					{@const quoteVolume = prefetched.quoteVolume ?? selection.entitySelector.quoteVolume}
+					{@const quoteVolume = prefetched.quoteVolume}
 					{#if quoteVolume !== undefined && quoteVolume !== null}
 						<div>
 							<dt>Quote volume</dt>
@@ -333,71 +443,14 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const quoteVolume = entity.quoteVolume ?? selection.entitySelector.quoteVolume ?? prefetched.quoteVolume}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const quoteVolume = resolvedEntity.quoteVolume}
 					{#if quoteVolume !== undefined && quoteVolume !== null}
 						<div>
 							<dt>Quote volume</dt>
 							<dd>
 								<NumberValue
 									value={Number(quoteVolume) / 1e8}
-									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
-				{#snippet Pending()}
-					{@const tradeCount = prefetched.tradeCount ?? selection.entitySelector.tradeCount}
-					{#if tradeCount !== undefined && tradeCount !== null}
-						<div>
-							<dt>Trade count</dt>
-							<dd>
-								{String((tradeCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const tradeCount = entity.tradeCount ?? selection.entitySelector.tradeCount ?? prefetched.tradeCount}
-					{#if tradeCount !== undefined && tradeCount !== null}
-						<div>
-							<dt>Trade count</dt>
-							<dd>
-								{String((tradeCount) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-
-			<ResourceBoundary resource={marketTimeIntervalTimestamp}>
-				{#snippet Pending()}
-					{@const vwap = prefetched.vwap ?? selection.entitySelector.vwap}
-					{#if vwap !== undefined && vwap !== null}
-						<div>
-							<dt>Vwap</dt>
-							<dd>
-								<NumberValue
-									value={Number(vwap) / 1e8}
-									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{@const vwap = entity.vwap ?? selection.entitySelector.vwap ?? prefetched.vwap}
-					{#if vwap !== undefined && vwap !== null}
-						<div>
-							<dt>Vwap</dt>
-							<dd>
-								<NumberValue
-									value={Number(vwap) / 1e8}
 									formatValueOptions={{ currency: 'USD', showDecimalPlaces: 2, useGrouping: true }}
 								/>
 							</dd>
@@ -410,25 +463,37 @@
 				<dt>Parent Market</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.Market, false>('$parentMarket')}
+						resource={
+							selection[EntityProxyField]<EntityType.Market, false>('$parentMarket', {
+								sources: [
+									Source.Constants_Internal,
+									Source.Coingecko_Rest,
+									Source.Coingecko_OpenApi,
+									Source.Coinpaprika_OpenApi,
+									Source.CoinMarketCap_Rest,
+								],
+							})
+						}
 					>
 						{#snippet children(market)}
-							<MarketView
-								selection={select(EntityType.Market, market.entitySelector)}
-								prefetched={market}
-								href={
-									resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
-										marketVenue: entity.$marketVenue.marketVenueId,
-										baseKind: marketAssetRouteLabelByKind[entity.$base.kind],
-										base: entity.$base.kind === MarketAssetKind.Coin ? entity.$base.$coin.coinId : entity.$base.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$base.$coinInstance.type] : entity.$base.$currency.iso4217,
-										quoteKind: marketAssetRouteLabelByKind[entity.$quote.kind],
-										quote: entity.$quote.kind === MarketAssetKind.Coin ? entity.$quote.$coin.coinId : entity.$quote.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$quote.$coinInstance.type] : entity.$quote.$currency.iso4217,
-										marketKind: entity.marketKind,
-									})
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
+							{#if market[EntityMetaKey.Selector] != null}
+								<MarketView
+									selection={select(EntityType.Market, market[EntityMetaKey.Selector])}
+									prefetched={market}
+									href={
+										(({ ...market[EntityMetaKey.Selector], ...market }).$marketVenue !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$marketVenue.marketVenueId !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base.kind !== undefined && (({ ...market[EntityMetaKey.Selector], ...market }).$base !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base.kind !== undefined && (({ ...market[EntityMetaKey.Selector], ...market }).$base.kind === 'Coin' ? ({ ...market[EntityMetaKey.Selector], ...market }).$base !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base.$coin !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base.$coin.coinId !== undefined : ({ ...market[EntityMetaKey.Selector], ...market }).$base.kind === 'CoinInstance' ? ({ ...market[EntityMetaKey.Selector], ...market }).$base !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base.$coinInstance !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base.$coinInstance.type !== undefined : ({ ...market[EntityMetaKey.Selector], ...market }).$base !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base.$currency !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$base.$currency.iso4217 !== undefined)) && ({ ...market[EntityMetaKey.Selector], ...market }).$quote !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$quote.kind !== undefined && (({ ...market[EntityMetaKey.Selector], ...market }).$quote !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$quote.kind !== undefined && (({ ...market[EntityMetaKey.Selector], ...market }).$quote.kind === 'Coin' ? ({ ...market[EntityMetaKey.Selector], ...market }).$quote !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$quote.$coin !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$quote.$coin.coinId !== undefined : ({ ...market[EntityMetaKey.Selector], ...market }).$quote.kind === 'CoinInstance' ? ({ ...market[EntityMetaKey.Selector], ...market }).$quote !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$quote.$coinInstance !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$quote.$coinInstance.type !== undefined : ({ ...market[EntityMetaKey.Selector], ...market }).$quote !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$quote.$currency !== undefined && ({ ...market[EntityMetaKey.Selector], ...market }).$quote.$currency.iso4217 !== undefined)) && ({ ...market[EntityMetaKey.Selector], ...market }).marketKind !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
+											marketVenue: String(({ ...market[EntityMetaKey.Selector], ...market }).$marketVenue.marketVenueId ?? ''),
+											baseKind: String(marketAssetRouteLabelByKind[String(({ ...market[EntityMetaKey.Selector], ...market }).$base.kind)] ?? ''),
+											base: String((({ ...market[EntityMetaKey.Selector], ...market }).$base.kind === 'Coin' ? ({ ...market[EntityMetaKey.Selector], ...market }).$base.$coin.coinId : ({ ...market[EntityMetaKey.Selector], ...market }).$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(({ ...market[EntityMetaKey.Selector], ...market }).$base.$coinInstance.type)] : ({ ...market[EntityMetaKey.Selector], ...market }).$base.$currency.iso4217)),
+											quoteKind: String(marketAssetRouteLabelByKind[String(({ ...market[EntityMetaKey.Selector], ...market }).$quote.kind)] ?? ''),
+											quote: String((({ ...market[EntityMetaKey.Selector], ...market }).$quote.kind === 'Coin' ? ({ ...market[EntityMetaKey.Selector], ...market }).$quote.$coin.coinId : ({ ...market[EntityMetaKey.Selector], ...market }).$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(({ ...market[EntityMetaKey.Selector], ...market }).$quote.$coinInstance.type)] : ({ ...market[EntityMetaKey.Selector], ...market }).$quote.$currency.iso4217)),
+											marketKind: String(({ ...market[EntityMetaKey.Selector], ...market }).marketKind ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

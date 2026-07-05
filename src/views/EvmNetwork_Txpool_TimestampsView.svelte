@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM network txpool observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM network txpool observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					pendingCount: true,
 					queuedCount: true,
 					$network: true,
+					timestampMs: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetwork_Txpool_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmNetworkTxpoolTimestamps)}
 			{@const uniqueEvmNetworkTxpoolTimestamps = [...new Map(evmNetworkTxpoolTimestamps.values.map((evmNetworkTxpoolTimestamp) => [evmNetworkTxpoolTimestamp[EntityMetaKey.SelectorKey], evmNetworkTxpoolTimestamp])).values()]}
 			<EntitiesList
@@ -99,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkTxpoolTimestamps.values.length === uniqueEvmNetworkTxpoolTimestamps.length && evmNetworkTxpoolTimestamps.totalCount != null && evmNetworkTxpoolTimestamps.totalCount >= uniqueEvmNetworkTxpoolTimestamps.length ? evmNetworkTxpoolTimestamps.totalCount : uniqueEvmNetworkTxpoolTimestamps.length}
+				totalCount={evmNetworkTxpoolTimestamps.totalCount}
 				getKey={(evmNetworkTxpoolTimestamp) => evmNetworkTxpoolTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmNetworkTxpoolTimestamps}
 			>
@@ -112,17 +101,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmNetworkTxpoolTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp> })}
+					{@const evmNetworkTxpoolTimestampFields = { ...evmNetworkTxpoolTimestamp[EntityMetaKey.Selector], ...evmNetworkTxpoolTimestamp }}
+					{@const evmNetworkTxpoolTimestampHrefFields = { ...evmNetworkTxpoolTimestamp, ...evmNetworkTxpoolTimestamp[EntityMetaKey.Selector] }}
 					<EvmNetwork_Txpool_TimestampView
+						selection={select(EntityType.EvmNetwork_Txpool_Timestamp, evmNetworkTxpoolTimestamp[EntityMetaKey.Selector])}
+						prefetched={evmNetworkTxpoolTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mempool/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...evmNetworkTxpoolTimestamp.entitySelector, ...evmNetworkTxpoolTimestamp }).$network.caip2.namespace)}:${String(({ ...evmNetworkTxpoolTimestamp.entitySelector, ...evmNetworkTxpoolTimestamp }).$network.caip2.reference)}`,
-								timestampMs: String(({ ...evmNetworkTxpoolTimestamp.entitySelector, ...evmNetworkTxpoolTimestamp }).timestampMs),
-								source: String(({ ...evmNetworkTxpoolTimestamp.entitySelector, ...evmNetworkTxpoolTimestamp }).source),
-							})
+							(evmNetworkTxpoolTimestampHrefFields.$network !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.caip2.namespace !== undefined && evmNetworkTxpoolTimestampHrefFields.$network !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTxpoolTimestampHrefFields.$network.caip2.reference !== undefined && evmNetworkTxpoolTimestampHrefFields.timestampMs !== undefined && evmNetworkTxpoolTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mempool/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(evmNetworkTxpoolTimestampHrefFields.$network.caip2.namespace ?? '')}:${String(evmNetworkTxpoolTimestampHrefFields.$network.caip2.reference ?? '')}`,
+								timestampMs: String(evmNetworkTxpoolTimestampHrefFields.timestampMs ?? ''),
+								source: String(evmNetworkTxpoolTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmNetwork_Txpool_Timestamp, evmNetworkTxpoolTimestamp.entitySelector)}
-						prefetched={evmNetworkTxpoolTimestamp}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

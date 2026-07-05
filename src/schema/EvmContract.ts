@@ -95,6 +95,13 @@ export default {
 				cardinality: EntityFieldCardinality.Many,
 		},
 		{
+				name: '$$storageReads',
+				label: 'Storage reads',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.EvmStorageRead_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
 				name: '$verification',
 				label: 'Verification',
 				type: EntityFieldType.EntityReference,

@@ -20,7 +20,7 @@
 		selection,
 		title = 'Wallet connections',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Wallet connections...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,28 +64,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$wallet: true,
 					status: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadWalletConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadWalletConnections)}
 			{@const uniqueBlockheadWalletConnections = [...new Map(blockheadWalletConnections.values.map((blockheadWalletConnection) => [blockheadWalletConnection[EntityMetaKey.SelectorKey], blockheadWalletConnection])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadWalletConnections.values.length === uniqueBlockheadWalletConnections.length && blockheadWalletConnections.totalCount != null && blockheadWalletConnections.totalCount >= uniqueBlockheadWalletConnections.length ? blockheadWalletConnections.totalCount : uniqueBlockheadWalletConnections.length}
+				totalCount={blockheadWalletConnections.totalCount}
 				getKey={(blockheadWalletConnection) => blockheadWalletConnection[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadWalletConnections}
 			>
@@ -105,14 +92,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No wallet connections yet.</p>
+						<p data-text="muted">No Wallet connections yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadWalletConnection }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadWalletConnection> })}
+					{@const blockheadWalletConnectionFields = { ...blockheadWalletConnection[EntityMetaKey.Selector], ...blockheadWalletConnection }}
 					<BlockheadWalletConnectionView
-						selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection.entitySelector)}
-						prefetched={blockheadWalletConnection}
+						selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
+						prefetched={blockheadWalletConnectionFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

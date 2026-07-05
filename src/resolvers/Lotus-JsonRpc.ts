@@ -21,6 +21,9 @@ import { FilecoinBlockSelector } from '$/schema/FilecoinBlock.ts'
 import { FilecoinSectorSelector } from '$/schema/FilecoinSector.ts'
 import { FilecoinActorSelector } from '$/schema/FilecoinActor.ts'
 import { FilecoinMinerSelector } from '$/schema/FilecoinMiner.ts'
+import { FilecoinActor_TimestampSelector } from '$/schema/FilecoinActor_Timestamp.ts'
+import { FilecoinMiner_TimestampSelector } from '$/schema/FilecoinMiner_Timestamp.ts'
+import { FilecoinSector_TimestampSelector } from '$/schema/FilecoinSector_Timestamp.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -307,6 +310,119 @@ export default {
 				actorCodeCid: (actor) => actor.actorCodeCid,
 				nonce: (actor) => actor.nonce,
 				balanceAttoFil: (actor) => actor.balanceAttoFil,
+			},
+		}),
+
+		defineResolver(Source.Lotus_JsonRpc, {
+			entityType: EntityType.FilecoinActor_Timestamp,
+			resolve: {
+				[FilecoinActor_TimestampSelector.ActorTimestampMsSource]: async ({ $actor }) => {
+					assertFilecoinMainnet($actor.$network)
+					const { getActor } = await import('$/sources/Lotus/JsonRpc/queries.ts')
+					const actor = await getActor({
+						rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+						address: $actor.address,
+					})
+					return {
+						actorCodeCid: actor.Code['/'],
+						nonce: BigInt(actor.Nonce),
+						balanceAttoFil: BigInt(actor.Balance),
+						stateRootCid: actor.Head['/'],
+					}
+				}
+			},
+		})({
+			fields: {
+				actorCodeCid: (timestamp) => timestamp.actorCodeCid,
+				nonce: (timestamp) => timestamp.nonce,
+				balanceAttoFil: (timestamp) => timestamp.balanceAttoFil,
+				stateRootCid: (timestamp) => timestamp.stateRootCid,
+			},
+		}),
+
+		defineResolver(Source.Lotus_JsonRpc, {
+			entityType: EntityType.FilecoinSector_Timestamp,
+			resolve: {
+				[FilecoinSector_TimestampSelector.SectorTimestampMsSource]: async ({ $sector }) => {
+					const sector = (await sectorRows($sector.$miner)).find((sector) => (
+						sector[EntityMetaKey.Selector].sectorNumber === $sector.sectorNumber
+					))
+					if (sector == null) throw new Error(`Lotus_JsonRpc: sector not found for ${$sector.$miner.minerAddress}:${$sector.sectorNumber.toString()}`)
+					return sector
+				}
+			},
+		})({
+			fields: {
+				sealedCid: (timestamp) => timestamp.sealedCid,
+				activationEpoch: (timestamp) => timestamp.activationEpoch,
+				expirationEpoch: (timestamp) => timestamp.expirationEpoch,
+			},
+		}),
+
+		defineResolver(Source.Lotus_JsonRpc, {
+			entityType: EntityType.FilecoinMiner_Timestamp,
+			resolve: {
+				[FilecoinMiner_TimestampSelector.MinerTimestampMsSource]: async ({ $miner }) => {
+					assertFilecoinMainnet($miner.$network)
+					const {
+						getHead,
+						getMinerInfo,
+						getMinerPower,
+						getMinerSectors,
+					} = await import('$/sources/Lotus/JsonRpc/queries.ts')
+					const head = await getHead({ rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl })
+					const [
+						minerInfo,
+						minerPower,
+						sectors,
+					] = await Promise.all([
+						getMinerInfo({
+							rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+							minerAddress: $miner.minerAddress,
+							tipsetKey: head.Cids,
+						}),
+						getMinerPower({
+							rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+							minerAddress: $miner.minerAddress,
+							tipsetKey: head.Cids,
+						}),
+						getMinerSectors({
+							rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+							minerAddress: $miner.minerAddress,
+						}),
+					])
+					return {
+						$owner: {
+							[EntityMetaKey.Selector]: {
+								$network: $miner.$network,
+								address: minerInfo.Owner,
+							},
+						},
+						$worker: {
+							[EntityMetaKey.Selector]: {
+								$network: $miner.$network,
+								address: minerInfo.Worker,
+							},
+						},
+						peerId: minerInfo.PeerId,
+						rawBytePower: BigInt(minerPower.MinerPower.RawBytePower),
+						qualityAdjustedPower: BigInt(minerPower.MinerPower.QualityAdjPower),
+						networkRawBytePower: BigInt(minerPower.TotalPower.RawBytePower),
+						networkQualityAdjustedPower: BigInt(minerPower.TotalPower.QualityAdjPower),
+						liveSectorCount: sectors.length,
+					}
+				}
+			},
+		})({
+			fields: {
+				$owner: (timestamp) => timestamp.$owner,
+				$worker: (timestamp) => timestamp.$worker,
+				peerId: (timestamp) => timestamp.peerId,
+				rawBytePower: (timestamp) => timestamp.rawBytePower,
+				qualityAdjustedPower: (timestamp) => timestamp.qualityAdjustedPower,
+				networkRawBytePower: (timestamp) => timestamp.networkRawBytePower,
+				networkQualityAdjustedPower: (timestamp) => timestamp.networkQualityAdjustedPower,
+				liveSectorCount: (timestamp) => timestamp.liveSectorCount,
 			},
 		}),
 

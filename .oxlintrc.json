@@ -1,7 +1,7 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
 	"jsPlugins": [
-		"./scripts/oxlint-plugin-no-runtime-shape-guards.mjs"
+		"./scripts/lint/oxlint-plugin-no-runtime-shape-guards.mjs"
 	],
 	"plugins": [
 		"typescript"

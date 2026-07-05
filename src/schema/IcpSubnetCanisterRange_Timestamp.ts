@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum IcpSubnetCanisterRange_TimestampSelector {
-	SubnetRangeStartRangeEndRegistryVersionSource = '$subnet+rangeStart+rangeEnd+registryVersion+source',
+	SubnetRangeStartRangeEndRegistryVersionSource = 'SubnetRangeStartRangeEndRegistryVersionSource',
 }
 export default {
 	entityType: EntityType.IcpSubnetCanisterRange_Timestamp,
@@ -26,48 +25,48 @@ export default {
 	],
 	fields: [
 		{
-			name: '$subnet',
-			label: 'subnet',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.IcpSubnet,
-			cardinality: EntityFieldCardinality.One,
+				name: '$subnet',
+				label: 'subnet',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.IcpSubnet,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'rangeStart',
-			label: 'range start',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'rangeStart',
+				label: 'range start',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'rangeEnd',
-			label: 'range end',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'rangeEnd',
+				label: 'range end',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'registryVersion',
-			label: 'registry version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'registryVersion',
+				label: 'registry version',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

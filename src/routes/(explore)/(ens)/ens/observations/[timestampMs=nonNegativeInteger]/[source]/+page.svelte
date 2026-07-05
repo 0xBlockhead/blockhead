@@ -39,6 +39,7 @@
 		}
 		selection={
 			select(EntityType._GlobalEnsNetwork_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					sourceWindowNameCount: true,
 					sourceWindowRecordCount: true,

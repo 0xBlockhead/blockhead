@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'UTXO blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading UTXO blocks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					height: true,
 					hash: true,
 					transactionCount: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(utxoBlocks)}
 			{@const uniqueUtxoBlocks = [...new Map(utxoBlocks.values.map((utxoBlock) => [utxoBlock[EntityMetaKey.SelectorKey], utxoBlock])).values()]}
 			<EntitiesList
@@ -99,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoBlocks.values.length === uniqueUtxoBlocks.length && utxoBlocks.totalCount != null && utxoBlocks.totalCount >= uniqueUtxoBlocks.length ? utxoBlocks.totalCount : uniqueUtxoBlocks.length}
+				totalCount={utxoBlocks.totalCount}
 				getKey={(utxoBlock) => utxoBlock[EntityMetaKey.SelectorKey]}
 				items={uniqueUtxoBlocks}
 			>
@@ -112,16 +101,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: utxoBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoBlock> })}
+					{@const utxoBlockFields = { ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }}
+					{@const utxoBlockHrefFields = { ...utxoBlock, ...utxoBlock[EntityMetaKey.Selector] }}
 					<UtxoBlockView
+						selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
+						prefetched={utxoBlockFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-								networkSlug: String(({ ...utxoBlock.entitySelector, ...utxoBlock }).$network.slug),
-								height: String(({ ...utxoBlock.entitySelector, ...utxoBlock }).height),
-								hash: String(({ ...utxoBlock.entitySelector, ...utxoBlock }).hash),
-							})
+							(utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined && utxoBlockHrefFields.$network.caip2.namespace !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined && utxoBlockHrefFields.$network.caip2.reference !== undefined && utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
+								networkSlug: String(networkByCaip2[String(String(utxoBlockHrefFields.$network.caip2.namespace) + ':' + String(utxoBlockHrefFields.$network.caip2.reference))].slug ?? ''),
+								height: String(utxoBlockHrefFields.height ?? ''),
+								hash: String(utxoBlockHrefFields.hash ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.UtxoBlock, utxoBlock.entitySelector)}
-						prefetched={utxoBlock}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

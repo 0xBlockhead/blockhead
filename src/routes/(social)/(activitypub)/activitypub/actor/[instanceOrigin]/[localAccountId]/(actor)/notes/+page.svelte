@@ -50,6 +50,6 @@
 				],
 			})
 		}
-		id='ActivityPubNotesView-page'
+		id='notes'
 	/>
 </Page>

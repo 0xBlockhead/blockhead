@@ -31,6 +31,6 @@
 				scope: '$$blockheadFarcasterAccountConnections',
 			})[EntityProxyField]<EntityType.BlockheadFarcasterAccountConnection>('$$blockheadFarcasterAccountConnections')
 		}
-		id='BlockheadFarcasterAccountConnectionsView-page'
+		id='blockhead-farcaster-account-connections'
 	/>
 </Page>

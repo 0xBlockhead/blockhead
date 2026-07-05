@@ -21,7 +21,7 @@
 		selection,
 		title = 'Channels',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Blockhead state channels...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					id: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadStateChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadStateChannels)}
 			{@const uniqueBlockheadStateChannels = [...new Map(blockheadStateChannels.values.map((blockheadStateChannel) => [blockheadStateChannel[EntityMetaKey.SelectorKey], blockheadStateChannel])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadStateChannels.values.length === uniqueBlockheadStateChannels.length && blockheadStateChannels.totalCount != null && blockheadStateChannels.totalCount >= uniqueBlockheadStateChannels.length ? blockheadStateChannels.totalCount : uniqueBlockheadStateChannels.length}
+				totalCount={blockheadStateChannels.totalCount}
 				getKey={(blockheadStateChannel) => blockheadStateChannel[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadStateChannels}
 			>
@@ -106,19 +93,21 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No blockhead state channels yet.</p>
+						<p data-text="muted">No Blockhead state channels yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadStateChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadStateChannel> })}
+					{@const blockheadStateChannelFields = { ...blockheadStateChannel[EntityMetaKey.Selector], ...blockheadStateChannel }}
+					{@const blockheadStateChannelHrefFields = { ...blockheadStateChannel, ...blockheadStateChannel[EntityMetaKey.Selector] }}
 					<BlockheadStateChannelView
+						selection={select(EntityType.BlockheadStateChannel, blockheadStateChannel[EntityMetaKey.Selector])}
+						prefetched={blockheadStateChannelFields}
 						href={
-							resolve('/channel/[channelId]', {
-								channelId: String(({ ...blockheadStateChannel.entitySelector, ...blockheadStateChannel }).id),
-							})
+							(blockheadStateChannelHrefFields.id !== undefined ? resolve('/channel/[channelId]', {
+								channelId: String(blockheadStateChannelHrefFields.id ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BlockheadStateChannel, blockheadStateChannel.entitySelector)}
-						prefetched={blockheadStateChannel}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

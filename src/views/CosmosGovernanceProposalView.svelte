@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -42,17 +41,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const cosmosGovernanceProposal = $derived(selection({
 		fields: {
 			title: true,
-			metadata: true,
-			summary: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), 'Proposal ' + String((({ ...selection.entitySelector, ...prefetched }).proposalId) ?? '')].filter(Boolean).join(' ') || 'Cosmos governance proposal')
+	const titleFallback = $derived([String((prefetched.title) ?? ''), (String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') ? 'Proposal ' + String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') : '')].filter(Boolean).join(' ') || 'Cosmos governance proposal')
 	const viewDomId = $derived('cosmos-governance-proposal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import CosmosGovernanceProposal_TimestampsView from '$/views/CosmosGovernanceProposal_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -61,111 +58,162 @@
 
 <EntityView
 	entityType={EntityType.CosmosGovernanceProposal}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/governance/proposal/[proposalId]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.reference)}`,
-			proposalId: String(({ ...selection.entitySelector, ...prefetched }).proposalId),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.proposalId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/governance/proposal/[proposalId]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			proposalId: String(pendingEntity.proposalId ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), 'Proposal ' + String((({ ...selection.entitySelector, ...prefetched }).proposalId) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos governance proposal'}
-		{:else}
-			<ResourceBoundary resource={cosmosGovernanceProposal}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), 'Proposal ' + String((({ ...selection.entitySelector, ...prefetched }).proposalId) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos governance proposal'}
-				{/snippet}
+		<ResourceBoundary resource={cosmosGovernanceProposal}>
+			{#snippet Pending()}
+				{[String((prefetched.title) ?? ''), (String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') ? 'Proposal ' + String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') : '')].filter(Boolean).join(' ') || title || 'Cosmos governance proposal'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.title) ?? ''), 'Proposal ' + String((entity.proposalId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.title) ?? ''), (String((resolvedEntity.proposalId) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalId) ?? '') : '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{['Proposal ' + String((({ ...selection.entitySelector, ...prefetched }).proposalId) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), 'Proposal ' + String((({ ...selection.entitySelector, ...prefetched }).proposalId) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos governance proposal'}
-		{:else}
-			<ResourceBoundary resource={cosmosGovernanceProposal}>
-				{#snippet Pending()}
-					{['Proposal ' + String((({ ...selection.entitySelector, ...prefetched }).proposalId) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), 'Proposal ' + String((({ ...selection.entitySelector, ...prefetched }).proposalId) ?? '')].filter(Boolean).join(' ') || title || 'Cosmos governance proposal'}
-				{/snippet}
+		<ResourceBoundary resource={cosmosGovernanceProposal}>
+			{#snippet Pending()}
+				{[(String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') ? 'Proposal ' + String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') : '')].filter(Boolean).join(' ') || [String((prefetched.title) ?? ''), (String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') ? 'Proposal ' + String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') : '')].filter(Boolean).join(' ') || title || 'Cosmos governance proposal'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{['Proposal ' + String((entity.proposalId) ?? '')].filter(Boolean).join(' ') || [String((entity.title) ?? ''), 'Proposal ' + String((entity.proposalId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[(String((resolvedEntity.proposalId) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalId) ?? '') : '')].filter(Boolean).join(' ') || [String((resolvedEntity.title) ?? ''), (String((resolvedEntity.proposalId) ?? '') ? 'Proposal ' + String((resolvedEntity.proposalId) ?? '') : '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<span data-text="muted">
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
-						(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-						}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={cosmosGovernanceProposal}>
-				{#snippet Pending()}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
+		<ResourceBoundary resource={cosmosGovernanceProposal}>
+			{#snippet Pending()}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={cosmosGovernanceProposal}>
+			<div>
+				<dt>Proposal ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									proposalId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const proposalId = selection.entitySelector.proposalId ?? prefetched.proposalId}
+							{#if proposalId !== undefined && proposalId !== null}
+								{String((proposalId) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const proposalId = resolvedEntity.proposalId}
+							{#if proposalId !== undefined && proposalId !== null}
+								{String((proposalId) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							title: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const metadata = prefetched.metadata ?? selection.entitySelector.metadata}
+					{@const title = prefetched.title}
+					{#if title !== undefined && title !== null}
+						<div>
+							<dt>Title</dt>
+							<dd>
+								{String((title) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const title = resolvedEntity.title}
+					{#if title !== undefined && title !== null}
+						<div>
+							<dt>Title</dt>
+							<dd>
+								{String((title) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							metadata: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const metadata = prefetched.metadata}
 					{#if metadata !== undefined && metadata !== null}
 						<div>
 							<dt>Metadata</dt>
@@ -177,7 +225,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const metadata = entity.metadata ?? selection.entitySelector.metadata ?? prefetched.metadata}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const metadata = resolvedEntity.metadata}
 					{#if metadata !== undefined && metadata !== null}
 						<div>
 							<dt>Metadata</dt>
@@ -188,15 +237,42 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<div>
+				<dt>Network</dt>
+				<dd>
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
 		</dl>
 
-		<ResourceBoundary resource={cosmosGovernanceProposal}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						summary: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const summary = entity.summary ?? selection.entitySelector.summary ?? prefetched.summary}
-				{#if summary === undefined || summary === null || summary === ''}
-					<p data-text="muted">No proposal summary available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const summary = resolvedEntity.summary}
+				{#if summary !== undefined && summary !== null && summary !== ''}
 					{String((summary) ?? '')}
+				{:else}
+					<p data-text="muted">No proposal summary available.</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,8 +41,13 @@
 		selection={
 			select(EntityType.RssFeed, {
 				feedUrl: decodeURIComponent(params.feedKey),
-			})[EntityProxyField]<EntityType.RssItem>('$$items')
+			})[EntityProxyField]<EntityType.RssItem>('$$items', {
+				sources: [
+					Source.Rss_Rest,
+					Source.Rss2Json_Rest,
+				],
+			})
 		}
-		id='RssItemsView-page'
+		id='items'
 	/>
 </Page>

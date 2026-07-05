@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Polkadot blocks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					blockNumber: true,
 					hash: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(polkadotBlocks)}
 			{@const uniquePolkadotBlocks = [...new Map(polkadotBlocks.values.map((polkadotBlock) => [polkadotBlock[EntityMetaKey.SelectorKey], polkadotBlock])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotBlocks.values.length === uniquePolkadotBlocks.length && polkadotBlocks.totalCount != null && polkadotBlocks.totalCount >= uniquePolkadotBlocks.length ? polkadotBlocks.totalCount : uniquePolkadotBlocks.length}
+				totalCount={polkadotBlocks.totalCount}
 				getKey={(polkadotBlock) => polkadotBlock[EntityMetaKey.SelectorKey]}
 				items={uniquePolkadotBlocks}
 			>
@@ -111,16 +100,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: polkadotBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotBlock> })}
+					{@const polkadotBlockFields = { ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }}
+					{@const polkadotBlockHrefFields = { ...polkadotBlock, ...polkadotBlock[EntityMetaKey.Selector] }}
 					<PolkadotBlockView
+						selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector])}
+						prefetched={polkadotBlockFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]', {
-								networkSlug: String(({ ...polkadotBlock.entitySelector, ...polkadotBlock }).$network.slug),
-								blockNumber: String(({ ...polkadotBlock.entitySelector, ...polkadotBlock }).blockNumber),
-								hash: String(({ ...polkadotBlock.entitySelector, ...polkadotBlock }).hash),
-							})
+							(polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.caip2 !== undefined && polkadotBlockHrefFields.$network.caip2.namespace !== undefined && polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.caip2 !== undefined && polkadotBlockHrefFields.$network.caip2.reference !== undefined && polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]', {
+								networkSlug: String(networkByCaip2[String(String(polkadotBlockHrefFields.$network.caip2.namespace) + ':' + String(polkadotBlockHrefFields.$network.caip2.reference))].slug ?? ''),
+								blockNumber: String(polkadotBlockHrefFields.blockNumber ?? ''),
+								hash: String(polkadotBlockHrefFields.hash ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.PolkadotBlock, polkadotBlock.entitySelector)}
-						prefetched={polkadotBlock}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

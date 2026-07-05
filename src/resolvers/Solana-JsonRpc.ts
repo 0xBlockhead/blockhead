@@ -23,9 +23,13 @@ import { SolanaAccount_TimestampSelector } from '$/schema/SolanaAccount_Timestam
 import { SolanaProgramSelector } from '$/schema/SolanaProgram.ts'
 import { SolanaTokenMintSelector } from '$/schema/SolanaTokenMint.ts'
 import { SolanaTokenMint_TimestampSelector } from '$/schema/SolanaTokenMint_Timestamp.ts'
+import { SolanaTokenAccountSelector } from '$/schema/SolanaTokenAccount.ts'
+import { SolanaTokenAccount_TimestampSelector } from '$/schema/SolanaTokenAccount_Timestamp.ts'
 import { SolanaValidatorSelector } from '$/schema/SolanaValidator.ts'
 import { SolanaValidator_TimestampSelector } from '$/schema/SolanaValidator_Timestamp.ts'
 import { SolanaNetworkSelector } from '$/schema/SolanaNetwork.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 
 const solanaMainnetCaip2 = networkBySlug.solana.caip2
 
@@ -85,7 +89,9 @@ const solanaTransactionTimestampFields = (
 		} } | { slug: string }
 		signature: string
 	},
-	transaction: SolanaRpcTransactionWithMeta,
+	transaction: SolanaRpcTransactionWithMeta & {
+		blockTime?: number
+	},
 	slot: bigint
 ) => ({
 	[EntityMetaKey.Selector]: {
@@ -98,6 +104,9 @@ const solanaTransactionTimestampFields = (
 	},
 	slot,
 	source: Source.Solana_JsonRpc,
+	...(transaction.blockTime != null && {
+		timestampMs: transaction.blockTime * 1000,
+	}),
 	...(transaction.meta != null && {
 		feeLamports: BigInt(transaction.meta.fee),
 		...(transaction.meta.computeUnitsConsumed != null && {
@@ -250,6 +259,7 @@ const solanaValidatorTimestampFields = (
 	delinquent,
 	lastVoteSlot: BigInt(voteAccount.lastVote),
 	rootSlot: BigInt(voteAccount.rootSlot),
+	epochCredits: voteAccount.epochCredits,
 })
 
 const getTransaction = async ({ $network, signature }: {
@@ -316,6 +326,62 @@ const solanaValidatorRows = (
 		})),
 	]
 )
+
+const solanaTokenAccountTimestampFields = (
+	tokenAccount: {
+		$network: { caip2: {
+			namespace: string
+			reference: string
+		} } | { slug: string }
+		tokenAccountPubkey: string
+	},
+	info: {
+		mint: string
+		owner: string
+		tokenAmount: {
+			amount: string
+			decimals: number
+			uiAmountString?: string
+		}
+		state?: string
+		isNative?: boolean
+		delegate?: string
+		delegatedAmount?: {
+			amount: string
+		}
+		rentExemptReserve?: {
+			amount: string
+		}
+		closeAuthority?: string
+	},
+	slot: bigint
+) => ({
+	[EntityMetaKey.Selector]: {
+		$tokenAccount: tokenAccount,
+		slot,
+		source: Source.Solana_JsonRpc,
+	},
+	$tokenAccount: {
+		[EntityMetaKey.Selector]: tokenAccount,
+	} satisfies Entity<typeof schema, EntityType.SolanaTokenAccount>,
+	slot,
+	source: Source.Solana_JsonRpc,
+	amount: BigInt(info.tokenAmount.amount),
+	decimals: info.tokenAmount.decimals,
+	uiAmountString: info.tokenAmount.uiAmountString,
+	state: info.state,
+	isNative: info.isNative,
+	ownerPubkey: info.owner,
+	mintAddress: info.mint,
+	delegatePubkey: info.delegate,
+	closeAuthorityPubkey: info.closeAuthority,
+	...(info.delegatedAmount != null && {
+		delegatedAmount: BigInt(info.delegatedAmount.amount),
+	}),
+	...(info.rentExemptReserve != null && {
+		rentExemptReserveLamports: BigInt(info.rentExemptReserve.amount),
+	}),
+})
 
 export default {
 	source: Source.Solana_JsonRpc,
@@ -530,11 +596,18 @@ export default {
 					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 					const transaction = await getTransaction($transaction)
 					if (BigInt(transaction.slot) !== slot) throw new Error('Solana_JsonRpc: SolanaTransaction_Timestamp id does not match transaction slot')
-					return solanaTransactionTimestampFields(
-						$transaction,
-						transaction,
-						slot
-					)
+					const { getSignatureStatuses } = await import('$/sources/Solana/JsonRpc/queries.ts')
+					return {
+						...solanaTransactionTimestampFields(
+							$transaction,
+							transaction,
+							slot
+						),
+						confirmationStatus: (await getSignatureStatuses({
+							rpcUrl: await solanaMainnetRpcUrl(),
+							signatures: [$transaction.signature],
+						})).value[0]?.confirmationStatus,
+					}
 				},
 			},
 		})({
@@ -542,10 +615,11 @@ export default {
 				$transaction: (timestamp) => timestamp.$transaction,
 				slot: (timestamp) => timestamp.slot,
 				source: (timestamp) => timestamp.source,
-				timestampMs: () => undefined,
+				timestampMs: (timestamp) => timestamp.timestampMs,
 				feeLamports: (timestamp) => timestamp.feeLamports,
 				computeUnitsConsumed: (timestamp) => timestamp.computeUnitsConsumed,
 				status: (timestamp) => timestamp.status,
+				confirmationStatus: (timestamp) => timestamp.confirmationStatus,
 				err: (timestamp) => timestamp.err,
 			},
 		}),
@@ -749,6 +823,7 @@ export default {
 						source,
 						supply: BigInt(accountInfo.value.data.parsed.info.supply),
 						decimals: accountInfo.value.data.parsed.info.decimals,
+						isInitialized: accountInfo.value.data.parsed.info.isInitialized,
 						mintAuthorityPubkey: accountInfo.value.data.parsed.info.mintAuthority ?? undefined,
 						freezeAuthorityPubkey: accountInfo.value.data.parsed.info.freezeAuthority ?? undefined,
 					}
@@ -761,8 +836,122 @@ export default {
 				source: (timestamp) => timestamp.source,
 				supply: (timestamp) => timestamp.supply,
 				decimals: (timestamp) => timestamp.decimals,
+				isInitialized: (timestamp) => timestamp.isInitialized,
 				mintAuthorityPubkey: (timestamp) => timestamp.mintAuthorityPubkey,
 				freezeAuthorityPubkey: (timestamp) => timestamp.freezeAuthorityPubkey,
+			},
+		}),
+
+		defineResolver(Source.Solana_JsonRpc, {
+			entityType: EntityType.SolanaTokenAccount,
+			resolve: {
+				[SolanaTokenAccountSelector.NetworkTokenAccountPubkey]: async ({ $network, tokenAccountPubkey }) => {
+					assertSolanaMainnet($network)
+					const { getParsedTokenAccountInfo, getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+					const accountInfo = await getParsedTokenAccountInfo({
+						rpcUrl: await solanaMainnetRpcUrl(),
+						pubkey: tokenAccountPubkey,
+					})
+					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${tokenAccountPubkey}`)
+					const info = accountInfo.value.data.parsed.info
+					return {
+						$account: {
+							[EntityMetaKey.Selector]: {
+								$network,
+								pubkey: tokenAccountPubkey,
+							},
+						},
+						$mint: {
+							[EntityMetaKey.Selector]: {
+								$network,
+								mintAddress: info.mint,
+							},
+						},
+						$owner: {
+							[EntityMetaKey.Selector]: {
+								$network,
+								pubkey: info.owner,
+							},
+						},
+						...(info.delegate != null && {
+							$delegate: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									pubkey: info.delegate,
+								},
+							},
+						}),
+						...(info.closeAuthority != null && {
+							$closeAuthority: {
+								[EntityMetaKey.Selector]: {
+									$network,
+									pubkey: info.closeAuthority,
+								},
+							},
+						}),
+						$$timestamps: [
+							{
+								[EntityMetaKey.Selector]: {
+									$tokenAccount: {
+										$network,
+										tokenAccountPubkey,
+									},
+									slot: BigInt(await getSlot({
+										rpcUrl: await solanaMainnetRpcUrl(),
+									})),
+									source: Source.Solana_JsonRpc,
+								},
+							},
+						],
+					}
+				}
+			},
+		})({
+			fields: {
+				$account: (account) => account.$account,
+				$mint: (account) => account.$mint,
+				$owner: (account) => account.$owner,
+				$delegate: (account) => account.$delegate,
+				$closeAuthority: (account) => account.$closeAuthority,
+				$$timestamps: (account) => account.$$timestamps,
+			},
+		}),
+
+		defineResolver(Source.Solana_JsonRpc, {
+			entityType: EntityType.SolanaTokenAccount_Timestamp,
+			resolve: {
+				[SolanaTokenAccount_TimestampSelector.TokenAccountSlotSource]: async ({ $tokenAccount, slot, source }) => {
+					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
+					assertSolanaMainnet($tokenAccount.$network)
+					const { getParsedTokenAccountInfo } = await import('$/sources/Solana/JsonRpc/queries.ts')
+					const accountInfo = await getParsedTokenAccountInfo({
+						rpcUrl: await solanaMainnetRpcUrl(),
+						pubkey: $tokenAccount.tokenAccountPubkey,
+					})
+					if (accountInfo.value == null) throw new Error(`Solana_JsonRpc: token account not found for address ${$tokenAccount.tokenAccountPubkey}`)
+					return solanaTokenAccountTimestampFields(
+						$tokenAccount,
+						accountInfo.value.data.parsed.info,
+						slot
+					)
+				},
+			},
+		})({
+			fields: {
+				$tokenAccount: (timestamp) => timestamp.$tokenAccount,
+				slot: (timestamp) => timestamp.slot,
+				source: (timestamp) => timestamp.source,
+				amount: (timestamp) => timestamp.amount,
+				decimals: (timestamp) => timestamp.decimals,
+				uiAmountString: (timestamp) => timestamp.uiAmountString,
+				state: (timestamp) => timestamp.state,
+				isNative: (timestamp) => timestamp.isNative,
+				delegatedAmount: (timestamp) => timestamp.delegatedAmount,
+				rentExemptReserveLamports: (timestamp) => timestamp.rentExemptReserveLamports,
+				ownerPubkey: (timestamp) => timestamp.ownerPubkey,
+				mintAddress: (timestamp) => timestamp.mintAddress,
+				delegatePubkey: (timestamp) => timestamp.delegatePubkey,
+				closeAuthorityPubkey: (timestamp) => timestamp.closeAuthorityPubkey,
 			},
 		}),
 
@@ -853,6 +1042,7 @@ export default {
 				delinquent: (timestamp) => timestamp.delinquent,
 				lastVoteSlot: (timestamp) => timestamp.lastVoteSlot,
 				rootSlot: (timestamp) => timestamp.rootSlot,
+				epochCredits: (timestamp) => timestamp.epochCredits,
 			},
 		}),
 

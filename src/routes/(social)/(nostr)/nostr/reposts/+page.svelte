@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,13 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			})[EntityProxyField]<EntityType.NostrRepost>('$$sourceWindowReposts')
+			})[EntityProxyField]<EntityType.NostrRepost>('$$sourceWindowReposts', {
+				sources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+			})
 		}
-		id='NostrRepostsView-page'
+		id='source-window-reposts'
 	/>
 </Page>

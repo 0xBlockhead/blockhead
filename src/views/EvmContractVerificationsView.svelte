@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM contract verifications',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM contract verifications...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					match: true,
 					runtimeMatch: true,
 					$contract: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmContractVerification}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmContractVerifications)}
 			{@const uniqueEvmContractVerifications = [...new Map(evmContractVerifications.values.map((evmContractVerification) => [evmContractVerification[EntityMetaKey.SelectorKey], evmContractVerification])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmContractVerifications.values.length === uniqueEvmContractVerifications.length && evmContractVerifications.totalCount != null && evmContractVerifications.totalCount >= uniqueEvmContractVerifications.length ? evmContractVerifications.totalCount : uniqueEvmContractVerifications.length}
+				totalCount={evmContractVerifications.totalCount}
 				getKey={(evmContractVerification) => evmContractVerification[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmContractVerifications}
 			>
@@ -112,16 +99,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmContractVerification }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmContractVerification> })}
+					{@const evmContractVerificationFields = { ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }}
+					{@const evmContractVerificationHrefFields = { ...evmContractVerification, ...evmContractVerification[EntityMetaKey.Selector] }}
 					<EvmContractVerificationView
+						selection={select(EntityType.EvmContractVerification, evmContractVerification[EntityMetaKey.Selector])}
+						prefetched={evmContractVerificationFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]/verification', {
-								caip2: `${String(({ ...evmContractVerification.entitySelector, ...evmContractVerification }).caip2.namespace)}:${String(({ ...evmContractVerification.entitySelector, ...evmContractVerification }).caip2.reference)}`,
-								address: String(({ ...evmContractVerification.entitySelector, ...evmContractVerification }).$contract.address),
-							})
+							(evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.$network !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2 !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2.namespace !== undefined && evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.$network !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2 !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2.reference !== undefined && evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]/verification', {
+								caip2: `${String(evmContractVerificationHrefFields.$contract.$network.caip2.namespace ?? '')}:${String(evmContractVerificationHrefFields.$contract.$network.caip2.reference ?? '')}`,
+								address: String(evmContractVerificationHrefFields.$contract.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmContractVerification, evmContractVerification.entitySelector)}
-						prefetched={evmContractVerification}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

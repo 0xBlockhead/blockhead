@@ -20,7 +20,7 @@
 		selection,
 		title = 'Farcaster',
 		typeAnnotationParagraphs = ['Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from configured Farcaster sources.'],
-		placeholderText = 'Loading Farcaster...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,27 +64,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(farcasterNetworks)}
 			{@const uniqueFarcasterNetworks = [...new Map(farcasterNetworks.values.map((farcasterNetwork) => [farcasterNetwork[EntityMetaKey.SelectorKey], farcasterNetwork])).values()]}
 			<EntitiesList
@@ -96,7 +83,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterNetworks.values.length === uniqueFarcasterNetworks.length && farcasterNetworks.totalCount != null && farcasterNetworks.totalCount >= uniqueFarcasterNetworks.length ? farcasterNetworks.totalCount : uniqueFarcasterNetworks.length}
+				totalCount={farcasterNetworks.totalCount}
 				getKey={(farcasterNetwork) => farcasterNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueFarcasterNetworks}
 			>
@@ -109,9 +96,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: farcasterNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterNetwork> })}
+					{@const farcasterNetworkFields = { ...farcasterNetwork[EntityMetaKey.Selector], ...farcasterNetwork }}
 					<FarcasterNetworkView
-						selection={select(EntityType.FarcasterNetwork, farcasterNetwork.entitySelector)}
-						prefetched={farcasterNetwork}
+						selection={select(EntityType.FarcasterNetwork, farcasterNetwork[EntityMetaKey.Selector])}
+						prefetched={farcasterNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

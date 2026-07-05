@@ -1,0 +1,123 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'Filecoin sectors',
+		typeAnnotationParagraphs = [],
+		placeholderText,
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'FilecoinSectors-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.FilecoinSector>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import FilecoinSectorView from '$/views/FilecoinSectorView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection({
+				fields: {
+					sectorNumber: true,
+					$miner: true,
+					sealedCid: true,
+				},
+			})
+		}
+		{placeholderText}
+	>
+		{#snippet children(filecoinSectors)}
+			{@const uniqueFilecoinSectors = [...new Map(filecoinSectors.values.map((filecoinSector) => [filecoinSector[EntityMetaKey.SelectorKey], filecoinSector])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FilecoinSector}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={filecoinSectors.totalCount}
+				getKey={(filecoinSector) => filecoinSector[EntityMetaKey.SelectorKey]}
+				items={uniqueFilecoinSectors}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Filecoin sectors yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: filecoinSector }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinSector> })}
+					{@const filecoinSectorFields = { ...filecoinSector[EntityMetaKey.Selector], ...filecoinSector }}
+					<FilecoinSectorView
+						selection={select(EntityType.FilecoinSector, filecoinSector[EntityMetaKey.Selector])}
+						prefetched={filecoinSectorFields}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.FilecoinSector}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

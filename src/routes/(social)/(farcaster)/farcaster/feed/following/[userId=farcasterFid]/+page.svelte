@@ -50,6 +50,6 @@
 				],
 			})
 		}
-		id='FarcasterCastsView-page'
+		id='entries'
 	/>
 </Page>

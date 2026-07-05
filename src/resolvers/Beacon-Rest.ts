@@ -24,6 +24,7 @@ import { BeaconValidatorSelector } from '$/schema/BeaconValidator.ts'
 import { BeaconCommitteeSelector } from '$/schema/BeaconCommittee.ts'
 import { BeaconSyncCommitteeSelector } from '$/schema/BeaconSyncCommittee.ts'
 import { BeaconAttestationSelector } from '$/schema/BeaconAttestation.ts'
+import { BeaconSlashingSelector } from '$/schema/BeaconSlashing.ts'
 import { BeaconWithdrawalSelector } from '$/schema/BeaconWithdrawal.ts'
 import { EthereumBeaconFinality_TimestampSelector } from '$/schema/EthereumBeaconFinality_Timestamp.ts'
 import { EthereumConsensusUpgradeSelector } from '$/schema/EthereumConsensusUpgrade.ts'
@@ -89,6 +90,25 @@ export default {
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
 			resolve: {
+				[BeaconSlotSelector.EvmNetworkSlot]: async ({ slot }) => ({
+					epoch: Math.floor(slot / slotsPerEpoch),
+				}),
+			},
+		})({
+			fields: {
+				epoch: (slot) => slot.epoch,
+				$epoch: (slot, { $network }) => ({
+					[EntityMetaKey.Selector]: {
+						$network,
+						epoch: slot.epoch,
+					},
+				}),
+			},
+		}),
+
+		defineResolver(Source.Beacon_Rest, {
+			entityType: EntityType.BeaconSlot,
+			resolve: {
 				[BeaconSlotSelector.EvmNetworkSlot]: async ({ $network, slot }) => {
 					const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 					const header = await getHeader(
@@ -98,7 +118,6 @@ export default {
 					return {
 						bodyRoot: with0xHex(header.bodyRoot),
 						...(header.canonical != null && { canonical: header.canonical }),
-						epoch: Math.floor(header.slot / slotsPerEpoch),
 						parentRoot: with0xHex(header.parentRoot),
 						proposerIndex: header.proposerIndex,
 						root: with0xHex(header.root),
@@ -111,7 +130,6 @@ export default {
 			fields: {
 				bodyRoot: (slot) => slot.bodyRoot,
 				canonical: (slot) => slot.canonical,
-				epoch: (slot) => slot.epoch,
 				parentRoot: (slot) => slot.parentRoot,
 				proposerIndex: (slot) => slot.proposerIndex,
 				root: (slot) => slot.root,
@@ -261,6 +279,38 @@ export default {
 				$validator: (withdrawal) => withdrawal.$validator,
 				$account: (withdrawal) => withdrawal.$account,
 				amountGwei: (withdrawal) => withdrawal.amountGwei,
+			},
+		}),
+
+		defineResolver(Source.Beacon_Rest, {
+			entityType: EntityType.BeaconSlashing,
+			resolve: {
+				[BeaconSlashingSelector.EvmNetworkSlotKindIndexInSlot]: async ({ $network, slot, kind, indexInSlot }) => {
+					const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+					const slashing = (
+						await getBlockDutySummary(
+							await requireBeaconRestBaseUrl(Number($network.caip2.reference)),
+							slot
+						)
+					).slashings.find((candidate) => (
+						candidate.kind === kind
+						&& candidate.index === indexInSlot
+					))
+					if (slashing == null) throw new Error('Beacon_Rest: slashing not found')
+					return {
+						$network,
+						slot,
+						kind: slashing.kind,
+						indexInSlot: slashing.index,
+					}
+				},
+			},
+		})({
+			fields: {
+				$network: (slashing) => slashing.$network,
+				slot: (slashing) => slashing.slot,
+				kind: (slashing) => slashing.kind,
+				indexInSlot: (slashing) => slashing.indexInSlot,
 			},
 		}),
 

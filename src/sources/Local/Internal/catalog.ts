@@ -137,6 +137,80 @@ export type NormalizedBlockheadSharedAddress = {
 	sharedAt: number
 }
 
+export type NormalizedBlockheadSiweChallenge = {
+	id: string
+	chainId: number
+	roomId: string
+	fromPeerId: string
+	toPeerId: string
+	signerAddress: string
+	message: string
+	scheme?: string
+	domain: string
+	address: string
+	uri: string
+	version: string
+	nonce: string
+	statement?: string
+	issuedAt: number
+	expiresAt?: number
+	notBefore?: number
+	requestId?: string
+	resources: readonly string[]
+	requestOrigin?: string
+	signature?: string
+	signatureKind?: string
+	verified: boolean
+	verificationMethod?: string
+	verifiedAt?: number
+	verificationError?: string
+}
+
+export type NormalizedBlockheadTransferRequest = {
+	id: string
+	chainId: number
+	roomId: string
+	from: string
+	to: string
+	allocations: readonly {
+		destination: string
+		token: string
+		amount: bigint
+	}[]
+	status: string
+	createdAt: number
+	expiresAt: number
+}
+
+export type NormalizedBlockheadSocialPostSession = {
+	id: string
+	name?: string
+	status: 'Draft' | 'Submitted' | 'Finalized'
+	protocol: 'Farcaster'
+	authorId: number
+	createdAt: number
+	updatedAt: number
+	lockedAt?: number
+}
+
+export type NormalizedBlockheadFilecoinPendingMessage = {
+	nodeId: string
+	messageCid: string
+	observedAtMs: number
+	networkCaip2Reference?: string
+	fromAddress?: string
+	toAddress?: string
+	nonce?: bigint
+	method?: number
+	valueAttoFil?: bigint
+	gasLimit?: bigint
+	gasFeeCapAttoFil?: bigint
+	gasPremiumAttoFil?: bigint
+	signatureType?: number
+	local?: boolean
+	payload?: unknown
+}
+
 export type NormalizedStateChannelAsset =
 	| { kind: 'native' }
 	| {
@@ -261,6 +335,10 @@ export type NormalizedLocalInternal = {
 	stateChannelStates: readonly NormalizedStateChannelState[]
 	stateChannelDeposits: readonly NormalizedStateChannelDeposit[]
 	blockheadSharedAddresses: readonly NormalizedBlockheadSharedAddress[]
+	blockheadSiweChallenges: readonly NormalizedBlockheadSiweChallenge[]
+	blockheadTransferRequests: readonly NormalizedBlockheadTransferRequest[]
+	blockheadSocialPostSessions: readonly NormalizedBlockheadSocialPostSession[]
+	blockheadFilecoinPendingMessages: readonly NormalizedBlockheadFilecoinPendingMessage[]
 	evmSelectors: readonly NormalizedEvmSelector[]
 	evmTopics: readonly NormalizedEvmTopic[]
 	evmErrors: readonly NormalizedEvmError[]
@@ -426,6 +504,72 @@ const probeBlockheadSharedAddress = {
 	targetPeerIds: [],
 	sharedAt: 0,
 } as const satisfies NormalizedBlockheadSharedAddress
+
+const probeBlockheadSiweChallenge = {
+	id: 'e2e-probe-siwe-challenge',
+	chainId: 1,
+	roomId: probeBlockheadRoom.id,
+	fromPeerId: probeBlockheadRoomPeer.peerId,
+	toPeerId: 'e2e-peer-2',
+	signerAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+	message: 'e2e.blockhead.dev wants you to sign in with your Ethereum account.',
+	domain: 'e2e.blockhead.dev',
+	address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+	uri: 'https://e2e.blockhead.dev',
+	version: '1',
+	nonce: 'e2e-probe-nonce',
+	statement: 'E2E probe SIWE challenge.',
+	issuedAt: 1_700_000_000_000,
+	resources: [],
+	verified: true,
+	verificationMethod: 'local-probe',
+	verifiedAt: 1_700_000_000_001,
+} as const satisfies NormalizedBlockheadSiweChallenge
+
+const probeBlockheadTransferRequest = {
+	id: 'e2e-probe-transfer-request',
+	chainId: 1,
+	roomId: probeBlockheadRoom.id,
+	from: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+	to: '0x0000000000000000000000000000000000000001',
+	allocations: [
+		{
+			destination: '0x0000000000000000000000000000000000000001',
+			token: '0x0000000000000000000000000000000000000000',
+			amount: 1_000_000_000_000_000n,
+		},
+	],
+	status: 'pending',
+	createdAt: 1_700_000_000_000,
+	expiresAt: 1_700_003_600_000,
+} as const satisfies NormalizedBlockheadTransferRequest
+
+const probeBlockheadSocialPostSession = {
+	id: 'e2e-probe-social-post-session',
+	name: 'E2E probe Farcaster post',
+	status: 'Draft',
+	protocol: 'Farcaster',
+	authorId: 3,
+	createdAt: 1_700_000_000_000,
+	updatedAt: 1_700_000_000_001,
+} as const satisfies NormalizedBlockheadSocialPostSession
+
+const probeBlockheadFilecoinPendingMessage = {
+	nodeId: 'e2e-probe-filecoin-node',
+	messageCid: 'bafy2bzacebe2eprobe',
+	observedAtMs: 1_700_000_000_000,
+	networkCaip2Reference: '314',
+	fromAddress: 'f01234',
+	toAddress: 'f05678',
+	nonce: 1n,
+	method: 0,
+	valueAttoFil: 0n,
+	gasLimit: 10_000_000n,
+	gasFeeCapAttoFil: 1n,
+	gasPremiumAttoFil: 1n,
+	signatureType: 1,
+	local: true,
+} as const satisfies NormalizedBlockheadFilecoinPendingMessage
 
 const probeStateChannel = {
 	id: 'e2e-probe-state-channel',
@@ -641,6 +785,10 @@ const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
 	stateChannelStates: probeStateChannelStates,
 	stateChannelDeposits: [probeStateChannelDeposit],
 	blockheadSharedAddresses: [probeBlockheadSharedAddress],
+	blockheadSiweChallenges: [probeBlockheadSiweChallenge],
+	blockheadTransferRequests: [probeBlockheadTransferRequest],
+	blockheadSocialPostSessions: [probeBlockheadSocialPostSession],
+	blockheadFilecoinPendingMessages: [probeBlockheadFilecoinPendingMessage],
 	evmSelectors: defaultEvmSelectors,
 	evmTopics: defaultEvmTopics,
 	evmErrors: defaultEvmErrors,

@@ -21,6 +21,31 @@ export enum NetworkNamespace {
 	ZeroG = 'ZeroG',
 }
 
+export enum Caip2Namespace {
+	Bip122 = 'bip122',
+	Cosmos = 'cosmos',
+	Eip155 = 'eip155',
+	Fil = 'fil',
+	Monero = 'monero',
+	Polkadot = 'polkadot',
+	Solana = 'solana',
+}
+
+export enum Caip2Reference {
+	Bitcoin = '000000000019d6689c085ae165831e93',
+	BitcoinCash = '000000000000000000651ef99cb9fcbe',
+	CosmosHub = 'cosmoshub-4',
+	Dogecoin = '1a91e3dace36e2be3bf030a65679fe82',
+	EthereumMainnet = '1',
+	Optimism = '10',
+	Filecoin = 'f',
+	Litecoin = '12a765e31ffd4059bada1e25190f6e98',
+	Monero = '418015bb9ae982a1975da7d79277c270',
+	Polkadot = '91b171bb158e2d3848fa23a9f1c25182',
+	SolanaMainnet = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+	Zcash = '00040fe8ec8471911baa1db1266ea15',
+}
+
 export enum NetworkEnvironment {
 	Mainnet = 'Mainnet',
 	Testnet = 'Testnet',
@@ -112,6 +137,16 @@ export const networks = [
 		caip2: {
 			namespace: 'eip155',
 			reference: '1',
+		},
+		namespace: NetworkNamespace.Evm,
+		environment: NetworkEnvironment.Mainnet,
+	},
+	{
+		slug: 'optimism',
+		name: 'Optimism',
+		caip2: {
+			namespace: 'eip155',
+			reference: '10',
 		},
 		namespace: NetworkNamespace.Evm,
 		environment: NetworkEnvironment.Mainnet,
@@ -263,6 +298,11 @@ export const networkResourceUrls = [
 		networkSlug: 'liquid',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://blockstream.info/liquid/',
+	},
+	{
+		networkSlug: 'optimism',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://optimistic.etherscan.io/',
 	},
 	{
 		networkSlug: 'litecoin',

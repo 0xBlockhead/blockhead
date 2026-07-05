@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM networks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM networks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -75,29 +75,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$icon: true,
 					name: true,
 					caip2: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-			/>
-		{/snippet}
-
 		{#snippet children(evmNetworks)}
 			{@const uniqueEvmNetworks = [...new Map(evmNetworks.values.map((evmNetwork) => [evmNetwork[EntityMetaKey.SelectorKey], evmNetwork])).values()]}
 			<EntitiesList
@@ -109,7 +96,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmNetworks.values.length === uniqueEvmNetworks.length && evmNetworks.totalCount != null && evmNetworks.totalCount >= uniqueEvmNetworks.length ? evmNetworks.totalCount : uniqueEvmNetworks.length}
+				totalCount={evmNetworks.totalCount}
 				getKey={(evmNetwork) => evmNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmNetworks}
 			>
@@ -122,17 +109,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetwork> })}
+					{@const evmNetworkFields = { ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }}
+					{@const evmNetworkHrefFields = { ...evmNetwork, ...evmNetwork[EntityMetaKey.Selector] }}
 					<EvmNetworkView
+						selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
+						prefetched={evmNetworkFields}
 						href={
-							(({ ...evmNetwork.entitySelector, ...evmNetwork })?.caip2 != null && ({ ...evmNetwork.entitySelector, ...evmNetwork })?.caip2?.namespace != null && ({ ...evmNetwork.entitySelector, ...evmNetwork })?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(({ ...evmNetwork.entitySelector, ...evmNetwork }).caip2.namespace)}:${String(({ ...evmNetwork.entitySelector, ...evmNetwork }).caip2.reference)}`,
-							}) : ({ ...evmNetwork.entitySelector, ...evmNetwork })?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(({ ...evmNetwork.entitySelector, ...evmNetwork }).slug),
+							(evmNetworkHrefFields.caip2 !== undefined && evmNetworkHrefFields.caip2.namespace !== undefined && evmNetworkHrefFields.caip2 !== undefined && evmNetworkHrefFields.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `${String(evmNetworkHrefFields.caip2.namespace ?? '')}:${String(evmNetworkHrefFields.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						selection={select(EntityType.EvmNetwork, evmNetwork.entitySelector)}
-						prefetched={evmNetwork}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

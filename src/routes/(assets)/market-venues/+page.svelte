@@ -31,6 +31,6 @@
 				scope: '$$marketVenues',
 			})[EntityProxyField]<EntityType.MarketVenue>('$$marketVenues')
 		}
-		id='MarketVenuesView-page'
+		id='market-venues'
 	/>
 </Page>

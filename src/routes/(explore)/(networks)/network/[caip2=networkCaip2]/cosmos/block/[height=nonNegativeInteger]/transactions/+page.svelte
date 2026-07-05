@@ -47,6 +47,6 @@
 				height: BigInt(params.height),
 			})[EntityProxyField]<EntityType.CosmosTransaction>('$$transactions')
 		}
-		id='CosmosTransactionsView-page'
+		id='transactions'
 	/>
 </Page>

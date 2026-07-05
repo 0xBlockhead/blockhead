@@ -21,7 +21,7 @@
 		selection,
 		title = 'YouTube Data API',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading YouTube Data API...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.YoutubeNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(youtubeNetworks)}
 			{@const uniqueYoutubeNetworks = [...new Map(youtubeNetworks.values.map((youtubeNetwork) => [youtubeNetwork[EntityMetaKey.SelectorKey], youtubeNetwork])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={youtubeNetworks.values.length === uniqueYoutubeNetworks.length && youtubeNetworks.totalCount != null && youtubeNetworks.totalCount >= uniqueYoutubeNetworks.length ? youtubeNetworks.totalCount : uniqueYoutubeNetworks.length}
+				totalCount={youtubeNetworks.totalCount}
 				getKey={(youtubeNetwork) => youtubeNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueYoutubeNetworks}
 			>
@@ -110,10 +97,12 @@
 				{/snippet}
 
 				{#snippet Item({ item: youtubeNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubeNetwork> })}
+					{@const youtubeNetworkFields = { ...youtubeNetwork[EntityMetaKey.Selector], ...youtubeNetwork }}
+					{@const youtubeNetworkHrefFields = { ...youtubeNetwork, ...youtubeNetwork[EntityMetaKey.Selector] }}
 					<YoutubeNetworkView
+						selection={select(EntityType.YoutubeNetwork, youtubeNetwork[EntityMetaKey.Selector])}
+						prefetched={youtubeNetworkFields}
 						href={resolve('/(social)/(youtube)/youtube/api')}
-						selection={select(EntityType.YoutubeNetwork, youtubeNetwork.entitySelector)}
-						prefetched={youtubeNetwork}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

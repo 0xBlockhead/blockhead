@@ -73,7 +73,6 @@ export const internetComputerBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:IC_BOUNDARY_URL',
-				origin: 'env:IC_BOUNDARY_URL',
 				corsEnabled: false,
 			},
 		],
@@ -100,7 +99,6 @@ export const internetComputerBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:IC_ROSETTA_URL',
-				origin: 'env:IC_ROSETTA_URL',
 				corsEnabled: false,
 			},
 		],

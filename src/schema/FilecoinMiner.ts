@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum FilecoinMinerSelector {
-	NetworkMinerAddress = 'networkMinerAddress',
+	NetworkMinerAddress = 'NetworkMinerAddress',
 }
 export default {
 	entityType: EntityType.FilecoinMiner,
@@ -23,53 +23,72 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'minerAddress',
-			label: 'miner address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'minerAddress',
+				label: 'Miner address',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$owner',
-			label: 'owner',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.FilecoinActor,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$owner',
+				label: 'Owner',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.FilecoinActor,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 		{
-			name: '$worker',
-			label: 'worker',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.FilecoinActor,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$worker',
+				label: 'Worker',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.FilecoinActor,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 		{
-			name: 'peerId',
-			label: 'peer ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'peerId',
+				label: 'Peer ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 		{
-			name: 'qualityAdjustedPower',
-			label: 'quality adjusted power',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'qualityAdjustedPower',
+				label: 'Quality adjusted power',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 		{
-			name: '$$sectors',
-			label: 'sectors',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.FilecoinSector,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$sectors',
+				label: 'Sectors',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.FilecoinSector,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

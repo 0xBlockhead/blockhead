@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.RssFeed_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					reachable: true,
 					sourceWindowItemCount: true,

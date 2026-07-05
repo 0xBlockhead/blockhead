@@ -42,7 +42,6 @@
 				fields: {
 					userPrompt: true,
 					createdAt: true,
-					$conversation: true,
 					status: true,
 					providerId: true,
 					promptVersion: true,

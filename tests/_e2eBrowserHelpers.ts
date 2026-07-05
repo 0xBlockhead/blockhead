@@ -1,9 +1,15 @@
 import { expect, type Locator, type Page, type TestInfo } from '@playwright/test'
 
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
+import {
+	nostrNetworkSeedNotes,
+	nostrNetworkSeedProfiles,
+	nostrNetworkSeedRelays,
+} from '$/constants/Social/Nostr.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 import { voltaireJsonRpcTransportWithOriginsByChainId } from '$/sources/Voltaire/index.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	ClientProbe as BlockheadClientProbe,
 	PersistenceTraceEvent,
@@ -897,15 +903,6 @@ const forwardBrowserConsoleLine = (
 		console.log(line)
 }
 
-const browserResourceFailureIsUpstreamNoise = (text: string) => (
-	text.startsWith('Failed to load resource')
-	&& (
-		/\b[45]\d\d\b/.test(text)
-		|| text.includes('ERR_NAME_NOT_RESOLVED')
-		|| text.includes('net::ERR_')
-	)
-)
-
 const browserConsoleErrorIsIgnored = (
 	text: string,
 	{
@@ -914,13 +911,10 @@ const browserConsoleErrorIsIgnored = (
 		ignoreTransientDevLoad?: boolean
 	} = {}
 ) => (
-	browserResourceFailureIsUpstreamNoise(text)
-	|| (
-		ignoreTransientDevLoad === true
-		&& (
-			text.includes('[vite] Failed to reload')
-			|| text.includes('Failed to fetch dynamically imported module')
-		)
+	ignoreTransientDevLoad === true
+	&& (
+		text.includes('[vite] Failed to reload')
+		|| text.includes('Failed to fetch dynamically imported module')
 	)
 	// Legacy ignore: hydrate paths historically surfaced resolver “requires query limit”; capped by the resolver context row-limit fallback now.
 	|| (
@@ -1209,6 +1203,73 @@ export const clearOriginOpfs = (page: Page) => (
 export const chainlistRpcsWire = (url: string) => (
 	url.includes('rpcs.json')
 	&& (url.includes('chainlist.org') || url.includes('api-proxy/'))
+)
+
+const bitcoinCashNodeJsonRpcWire = (
+	url: string,
+	method: string
+) => (
+	method === 'POST'
+	&& url.includes('/api-proxy/')
+	&& url.includes('127.0.0.1')
+	&& url.includes('8332')
+)
+
+const bitcoinCashCashTokenTransactionId = '9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a'
+
+const bitcoinCashNodeJsonRpcBody = (post: {
+	id?: number | string | null
+	method?: string
+	params?: JsonValue[]
+}) => (
+	post.method === 'getrawtransaction'
+	&& post.params?.[0] === bitcoinCashCashTokenTransactionId ?
+		JSON.stringify({
+			jsonrpc: '2.0',
+			id: post.id ?? 1,
+			result: {
+				txid: bitcoinCashCashTokenTransactionId,
+				hash: bitcoinCashCashTokenTransactionId,
+				version: 2,
+				size: 256,
+				vsize: 256,
+				weight: 1024,
+				locktime: 0,
+				vin: [
+					{
+						txid: '0000000000000000000000000000000000000000000000000000000000000000',
+						vout: 0,
+						scriptSig: {
+							asm: '',
+							hex: '',
+						},
+						sequence: 4_294_967_295,
+					},
+				],
+				vout: [
+					{
+						value: 0.00000546,
+						n: 0,
+						scriptPubKey: {
+							asm: 'OP_DUP OP_HASH160 e2e OP_EQUALVERIFY OP_CHECKSIG',
+							hex: '76a914000000000000000000000000000000000000000088ac',
+							address: 'bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a',
+							type: 'pubkeyhash',
+						},
+						tokenData: {
+							category: 'e2e-cash-token-category',
+							amount: '123456789',
+							nft: {
+								capability: 'mutable',
+								commitment: 'e2ec0de',
+							},
+						},
+					},
+				],
+			},
+		})
+	:
+		undefined
 )
 
 /** Matches GETs to public IPFS path gateways (`{origin}/ipfs/…` or `/ipns/…`). */
@@ -1690,6 +1751,205 @@ export const l2BeatScalingSummaryWire = (url: string, method: string) => (
 	)
 )
 
+export const substrateSidecarAccountBalanceInfoWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& decodeURIComponent(url).includes('http://127.0.0.1:8080/accounts/3/balance-info')
+)
+
+export const MOCK_SUBSTRATE_SIDECAR_ACCOUNT_BALANCE_INFO_BODY = JSON.stringify({
+	nonce: '1',
+	free: '1234567890000',
+})
+
+export const e2eSolanaTokenAccountPubkey = 'E2eTokenAccount1111111111111111111111111111'
+export const e2eSolanaTokenMintAddress = 'So11111111111111111111111111111111111111112'
+export const e2eSolanaTokenOwnerPubkey = 'ba4df886d2a7c4224bc98efb6cbf3817b0e2b7227c287b692a7c7d0a9e3e86ff'
+export const e2eSolanaSignature = 'E2eSolanaSignature11111111111111111111111111111111111111111111111'
+export const e2eSolanaProgramId = '11111111111111111111111111111111'
+export const e2eSolanaVotePubkey = 'E2eVotePubkey111111111111111111111111111111111111111'
+export const e2eSolanaNodePubkey = 'E2eNodePubkey111111111111111111111111111111111111111'
+
+export const solanaJsonRpcWire = (url: string, method: string) => (
+	method === 'POST'
+	&& (
+		url.includes('api.mainnet.solana.com')
+		|| (
+			url.includes('api-proxy/')
+			&& decodeURIComponent(url).includes('api.mainnet.solana.com')
+		)
+	)
+)
+
+export const solanaJsonRpcBody = (post: {
+	id?: JsonValue
+	method?: string
+	params?: JsonValue[]
+}) => {
+	const account = String(post.params?.[0] ?? '')
+	const encoding = (
+		post.params?.[1] != null
+		&& typeof post.params[1] === 'object'
+		&& !Array.isArray(post.params[1])
+		&& 'encoding' in post.params[1] ?
+			String(post.params[1].encoding)
+		:
+			''
+	)
+	const result = (
+		post.method === 'getSlot' ?
+			9500000
+	:
+		post.method === 'getTransaction' && account === e2eSolanaSignature ?
+			{
+				slot: 9500000,
+				blockTime: 1700000000,
+				transaction: {
+					signatures: [e2eSolanaSignature],
+					message: {
+						accountKeys: [
+							{
+								pubkey: e2eSolanaTokenOwnerPubkey,
+								signer: true,
+								writable: true,
+							},
+							{
+								pubkey: e2eSolanaProgramId,
+								signer: false,
+								writable: false,
+							},
+						],
+						instructions: [
+							{
+								programId: e2eSolanaProgramId,
+								parsed: {
+									type: 'transfer',
+								},
+								accounts: [
+									e2eSolanaTokenOwnerPubkey,
+									e2eSolanaTokenAccountPubkey,
+								],
+								stackHeight: 1,
+							},
+						],
+					},
+				},
+				meta: {
+					err: null,
+					fee: 5000,
+					computeUnitsConsumed: 1200,
+					innerInstructions: [
+						{
+							index: 0,
+							instructions: [
+								{
+									programId: e2eSolanaProgramId,
+									accounts: [
+										e2eSolanaTokenAccountPubkey,
+									],
+									data: '3Bxs',
+									stackHeight: 2,
+								},
+							],
+						},
+					],
+				},
+			}
+	:
+		post.method === 'getSignatureStatuses' ?
+			{
+				value: [
+					{
+						slot: 9500000,
+						confirmations: null,
+						err: null,
+						confirmationStatus: 'finalized',
+					},
+				],
+			}
+	:
+		post.method === 'getVoteAccounts' ?
+			{
+				current: [
+					{
+						activatedStake: 1_000_000_000,
+						commission: 5,
+						epochVoteAccount: true,
+						lastVote: 9499999,
+						nodePubkey: e2eSolanaNodePubkey,
+						rootSlot: 9499900,
+						votePubkey: e2eSolanaVotePubkey,
+					},
+				],
+				delinquent: [],
+			}
+	:
+		post.method === 'getAccountInfo' && encoding === 'jsonParsed' && account === e2eSolanaTokenAccountPubkey ?
+			{
+				value: {
+					data: {
+						parsed: {
+							info: {
+								mint: e2eSolanaTokenMintAddress,
+								owner: e2eSolanaTokenOwnerPubkey,
+								tokenAmount: {
+									amount: '123456789',
+									decimals: 9,
+									uiAmountString: '0.123456789',
+								},
+								state: 'initialized',
+								isNative: false,
+							},
+						},
+					},
+				},
+			}
+		:
+		post.method === 'getAccountInfo' && encoding === 'jsonParsed' && account === e2eSolanaTokenMintAddress ?
+			{
+				value: {
+					data: {
+						parsed: {
+							info: {
+								supply: '1000000000000',
+								decimals: 9,
+								isInitialized: true,
+							},
+						},
+					},
+				},
+			}
+		:
+		post.method === 'getAccountInfo' && (
+			account === e2eSolanaTokenAccountPubkey
+			|| account === e2eSolanaTokenOwnerPubkey
+			|| account === e2eSolanaTokenMintAddress
+			|| account === e2eSolanaProgramId
+			|| account === e2eSolanaVotePubkey
+			|| account === e2eSolanaNodePubkey
+		) ?
+			{
+				value: {
+					lamports: 1_000_000,
+					owner: e2eSolanaTokenMintAddress,
+					executable: false,
+					rentEpoch: 0,
+					data: ['', 'base64'],
+				},
+			}
+		:
+			undefined
+	)
+	return result === undefined ?
+		undefined
+	:
+		JSON.stringify({
+			jsonrpc: '2.0',
+			id: post.id ?? 1,
+			result,
+		})
+}
+
 export const MOCK_COINGECKO_ASSET_PLATFORMS_BODY = JSON.stringify([
 	{
 		id: 'ethereum',
@@ -1960,6 +2220,18 @@ export const snapchainRestWire = (url: string, method: string) => (
 )
 
 const snapchainPageBody = JSON.stringify({ messages: [] })
+const snapchainVerificationPageBody = JSON.stringify({
+	messages: [
+		{
+			data: {
+				verificationAddAddressBody: {
+					address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+					protocol: 'PROTOCOL_ETHEREUM',
+				},
+			},
+		},
+	],
+})
 const snapchainFidsBody = JSON.stringify({ fids: [3, 2] })
 const snapchainUsernameProofsBody = JSON.stringify({
 	proofs: [
@@ -1983,6 +2255,312 @@ const snapchainCastPageBody = JSON.stringify({
 	messages: [
 		snapchainCast,
 	],
+})
+
+const e2eNostrProfilePubkey = nostrNetworkSeedProfiles[0].pubkey
+const e2eNostrNoteEventId = nostrNetworkSeedNotes[0].eventId
+const e2eNostrRelayUrl = nostrNetworkSeedRelays[0].relayUrl
+const e2eNostrRepostEventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+const e2eNostrReactionEventId = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+const e2eNostrReplyEventId = 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd'
+const e2eNostrArticleEventId = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+const e2eNostrArticleIdentifier = 'blockhead-e2e-article'
+
+const e2eNostrProfileEvent = {
+	id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+	pubkey: e2eNostrProfilePubkey,
+	created_at: 1_710_000_000,
+	kind: 0,
+	tags: [],
+	content: JSON.stringify({
+		name: 'blockhead-e2e',
+		display_name: 'Blockhead E2E',
+		about: 'NostrBand e2e profile stub',
+		website: 'https://blockhead.info',
+		nip05: 'e2e@blockhead.info',
+	}),
+	sig: '0'.repeat(128),
+}
+
+const e2eNostrNoteEvent = {
+	id: e2eNostrNoteEventId,
+	pubkey: e2eNostrProfilePubkey,
+	created_at: nostrNetworkSeedNotes[0].createdAt,
+	kind: 1,
+	tags: [],
+	content: nostrNetworkSeedNotes[0].content,
+	sig: '1'.repeat(128),
+}
+
+const e2eNostrRepostEvent = {
+	id: e2eNostrRepostEventId,
+	pubkey: e2eNostrProfilePubkey,
+	created_at: 1_710_000_060,
+	kind: 6,
+	tags: [
+		['e', e2eNostrNoteEventId],
+		['p', e2eNostrProfilePubkey],
+	],
+	content: '',
+	sig: '2'.repeat(128),
+}
+
+const e2eNostrReactionEvent = {
+	id: e2eNostrReactionEventId,
+	pubkey: e2eNostrProfilePubkey,
+	created_at: 1_710_000_120,
+	kind: 7,
+	tags: [
+		['e', e2eNostrNoteEventId],
+		['p', e2eNostrProfilePubkey],
+	],
+	content: '+',
+	sig: '3'.repeat(128),
+}
+
+const e2eNostrReplyEvent = {
+	id: e2eNostrReplyEventId,
+	pubkey: e2eNostrProfilePubkey,
+	created_at: 1_710_000_180,
+	kind: 1,
+	tags: [
+		['e', e2eNostrNoteEventId, e2eNostrRelayUrl, 'root'],
+		['e', e2eNostrNoteEventId, e2eNostrRelayUrl, 'reply'],
+		['p', e2eNostrProfilePubkey],
+	],
+	content: 'Blockhead Nostr e2e reply',
+	sig: '4'.repeat(128),
+}
+
+const e2eNostrArticleEvent = {
+	id: e2eNostrArticleEventId,
+	pubkey: e2eNostrProfilePubkey,
+	created_at: 1_710_000_240,
+	kind: 30023,
+	tags: [
+		['d', e2eNostrArticleIdentifier],
+		['title', 'Blockhead E2E Nostr article'],
+		['summary', 'NostrBand e2e article stub'],
+		['published_at', '1710000240'],
+	],
+	content: 'Blockhead Nostr e2e article body',
+	sig: '5'.repeat(128),
+}
+
+const e2eNostrEventById: Record<string, object> = {
+	[e2eNostrNoteEventId]: e2eNostrNoteEvent,
+	[e2eNostrRepostEventId]: e2eNostrRepostEvent,
+	[e2eNostrReactionEventId]: e2eNostrReactionEvent,
+	[e2eNostrReplyEventId]: e2eNostrReplyEvent,
+	[e2eNostrArticleEventId]: e2eNostrArticleEvent,
+}
+
+const nostrBandRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		url.includes('api.nostr.band/v0/')
+		|| (
+			url.includes('api-proxy/')
+			&& url.includes('api.nostr.band')
+		)
+	)
+)
+
+const primalRestWire = (url: string, method: string) => (
+	(
+		method === 'GET'
+		|| method === 'POST'
+	)
+	&& (
+		url.includes('api.primal.net/v1/')
+		|| (
+			url.includes('api-proxy/')
+			&& url.includes('api.primal.net')
+		)
+	)
+)
+
+const nostrRelayNip11Wire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& decodeURIComponent(url).includes('/api-proxy/https://relay.damus.io')
+)
+
+const nostrBandRestBody = (url: string) => {
+	const decodedUrl = decodeURIComponent(url)
+	const path = decodedUrl.slice(decodedUrl.indexOf('/v0/'))
+	const eventId = path.match(/\/events\/e\/([0-9a-f]{64})(?:[/?]|$)/)?.[1]
+	const authorPubkey = path.match(/\/events\/authors\/([0-9a-f]{64})(?:[/?]|$)/)?.[1]
+
+	return JSON.stringify(
+		path.includes('/users/profile/') ?
+			{
+				pubkey: e2eNostrProfilePubkey,
+				profile: e2eNostrProfileEvent,
+				metadata: JSON.parse(e2eNostrProfileEvent.content),
+			}
+		:
+		path.includes('/stats/profile/list') ?
+			{
+				profiles: [
+					{
+						pubkey: e2eNostrProfilePubkey,
+						profile: e2eNostrProfileEvent,
+						followers_count: 1,
+						notes_count: 1,
+					},
+				],
+			}
+		:
+		path.includes('/stats/relay/list') ?
+			{
+				relays: [
+					{
+						url: e2eNostrRelayUrl,
+						name: 'relay.damus.io',
+						description: 'Nostr relay e2e stub',
+						software: 'strfry',
+						version: 'e2e',
+						nips: [1, 11],
+						is_paid: false,
+						limit: 100,
+					},
+				],
+			}
+		:
+		eventId != null && path.includes('/reply') ?
+			{
+				events: eventId === e2eNostrNoteEventId ? [e2eNostrReplyEvent] : [],
+			}
+		:
+		eventId != null && path.includes('/related') ?
+			{
+				events: eventId === e2eNostrNoteEventId ? [e2eNostrReactionEvent] : [],
+			}
+		:
+			eventId != null ?
+				{
+					event: e2eNostrEventById[eventId],
+				}
+		:
+		authorPubkey != null ?
+			{
+				events: authorPubkey === e2eNostrProfilePubkey ?
+					[
+						e2eNostrNoteEvent,
+						e2eNostrRepostEvent,
+						e2eNostrArticleEvent,
+					]
+				:
+					[],
+			}
+		:
+		path.includes('/events/recent') && decodedUrl.includes('kinds=6') ?
+			{
+				events: [e2eNostrRepostEvent],
+			}
+		:
+		path.includes('/events/recent') && decodedUrl.includes('kinds=30023') ?
+			{
+				events: [e2eNostrArticleEvent],
+			}
+		:
+			{
+				events: [e2eNostrNoteEvent],
+			}
+	)
+}
+
+const primalRestBody = (url: string, post?: {
+	event_id?: string
+	kind?: number
+	kinds?: number[]
+	pubkey?: string
+}) => {
+	const decodedUrl = decodeURIComponent(url)
+	const path = decodedUrl.slice(decodedUrl.indexOf('/v1/'))
+	const eventId = (
+		path.match(/\/events\/([0-9a-f]{64})(?:[/?]|$)/)?.[1]
+		?? post?.event_id
+	)
+
+	return JSON.stringify(
+		path.includes('/profile/') ?
+			{
+				profile: e2eNostrProfileEvent,
+				metadata: e2eNostrProfileEvent,
+			}
+		:
+		path.includes('/events/') && eventId != null ?
+			{
+				event: e2eNostrEventById[eventId],
+			}
+		:
+		path.includes('/timeline/profile/notes') ?
+			{
+				events: post?.pubkey === e2eNostrProfilePubkey ? [e2eNostrNoteEvent] : [],
+			}
+		:
+		path.includes('/timeline/profile/reposts') ?
+			{
+				reposts: post?.pubkey === e2eNostrProfilePubkey ? [e2eNostrRepostEvent] : [],
+			}
+		:
+		path.includes('/timeline/profile/articles') ?
+			{
+				articles: post?.pubkey === e2eNostrProfilePubkey ? [e2eNostrArticleEvent] : [],
+			}
+		:
+		path.includes('/timeline/event/actions') && post?.kind === 7 ?
+			{
+				actions: eventId === e2eNostrNoteEventId ? [e2eNostrReactionEvent] : [],
+			}
+		:
+		path.includes('/timeline/event/actions') ?
+			{
+				actions: eventId === e2eNostrNoteEventId ? [e2eNostrReplyEvent] : [],
+			}
+		:
+		path.includes('/timeline/thread') ?
+			{
+				events: eventId === e2eNostrNoteEventId ? [e2eNostrNoteEvent, e2eNostrReplyEvent] : [],
+			}
+		:
+		path.includes('/search/users') ?
+			{
+				users: [e2eNostrProfileEvent],
+			}
+		:
+		path.includes('/search/events') && post?.kinds?.includes(7) ?
+			{
+				events: [e2eNostrReactionEvent],
+			}
+		:
+		path.includes('/search/events') && post?.kinds?.includes(30023) ?
+			{
+				events: [e2eNostrArticleEvent],
+			}
+		:
+		path.includes('/search/events') && post?.kinds?.includes(6) ?
+			{
+				events: [e2eNostrRepostEvent],
+			}
+		:
+			{
+				events: [e2eNostrNoteEvent],
+			}
+	)
+}
+
+const MOCK_NOSTR_RELAY_NIP11_BODY = JSON.stringify({
+	name: 'relay.damus.io',
+	description: 'Nostr relay e2e NIP-11 stub',
+	software: 'strfry',
+	version: 'e2e',
+	supported_nips: [1, 11],
+	limitation: {
+		max_message_length: 100,
+	},
 })
 
 /**
@@ -2019,6 +2597,17 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 			})
 			return
 		}
+		if (bitcoinCashNodeJsonRpcWire(url, method)) {
+			const body = bitcoinCashNodeJsonRpcBody(route.request().postDataJSON())
+			if (body != null) {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body,
+				})
+				return
+			}
+		}
 		if (ethereumListsChainsJsonWire(url, method)) {
 			await route.fulfill({
 				status: 200,
@@ -2042,6 +2631,25 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				body: MOCK_L2BEAT_SCALING_SUMMARY_BODY,
 			})
 			return
+		}
+		if (substrateSidecarAccountBalanceInfoWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_SUBSTRATE_SIDECAR_ACCOUNT_BALANCE_INFO_BODY,
+			})
+			return
+		}
+		if (solanaJsonRpcWire(url, method)) {
+			const body = solanaJsonRpcBody(route.request().postDataJSON())
+			if (body != null) {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body,
+				})
+				return
+			}
 		}
 		if (coingeckoAssetPlatformsWire(url, method)) {
 			await route.fulfill({
@@ -2150,6 +2758,9 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 					decodedUrl.includes('/v1/fids') ?
 						snapchainFidsBody
 					:
+					decodedUrl.includes('/v1/verificationsByFid') ?
+						snapchainVerificationPageBody
+					:
 						decodedUrl.includes('/v1/userNameProofsByFid') ?
 							snapchainUsernameProofsBody
 						:
@@ -2158,6 +2769,33 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 							:
 								snapchainPageBody
 				),
+			})
+			return
+		}
+		if (nostrBandRestWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: nostrBandRestBody(url),
+			})
+			return
+		}
+		if (primalRestWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: primalRestBody(
+					url,
+					method === 'POST' ? route.request().postDataJSON() : undefined
+				),
+			})
+			return
+		}
+		if (nostrRelayNip11Wire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/nostr+json',
+				body: MOCK_NOSTR_RELAY_NIP11_BODY,
 			})
 			return
 		}

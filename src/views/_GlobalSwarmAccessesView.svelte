@@ -21,7 +21,7 @@
 		selection,
 		title = 'Global Swarm accesses',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Global Swarm accesses...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -67,19 +67,6 @@
 		resource={selection}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalSwarmAccess}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalSwarmAccesses)}
 			{@const uniqueGlobalSwarmAccesses = [...new Map(globalSwarmAccesses.values.map((globalSwarmAccess) => [globalSwarmAccess[EntityMetaKey.SelectorKey], globalSwarmAccess])).values()]}
 			<EntitiesList
@@ -91,7 +78,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalSwarmAccesses.values.length === uniqueGlobalSwarmAccesses.length && globalSwarmAccesses.totalCount != null && globalSwarmAccesses.totalCount >= uniqueGlobalSwarmAccesses.length ? globalSwarmAccesses.totalCount : uniqueGlobalSwarmAccesses.length}
+				totalCount={globalSwarmAccesses.totalCount}
 				getKey={(globalSwarmAccess) => globalSwarmAccess[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalSwarmAccesses}
 			>
@@ -99,16 +86,18 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No global Swarm accesses yet.</p>
+						<p data-text="muted">No Global Swarm accesses yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: globalSwarmAccess }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalSwarmAccess> })}
+					{@const globalSwarmAccessFields = { ...globalSwarmAccess[EntityMetaKey.Selector], ...globalSwarmAccess }}
+					{@const globalSwarmAccessHrefFields = { ...globalSwarmAccess, ...globalSwarmAccess[EntityMetaKey.Selector] }}
 					<GlobalSwarmAccessView
+						selection={select(EntityType._GlobalSwarmAccess, globalSwarmAccess[EntityMetaKey.Selector])}
+						prefetched={globalSwarmAccessFields}
 						href={resolve('/(explore)/(swarm)/swarm/access')}
-						selection={select(EntityType._GlobalSwarmAccess, globalSwarmAccess.entitySelector)}
-						prefetched={globalSwarmAccess}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

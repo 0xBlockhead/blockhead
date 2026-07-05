@@ -99,7 +99,8 @@
 
 <svelte:boundary
 	onerror={(error: unknown) => {
-		console.error('[blockhead:boundary:uncaught]', placeholderText, normalizeBoundaryError(error))
+		if (Failed === undefined)
+			console.error('[blockhead:boundary:uncaught]', placeholderText, normalizeBoundaryError(error))
 	}}
 >
 	{@render children(await resourceRaw)}

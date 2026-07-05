@@ -4,13 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -42,20 +42,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const solanaTransaction = $derived(selection({
 		fields: {
 			status: true,
-			slot: true,
-			feeLamports: true,
-			computeUnitsConsumed: true,
-			$block: true,
-			$feePayer: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).signature) ?? '')].filter(Boolean).join(' ') || 'solana transaction')
+	const titleFallback = $derived([String((selection.entitySelector.signature ?? prefetched.signature) ?? '')].filter(Boolean).join(' ') || 'solana transaction')
 	const viewDomId = $derived('solana-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import SolanaInstructionsView from '$/views/SolanaInstructionsView.svelte'
@@ -67,105 +62,158 @@
 
 <EntityView
 	entityType={EntityType.SolanaTransaction}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/tx/[signature]', {
-			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).$network.slug),
-			signature: String(({ ...selection.entitySelector, ...prefetched }).signature),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.signature !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/tx/[signature]', {
+			networkSlug: String(networkByCaip2[String(String(pendingEntity.$network.caip2.namespace) + ':' + String(pendingEntity.$network.caip2.reference))].slug ?? ''),
+			signature: String(pendingEntity.signature ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const signature0 = ({ ...selection.entitySelector, ...prefetched }).signature}
-			{#if signature0 !== undefined && signature0 !== null}
-				<TruncatedValue value={String(signature0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTransaction}>
-				{#snippet Pending()}
-					{@const signature0 = ({ ...selection.entitySelector, ...prefetched }).signature}
-					{#if signature0 !== undefined && signature0 !== null}
-						<TruncatedValue value={String(signature0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={solanaTransaction}>
+			{#snippet Pending()}
+				{@const signature0 = selection.entitySelector.signature ?? prefetched.signature}
+				{#if signature0 !== undefined && signature0 !== null}
+					<TruncatedValue value={String((signature0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const signature0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).signature}
-					{#if signature0 !== undefined && signature0 !== null}
-						<TruncatedValue value={String(signature0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const signature0 = resolvedEntity.signature}
+				{#if signature0 !== undefined && signature0 !== null}
+					<TruncatedValue value={String((signature0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const signature0 = ({ ...selection.entitySelector, ...prefetched }).signature}
-			{#if signature0 !== undefined && signature0 !== null}
-				<TruncatedValue value={String(signature0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTransaction}>
-				{#snippet Pending()}
-					{@const signature0 = ({ ...selection.entitySelector, ...prefetched }).signature}
-					{#if signature0 !== undefined && signature0 !== null}
-						<TruncatedValue value={String(signature0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={solanaTransaction}>
+			{#snippet Pending()}
+				{@const signature0 = selection.entitySelector.signature ?? prefetched.signature}
+				{#if signature0 !== undefined && signature0 !== null}
+					<TruncatedValue value={String((signature0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const signature0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).signature}
-					{#if signature0 !== undefined && signature0 !== null}
-						<TruncatedValue value={String(signature0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const signature0 = resolvedEntity.signature}
+				{#if signature0 !== undefined && signature0 !== null}
+					<TruncatedValue value={String((signature0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const status0 = prefetched.status}
-			{#if status0 !== undefined && status0 !== null}
-				<span data-text="muted">
-					{String((status0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaTransaction}>
-				{#snippet Pending()}
-					{@const status0 = prefetched.status}
-					{#if status0 !== undefined && status0 !== null}
-						<span data-text="muted">
-							{String((status0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={solanaTransaction}>
+			{#snippet Pending()}
+				{@const status0 = prefetched.status}
+				{#if status0 !== undefined && status0 !== null}
+					<span data-text="muted">
+						{String((status0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const status0 = entity.status}
-					{#if status0 !== undefined && status0 !== null}
-						<span data-text="muted">
-							{String((status0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const status0 = resolvedEntity.status}
+				{#if status0 !== undefined && status0 !== null}
+					<span data-text="muted">
+						{String((status0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={solanaTransaction}>
+			<div>
+				<dt>Signature</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									signature: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const signature = selection.entitySelector.signature ?? prefetched.signature}
+							{#if signature !== undefined && signature !== null}
+								<TruncatedValue value={String((signature) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const signature = resolvedEntity.signature}
+							{#if signature !== undefined && signature !== null}
+								<TruncatedValue value={String((signature) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							status: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const slot = prefetched.slot ?? selection.entitySelector.slot}
+					{@const status = prefetched.status}
+					{#if status !== undefined && status !== null}
+						<div>
+							<dt>Status</dt>
+							<dd>
+								{String((status) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const status = resolvedEntity.status}
+					{#if status !== undefined && status !== null}
+						<div>
+							<dt>Status</dt>
+							<dd>
+								{String((status) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							slot: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const slot = prefetched.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>Slot</dt>
@@ -177,7 +225,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const slot = entity.slot ?? selection.entitySelector.slot ?? prefetched.slot}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slot = resolvedEntity.slot}
 					{#if slot !== undefined && slot !== null}
 						<div>
 							<dt>Slot</dt>
@@ -189,9 +238,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={solanaTransaction}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							feeLamports: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const feeLamports = prefetched.feeLamports ?? selection.entitySelector.feeLamports}
+					{@const feeLamports = prefetched.feeLamports}
 					{#if feeLamports !== undefined && feeLamports !== null}
 						<div>
 							<dt>Fee</dt>
@@ -203,7 +260,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const feeLamports = entity.feeLamports ?? selection.entitySelector.feeLamports ?? prefetched.feeLamports}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const feeLamports = resolvedEntity.feeLamports}
 					{#if feeLamports !== undefined && feeLamports !== null}
 						<div>
 							<dt>Fee</dt>
@@ -215,9 +273,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={solanaTransaction}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							computeUnitsConsumed: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const computeUnitsConsumed = prefetched.computeUnitsConsumed ?? selection.entitySelector.computeUnitsConsumed}
+					{@const computeUnitsConsumed = prefetched.computeUnitsConsumed}
 					{#if computeUnitsConsumed !== undefined && computeUnitsConsumed !== null}
 						<div>
 							<dt>Compute units consumed</dt>
@@ -229,7 +295,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const computeUnitsConsumed = entity.computeUnitsConsumed ?? selection.entitySelector.computeUnitsConsumed ?? prefetched.computeUnitsConsumed}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const computeUnitsConsumed = resolvedEntity.computeUnitsConsumed}
 					{#if computeUnitsConsumed !== undefined && computeUnitsConsumed !== null}
 						<div>
 							<dt>Compute units consumed</dt>
@@ -247,18 +314,18 @@
 				resource={selection[EntityProxyField]<EntityType.SolanaBlock, false>('$block')}
 			>
 				{#snippet children(solanaBlock)}
-					{#if solanaBlock != null}
+					{#if solanaBlock != null && solanaBlock[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Block</dt>
 							<dd>
 								<SolanaBlockView
-									selection={select(EntityType.SolanaBlock, solanaBlock.entitySelector)}
+									selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
 									prefetched={solanaBlock}
 									href={
-										resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/block/[slot]', {
-											networkSlug: String(solanaBlock.entitySelector.$network.slug),
-											slot: String(solanaBlock.entitySelector.slot),
-										})
+										(({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2 !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2.namespace !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2 !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2.reference !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).slot !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/block/[slot]', {
+											networkSlug: String(networkByCaip2[String(String(({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2.namespace) + ':' + String(({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2.reference))].slug ?? ''),
+											slot: String(({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).slot ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -273,18 +340,18 @@
 				resource={selection[EntityProxyField]<EntityType.SolanaAccount, false>('$feePayer')}
 			>
 				{#snippet children(solanaAccount)}
-					{#if solanaAccount != null}
+					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Fee payer</dt>
 							<dd>
 								<SolanaAccountView
-									selection={select(EntityType.SolanaAccount, solanaAccount.entitySelector)}
+									selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
 									prefetched={solanaAccount}
 									href={
-										resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/account/[pubkey]', {
-											networkSlug: String(solanaAccount.entitySelector.$network.slug),
-											pubkey: String(solanaAccount.entitySelector.pubkey),
-										})
+										(({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).$network !== undefined && ({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).$network.caip2 !== undefined && ({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).$network.caip2.namespace !== undefined && ({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).$network !== undefined && ({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).$network.caip2 !== undefined && ({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).$network.caip2.reference !== undefined && ({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).pubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/account/[pubkey]', {
+											networkSlug: String(networkByCaip2[String(String(({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).$network.caip2.namespace) + ':' + String(({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).$network.caip2.reference))].slug ?? ''),
+											pubkey: String(({ ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }).pubkey ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -301,10 +368,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

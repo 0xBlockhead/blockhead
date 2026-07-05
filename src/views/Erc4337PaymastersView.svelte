@@ -21,7 +21,7 @@
 		selection,
 		title = 'ERC-4337 paymasters',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ERC-4337 paymasters...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					address: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337Paymaster}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(erc4337Paymasters)}
 			{@const uniqueErc4337Paymasters = [...new Map(erc4337Paymasters.values.map((erc4337Paymaster) => [erc4337Paymaster[EntityMetaKey.SelectorKey], erc4337Paymaster])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4337Paymasters.values.length === uniqueErc4337Paymasters.length && erc4337Paymasters.totalCount != null && erc4337Paymasters.totalCount >= uniqueErc4337Paymasters.length ? erc4337Paymasters.totalCount : uniqueErc4337Paymasters.length}
+				totalCount={erc4337Paymasters.totalCount}
 				getKey={(erc4337Paymaster) => erc4337Paymaster[EntityMetaKey.SelectorKey]}
 				items={uniqueErc4337Paymasters}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: erc4337Paymaster }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337Paymaster> })}
+					{@const erc4337PaymasterFields = { ...erc4337Paymaster[EntityMetaKey.Selector], ...erc4337Paymaster }}
+					{@const erc4337PaymasterHrefFields = { ...erc4337Paymaster, ...erc4337Paymaster[EntityMetaKey.Selector] }}
 					<Erc4337PaymasterView
+						selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector])}
+						prefetched={erc4337PaymasterFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymaster/[address=evmAddress]', {
-								caip2: `${String(({ ...erc4337Paymaster.entitySelector, ...erc4337Paymaster }).caip2.namespace)}:${String(({ ...erc4337Paymaster.entitySelector, ...erc4337Paymaster }).caip2.reference)}`,
-								address: String(({ ...erc4337Paymaster.entitySelector, ...erc4337Paymaster }).address),
-							})
+							(erc4337PaymasterHrefFields.$network !== undefined && erc4337PaymasterHrefFields.$network.caip2 !== undefined && erc4337PaymasterHrefFields.$network.caip2.namespace !== undefined && erc4337PaymasterHrefFields.$network !== undefined && erc4337PaymasterHrefFields.$network.caip2 !== undefined && erc4337PaymasterHrefFields.$network.caip2.reference !== undefined && erc4337PaymasterHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymaster/[address=evmAddress]', {
+								caip2: `${String(erc4337PaymasterHrefFields.$network.caip2.namespace ?? '')}:${String(erc4337PaymasterHrefFields.$network.caip2.reference ?? '')}`,
+								address: String(erc4337PaymasterHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster.entitySelector)}
-						prefetched={erc4337Paymaster}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

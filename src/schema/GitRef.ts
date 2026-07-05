@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { type } from 'arktype'
+
 export enum GitRefSelector {
-	RepositoryRefName = '$repository+refName',
+	RepositoryRefName = 'RepositoryRefName',
 }
 export default {
 	entityType: EntityType.GitRef,
@@ -23,46 +23,46 @@ export default {
 	],
 	fields: [
 		{
-			name: '$repository',
-			label: 'repository',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.GitRepository,
-			cardinality: EntityFieldCardinality.One,
+				name: '$repository',
+				label: 'repository',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.GitRepository,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'refName',
-			label: 'ref name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'refName',
+				label: 'ref name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'refKind',
-			label: 'ref kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'refKind',
+				label: 'ref kind',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'targetObjectId',
-			label: 'target object ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'targetObjectId',
+				label: 'target object ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: (ZeroExHex),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'symbolicTarget',
-			label: 'symbolic target',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'symbolicTarget',
+				label: 'symbolic target',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$observations',
-			label: 'observations',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.GitRefObservation_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$observations',
+				label: 'observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.GitRefObservation_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.UrlPreview_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					$image: true,
 					title: true,

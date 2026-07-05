@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.PolkadotAccount_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					freeBalancePlancks: true,
 					nonce: true,

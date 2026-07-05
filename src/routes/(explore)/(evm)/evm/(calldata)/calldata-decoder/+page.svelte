@@ -15,14 +15,13 @@
 	import { page } from '$app/state'
 	import { untrack } from 'svelte'
 	import Collapsible from '$/components/Collapsible.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import Icon from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Select from '$/components/Select.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 
 
 	// Context

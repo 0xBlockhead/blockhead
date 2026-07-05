@@ -37,6 +37,6 @@
 				limit: 256,
 			})
 		}
-		id='Market_TimeInterval_TimestampsView-page'
+		id='market-time-interval-timestamps'
 	/>
 </Page>

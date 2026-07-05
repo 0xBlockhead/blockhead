@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.CosmosValidator_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					status: true,
 					tokens: true,

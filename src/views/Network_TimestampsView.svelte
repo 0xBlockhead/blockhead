@@ -21,7 +21,7 @@
 		selection,
 		title = 'Network observations',
 		typeAnnotationParagraphs = ['A point-in-time observation of network status or metrics.'],
-		placeholderText = 'Loading Network observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					timestampMs: true,
 					latestHeight: true,
 					source: true,
 					health: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Network_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(networkTimestamps)}
 			{@const uniqueNetworkTimestamps = [...new Map(networkTimestamps.values.map((networkTimestamp) => [networkTimestamp[EntityMetaKey.SelectorKey], networkTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={networkTimestamps.values.length === uniqueNetworkTimestamps.length && networkTimestamps.totalCount != null && networkTimestamps.totalCount >= uniqueNetworkTimestamps.length ? networkTimestamps.totalCount : uniqueNetworkTimestamps.length}
+				totalCount={networkTimestamps.totalCount}
 				getKey={(networkTimestamp) => networkTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueNetworkTimestamps}
 			>
@@ -108,21 +96,23 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No network observations yet.</p>
+						<p data-text="muted">No Network observations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: networkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Network_Timestamp> })}
+					{@const networkTimestampFields = { ...networkTimestamp[EntityMetaKey.Selector], ...networkTimestamp }}
+					{@const networkTimestampHrefFields = { ...networkTimestamp, ...networkTimestamp[EntityMetaKey.Selector] }}
 					<Network_TimestampView
+						selection={select(EntityType.Network_Timestamp, networkTimestamp[EntityMetaKey.Selector])}
+						prefetched={networkTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...networkTimestamp.entitySelector, ...networkTimestamp }).caip2.namespace)}:${String(({ ...networkTimestamp.entitySelector, ...networkTimestamp }).caip2.reference)}`,
-								timestampMs: String(({ ...networkTimestamp.entitySelector, ...networkTimestamp }).timestampMs),
-								source: String(({ ...networkTimestamp.entitySelector, ...networkTimestamp }).source),
-							})
+							(networkTimestampHrefFields.$network !== undefined && networkTimestampHrefFields.$network.caip2 !== undefined && networkTimestampHrefFields.$network.caip2.namespace !== undefined && networkTimestampHrefFields.$network !== undefined && networkTimestampHrefFields.$network.caip2 !== undefined && networkTimestampHrefFields.$network.caip2.reference !== undefined && networkTimestampHrefFields.timestampMs !== undefined && networkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(networkTimestampHrefFields.$network.caip2.namespace ?? '')}:${String(networkTimestampHrefFields.$network.caip2.reference ?? '')}`,
+								timestampMs: String(networkTimestampHrefFields.timestampMs ?? ''),
+								source: String(networkTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Network_Timestamp, networkTimestamp.entitySelector)}
-						prefetched={networkTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

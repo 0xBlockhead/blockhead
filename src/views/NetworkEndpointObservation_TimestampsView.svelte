@@ -1,0 +1,125 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'Network endpoint observations',
+		typeAnnotationParagraphs = [],
+		placeholderText,
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'NetworkEndpointObservation_Timestamps-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.NetworkEndpointObservation_Timestamp>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NetworkEndpointObservation_TimestampView from '$/views/NetworkEndpointObservation_TimestampView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection({
+				fields: {
+					timestampMs: true,
+					health: true,
+					latencyMs: true,
+					endpointKind: true,
+					source: true,
+				},
+			})
+		}
+		{placeholderText}
+	>
+		{#snippet children(networkEndpointObservationTimestamps)}
+			{@const uniqueNetworkEndpointObservationTimestamps = [...new Map(networkEndpointObservationTimestamps.values.map((networkEndpointObservationTimestamp) => [networkEndpointObservationTimestamp[EntityMetaKey.SelectorKey], networkEndpointObservationTimestamp])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NetworkEndpointObservation_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={networkEndpointObservationTimestamps.totalCount}
+				getKey={(networkEndpointObservationTimestamp) => networkEndpointObservationTimestamp[EntityMetaKey.SelectorKey]}
+				items={uniqueNetworkEndpointObservationTimestamps}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Network endpoint observations yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: networkEndpointObservationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NetworkEndpointObservation_Timestamp> })}
+					{@const networkEndpointObservationTimestampFields = { ...networkEndpointObservationTimestamp[EntityMetaKey.Selector], ...networkEndpointObservationTimestamp }}
+					<NetworkEndpointObservation_TimestampView
+						selection={select(EntityType.NetworkEndpointObservation_Timestamp, networkEndpointObservationTimestamp[EntityMetaKey.Selector])}
+						prefetched={networkEndpointObservationTimestampFields}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.NetworkEndpointObservation_Timestamp}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

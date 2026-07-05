@@ -43,6 +43,6 @@
 				caip2: networkBySlug[params.networkSlug].caip2,
 			})[EntityProxyField]<EntityType.SolanaTokenMint>('$$tokenMints')
 		}
-		id='SolanaTokenMintsView-page'
+		id='token-mints'
 	/>
 </Page>

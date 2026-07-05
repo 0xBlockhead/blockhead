@@ -31,6 +31,6 @@
 				scope: '$$liquidityPositions',
 			})[EntityProxyField]<EntityType.LiquidityPosition>('$$liquidityPositions')
 		}
-		id='LiquidityPositionsView-page'
+		id='liquidity-positions'
 	/>
 </Page>

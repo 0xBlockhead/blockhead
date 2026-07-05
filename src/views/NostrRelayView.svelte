@@ -3,9 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -36,33 +37,28 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nostrRelay = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
 		],
 		fields: {
 			name: true,
-			description: true,
-			software: true,
-			version: true,
-			supportedNipCount: true,
-			isPaid: true,
-			limit: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay')
+	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.relayUrl ?? prefetched.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay')
 	const viewDomId = $derived('nostr-relay-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import NostrRelay_TimestampsView from '$/views/NostrRelay_TimestampsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.NostrRelay}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -71,19 +67,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'}
-		{:else}
-			<ResourceBoundary resource={nostrRelay}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'}
-				{/snippet}
+		<ResourceBoundary resource={nostrRelay}>
+			{#snippet Pending()}
+				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.relayUrl ?? prefetched.relayUrl) ?? '')].filter(Boolean).join(' ') || 'Nostr relay'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -94,10 +87,92 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<div>
+				<dt>Relay URL</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									relayUrl: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const relayUrl = selection.entitySelector.relayUrl ?? prefetched.relayUrl}
+							{#if relayUrl !== undefined && relayUrl !== null}
+								<TruncatedValue value={String((relayUrl) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const relayUrl = resolvedEntity.relayUrl}
+							{#if relayUrl !== undefined && relayUrl !== null}
+								<TruncatedValue value={String((relayUrl) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+							Source.NostrBand_Rest,
+							Source.NostrRelay_Nip11_Http,
+						],
+						fields: {
+							name: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const name = prefetched.name}
+					{#if name !== undefined && name !== null}
+						<div>
+							<dt>Name</dt>
+							<dd>
+								{String((name) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const name = resolvedEntity.name}
+					{#if name !== undefined && name !== null}
+						<div>
+							<dt>Name</dt>
+							<dd>
+								{String((name) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			{#if contentOpen}
-				<ResourceBoundary resource={nostrRelay}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.NostrBand_Rest,
+								Source.NostrRelay_Nip11_Http,
+							],
+							fields: {
+								description: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const description = prefetched.description ?? selection.entitySelector.description}
+						{@const description = prefetched.description}
 						{#if description !== undefined && description !== null}
 							<div>
 								<dt>Description</dt>
@@ -109,7 +184,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const description = entity.description ?? selection.entitySelector.description ?? prefetched.description}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const description = resolvedEntity.description}
 						{#if description !== undefined && description !== null}
 							<div>
 								<dt>Description</dt>
@@ -123,9 +199,21 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={nostrRelay}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.NostrBand_Rest,
+								Source.NostrRelay_Nip11_Http,
+							],
+							fields: {
+								software: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const software = prefetched.software ?? selection.entitySelector.software}
+						{@const software = prefetched.software}
 						{#if software !== undefined && software !== null}
 							<div>
 								<dt>Software</dt>
@@ -137,7 +225,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const software = entity.software ?? selection.entitySelector.software ?? prefetched.software}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const software = resolvedEntity.software}
 						{#if software !== undefined && software !== null}
 							<div>
 								<dt>Software</dt>
@@ -151,9 +240,21 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={nostrRelay}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.NostrBand_Rest,
+								Source.NostrRelay_Nip11_Http,
+							],
+							fields: {
+								version: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const version = prefetched.version ?? selection.entitySelector.version}
+						{@const version = prefetched.version}
 						{#if version !== undefined && version !== null}
 							<div>
 								<dt>Version</dt>
@@ -165,7 +266,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const version = entity.version ?? selection.entitySelector.version ?? prefetched.version}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const version = resolvedEntity.version}
 						{#if version !== undefined && version !== null}
 							<div>
 								<dt>Version</dt>
@@ -179,9 +281,21 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={nostrRelay}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.NostrBand_Rest,
+								Source.NostrRelay_Nip11_Http,
+							],
+							fields: {
+								supportedNipCount: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const supportedNipCount = prefetched.supportedNipCount ?? selection.entitySelector.supportedNipCount}
+						{@const supportedNipCount = prefetched.supportedNipCount}
 						{#if supportedNipCount !== undefined && supportedNipCount !== null}
 							<div>
 								<dt>Supported NIPs</dt>
@@ -193,7 +307,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const supportedNipCount = entity.supportedNipCount ?? selection.entitySelector.supportedNipCount ?? prefetched.supportedNipCount}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const supportedNipCount = resolvedEntity.supportedNipCount}
 						{#if supportedNipCount !== undefined && supportedNipCount !== null}
 							<div>
 								<dt>Supported NIPs</dt>
@@ -207,26 +322,39 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={nostrRelay}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.NostrBand_Rest,
+								Source.NostrRelay_Nip11_Http,
+							],
+							fields: {
+								isPaid: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const isPaid = prefetched.isPaid ?? selection.entitySelector.isPaid}
+						{@const isPaid = prefetched.isPaid}
 						{#if isPaid !== undefined && isPaid !== null}
 							<div>
 								<dt>Paid relay</dt>
 								<dd>
-									{String((isPaid) ?? '')}
+									{isPaid ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const isPaid = entity.isPaid ?? selection.entitySelector.isPaid ?? prefetched.isPaid}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const isPaid = resolvedEntity.isPaid}
 						{#if isPaid !== undefined && isPaid !== null}
 							<div>
 								<dt>Paid relay</dt>
 								<dd>
-									{String((isPaid) ?? '')}
+									{isPaid ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
@@ -235,9 +363,21 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={nostrRelay}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.NostrBand_Rest,
+								Source.NostrRelay_Nip11_Http,
+							],
+							fields: {
+								limit: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const limit = prefetched.limit ?? selection.entitySelector.limit}
+						{@const limit = prefetched.limit}
 						{#if limit !== undefined && limit !== null}
 							<div>
 								<dt>Event limit</dt>
@@ -249,7 +389,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const limit = entity.limit ?? selection.entitySelector.limit ?? prefetched.limit}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const limit = resolvedEntity.limit}
 						{#if limit !== undefined && limit !== null}
 							<div>
 								<dt>Event limit</dt>
@@ -262,5 +403,16 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<NostrRelay_TimestampsView
+				selection={selection[EntityProxyField]<EntityType.NostrRelay_Timestamp>('$$timestamps')}
+				title='Relay observations'
+				emptyText='No Nostr relay observations.'
+				id='NostrRelay_TimestampsView-$$timestamps'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

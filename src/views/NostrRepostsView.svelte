@@ -11,12 +11,16 @@
 	import { schema } from '$/schema/index.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'Nostr reposts',
 		typeAnnotationParagraphs = ['A Nostr repost is a kind-6 or kind-16 event keyed by event id and linked to the reposted note or article.'],
-		placeholderText = 'Loading Nostr reposts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -46,9 +50,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NostrRepostView from '$/views/NostrRepostView.svelte'
 </script>
 
 
@@ -61,28 +64,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					eventId: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrRepost}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(nostrReposts)}
 			{@const uniqueNostrReposts = [...new Map(nostrReposts.values.map((nostrRepost) => [nostrRepost[EntityMetaKey.SelectorKey], nostrRepost])).values()]}
 			<EntitiesList
@@ -94,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrReposts.values.length === uniqueNostrReposts.length && nostrReposts.totalCount != null && nostrReposts.totalCount >= uniqueNostrReposts.length ? nostrReposts.totalCount : uniqueNostrReposts.length}
+				totalCount={nostrReposts.totalCount}
 				getKey={(nostrRepost) => nostrRepost[EntityMetaKey.SelectorKey]}
 				items={uniqueNostrReposts}
 			>
@@ -107,26 +97,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: nostrRepost }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrRepost> })}
-					<EntityView
-						entityType={EntityType.NostrRepost}
-						entitySelector={nostrRepost.entitySelector}
-						layout={EntityLayout.Summary}
+					{@const nostrRepostFields = { ...nostrRepost[EntityMetaKey.Selector], ...nostrRepost }}
+					<NostrRepostView
+						selection={select(EntityType.NostrRepost, nostrRepost[EntityMetaKey.Selector])}
+						prefetched={nostrRepostFields}
+						layout={EntityLayout.Title}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const eventId0 = ({ ...nostrRepost.entitySelector, ...nostrRepost }).eventId}
-							<TruncatedValue value={String(eventId0)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const createdAtAfter0 = ({ ...nostrRepost.entitySelector, ...nostrRepost }).createdAt}
-							{#if createdAtAfter0 != null}
-								<span data-text="muted">
-									<Timestamp timestamp={Number(createdAtAfter0)} />
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

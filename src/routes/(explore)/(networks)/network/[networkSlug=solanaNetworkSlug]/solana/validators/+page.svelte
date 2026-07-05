@@ -43,6 +43,6 @@
 				caip2: networkBySlug[params.networkSlug].caip2,
 			})[EntityProxyField]<EntityType.SolanaValidator>('$$validators')
 		}
-		id='SolanaValidatorsView-page'
+		id='validators'
 	/>
 </Page>

@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='EvmAccountsView-page'
+		id='actors'
 	/>
 </Page>

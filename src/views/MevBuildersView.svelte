@@ -21,7 +21,7 @@
 		selection,
 		title = 'MEV builders',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading MEV builders...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					builderPubkey: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MevBuilder}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(mevBuilders)}
 			{@const uniqueMevBuilders = [...new Map(mevBuilders.values.map((mevBuilder) => [mevBuilder[EntityMetaKey.SelectorKey], mevBuilder])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mevBuilders.values.length === uniqueMevBuilders.length && mevBuilders.totalCount != null && mevBuilders.totalCount >= uniqueMevBuilders.length ? mevBuilders.totalCount : uniqueMevBuilders.length}
+				totalCount={mevBuilders.totalCount}
 				getKey={(mevBuilder) => mevBuilder[EntityMetaKey.SelectorKey]}
 				items={uniqueMevBuilders}
 			>
@@ -111,16 +98,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: mevBuilder }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MevBuilder> })}
+					{@const mevBuilderFields = { ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }}
+					{@const mevBuilderHrefFields = { ...mevBuilder, ...mevBuilder[EntityMetaKey.Selector] }}
 					<MevBuilderView
+						selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
+						prefetched={mevBuilderFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
-								caip2: `${String(({ ...mevBuilder.entitySelector, ...mevBuilder }).$network.caip2.namespace)}:${String(({ ...mevBuilder.entitySelector, ...mevBuilder }).$network.caip2.reference)}`,
-								builderPubkey: String(({ ...mevBuilder.entitySelector, ...mevBuilder }).builderPubkey),
-							})
+							(mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.caip2 !== undefined && mevBuilderHrefFields.$network.caip2.namespace !== undefined && mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.caip2 !== undefined && mevBuilderHrefFields.$network.caip2.reference !== undefined && mevBuilderHrefFields.builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
+								caip2: `${String(mevBuilderHrefFields.$network.caip2.namespace ?? '')}:${String(mevBuilderHrefFields.$network.caip2.reference ?? '')}`,
+								builderPubkey: String(mevBuilderHrefFields.builderPubkey ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.MevBuilder, mevBuilder.entitySelector)}
-						prefetched={mevBuilder}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.EvmNetwork_GasEstimate_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					fastGwei: true,
 					slowGwei: true,

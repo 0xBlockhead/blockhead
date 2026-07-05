@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum StellarClaimableBalanceSelector {
-	NetworkClaimableBalanceId = '$network+claimableBalanceId',
+	NetworkClaimableBalanceId = 'NetworkClaimableBalanceId',
 }
 export default {
 	entityType: EntityType.StellarClaimableBalance,
@@ -23,25 +22,25 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.StellarNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.StellarNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'claimableBalanceId',
-			label: 'claimable balance ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'claimableBalanceId',
+				label: 'claimable balance ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.StellarClaimableBalance_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.StellarClaimableBalance_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

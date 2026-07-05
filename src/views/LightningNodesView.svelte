@@ -21,7 +21,7 @@
 		selection,
 		title = 'Lightning nodes',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Lightning nodes...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					alias: true,
 					channelCount: true,
 					publicKey: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LightningNode}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(lightningNodes)}
 			{@const uniqueLightningNodes = [...new Map(lightningNodes.values.map((lightningNode) => [lightningNode[EntityMetaKey.SelectorKey], lightningNode])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lightningNodes.values.length === uniqueLightningNodes.length && lightningNodes.totalCount != null && lightningNodes.totalCount >= uniqueLightningNodes.length ? lightningNodes.totalCount : uniqueLightningNodes.length}
+				totalCount={lightningNodes.totalCount}
 				getKey={(lightningNode) => lightningNode[EntityMetaKey.SelectorKey]}
 				items={uniqueLightningNodes}
 			>
@@ -112,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: lightningNode }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LightningNode> })}
+					{@const lightningNodeFields = { ...lightningNode[EntityMetaKey.Selector], ...lightningNode }}
+					{@const lightningNodeHrefFields = { ...lightningNode, ...lightningNode[EntityMetaKey.Selector] }}
 					<LightningNodeView
+						selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
+						prefetched={lightningNodeFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-								networkSlug: String(({ ...lightningNode.entitySelector, ...lightningNode }).$network.slug),
-								pubkey: String(({ ...lightningNode.entitySelector, ...lightningNode }).publicKey),
-							})
+							(lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.slug !== undefined && lightningNodeHrefFields.publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
+								networkSlug: String(lightningNodeHrefFields.$network.slug ?? ''),
+								pubkey: String(lightningNodeHrefFields.publicKey ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.LightningNode, lightningNode.entitySelector)}
-						prefetched={lightningNode}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

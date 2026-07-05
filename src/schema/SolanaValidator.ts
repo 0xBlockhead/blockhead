@@ -67,6 +67,7 @@ export default {
 				name: '$$timestamps',
 				label: 'Observations',
 				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.SolanaValidator_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
 		},
 	],

@@ -20,7 +20,7 @@
 		selection,
 		title = 'Lens accounts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Lens accounts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,7 +64,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$icon: true,
 					displayName: true,
@@ -73,23 +73,10 @@
 					legacyProfileId: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(lensAccounts)}
 			{@const uniqueLensAccounts = [...new Map(lensAccounts.values.map((lensAccount) => [lensAccount[EntityMetaKey.SelectorKey], lensAccount])).values()]}
 			<EntitiesList
@@ -101,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lensAccounts.values.length === uniqueLensAccounts.length && lensAccounts.totalCount != null && lensAccounts.totalCount >= uniqueLensAccounts.length ? lensAccounts.totalCount : uniqueLensAccounts.length}
+				totalCount={lensAccounts.totalCount}
 				getKey={(lensAccount) => lensAccount[EntityMetaKey.SelectorKey]}
 				items={uniqueLensAccounts}
 			>
@@ -114,9 +101,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: lensAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensAccount> })}
+					{@const lensAccountFields = { ...lensAccount[EntityMetaKey.Selector], ...lensAccount }}
 					<LensAccountView
-						selection={select(EntityType.LensAccount, lensAccount.entitySelector)}
-						prefetched={lensAccount}
+						selection={select(EntityType.LensAccount, lensAccount[EntityMetaKey.Selector])}
+						prefetched={lensAccountFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

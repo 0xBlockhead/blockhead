@@ -85,5 +85,12 @@ export default {
 				entityType: EntityType.LightningChannel_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
 		},
+		{
+				name: '$$localStates',
+				label: 'Local states',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.BlockheadLightningChannelState,
+				cardinality: EntityFieldCardinality.Many,
+		},
 	],
 } as const satisfies EntityDefinition

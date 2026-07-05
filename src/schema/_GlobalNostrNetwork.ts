@@ -88,7 +88,6 @@ export default {
 				entityType: EntityType.NostrProfile,
 				cardinality: EntityFieldCardinality.Many,
 				defaultSources: [
-					Source.Constants_Internal,
 					Source.NostrBand_Rest,
 				],
 		},
@@ -131,10 +130,6 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.NostrReaction,
 				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.Constants_Internal,
-					Source.NostrBand_Rest,
-				],
 		},
 		{
 				name: '$$sourceWindowArticles',
@@ -146,6 +141,13 @@ export default {
 					Source.Constants_Internal,
 					Source.NostrBand_Rest,
 				],
+		},
+		{
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType._GlobalNostrNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -21,7 +21,7 @@
 		selection,
 		title = 'Reddit submission observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Reddit submission observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					timestampMs: true,
 					score: true,
 					source: true,
 					commentCount: true,
+					$link: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditLink_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(redditLinkTimestamps)}
 			{@const uniqueRedditLinkTimestamps = [...new Map(redditLinkTimestamps.values.map((redditLinkTimestamp) => [redditLinkTimestamp[EntityMetaKey.SelectorKey], redditLinkTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={redditLinkTimestamps.values.length === uniqueRedditLinkTimestamps.length && redditLinkTimestamps.totalCount != null && redditLinkTimestamps.totalCount >= uniqueRedditLinkTimestamps.length ? redditLinkTimestamps.totalCount : uniqueRedditLinkTimestamps.length}
+				totalCount={redditLinkTimestamps.totalCount}
 				getKey={(redditLinkTimestamp) => redditLinkTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueRedditLinkTimestamps}
 			>
@@ -113,16 +101,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: redditLinkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditLink_Timestamp> })}
+					{@const redditLinkTimestampFields = { ...redditLinkTimestamp[EntityMetaKey.Selector], ...redditLinkTimestamp }}
+					{@const redditLinkTimestampHrefFields = { ...redditLinkTimestamp, ...redditLinkTimestamp[EntityMetaKey.Selector] }}
 					<RedditLink_TimestampView
+						selection={select(EntityType.RedditLink_Timestamp, redditLinkTimestamp[EntityMetaKey.Selector])}
+						prefetched={redditLinkTimestampFields}
 						href={
-							resolve('/(social)/(reddit)/reddit/link/[fullname]/(link)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								fullname: String(({ ...redditLinkTimestamp.entitySelector, ...redditLinkTimestamp }).$link.fullname),
-								timestampMs: String(({ ...redditLinkTimestamp.entitySelector, ...redditLinkTimestamp }).timestampMs),
-								source: String(({ ...redditLinkTimestamp.entitySelector, ...redditLinkTimestamp }).source),
-							})
+							(redditLinkTimestampHrefFields.$link !== undefined && redditLinkTimestampHrefFields.$link.fullname !== undefined && redditLinkTimestampHrefFields.timestampMs !== undefined && redditLinkTimestampHrefFields.source !== undefined ? resolve('/(social)/(reddit)/reddit/link/[fullname]/(link)/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								fullname: String(redditLinkTimestampHrefFields.$link.fullname ?? ''),
+								timestampMs: String(redditLinkTimestampHrefFields.timestampMs ?? ''),
+								source: String(redditLinkTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.RedditLink_Timestamp, redditLinkTimestamp.entitySelector)}
-						prefetched={redditLinkTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

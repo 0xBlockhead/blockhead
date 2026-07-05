@@ -4,10 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -42,24 +42,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalEnsNetwork = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
 		],
-		fields: {
-			...(open && {
-				$registryContract: true,
-				$ethRegistrarController: true,
-				$reverseRegistrar: true,
-				$nameWrapper: true,
-				$$timestamps: true,
-			}),
-		},
 	}))
 	const titleFallback = $derived('ENS')
 	const viewDomId = $derived('-global-ens-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
@@ -67,44 +58,38 @@
 
 <EntityView
 	entityType={EntityType._GlobalEnsNetwork}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={href ?? resolve('/(explore)/(ens)/ens')}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{title || 'ENS'}
-		{:else}
-			<ResourceBoundary resource={globalEnsNetwork}>
-				{#snippet Pending()}
-					{title || 'ENS'}
-				{/snippet}
+		<ResourceBoundary resource={globalEnsNetwork}>
+			{#snippet Pending()}
+				{title || 'ENS'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{title || 'ENS'}
-		{:else}
-			<ResourceBoundary resource={globalEnsNetwork}>
-				{#snippet Pending()}
-					{title || 'ENS'}
-				{/snippet}
+		<ResourceBoundary resource={globalEnsNetwork}>
+			{#snippet Pending()}
+				{title || 'ENS'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -113,18 +98,18 @@
 				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$registryContract')}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null}
+					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Registry contract</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract.entitySelector)}
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract.entitySelector.$network.caip2.namespace)}:${String(evmContract.entitySelector.$network.caip2.reference)}`,
-											address: String(evmContract.entitySelector.address),
-										})
+										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
+											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -141,18 +126,18 @@
 				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$ethRegistrarController')}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null}
+					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>.eth registrar controller</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract.entitySelector)}
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract.entitySelector.$network.caip2.namespace)}:${String(evmContract.entitySelector.$network.caip2.reference)}`,
-											address: String(evmContract.entitySelector.address),
-										})
+										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
+											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -169,18 +154,18 @@
 				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$reverseRegistrar')}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null}
+					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Reverse registrar</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract.entitySelector)}
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract.entitySelector.$network.caip2.namespace)}:${String(evmContract.entitySelector.$network.caip2.reference)}`,
-											address: String(evmContract.entitySelector.address),
-										})
+										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
+											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -197,18 +182,18 @@
 				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$nameWrapper')}
 			>
 				{#snippet children(evmContract)}
-					{#if evmContract != null}
+					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Name wrapper</dt>
 							<dd>
 								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract.entitySelector)}
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(evmContract.entitySelector.$network.caip2.namespace)}:${String(evmContract.entitySelector.$network.caip2.reference)}`,
-											address: String(evmContract.entitySelector.address),
-										})
+										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
+											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}

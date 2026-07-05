@@ -12,6 +12,9 @@ export const load: PageLoad = ({ params }) => {
 		schema,
 		BlockheadAgentConversationTurnSchema,
 		{
+			$conversation: {
+				id: params.conversationId,
+			},
 			id: params.turnId,
 		}
 	)

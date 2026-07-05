@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum ZeroGDaNodeSelector {
-	NetworkNodeId = 'networkNodeId',
+	NetworkNodeId = 'NetworkNodeId',
 }
 export default {
 	entityType: EntityType.ZeroGDaNode,
@@ -23,39 +22,39 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'nodeId',
-			label: 'node ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'nodeId',
+				label: 'node ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$quorum',
-			label: 'quorum',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ZeroGDaQuorum,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$quorum',
+				label: 'quorum',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.ZeroGDaQuorum,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$operator',
-			label: 'operator',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$operator',
+				label: 'operator',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'endpoint',
-			label: 'endpoint',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'endpoint',
+				label: 'endpoint',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

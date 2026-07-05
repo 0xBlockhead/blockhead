@@ -169,7 +169,7 @@ const failures = [
 	}),
 	...globSync('src/sources/*/index.ts')
 		.concat(globSync('src/sources/*/bindings.ts'))
-		.concat(globSync('src/sources/*/*/index.ts'))
+		.concat(globSync('src/sources/*/*/definition.ts'))
 		.flatMap((file) => {
 			const source = readFileSync(file, 'utf8')
 			return /^(import|export).*(queries|client|schema-source|graphql-env|openapi\.d|openapi\.json|openapi\.yml)/m.test(source) ?

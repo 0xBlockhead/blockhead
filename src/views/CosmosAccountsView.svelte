@@ -21,7 +21,7 @@
 		selection,
 		title = 'Accounts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos accounts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					address: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosAccounts)}
 			{@const uniqueCosmosAccounts = [...new Map(cosmosAccounts.values.map((cosmosAccount) => [cosmosAccount[EntityMetaKey.SelectorKey], cosmosAccount])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosAccounts.values.length === uniqueCosmosAccounts.length && cosmosAccounts.totalCount != null && cosmosAccounts.totalCount >= uniqueCosmosAccounts.length ? cosmosAccounts.totalCount : uniqueCosmosAccounts.length}
+				totalCount={cosmosAccounts.totalCount}
 				getKey={(cosmosAccount) => cosmosAccount[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosAccounts}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosAccount> })}
+					{@const cosmosAccountFields = { ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }}
+					{@const cosmosAccountHrefFields = { ...cosmosAccount, ...cosmosAccount[EntityMetaKey.Selector] }}
 					<CosmosAccountView
+						selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
+						prefetched={cosmosAccountFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
-								caip2: `${String(({ ...cosmosAccount.entitySelector, ...cosmosAccount }).$network.caip2.namespace)}:${String(({ ...cosmosAccount.entitySelector, ...cosmosAccount }).$network.caip2.reference)}`,
-								address: String(({ ...cosmosAccount.entitySelector, ...cosmosAccount }).address),
-							})
+							(cosmosAccountHrefFields.$network !== undefined && cosmosAccountHrefFields.$network.caip2 !== undefined && cosmosAccountHrefFields.$network.caip2.namespace !== undefined && cosmosAccountHrefFields.$network !== undefined && cosmosAccountHrefFields.$network.caip2 !== undefined && cosmosAccountHrefFields.$network.caip2.reference !== undefined && cosmosAccountHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
+								caip2: `${String(cosmosAccountHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosAccountHrefFields.$network.caip2.reference ?? '')}`,
+								address: String(cosmosAccountHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosAccount, cosmosAccount.entitySelector)}
-						prefetched={cosmosAccount}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

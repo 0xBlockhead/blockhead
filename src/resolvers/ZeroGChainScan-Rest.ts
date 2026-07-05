@@ -23,27 +23,6 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.ZeroGChainScan_Rest, {
-			entityType: EntityType.ZeroGNetwork,
-			resolve: {
-				[ZeroGNetworkSelector.Slug]: async (entitySelector) => {
-				assertZeroGMainnet(entitySelector)
-				return {
-					$consensusNetwork: {
-						[EntityMetaKey.Selector]: {
-							$network: entitySelector,
-							consensusNetworkId: '0g-chain',
-						},
-					},
-				}
-			}
-			}
-		})({
-				fields: {
-			$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
-		},
-			}),
-
-		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGConsensusNetwork,
 			resolve: {
 				[ZeroGConsensusNetworkSelector.NetworkConsensusNetworkId]: async ({ $network, consensusNetworkId }) => {

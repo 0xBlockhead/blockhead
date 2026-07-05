@@ -53,6 +53,7 @@ export default {
 				name: '$$timestamps',
 				label: 'Observations',
 				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.SolanaTokenMint_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
 		},
 		{

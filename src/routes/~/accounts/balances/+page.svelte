@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='EvmNetworkActorCoinBalancesView-page'
+		id='actor-coins'
 	/>
 </Page>

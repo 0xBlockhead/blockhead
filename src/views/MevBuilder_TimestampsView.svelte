@@ -21,7 +21,7 @@
 		selection,
 		title = 'MEV builder observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading MEV builder observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					deliveredPayloadCount: true,
 					deliveredValueWei: true,
 					$builder: true,
+					timestampMs: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MevBuilder_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(mevBuilderTimestamps)}
 			{@const uniqueMevBuilderTimestamps = [...new Map(mevBuilderTimestamps.values.map((mevBuilderTimestamp) => [mevBuilderTimestamp[EntityMetaKey.SelectorKey], mevBuilderTimestamp])).values()]}
 			<EntitiesList
@@ -99,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mevBuilderTimestamps.values.length === uniqueMevBuilderTimestamps.length && mevBuilderTimestamps.totalCount != null && mevBuilderTimestamps.totalCount >= uniqueMevBuilderTimestamps.length ? mevBuilderTimestamps.totalCount : uniqueMevBuilderTimestamps.length}
+				totalCount={mevBuilderTimestamps.totalCount}
 				getKey={(mevBuilderTimestamp) => mevBuilderTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueMevBuilderTimestamps}
 			>
@@ -112,18 +101,20 @@
 				{/snippet}
 
 				{#snippet Item({ item: mevBuilderTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MevBuilder_Timestamp> })}
+					{@const mevBuilderTimestampFields = { ...mevBuilderTimestamp[EntityMetaKey.Selector], ...mevBuilderTimestamp }}
+					{@const mevBuilderTimestampHrefFields = { ...mevBuilderTimestamp, ...mevBuilderTimestamp[EntityMetaKey.Selector] }}
 					<MevBuilder_TimestampView
+						selection={select(EntityType.MevBuilder_Timestamp, mevBuilderTimestamp[EntityMetaKey.Selector])}
+						prefetched={mevBuilderTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...mevBuilderTimestamp.entitySelector, ...mevBuilderTimestamp }).$builder.$network.caip2.namespace)}:${String(({ ...mevBuilderTimestamp.entitySelector, ...mevBuilderTimestamp }).$builder.$network.caip2.reference)}`,
-								builderPubkey: String(({ ...mevBuilderTimestamp.entitySelector, ...mevBuilderTimestamp }).$builder.builderPubkey),
-								timestampMs: String(({ ...mevBuilderTimestamp.entitySelector, ...mevBuilderTimestamp }).timestampMs),
-								source: String(({ ...mevBuilderTimestamp.entitySelector, ...mevBuilderTimestamp }).source),
-							})
+							(mevBuilderTimestampHrefFields.$builder !== undefined && mevBuilderTimestampHrefFields.$builder.$network !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2 !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2.namespace !== undefined && mevBuilderTimestampHrefFields.$builder !== undefined && mevBuilderTimestampHrefFields.$builder.$network !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2 !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2.reference !== undefined && mevBuilderTimestampHrefFields.$builder !== undefined && mevBuilderTimestampHrefFields.$builder.builderPubkey !== undefined && mevBuilderTimestampHrefFields.timestampMs !== undefined && mevBuilderTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(mevBuilderTimestampHrefFields.$builder.$network.caip2.namespace ?? '')}:${String(mevBuilderTimestampHrefFields.$builder.$network.caip2.reference ?? '')}`,
+								builderPubkey: String(mevBuilderTimestampHrefFields.$builder.builderPubkey ?? ''),
+								timestampMs: String(mevBuilderTimestampHrefFields.timestampMs ?? ''),
+								source: String(mevBuilderTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.MevBuilder_Timestamp, mevBuilderTimestamp.entitySelector)}
-						prefetched={mevBuilderTimestamp}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

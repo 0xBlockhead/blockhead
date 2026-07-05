@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Validators',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Solana validators...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					votePubkey: true,
 					delinquent: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(solanaValidators)}
 			{@const uniqueSolanaValidators = [...new Map(solanaValidators.values.map((solanaValidator) => [solanaValidator[EntityMetaKey.SelectorKey], solanaValidator])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaValidators.values.length === uniqueSolanaValidators.length && solanaValidators.totalCount != null && solanaValidators.totalCount >= uniqueSolanaValidators.length ? solanaValidators.totalCount : uniqueSolanaValidators.length}
+				totalCount={solanaValidators.totalCount}
 				getKey={(solanaValidator) => solanaValidator[EntityMetaKey.SelectorKey]}
 				items={uniqueSolanaValidators}
 			>
@@ -111,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: solanaValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaValidator> })}
+					{@const solanaValidatorFields = { ...solanaValidator[EntityMetaKey.Selector], ...solanaValidator }}
+					{@const solanaValidatorHrefFields = { ...solanaValidator, ...solanaValidator[EntityMetaKey.Selector] }}
 					<SolanaValidatorView
+						selection={select(EntityType.SolanaValidator, solanaValidator[EntityMetaKey.Selector])}
+						prefetched={solanaValidatorFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validator/[votePubkey]', {
-								networkSlug: String(({ ...solanaValidator.entitySelector, ...solanaValidator }).$network.slug),
-								votePubkey: String(({ ...solanaValidator.entitySelector, ...solanaValidator }).votePubkey),
-							})
+							(solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined && solanaValidatorHrefFields.$network.caip2.namespace !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined && solanaValidatorHrefFields.$network.caip2.reference !== undefined && solanaValidatorHrefFields.votePubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validator/[votePubkey]', {
+								networkSlug: String(networkByCaip2[String(String(solanaValidatorHrefFields.$network.caip2.namespace) + ':' + String(solanaValidatorHrefFields.$network.caip2.reference))].slug ?? ''),
+								votePubkey: String(solanaValidatorHrefFields.votePubkey ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.SolanaValidator, solanaValidator.entitySelector)}
-						prefetched={solanaValidator}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { starknetBindings } from '$/sources/Starknet/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.Starknet,
-	label: 'Starknet',
-	sources: [
-		{
-			provider: SourceProvider.Starknet,
-			source: Source.Starknet_JsonRpc,
-			label: 'Starknet JSON-RPC',
-		},
-	],
-	bindings: starknetBindings,
-} satisfies SourceProviderDefinition
+	source: Source.Starknet_JsonRpc,
+	label: 'Starknet JSON-RPC',
+} satisfies SourceDefinition

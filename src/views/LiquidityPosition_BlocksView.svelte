@@ -21,7 +21,7 @@
 		selection,
 		title = 'Liquidity position blocks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Liquidity position blocks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					blockNumber: true,
 					liquidity: true,
 					$position: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPosition_Block}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(liquidityPositionBlocks)}
 			{@const uniqueLiquidityPositionBlocks = [...new Map(liquidityPositionBlocks.values.map((liquidityPositionBlock) => [liquidityPositionBlock[EntityMetaKey.SelectorKey], liquidityPositionBlock])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={liquidityPositionBlocks.values.length === uniqueLiquidityPositionBlocks.length && liquidityPositionBlocks.totalCount != null && liquidityPositionBlocks.totalCount >= uniqueLiquidityPositionBlocks.length ? liquidityPositionBlocks.totalCount : uniqueLiquidityPositionBlocks.length}
+				totalCount={liquidityPositionBlocks.totalCount}
 				getKey={(liquidityPositionBlock) => liquidityPositionBlock[EntityMetaKey.SelectorKey]}
 				items={uniqueLiquidityPositionBlocks}
 			>
@@ -107,21 +95,23 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No liquidity position blocks yet.</p>
+						<p data-text="muted">No Liquidity position blocks yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: liquidityPositionBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LiquidityPosition_Block> })}
+					{@const liquidityPositionBlockFields = { ...liquidityPositionBlock[EntityMetaKey.Selector], ...liquidityPositionBlock }}
+					{@const liquidityPositionBlockHrefFields = { ...liquidityPositionBlock, ...liquidityPositionBlock[EntityMetaKey.Selector] }}
 					<LiquidityPosition_BlockView
+						selection={select(EntityType.LiquidityPosition_Block, liquidityPositionBlock[EntityMetaKey.Selector])}
+						prefetched={liquidityPositionBlockFields}
 						href={
-							resolve('/(assets)/position/[positionId]/block/[blockNumber=nonNegativeInteger]/[source]', {
-								positionId: String(({ ...liquidityPositionBlock.entitySelector, ...liquidityPositionBlock }).$position.id),
-								blockNumber: String(({ ...liquidityPositionBlock.entitySelector, ...liquidityPositionBlock }).blockNumber),
-								source: String(({ ...liquidityPositionBlock.entitySelector, ...liquidityPositionBlock }).source),
-							})
+							(liquidityPositionBlockHrefFields.$position !== undefined && liquidityPositionBlockHrefFields.$position.id !== undefined && liquidityPositionBlockHrefFields.blockNumber !== undefined && liquidityPositionBlockHrefFields.source !== undefined ? resolve('/(assets)/position/[positionId]/block/[blockNumber=nonNegativeInteger]/[source]', {
+								positionId: String(liquidityPositionBlockHrefFields.$position.id ?? ''),
+								blockNumber: String(liquidityPositionBlockHrefFields.blockNumber ?? ''),
+								source: String(liquidityPositionBlockHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.LiquidityPosition_Block, liquidityPositionBlock.entitySelector)}
-						prefetched={liquidityPositionBlock}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

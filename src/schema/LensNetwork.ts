@@ -86,5 +86,19 @@ export default {
 					Source.Lens_Graphql,
 				],
 		},
+		{
+				name: '$$lensFeeds',
+				label: 'Feeds',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.LensFeed,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
+				name: '$$lensUsernameNamespaces',
+				label: 'Username namespaces',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.LensUsernameNamespace,
+				cardinality: EntityFieldCardinality.Many,
+		},
 	],
 } as const satisfies EntityDefinition

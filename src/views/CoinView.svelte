@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -46,33 +45,20 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const coin = $derived(selection({
-		sources: open ? [
-			Source.Constants_Internal,
-			Source.Coingecko_Rest,
-			Source.CoinMarketCap_Rest,
-			Source.Coinpaprika_OpenApi,
-		] : [
+		sources: [
 			Source.Constants_Internal,
 		],
 		fields: {
 			symbol: true,
 			$logo: true,
 			name: true,
-			...(open && {
-				name: true,
-				decimals: true,
-				$logo: true,
-				$$timestamps: true,
-				$$coinInstances: true,
-				$$bridgeCapabilities: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || 'Coin')
+	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Coin')
 	const viewDomId = $derived('coin-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
@@ -82,19 +68,21 @@
 	import EvmCoinInstancesView from '$/views/EvmCoinInstancesView.svelte'
 	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
+	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
+	import MarketPricesView from '$/views/MarketPricesView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.Coin}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(assets)/coin/[coinId]', {
-			coinId: String(({ ...selection.entitySelector, ...prefetched }).coinId),
-		})
+		href ?? (pendingEntity.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+			coinId: String(pendingEntity.coinId ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
@@ -175,19 +163,15 @@
 								},
 								limit: 1,
 								orderBy: [
-									[({ fieldRow }) => fieldRow.entitySelector.timestampMs ?? fieldRow.timestampMs, 'desc'],
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							}).first()
+							})
 						}
-						placeholderText='Loading latest snapshot...'
 					>
-						{#snippet Pending()}
-							<span data-text="muted">-</span>
-						{/snippet}
-
-						{#snippet children(coinTimestamp)}
+						{#snippet children(coinTimestamps)}
+							{@const coinTimestamp = coinTimestamps.values[0]}
 							{#if coinTimestamp != null}
-								{@const coinTimestampSelector = coinTimestamp.entitySelector}
+								{@const coinTimestampSelector = coinTimestamp[EntityMetaKey.Selector]}
 								<Coin_TimestampView
 									selection={
 										select(EntityType.Coin_Timestamp, coinTimestampSelector, {
@@ -200,18 +184,16 @@
 										})
 									}
 									href={
-										resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-											coinId: String(({ ...coinTimestampSelector, ...coinTimestamp }).$coin.coinId),
-											timestampMs: String(({ ...coinTimestampSelector, ...coinTimestamp }).timestampMs),
-											source: String(({ ...coinTimestampSelector, ...coinTimestamp }).source),
-										})
+										(({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).$coin !== undefined && ({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).$coin.coinId !== undefined && ({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).timestampMs !== undefined && ({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).source !== undefined ? resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+											coinId: String(({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).$coin.coinId ?? ''),
+											timestampMs: String(({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).timestampMs ?? ''),
+											source: String(({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).source ?? ''),
+										}) : undefined)
 									}
 									prefetched={{ ...coinTimestampSelector, ...coinTimestamp }}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							{:else}
-								<span data-text="muted">-</span>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -220,42 +202,62 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Coin ID</dt>
-				<dd>
-					<ResourceBoundary resource={coin}>
-						{#snippet Pending()}
-							{@const coinId = prefetched.coinId ?? selection.entitySelector.coinId}
-							{#if coinId !== undefined && coinId !== null}
-								{String((coinId) ?? '')}
-							{/if}
-						{/snippet}
+			{#if !contentOpen}
+				<div>
+					<dt>Coin ID</dt>
+					<dd>
+						<ResourceBoundary
+							resource={
+								selection({
+									fields: {
+										coinId: true,
+									},
+								})
+							}
+						>
+							{#snippet Pending()}
+								{@const coinId = selection.entitySelector.coinId ?? prefetched.coinId}
+								{#if coinId !== undefined && coinId !== null}
+									{String((coinId) ?? '')}
+								{/if}
+							{/snippet}
 
-						{#snippet children(entity)}
-							{@const coinId = entity.coinId ?? selection.entitySelector.coinId ?? prefetched.coinId}
-							{#if coinId !== undefined && coinId !== null}
-								{String((coinId) ?? '')}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{@const coinId = resolvedEntity.coinId}
+								{#if coinId !== undefined && coinId !== null}
+									{String((coinId) ?? '')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 
 		<dl data-column-item="center">
 			<div>
 				<dt>Decimals</dt>
 				<dd>
-					<ResourceBoundary resource={coin}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									decimals: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const decimals = prefetched.decimals ?? selection.entitySelector.decimals}
+							{@const decimals = prefetched.decimals}
 							{#if decimals !== undefined && decimals !== null}
 								{String((decimals) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const decimals = entity.decimals ?? selection.entitySelector.decimals ?? prefetched.decimals}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const decimals = resolvedEntity.decimals}
 							{#if decimals !== undefined && decimals !== null}
 								{String((decimals) ?? '')}
 							{/if}
@@ -301,7 +303,6 @@
 				{#snippet SectionCoinInstances({ id, label, open })}
 					<EvmCoinInstancesView
 						selection={selection[EntityProxyField]<EntityType.EvmCoinInstance>('$$coinInstances')}
-						href={resolve('/(assets)/coin')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -312,7 +313,6 @@
 				{#snippet SectionCoinWrapped({ id, label, open })}
 					<EvmCoinInstancesView
 						selection={selection[EntityProxyField]<EntityType.EvmCoinInstance>('$$coinInstances')}
-						href={resolve('/(assets)/coin')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -323,7 +323,6 @@
 				{#snippet SectionCoinBridgeCapabilities({ id, label, open })}
 					<CoinBridgeCapabilitiesView
 						selection={selection[EntityProxyField]<EntityType.CoinBridgeCapability>('$$bridgeCapabilities')}
-						href={resolve('/(assets)/bridge-capability')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}

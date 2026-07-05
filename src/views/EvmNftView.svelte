@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -46,6 +45,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmNft = $derived(selection({
 		sources: [
 			Source.Eip8004Scan_Rest,
@@ -54,27 +54,11 @@
 			format: true,
 			name: true,
 			image: true,
-			...(open && {
-				description: true,
-				tokenUri: true,
-				agentUri: true,
-				contactEndpoint: true,
-				$agentWallet: true,
-				x402Support: true,
-				active: true,
-				supportedTrust: true,
-				registrationTypeIri: true,
-				fetchedAt: true,
-				standard: true,
-				agentRegistry: true,
-				agentId: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT')
+	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.tokenId ?? prefetched.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT')
 	const viewDomId = $derived('evm-nft-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -85,15 +69,15 @@
 
 <EntityView
 	entityType={EntityType.EvmNft}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {
-			chainId: String(({ ...selection.entitySelector, ...prefetched }).$contract.$network.caip2.reference),
-			contractAddress: String(({ ...selection.entitySelector, ...prefetched }).$contract.address),
-			tokenId: String(({ ...selection.entitySelector, ...prefetched }).tokenId),
-		})
+		href ?? (pendingEntity.$contract !== undefined && pendingEntity.$contract.$network !== undefined && pendingEntity.$contract.$network.caip2 !== undefined && pendingEntity.$contract.$network.caip2.reference !== undefined && pendingEntity.$contract !== undefined && pendingEntity.$contract.address !== undefined && pendingEntity.tokenId !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {
+			chainId: String(pendingEntity.$contract.$network.caip2.reference ?? ''),
+			contractAddress: String(pendingEntity.$contract.address ?? ''),
+			tokenId: String(pendingEntity.tokenId ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
@@ -115,19 +99,16 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT'}
-		{:else}
-			<ResourceBoundary resource={evmNft}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT'}
-				{/snippet}
+		<ResourceBoundary resource={evmNft}>
+			{#snippet Pending()}
+				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.tokenId ?? prefetched.tokenId) ?? '')].filter(Boolean).join(' ') || 'EVM NFT'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
@@ -150,10 +131,10 @@
 					<EvmContractView
 						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$contract.$network.caip2.namespace)}:${String(selection.entitySelector.$contract.$network.caip2.reference)}`,
-								address: String(selection.entitySelector.$contract.address),
-							})
+							(selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.namespace !== undefined && selection.entitySelector.$contract.$network !== undefined && selection.entitySelector.$contract.$network.caip2 !== undefined && selection.entitySelector.$contract.$network.caip2.reference !== undefined && selection.entitySelector.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+								caip2: `${String(selection.entitySelector.$contract.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$contract.$network.caip2.reference ?? '')}`,
+								address: String(selection.entitySelector.$contract.address ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}
@@ -162,18 +143,57 @@
 			</div>
 
 			<div>
+				<dt>Token ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									tokenId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const tokenId = selection.entitySelector.tokenId ?? prefetched.tokenId}
+							{#if tokenId !== undefined && tokenId !== null}
+								{String((tokenId) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const tokenId = resolvedEntity.tokenId}
+							{#if tokenId !== undefined && tokenId !== null}
+								{String((tokenId) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Standard</dt>
 				<dd>
-					<ResourceBoundary resource={evmNft}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									standard: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const standard = prefetched.standard ?? selection.entitySelector.standard}
+							{@const standard = prefetched.standard}
 							{#if standard !== undefined && standard !== null}
 								{String((standard) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const standard = entity.standard ?? selection.entitySelector.standard ?? prefetched.standard}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const standard = resolvedEntity.standard}
 							{#if standard !== undefined && standard !== null}
 								{String((standard) ?? '')}
 							{/if}
@@ -185,16 +205,25 @@
 			<div>
 				<dt>Format</dt>
 				<dd>
-					<ResourceBoundary resource={evmNft}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									format: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const format = prefetched.format ?? selection.entitySelector.format}
+							{@const format = prefetched.format}
 							{#if format !== undefined && format !== null}
 								{String((format) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const format = entity.format ?? selection.entitySelector.format ?? prefetched.format}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const format = resolvedEntity.format}
 							{#if format !== undefined && format !== null}
 								{String((format) ?? '')}
 							{/if}
@@ -205,9 +234,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							agentRegistry: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const agentRegistry = prefetched.agentRegistry ?? selection.entitySelector.agentRegistry}
+					{@const agentRegistry = prefetched.agentRegistry}
 					{#if agentRegistry !== undefined && agentRegistry !== null}
 						<div>
 							<dt>Agent registry</dt>
@@ -219,7 +256,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const agentRegistry = entity.agentRegistry ?? selection.entitySelector.agentRegistry ?? prefetched.agentRegistry}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const agentRegistry = resolvedEntity.agentRegistry}
 					{#if agentRegistry !== undefined && agentRegistry !== null}
 						<div>
 							<dt>Agent registry</dt>
@@ -231,9 +269,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							agentId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const agentId = prefetched.agentId ?? selection.entitySelector.agentId}
+					{@const agentId = prefetched.agentId}
 					{#if agentId !== undefined && agentId !== null}
 						<div>
 							<dt>Agent ID</dt>
@@ -245,7 +291,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const agentId = entity.agentId ?? selection.entitySelector.agentId ?? prefetched.agentId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const agentId = resolvedEntity.agentId}
 					{#if agentId !== undefined && agentId !== null}
 						<div>
 							<dt>Agent ID</dt>
@@ -257,35 +304,66 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							agentUri: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const agentUri = prefetched.agentUri ?? selection.entitySelector.agentUri}
+					{@const agentUri = prefetched.agentUri}
 					{#if agentUri !== undefined && agentUri !== null}
 						<div>
 							<dt>Agent URI</dt>
 							<dd>
-								{String((agentUri) ?? '')}
+								<svelte:element
+									this={'a'}
+									href={String(agentUri)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(agentUri)} />
+								</svelte:element>
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const agentUri = entity.agentUri ?? selection.entitySelector.agentUri ?? prefetched.agentUri}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const agentUri = resolvedEntity.agentUri}
 					{#if agentUri !== undefined && agentUri !== null}
 						<div>
 							<dt>Agent URI</dt>
 							<dd>
-								{String((agentUri) ?? '')}
+								<svelte:element
+									this={'a'}
+									href={String(agentUri)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(agentUri)} />
+								</svelte:element>
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							contactEndpoint: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const contactEndpoint = prefetched.contactEndpoint ?? selection.entitySelector.contactEndpoint}
+					{@const contactEndpoint = prefetched.contactEndpoint}
 					{#if contactEndpoint !== undefined && contactEndpoint !== null}
 						<div>
 							<dt>Contact endpoint</dt>
@@ -297,7 +375,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const contactEndpoint = entity.contactEndpoint ?? selection.entitySelector.contactEndpoint ?? prefetched.contactEndpoint}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const contactEndpoint = resolvedEntity.contactEndpoint}
 					{#if contactEndpoint !== undefined && contactEndpoint !== null}
 						<div>
 							<dt>Contact endpoint</dt>
@@ -313,17 +392,17 @@
 				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$agentWallet')}
 			>
 				{#snippet children(evmAccount)}
-					{#if evmAccount != null}
+					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Agent wallet</dt>
 							<dd>
 								<EvmAccountView
-									selection={select(EntityType.EvmAccount, evmAccount.entitySelector)}
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										resolve('/(explore)/account/[address=evmAddress]', {
-											address: String(evmAccount.entitySelector.address),
-										})
+										(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+											address: String(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -336,61 +415,87 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							x402Support: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const x402Support = prefetched.x402Support ?? selection.entitySelector.x402Support}
+					{@const x402Support = prefetched.x402Support}
 					{#if x402Support !== undefined && x402Support !== null}
 						<div>
 							<dt>x402 support</dt>
 							<dd>
-								{String((x402Support) ?? '')}
+								{x402Support ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const x402Support = entity.x402Support ?? selection.entitySelector.x402Support ?? prefetched.x402Support}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const x402Support = resolvedEntity.x402Support}
 					{#if x402Support !== undefined && x402Support !== null}
 						<div>
 							<dt>x402 support</dt>
 							<dd>
-								{String((x402Support) ?? '')}
+								{x402Support ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							active: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const active = prefetched.active ?? selection.entitySelector.active}
+					{@const active = prefetched.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>Active</dt>
 							<dd>
-								{String((active) ?? '')}
+								{active ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const active = entity.active ?? selection.entitySelector.active ?? prefetched.active}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const active = resolvedEntity.active}
 					{#if active !== undefined && active !== null}
 						<div>
 							<dt>Active</dt>
 							<dd>
-								{String((active) ?? '')}
+								{active ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							supportedTrust: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const supportedTrust = prefetched.supportedTrust ?? selection.entitySelector.supportedTrust}
+					{@const supportedTrust = prefetched.supportedTrust}
 					{#if supportedTrust !== undefined && supportedTrust !== null}
 						<div>
 							<dt>Supported trust</dt>
@@ -402,7 +507,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const supportedTrust = entity.supportedTrust ?? selection.entitySelector.supportedTrust ?? prefetched.supportedTrust}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const supportedTrust = resolvedEntity.supportedTrust}
 					{#if supportedTrust !== undefined && supportedTrust !== null}
 						<div>
 							<dt>Supported trust</dt>
@@ -414,9 +520,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							registrationTypeIri: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const registrationTypeIri = prefetched.registrationTypeIri ?? selection.entitySelector.registrationTypeIri}
+					{@const registrationTypeIri = prefetched.registrationTypeIri}
 					{#if registrationTypeIri !== undefined && registrationTypeIri !== null}
 						<div>
 							<dt>Registration type IRI</dt>
@@ -428,7 +542,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const registrationTypeIri = entity.registrationTypeIri ?? selection.entitySelector.registrationTypeIri ?? prefetched.registrationTypeIri}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const registrationTypeIri = resolvedEntity.registrationTypeIri}
 					{#if registrationTypeIri !== undefined && registrationTypeIri !== null}
 						<div>
 							<dt>Registration type IRI</dt>
@@ -440,9 +555,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmNft}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							fetchedAt: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const fetchedAt = prefetched.fetchedAt ?? selection.entitySelector.fetchedAt}
+					{@const fetchedAt = prefetched.fetchedAt}
 					{#if fetchedAt !== undefined && fetchedAt !== null}
 						<div>
 							<dt>Fetched at</dt>
@@ -454,7 +577,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const fetchedAt = entity.fetchedAt ?? selection.entitySelector.fetchedAt ?? prefetched.fetchedAt}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const fetchedAt = resolvedEntity.fetchedAt}
 					{#if fetchedAt !== undefined && fetchedAt !== null}
 						<div>
 							<dt>Fetched at</dt>
@@ -467,12 +591,19 @@
 			</ResourceBoundary>
 		</dl>
 
-		<ResourceBoundary resource={evmNft}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						description: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const description = entity.description ?? selection.entitySelector.description ?? prefetched.description}
-				{#if description === undefined || description === null || description === ''}
-					<p data-text="muted">No description available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const description = resolvedEntity.description}
+				{#if description !== undefined && description !== null && description !== ''}
 					<p data-text="long-text">{String((description) ?? '')}</p>
 				{/if}
 			{/snippet}

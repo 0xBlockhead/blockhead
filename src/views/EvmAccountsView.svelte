@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM accounts',
 		typeAnnotationParagraphs = ['An account address in the EVM address space, independent of any one chain.'],
-		placeholderText = 'Loading EVM accounts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
+					$avatar: true,
 					address: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmAccounts)}
 			{@const uniqueEvmAccounts = [...new Map(evmAccounts.values.map((evmAccount) => [evmAccount[EntityMetaKey.SelectorKey], evmAccount])).values()]}
 			<EntitiesList
@@ -97,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmAccounts.values.length === uniqueEvmAccounts.length && evmAccounts.totalCount != null && evmAccounts.totalCount >= uniqueEvmAccounts.length ? evmAccounts.totalCount : uniqueEvmAccounts.length}
+				totalCount={evmAccounts.totalCount}
 				getKey={(evmAccount) => evmAccount[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmAccounts}
 			>
@@ -110,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmAccount> })}
+					{@const evmAccountFields = { ...evmAccount[EntityMetaKey.Selector], ...evmAccount }}
+					{@const evmAccountHrefFields = { ...evmAccount, ...evmAccount[EntityMetaKey.Selector] }}
 					<EvmAccountView
+						selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+						prefetched={evmAccountFields}
 						href={
-							resolve('/(explore)/account/[address=evmAddress]', {
-								address: String(({ ...evmAccount.entitySelector, ...evmAccount }).address),
-							})
+							(evmAccountHrefFields.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+								address: String(evmAccountHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmAccount, evmAccount.entitySelector)}
-						prefetched={evmAccount}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

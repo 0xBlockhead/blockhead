@@ -47,6 +47,6 @@
 				address: decodeURIComponent(params.address),
 			})[EntityProxyField]<EntityType.CosmosTransaction>('$$transactions')
 		}
-		id='CosmosTransactionsView-page'
+		id='transactions'
 	/>
 </Page>

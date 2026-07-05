@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'UTXO address observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading UTXO address observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					timestampMs: true,
 					balanceSats: true,
 					source: true,
+					$address: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoAddress_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(utxoAddressTimestamps)}
 			{@const uniqueUtxoAddressTimestamps = [...new Map(utxoAddressTimestamps.values.map((utxoAddressTimestamp) => [utxoAddressTimestamp[EntityMetaKey.SelectorKey], utxoAddressTimestamp])).values()]}
 			<EntitiesList
@@ -99,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoAddressTimestamps.values.length === uniqueUtxoAddressTimestamps.length && utxoAddressTimestamps.totalCount != null && utxoAddressTimestamps.totalCount >= uniqueUtxoAddressTimestamps.length ? utxoAddressTimestamps.totalCount : uniqueUtxoAddressTimestamps.length}
+				totalCount={utxoAddressTimestamps.totalCount}
 				getKey={(utxoAddressTimestamp) => utxoAddressTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueUtxoAddressTimestamps}
 			>
@@ -112,17 +101,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: utxoAddressTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoAddress_Timestamp> })}
+					{@const utxoAddressTimestampFields = { ...utxoAddressTimestamp[EntityMetaKey.Selector], ...utxoAddressTimestamp }}
+					{@const utxoAddressTimestampHrefFields = { ...utxoAddressTimestamp, ...utxoAddressTimestamp[EntityMetaKey.Selector] }}
 					<UtxoAddress_TimestampView
+						selection={select(EntityType.UtxoAddress_Timestamp, utxoAddressTimestamp[EntityMetaKey.Selector])}
+						prefetched={utxoAddressTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/address/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								networkSlug: String(({ ...utxoAddressTimestamp.entitySelector, ...utxoAddressTimestamp }).$address.slug),
-								address: String(({ ...utxoAddressTimestamp.entitySelector, ...utxoAddressTimestamp }).$address.address),
-								timestampMs: String(({ ...utxoAddressTimestamp.entitySelector, ...utxoAddressTimestamp }).timestampMs),
-								source: String(({ ...utxoAddressTimestamp.entitySelector, ...utxoAddressTimestamp }).source),
-							})
+							(utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.caip2 !== undefined && utxoAddressTimestampHrefFields.$address.caip2.namespace !== undefined && utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.caip2 !== undefined && utxoAddressTimestampHrefFields.$address.caip2.reference !== undefined && utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.address !== undefined && utxoAddressTimestampHrefFields.timestampMs !== undefined && utxoAddressTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/address/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								networkSlug: String(networkByCaip2[String(String(utxoAddressTimestampHrefFields.$address.caip2.namespace) + ':' + String(utxoAddressTimestampHrefFields.$address.caip2.reference))].slug ?? ''),
+								address: String(utxoAddressTimestampHrefFields.$address.address ?? ''),
+								timestampMs: String(utxoAddressTimestampHrefFields.timestampMs ?? ''),
+								source: String(utxoAddressTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.UtxoAddress_Timestamp, utxoAddressTimestamp.entitySelector)}
-						prefetched={utxoAddressTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

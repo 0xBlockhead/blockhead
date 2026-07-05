@@ -20,7 +20,7 @@
 		selection,
 		title = 'Sessions',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Sessions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,30 +64,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					name: true,
 					status: true,
 					id: true,
 					updatedAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSession}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadSessions)}
 			{@const uniqueBlockheadSessions = [...new Map(blockheadSessions.values.map((blockheadSession) => [blockheadSession[EntityMetaKey.SelectorKey], blockheadSession])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSessions.values.length === uniqueBlockheadSessions.length && blockheadSessions.totalCount != null && blockheadSessions.totalCount >= uniqueBlockheadSessions.length ? blockheadSessions.totalCount : uniqueBlockheadSessions.length}
+				totalCount={blockheadSessions.totalCount}
 				getKey={(blockheadSession) => blockheadSession[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadSessions}
 			>
@@ -107,14 +94,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No sessions yet.</p>
+						<p data-text="muted">No Sessions yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadSession }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSession> })}
+					{@const blockheadSessionFields = { ...blockheadSession[EntityMetaKey.Selector], ...blockheadSession }}
 					<BlockheadSessionView
-						selection={select(EntityType.BlockheadSession, blockheadSession.entitySelector)}
-						prefetched={blockheadSession}
+						selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
+						prefetched={blockheadSessionFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

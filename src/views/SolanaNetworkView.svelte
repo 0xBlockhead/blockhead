@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -40,6 +39,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const solanaNetwork = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -47,22 +47,11 @@
 		fields: {
 			name: true,
 			environment: true,
-			...(open && {
-				$$timestamps: true,
-				$$blocks: true,
-				$$transactions: true,
-				$$accounts: true,
-				$$programs: true,
-				$$tokenAccounts: true,
-				$$tokenMints: true,
-				$$validators: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || 'Solana network')
+	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Solana network')
 	const viewDomId = $derived('solana-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -80,57 +69,48 @@
 
 <EntityView
 	entityType={EntityType.SolanaNetwork}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana', {
-			networkSlug: String(networkByCaip2[String(String(({ ...selection.entitySelector, ...prefetched }).caip2.namespace) + ':' + String(({ ...selection.entitySelector, ...prefetched }).caip2.reference))].slug),
-		})
+		href ?? (pendingEntity.caip2 !== undefined && pendingEntity.caip2.namespace !== undefined && pendingEntity.caip2 !== undefined && pendingEntity.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana', {
+			networkSlug: String(networkByCaip2[String(String(pendingEntity.caip2.namespace) + ':' + String(pendingEntity.caip2.reference))].slug ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'Solana network'}
-		{:else}
-			<ResourceBoundary resource={solanaNetwork}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'Solana network'}
-				{/snippet}
+		<ResourceBoundary resource={solanaNetwork}>
+			{#snippet Pending()}
+				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'Solana network'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const caip20 = ({ ...selection.entitySelector, ...prefetched }).caip2}
-			{#if caip20 !== undefined && caip20 !== null}
-				<TruncatedValue value={caip20 == null ? '' : String((`${(caip20).namespace}:${(caip20).reference}`) ?? '')} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={solanaNetwork}>
-				{#snippet Pending()}
-					{@const caip20 = ({ ...selection.entitySelector, ...prefetched }).caip2}
-					{#if caip20 !== undefined && caip20 !== null}
-						<TruncatedValue value={caip20 == null ? '' : String((`${(caip20).namespace}:${(caip20).reference}`) ?? '')} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={solanaNetwork}>
+			{#snippet Pending()}
+				{@const caip20 = selection.entitySelector.caip2 ?? prefetched.caip2}
+				{#if caip20 !== undefined && caip20 !== null}
+					<TruncatedValue value={caip20 == null ? '' : String((`${(caip20).namespace}:${(caip20).reference}`) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const caip20 = ({ ...selection.entitySelector, ...prefetched, ...entity }).caip2}
-					{#if caip20 !== undefined && caip20 !== null}
-						<TruncatedValue value={caip20 == null ? '' : String((`${(caip20).namespace}:${(caip20).reference}`) ?? '')} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const caip20 = resolvedEntity.caip2}
+				{#if caip20 !== undefined && caip20 !== null}
+					<TruncatedValue value={caip20 == null ? '' : String((`${(caip20).namespace}:${(caip20).reference}`) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -141,19 +121,93 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							name: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const name = prefetched.name}
+					{#if name !== undefined && name !== null}
+						<div>
+							<dt>Name</dt>
+							<dd>
+								{String((name) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const name = resolvedEntity.name}
+					{#if name !== undefined && name !== null}
+						<div>
+							<dt>Name</dt>
+							<dd>
+								{String((name) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<div>
+				<dt>CAIP-2</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									caip2: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const caip2 = selection.entitySelector.caip2 ?? prefetched.caip2}
+							{#if caip2 !== undefined && caip2 !== null}
+								<TruncatedValue value={caip2 == null ? '' : String((`${(caip2).namespace}:${(caip2).reference}`) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const caip2 = resolvedEntity.caip2}
+							{#if caip2 !== undefined && caip2 !== null}
+								<TruncatedValue value={caip2 == null ? '' : String((`${(caip2).namespace}:${(caip2).reference}`) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
 			<div>
 				<dt>Environment</dt>
 				<dd>
-					<ResourceBoundary resource={solanaNetwork}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									environment: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const environment = prefetched.environment ?? selection.entitySelector.environment}
+							{@const environment = prefetched.environment}
 							{#if environment !== undefined && environment !== null}
 								{String((environment) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const environment = entity.environment ?? selection.entitySelector.environment ?? prefetched.environment}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const environment = resolvedEntity.environment}
 							{#if environment !== undefined && environment !== null}
 								{String((environment) ?? '')}
 							{/if}
@@ -171,7 +225,7 @@
 				title='Timestamps'
 				href={
 						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/observations', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 						})
 					}
 				id='SolanaNetwork_TimestampsView-$$timestamps'
@@ -182,7 +236,7 @@
 				title='Blocks'
 				href={
 						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/blocks', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 						})
 					}
 				id='SolanaBlocksView-$$blocks'
@@ -193,7 +247,7 @@
 				title='Transactions'
 				href={
 						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/transactions', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 						})
 					}
 				id='SolanaTransactionsView-$$transactions'
@@ -204,7 +258,7 @@
 				title='Accounts'
 				href={
 						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/accounts', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 						})
 					}
 				id='SolanaAccountsView-$$accounts'
@@ -215,7 +269,7 @@
 				title='Programs'
 				href={
 						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/programs', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 						})
 					}
 				id='SolanaProgramsView-$$programs'
@@ -226,7 +280,7 @@
 				title='Token accounts'
 				href={
 						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-accounts', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 						})
 					}
 				id='SolanaTokenAccountsView-$$tokenAccounts'
@@ -237,7 +291,7 @@
 				title='Token mints'
 				href={
 						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mints', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 						})
 					}
 				id='SolanaTokenMintsView-$$tokenMints'
@@ -248,7 +302,7 @@
 				title='Validators'
 				href={
 						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validators', {
-							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 						})
 					}
 				id='SolanaValidatorsView-$$validators'
@@ -297,7 +351,7 @@
 						selection={selection[EntityProxyField]<EntityType.SolanaBlock>('$$blocks')}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/blocks', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -312,7 +366,7 @@
 						selection={selection[EntityProxyField]<EntityType.SolanaTransaction>('$$transactions')}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/transactions', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -327,7 +381,7 @@
 						selection={selection[EntityProxyField]<EntityType.SolanaAccount>('$$accounts')}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/accounts', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -342,7 +396,7 @@
 						selection={selection[EntityProxyField]<EntityType.SolanaProgram>('$$programs')}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/programs', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -357,7 +411,7 @@
 						selection={selection[EntityProxyField]<EntityType.SolanaNetwork_Timestamp>('$$timestamps')}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/observations', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -404,7 +458,7 @@
 						selection={selection[EntityProxyField]<EntityType.SolanaTokenAccount>('$$tokenAccounts')}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-accounts', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -419,7 +473,7 @@
 						selection={selection[EntityProxyField]<EntityType.SolanaTokenMint>('$$tokenMints')}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mints', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -434,7 +488,7 @@
 						selection={selection[EntityProxyField]<EntityType.SolanaValidator>('$$validators')}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validators', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug),
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

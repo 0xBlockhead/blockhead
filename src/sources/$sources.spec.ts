@@ -26,13 +26,14 @@ import {
 } from '$/sources/Voltaire/JsonRpc/types.ts'
 import Voltaire, {
 	voltaireJsonRpcTransportCandidates,
+	voltaireJsonRpcTransportsWithOriginsByChainId,
 	voltaireJsonRpcTransportWithOriginsByChainId,
 } from '$/sources/Voltaire/index.ts'
 import ZeroG from '$/sources/ZeroG/index.ts'
-import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/index.ts'
-import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/index.ts'
-import { zeroGStorageNodeRpcEndpoints } from '$/sources/ZeroG/StorageNode/JsonRpc/index.ts'
-import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/index.ts'
+import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/definition.ts'
+import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/definition.ts'
+import { zeroGStorageNodeRpcEndpoints } from '$/sources/ZeroG/StorageNode/JsonRpc/definition.ts'
+import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/definition.ts'
 import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
 
 const fixtureSourceProviders = [
@@ -288,11 +289,12 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps every provider origin represented in the proxy allow-list source', () => {
-		const hooksSource = readFileSync(join(process.cwd(), 'src', 'hooks.server.ts'), 'utf8')
+		const serverSource = readFileSync(join(process.cwd(), 'src', 'sources', 'index.server.ts'), 'utf8')
 
-		expect(hooksSource).toMatch(/\bsourceProviders\.flatMap\(\(provider\) =>/)
-		expect(hooksSource).toMatch(/\(provider\.origins \?\? \[\]\)\.map\(\(entry\) => entry\.origin\)/)
-		expect(hooksSource).not.toMatch(/\bnew Set\(\s*\[/)
+		expect(serverSource).toMatch(/\bsourceProviderDefinitions\.flatMap\(\(provider\) => provider\.bindings\)/)
+		expect(serverSource).toMatch(/\bbinding\.delivery === SourceDelivery\.HttpProxy\b/)
+		expect(serverSource).toMatch(/\bendpoint\.endpointKind === SourceEndpointKind\.HttpUrl\b/)
+		expect(serverSource).not.toMatch(/\bnew Set\(\s*\[/)
 
 		for (const sourceProvider of appSourceProviders)
 			for (const { origin } of sourceProvider.origins ?? [])
@@ -309,6 +311,8 @@ describe('source provider registry', () => {
 			if (
 				filePath.endsWith('.spec.ts')
 				|| filePath.endsWith('.test.ts')
+				|| filePath.endsWith('.d.ts')
+				|| filePath === 'src/sources/_runtime/proxy.server.ts'
 			)
 				continue
 
@@ -364,7 +368,7 @@ describe('source provider registry', () => {
 					expect(
 						source.slice(helperMatch.index, endIndex),
 						`${filePath}: ${helperName} call must pass source provider origins`
-					).toMatch(/\borigins:\s*(?:\[\.\.\.)?[A-Za-z0-9_]+\.origins\b|\borigins:\s*\[\.\.\.origins\]|\borigins\s*,/)
+					).toMatch(/\borigins:\s*(?:\[\.\.\.)?[A-Za-z0-9_]+\.origins\b|\borigins:\s*\[\.\.\.origins\]|\borigins:\s*[A-Za-z0-9_]+Origins\b|\borigins:\s*[A-Za-z0-9_]+Origins\(|\borigins:\s*originsFor[A-Za-z0-9_]*\(|\borigins:\s*endpoints\.flatMap\(|\borigins:\s*httpOriginsForBinding\(|\borigins:\s*\[\s*\{[\s\S]*?corsEnabled:\s*false|\{\s*origins\s*\}|\borigins\s*,/)
 				}
 			}
 		}
@@ -396,21 +400,26 @@ describe('source provider registry', () => {
 				.find((entry) => (
 					entry.chainId === chainId
 					&& entry.transportType === TransportType.Http
-				))
+			))
 			if (httpCandidate != null)
 				expect(voltaireJsonRpcTransportWithOriginsByChainId[chainId]).toEqual({
 					...httpCandidate,
-					origins: Voltaire.origins,
+					origins: voltaireJsonRpcTransportsWithOriginsByChainId[chainId][0].origins,
 				})
 		}
 	})
 
 	it('keeps Voltaire JSON-RPC transport candidates derived from source endpoint rows', () => {
-		expect(voltaireJsonRpcTransportCandidates).toEqual(executionEndpoints.map((executionEndpoint) => ({
+		const byChainUrlTransport = (entry: {
+			chainId: number
+			rpcUrl: string
+			transportType: TransportType
+		}) => `${entry.chainId}:${entry.rpcUrl}:${entry.transportType}`
+		expect(voltaireJsonRpcTransportCandidates.toSorted((left, right) => byChainUrlTransport(left).localeCompare(byChainUrlTransport(right)))).toEqual(executionEndpoints.map((executionEndpoint) => ({
 			chainId: executionEndpoint.chainId,
 			rpcUrl: executionEndpoint.url,
 			transportType: executionEndpoint.transportType,
-		})))
+		})).toSorted((left, right) => byChainUrlTransport(left).localeCompare(byChainUrlTransport(right))))
 	})
 
 	it('keeps Beacon origins aligned with source endpoint rows', () => {
@@ -441,31 +450,36 @@ describe('source provider registry', () => {
 		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
 		const manifestFiles = globSync('src/sources/*/OpenApi/schema-source.ts')
 		const coveredTypesFiles = new Set<string>()
+		const inactiveManifests: string[] = []
 
-		expect(packageJson).toMatch(/"sources:openapi": "pnpm exec tsx scripts\/openapi-source\.ts"/)
-		expect(packageJson).toMatch(/"sources:openapi:check": "pnpm exec tsx scripts\/openapi-source\.ts check"/)
-		expect(readFileSync(join(process.cwd(), 'scripts', 'openapi-source.ts'), 'utf8')).toMatch(/glob\('\/?\*\/OpenApi\/schema-source\.ts'|glob\('\*\/OpenApi\/schema-source\.ts'/)
+		expect(packageJson).toMatch(/"sources:openapi": "pnpm exec tsx scripts\/sources\/openapi\.ts"/)
+		expect(packageJson).toMatch(/"sources:openapi:check": "pnpm exec tsx scripts\/sources\/openapi\.ts check"/)
+		expect(readFileSync(join(process.cwd(), 'scripts', 'sources', 'openapi.ts'), 'utf8')).toMatch(/glob\('\/?\*\/OpenApi\/schema-source\.ts'|glob\('\*\/OpenApi\/schema-source\.ts'/)
 
 		for (const manifestFile of manifestFiles) {
 			const manifestSource = readFileSync(manifestFile, 'utf8')
 			const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
 			const typesFile = manifestSource.match(/typesFile:\s*'([^']+)'/)?.[1]
-			const sourceIndex = readFileSync(resolve(dirname(manifestFile), 'index.ts'), 'utf8')
-			const sourceName = sourceIndex.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
+			if (!existsSync(resolve(dirname(manifestFile), 'definition.ts'))) {
+				inactiveManifests.push(manifestFile)
+				continue
+			}
+			const sourceDefinition = readFileSync(resolve(dirname(manifestFile), 'definition.ts'), 'utf8')
+			const sourceName = sourceDefinition.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
 
 			if (schemaFile == null)
 				throw new Error(`${manifestFile}: missing schemaFile`)
 			if (typesFile == null)
 				throw new Error(`${manifestFile}: missing typesFile`)
 			if (sourceName == null)
-				throw new Error(`${manifestFile}: missing Source enum registration in index.ts`)
+				throw new Error(`${manifestFile}: missing Source enum registration in definition.ts`)
 
 			expect(existsSync(resolve(dirname(manifestFile), schemaFile))).toBe(true)
 			expect(existsSync(resolve(dirname(manifestFile), typesFile))).toBe(true)
 			expect(existsSync(resolve(dirname(manifestFile), 'client.ts'))).toBe(true)
 			expect(existsSync(resolve(dirname(manifestFile), 'queries.ts'))).toBe(true)
 			expect(existsSync(resolve(dirname(manifestFile), 'types.ts'))).toBe(true)
-			expect(existsSync(resolve(dirname(manifestFile), 'index.ts'))).toBe(true)
+			expect(existsSync(resolve(dirname(manifestFile), 'definition.ts'))).toBe(true)
 			coveredTypesFiles.add(resolve(dirname(manifestFile), typesFile))
 			expect(
 				appSourceProviders.flatMap((provider) => provider.sources).some((source) => (
@@ -476,39 +490,58 @@ describe('source provider registry', () => {
 
 		for (const typesFile of globSync('src/sources/*/OpenApi/openapi.d.ts')) {
 			expect(existsSync(resolve(dirname(typesFile), 'schema-source.ts'))).toBe(true)
+			if (inactiveManifests.includes(join(dirname(typesFile), 'schema-source.ts')))
+				continue
+
 			expect(coveredTypesFiles.has(resolve(typesFile)), typesFile).toBe(true)
 		}
+		expect(inactiveManifests).toEqual([
+			'src/sources/OpenSea/OpenApi/schema-source.ts',
+			'src/sources/Neynar/OpenApi/schema-source.ts',
+			'src/sources/Lifi/OpenApi/schema-source.ts',
+			'src/sources/CardanoBlockfrost/OpenApi/schema-source.ts',
+			'src/sources/Blockfrost/OpenApi/schema-source.ts',
+			'src/sources/Beacon/OpenApi/schema-source.ts',
+		])
 	})
 
 	it('keeps generated GraphQL sources reproducible from checked-in schema manifests', () => {
 		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
 		const manifestFiles = globSync('src/sources/**/Graphql/**/schema-source.ts')
 		const coveredOutputFiles = new Set<string>()
+		const inactiveManifests: string[] = []
 
-		expect(packageJson).toMatch(/"sources:graphql": "pnpm exec tsx scripts\/graphql-source\.ts"/)
-		expect(packageJson).toMatch(/"sources:graphql:check": "pnpm exec tsx scripts\/graphql-source\.ts check"/)
-		expect(readFileSync(join(process.cwd(), 'scripts', 'graphql-source.ts'), 'utf8')).toMatch(/glob\('\*\/Graphql\/\*\*\/schema-source\.ts'/)
+		expect(packageJson).toMatch(/"sources:graphql": "pnpm exec tsx scripts\/sources\/graphql\.ts"/)
+		expect(packageJson).toMatch(/"sources:graphql:check": "pnpm exec tsx scripts\/sources\/graphql\.ts check"/)
+		expect(readFileSync(join(process.cwd(), 'scripts', 'sources', 'graphql.ts'), 'utf8')).toMatch(/glob\('\*\/Graphql\/\*\*\/schema-source\.ts'/)
 
 		for (const manifestFile of manifestFiles) {
 			const manifestSource = readFileSync(manifestFile, 'utf8')
 			const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
 			const outputFile = manifestSource.match(/outputFile:\s*'([^']+)'/)?.[1]
 			const patchFile = manifestSource.match(/patchFile:\s*'([^']+)'/)?.[1]
-			const sourceIndex = readFileSync(
+			if (!existsSync(resolve(
+				manifestFile.slice(0, manifestFile.indexOf('/Graphql/') + '/Graphql'.length),
+				'definition.ts'
+			))) {
+				inactiveManifests.push(manifestFile)
+				continue
+			}
+			const sourceDefinition = readFileSync(
 				resolve(
 					manifestFile.slice(0, manifestFile.indexOf('/Graphql/') + '/Graphql'.length),
-					'index.ts'
+					'definition.ts'
 				),
 				'utf8'
 			)
-			const sourceName = sourceIndex.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
+			const sourceName = sourceDefinition.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
 
 			if (schemaFile == null)
 				throw new Error(`${manifestFile}: missing schemaFile`)
 			if (outputFile == null)
 				throw new Error(`${manifestFile}: missing outputFile`)
 			if (sourceName == null)
-				throw new Error(`${manifestFile}: missing Source enum registration in index.ts`)
+				throw new Error(`${manifestFile}: missing Source enum registration in definition.ts`)
 
 			expect(existsSync(resolve(dirname(manifestFile), schemaFile))).toBe(true)
 			expect(existsSync(resolve(dirname(manifestFile), outputFile))).toBe(true)
@@ -526,13 +559,19 @@ describe('source provider registry', () => {
 
 		for (const outputFile of globSync('src/sources/**/Graphql/**/graphql-env.d.ts')) {
 			expect(existsSync(resolve(dirname(outputFile), 'schema-source.ts'))).toBe(true)
+			if (inactiveManifests.includes(join(dirname(outputFile), 'schema-source.ts')))
+				continue
+
 			expect(coveredOutputFiles.has(resolve(outputFile)), outputFile).toBe(true)
 		}
+		expect(inactiveManifests).toEqual([
+			'src/sources/AptosIndexer/Graphql/schema-source.ts',
+		])
 	})
 
 	it('keeps generated precompile data reproducible from the checked-in manifest', () => {
 		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
-		const scriptSource = readFileSync(join(process.cwd(), 'scripts', 'precompiles-source.ts'), 'utf8')
+		const scriptSource = readFileSync(join(process.cwd(), 'scripts', 'sources', 'precompiles', 'source.ts'), 'utf8')
 		const manifest = JSON.parse(
 			readFileSync(join(process.cwd(), 'src', 'data', 'precompiles', 'manifest.json'), 'utf8')
 		) as {
@@ -542,8 +581,8 @@ describe('source provider registry', () => {
 		const definitions = new Set<string>()
 		const schedules = globSync('src/data/precompiles/eip155-*-schedule.json')
 
-		expect(packageJson).toMatch(/"sources:precompiles:sync": "pnpm exec tsx scripts\/precompiles-source\.ts sync"/)
-		expect(packageJson).toMatch(/"sources:precompiles:check": "pnpm exec tsx scripts\/precompiles-source\.ts check"/)
+		expect(packageJson).toMatch(/"sources:precompiles:sync": "pnpm exec tsx scripts\/sources\/precompiles\/source\.ts sync"/)
+		expect(packageJson).toMatch(/"sources:precompiles:check": "pnpm exec tsx scripts\/sources\/precompiles\/source\.ts check"/)
 		expect(scriptSource).toContain("action === 'check'")
 		expect(manifest.source).toBe('https://github.com/shemnon/precompiles')
 		expect(manifest.ref).toBeTruthy()

@@ -22,7 +22,7 @@
 		selection,
 		title = 'Events',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Polkadot events...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,29 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					eventName: true,
 					indexInBlock: true,
 					$pallet: true,
+					$block: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotEvent}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(polkadotEvents)}
 			{@const uniquePolkadotEvents = [...new Map(polkadotEvents.values.map((polkadotEvent) => [polkadotEvent[EntityMetaKey.SelectorKey], polkadotEvent])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotEvents.values.length === uniquePolkadotEvents.length && polkadotEvents.totalCount != null && polkadotEvents.totalCount >= uniquePolkadotEvents.length ? polkadotEvents.totalCount : uniquePolkadotEvents.length}
+				totalCount={polkadotEvents.totalCount}
 				getKey={(polkadotEvent) => polkadotEvent[EntityMetaKey.SelectorKey]}
 				items={uniquePolkadotEvents}
 			>
@@ -113,17 +101,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: polkadotEvent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotEvent> })}
+					{@const polkadotEventFields = { ...polkadotEvent[EntityMetaKey.Selector], ...polkadotEvent }}
+					{@const polkadotEventHrefFields = { ...polkadotEvent, ...polkadotEvent[EntityMetaKey.Selector] }}
 					<PolkadotEventView
+						selection={select(EntityType.PolkadotEvent, polkadotEvent[EntityMetaKey.Selector])}
+						prefetched={polkadotEventFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]/event/[eventIndex=nonNegativeInteger]', {
-								networkSlug: String(networkByCaip2[String(({ ...polkadotEvent.entitySelector, ...polkadotEvent }).$block.$network.caip2)].slug),
-								blockNumber: String(({ ...polkadotEvent.entitySelector, ...polkadotEvent }).$block.blockNumber),
-								hash: String(({ ...polkadotEvent.entitySelector, ...polkadotEvent }).$block.hash),
-								eventIndex: String(({ ...polkadotEvent.entitySelector, ...polkadotEvent }).indexInBlock),
-							})
+							(polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.caip2 !== undefined && polkadotEventHrefFields.$block.$network.caip2.namespace !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.caip2 !== undefined && polkadotEventHrefFields.$block.$network.caip2.reference !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.blockNumber !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.hash !== undefined && polkadotEventHrefFields.indexInBlock !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]/event/[eventIndex=nonNegativeInteger]', {
+								networkSlug: String(networkByCaip2[String(String(polkadotEventHrefFields.$block.$network.caip2.namespace) + ':' + String(polkadotEventHrefFields.$block.$network.caip2.reference))].slug ?? ''),
+								blockNumber: String(polkadotEventHrefFields.$block.blockNumber ?? ''),
+								hash: String(polkadotEventHrefFields.$block.hash ?? ''),
+								eventIndex: String(polkadotEventHrefFields.indexInBlock ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.PolkadotEvent, polkadotEvent.entitySelector)}
-						prefetched={polkadotEvent}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

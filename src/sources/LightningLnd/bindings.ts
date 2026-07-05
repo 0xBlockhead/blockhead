@@ -24,7 +24,6 @@ const lightningLndEndpointOrigins = [
 
 export const lightningLndPublicEnv = arktype({
 	PUBLIC_LND_MACAROON_HEX: 'string',
-	PUBLIC_LND_REST_BASE_URL: 'string',
 })
 
 export const lightningLndBindings = [
@@ -78,7 +77,6 @@ export const lightningLndBindings = [
 				scope: SourceCredentialScope.PublicConfig,
 				keys: [
 					'PUBLIC_LND_MACAROON_HEX',
-					'PUBLIC_LND_REST_BASE_URL',
 				],
 			},
 		],

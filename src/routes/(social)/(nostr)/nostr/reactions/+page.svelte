@@ -31,6 +31,6 @@
 				scope: '_GlobalNostrNetwork',
 			})[EntityProxyField]<EntityType.NostrReaction>('$$sourceWindowReactions')
 		}
-		id='NostrReactionsView-page'
+		id='source-window-reactions'
 	/>
 </Page>

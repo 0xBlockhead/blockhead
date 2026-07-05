@@ -21,7 +21,7 @@
 		selection,
 		title = 'Network snapshots',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos network observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					source: true,
 					latestBlockHeight: true,
 					chainId: true,
 					isSyncing: true,
+					$network: true,
+					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosNetworkTimestamps)}
 			{@const uniqueCosmosNetworkTimestamps = [...new Map(cosmosNetworkTimestamps.values.map((cosmosNetworkTimestamp) => [cosmosNetworkTimestamp[EntityMetaKey.SelectorKey], cosmosNetworkTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosNetworkTimestamps.values.length === uniqueCosmosNetworkTimestamps.length && cosmosNetworkTimestamps.totalCount != null && cosmosNetworkTimestamps.totalCount >= uniqueCosmosNetworkTimestamps.length ? cosmosNetworkTimestamps.totalCount : uniqueCosmosNetworkTimestamps.length}
+				totalCount={cosmosNetworkTimestamps.totalCount}
 				getKey={(cosmosNetworkTimestamp) => cosmosNetworkTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosNetworkTimestamps}
 			>
@@ -113,16 +102,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosNetwork_Timestamp> })}
+					{@const cosmosNetworkTimestampFields = { ...cosmosNetworkTimestamp[EntityMetaKey.Selector], ...cosmosNetworkTimestamp }}
+					{@const cosmosNetworkTimestampHrefFields = { ...cosmosNetworkTimestamp, ...cosmosNetworkTimestamp[EntityMetaKey.Selector] }}
 					<CosmosNetwork_TimestampView
+						selection={select(EntityType.CosmosNetwork_Timestamp, cosmosNetworkTimestamp[EntityMetaKey.Selector])}
+						prefetched={cosmosNetworkTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...cosmosNetworkTimestamp.entitySelector, ...cosmosNetworkTimestamp }).$network.caip2.namespace)}:${String(({ ...cosmosNetworkTimestamp.entitySelector, ...cosmosNetworkTimestamp }).$network.caip2.reference)}`,
-								timestampMs: String(({ ...cosmosNetworkTimestamp.entitySelector, ...cosmosNetworkTimestamp }).timestampMs),
-								source: String(({ ...cosmosNetworkTimestamp.entitySelector, ...cosmosNetworkTimestamp }).source),
-							})
+							(cosmosNetworkTimestampHrefFields.$network !== undefined && cosmosNetworkTimestampHrefFields.$network.caip2 !== undefined && cosmosNetworkTimestampHrefFields.$network.caip2.namespace !== undefined && cosmosNetworkTimestampHrefFields.$network !== undefined && cosmosNetworkTimestampHrefFields.$network.caip2 !== undefined && cosmosNetworkTimestampHrefFields.$network.caip2.reference !== undefined && cosmosNetworkTimestampHrefFields.timestampMs !== undefined && cosmosNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(cosmosNetworkTimestampHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosNetworkTimestampHrefFields.$network.caip2.reference ?? '')}`,
+								timestampMs: String(cosmosNetworkTimestampHrefFields.timestampMs ?? ''),
+								source: String(cosmosNetworkTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosNetwork_Timestamp, cosmosNetworkTimestamp.entitySelector)}
-						prefetched={cosmosNetworkTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

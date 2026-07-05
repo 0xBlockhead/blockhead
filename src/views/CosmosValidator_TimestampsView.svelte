@@ -21,7 +21,7 @@
 		selection,
 		title = 'Validator snapshots',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos validator observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					source: true,
 					status: true,
 					tokens: true,
 					timestampMs: true,
+					$validator: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosValidator_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosValidatorTimestamps)}
 			{@const uniqueCosmosValidatorTimestamps = [...new Map(cosmosValidatorTimestamps.values.map((cosmosValidatorTimestamp) => [cosmosValidatorTimestamp[EntityMetaKey.SelectorKey], cosmosValidatorTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosValidatorTimestamps.values.length === uniqueCosmosValidatorTimestamps.length && cosmosValidatorTimestamps.totalCount != null && cosmosValidatorTimestamps.totalCount >= uniqueCosmosValidatorTimestamps.length ? cosmosValidatorTimestamps.totalCount : uniqueCosmosValidatorTimestamps.length}
+				totalCount={cosmosValidatorTimestamps.totalCount}
 				getKey={(cosmosValidatorTimestamp) => cosmosValidatorTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosValidatorTimestamps}
 			>
@@ -113,17 +101,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosValidatorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosValidator_Timestamp> })}
+					{@const cosmosValidatorTimestampFields = { ...cosmosValidatorTimestamp[EntityMetaKey.Selector], ...cosmosValidatorTimestamp }}
+					{@const cosmosValidatorTimestampHrefFields = { ...cosmosValidatorTimestamp, ...cosmosValidatorTimestamp[EntityMetaKey.Selector] }}
 					<CosmosValidator_TimestampView
+						selection={select(EntityType.CosmosValidator_Timestamp, cosmosValidatorTimestamp[EntityMetaKey.Selector])}
+						prefetched={cosmosValidatorTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...cosmosValidatorTimestamp.entitySelector, ...cosmosValidatorTimestamp }).$validator.$network.caip2.namespace)}:${String(({ ...cosmosValidatorTimestamp.entitySelector, ...cosmosValidatorTimestamp }).$validator.$network.caip2.reference)}`,
-								operatorAddress: String(({ ...cosmosValidatorTimestamp.entitySelector, ...cosmosValidatorTimestamp }).$validator.operatorAddress),
-								timestampMs: String(({ ...cosmosValidatorTimestamp.entitySelector, ...cosmosValidatorTimestamp }).timestampMs),
-								source: String(({ ...cosmosValidatorTimestamp.entitySelector, ...cosmosValidatorTimestamp }).source),
-							})
+							(cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2.namespace !== undefined && cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2.reference !== undefined && cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.operatorAddress !== undefined && cosmosValidatorTimestampHrefFields.timestampMs !== undefined && cosmosValidatorTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(cosmosValidatorTimestampHrefFields.$validator.$network.caip2.namespace ?? '')}:${String(cosmosValidatorTimestampHrefFields.$validator.$network.caip2.reference ?? '')}`,
+								operatorAddress: String(cosmosValidatorTimestampHrefFields.$validator.operatorAddress ?? ''),
+								timestampMs: String(cosmosValidatorTimestampHrefFields.timestampMs ?? ''),
+								source: String(cosmosValidatorTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosValidator_Timestamp, cosmosValidatorTimestamp.entitySelector)}
-						prefetched={cosmosValidatorTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

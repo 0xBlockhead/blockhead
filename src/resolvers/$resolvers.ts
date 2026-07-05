@@ -705,6 +705,7 @@ export const indexResolvers = <
 	resolverModules: readonly SourceResolverModule<_Schema, _Source, _Context>[],
 	enabledSources: ReadonlySet<_Source>
 ) => {
+	const schemaEntityTypes = new Set(schema.map((entityDefinition) => entityDefinition.entityType))
 	const resolverDefinitions: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, _Context>[] = resolverModules
 		.filter((module) => enabledSources.has(module.source))
 		.flatMap((module) => (
@@ -713,6 +714,7 @@ export const indexResolvers = <
 				source: module.source,
 			}))
 		))
+		.filter((resolver) => schemaEntityTypes.has(resolver.entityType))
 		.map((resolver, definitionIndex) => ({
 			...resolver,
 			definitionIndex,
@@ -829,7 +831,7 @@ export const indexResolvers = <
 								[[
 									entityFieldConditionKey(fieldDefinition.when),
 									resolverValuePartsByEntityTypeAndFieldName[
-										resolverPartsKey(entityDefinition.entityType, fieldDefinition.when.fieldName)
+										resolverPartsKey(entityDefinition.entityType, entityFieldConditionKey(fieldDefinition.when).replace(/\[\d+\]$/, ''))
 									] ?? [],
 								]]
 						)

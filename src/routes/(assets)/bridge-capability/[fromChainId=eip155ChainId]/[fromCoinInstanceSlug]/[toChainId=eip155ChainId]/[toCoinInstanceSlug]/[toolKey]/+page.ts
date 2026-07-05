@@ -14,15 +14,31 @@ export const load: PageLoad = ({ params }) => {
 		{
 			$fromInstance: {
 				$network: {
-					chainId: Number(params.fromChainId),
+					caip2: {
+						namespace: 'eip155',
+						reference: params.fromChainId,
+					},
 				},
-				slug: params.fromCoinInstanceSlug,
+				type: (
+				params.fromCoinInstanceSlug === 'native' ?
+					'NativeCurrency'
+				:
+					params.fromCoinInstanceSlug
+				),
 			},
 			$toInstance: {
 				$network: {
-					chainId: Number(params.toChainId),
+					caip2: {
+						namespace: 'eip155',
+						reference: params.toChainId,
+					},
 				},
-				slug: params.toCoinInstanceSlug,
+				type: (
+				params.toCoinInstanceSlug === 'native' ?
+					'NativeCurrency'
+				:
+					params.toCoinInstanceSlug
+				),
 			},
 			toolKey: decodeURIComponent(params.toolKey),
 		}

@@ -13,7 +13,7 @@ export const load: PageLoad = ({ params }) => {
 		schema,
 		EvmNetworkSchema,
 		{
-			slug: params.networkSlug,
+			caip2: networkBySlug[params.networkSlug].caip2,
 		}
 	)
 	if (evmNetworkSelector instanceof arktype.errors) error(404, 'Invalid EvmNetwork selector')

@@ -23,7 +23,6 @@ export const codexNodeBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'http://{codex-node-host}:{port}',
-				origin: 'http://{codex-node-host}:{port}',
 				corsEnabled: false,
 			},
 		],

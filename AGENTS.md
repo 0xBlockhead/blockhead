@@ -163,7 +163,7 @@
 ### Linting and quality
 
 - ALWAYS solve the highest upstream root cause of a type mismatch
-- Runtime shape guards (default ban): unary `typeof`, `Array.isArray`, and `Reflect.get` are disallowed for satisfying TypeScript or hand-narrowing domain data. oxlint enforces this via `no-runtime-shape-guards/guards` (`scripts/oxlint-plugin-no-runtime-shape-guards.mjs`). Allowed without a disable: `typeof window`, `typeof document`, `typeof globalThis`, and `typeof <same>.…` when the member chain’s root is one of those identifiers (environment / capability probes only). Anything else needs a strong reason: fix models or wire types upstream, narrow at `$/typescript/JsonValue.ts` (e.g. `isJsonObject` on `JsonValue`), or use `oxlint-disable-next-line` with a one-line reviewer-verifiable reason. Prefer a scoped `overrides` entry in `.oxlintrc.json` only for stable architectural boundaries (document the rationale when adding or extending a glob). A broad override block currently turns this rule off for UI, resolvers, sources, collections, lib, constants, routes, `JsonValue.ts`, and `tests/**`; treat that as debt—new code there should still avoid these guards in review until the override list shrinks.
+- Runtime shape guards (default ban): unary `typeof`, `Array.isArray`, and `Reflect.get` are disallowed for satisfying TypeScript or hand-narrowing domain data. oxlint enforces this via `no-runtime-shape-guards/guards` (`scripts/lint/oxlint-plugin-no-runtime-shape-guards.mjs`). Allowed without a disable: `typeof window`, `typeof document`, `typeof globalThis`, and `typeof <same>.…` when the member chain’s root is one of those identifiers (environment / capability probes only). Anything else needs a strong reason: fix models or wire types upstream, narrow at `$/typescript/JsonValue.ts` (e.g. `isJsonObject` on `JsonValue`), or use `oxlint-disable-next-line` with a one-line reviewer-verifiable reason. Prefer a scoped `overrides` entry in `.oxlintrc.json` only for stable architectural boundaries (document the rationale when adding or extending a glob). A broad override block currently turns this rule off for UI, resolvers, sources, collections, lib, constants, routes, `JsonValue.ts`, and `tests/**`; treat that as debt—new code there should still avoid these guards in review until the override list shrinks.
 - Do not use other JavaScript runtime shape checking workarounds to satisfy TypeScript checks when a typed or schema-level fix exists
 - Do not try to fix `Type instantiation is excessively deep and possibly infinite`
 - NO hardening, type assertions, `as`, `as unknown as` unless parsing unknown input (see oxlint below)
@@ -396,7 +396,7 @@
 	- Start with `list-sections` (pick relevant `use_cases` + `paths`)
 	- Use `get-documentation` for every relevant section after `list-sections`
 - Fixing issues:
-	- Run `svelte-autofixer` for any Svelte edits (`.svelte` / `.svelte.ts`) and repeat until no issues remain. Review suggestions; apply them when they identify real simplification or correctness problems. If the Svelte MCP tool is not exposed in the current session, use the local fallback: `node scripts/svelte-autofix.mjs <path> --svelte-version 5`. The fallback invokes the official `@sveltejs/mcp` autofixer handler without the CLI's import-time documentation fetch and exits non-zero only for issues, because the official handler can emit intentionally ignorable suggestions such as audited `$effect` function calls.
+	- Run `svelte-autofixer` for any Svelte edits (`.svelte` / `.svelte.ts`) and repeat until no issues remain. Review suggestions; apply them when they identify real simplification or correctness problems. If the Svelte MCP tool is not exposed in the current session, use the local fallback: `node scripts/svelte/autofix.mjs <path> --svelte-version 5`. The fallback invokes the official `@sveltejs/mcp` autofixer handler without the CLI's import-time documentation fetch and exits non-zero only for issues, because the official handler can emit intentionally ignorable suggestions such as audited `$effect` function calls.
 
 ### Svelte components
 
@@ -561,11 +561,11 @@ Use this when asked to verify that `src/sources/**` generated or manually implem
 	- For live-data resolver validation, prefer existing probe harnesses/routes where available instead of adding broad new tests; keep probes scoped to providers/files touched.
 	- In the final handoff, list generated sync commands run, official docs/classes of docs checked for manual clients, focused tests run, and any broader checks blocked by unrelated existing failures.
 
-### OpenAPI schema codegen (`scripts/openapi-source.ts`)
+### OpenAPI schema codegen (`scripts/sources/openapi.ts`)
 
 Use this when a transport lives under `src/sources/<Provider>/OpenApi/` and you want checked-in schema plus generated TypeScript types for paths and components.
 
-Tooling: `openapi-typescript` emits a TypeScript AST from the schema object; the script writes it with `astToString`. If the downloaded file is Swagger 2.x (top-level `swagger` string), `swagger2openapi` converts it to OpenAPI 3 before generation. YAML (`.yml` / `.yaml`) is parsed with `yaml`; JSON uses `JSON.parse`. `package.json` maps `sources:openapi` to `pnpm exec tsx scripts/openapi-source.ts`; devDependencies include `openapi-typescript`, `swagger2openapi`, and `yaml`.
+Tooling: `openapi-typescript` emits a TypeScript AST from the schema object; the script writes it with `astToString`. If the downloaded file is Swagger 2.x (top-level `swagger` string), `swagger2openapi` converts it to OpenAPI 3 before generation. YAML (`.yml` / `.yaml`) is parsed with `yaml`; JSON uses `JSON.parse`. `package.json` maps `sources:openapi` to `pnpm exec tsx scripts/sources/openapi.ts`; devDependencies include `openapi-typescript`, `swagger2openapi`, and `yaml`.
 
 CLI (via `package.json`):
 
@@ -600,11 +600,11 @@ Replication checklist:
 2. Run `pnpm run sources:openapi -- <Provider>` so `schemaFile` and `typesFile` exist and stay reproducible from `schemaUrl`.
 3. Wire `client.ts` / `queries.ts` / `index.ts` and register the source like any other transport (see Adding new Sources / Providers).
 
-### GraphQL schema codegen (`scripts/graphql-source.ts`)
+### GraphQL schema codegen (`scripts/sources/graphql.ts`)
 
 Use this when a transport uses gql.tada against a GraphQL schema checked in next to the manifest (subgraphs and other APIs where SDL is the source of truth, or live GraphQL endpoints that support introspection). The runner downloads SDL or, when `schemaUrl` ends with `/graphql`, POSTs an introspection query, writes SDL to `schemaFile`, and generates the introspection module gql.tada expects.
 
-Tooling: `@gql.tada/cli-utils` `generateOutput`. The script builds a temporary directory, writes a combined SDL file (main `schemaFile` body plus optional `patchFile` body, separated by a blank line), and writes a temporary `tsconfig.json` that extends the repo root `tsconfig.json` with `compilerOptions.plugins` containing one object: `name` `gql.tada/ts-plugin`, `schema` pointing at that combined SDL file, and `tadaOutputLocation` set to the manifest’s `outputFile`. `generateOutput({ output, tsconfig })` writes `outputFile` (convention: `./graphql-env.d.ts` beside the manifest). The temp directory is always removed afterward. `package.json` maps `sources:graphql` to `pnpm exec tsx scripts/graphql-source.ts`; dependencies include `gql.tada` and `graphql`, and the devDependency `@gql.tada/cli-utils` supplies `generateOutput`.
+Tooling: `@gql.tada/cli-utils` `generateOutput`. The script builds a temporary directory, writes a combined SDL file (main `schemaFile` body plus optional `patchFile` body, separated by a blank line), and writes a temporary `tsconfig.json` that extends the repo root `tsconfig.json` with `compilerOptions.plugins` containing one object: `name` `gql.tada/ts-plugin`, `schema` pointing at that combined SDL file, and `tadaOutputLocation` set to the manifest’s `outputFile`. `generateOutput({ output, tsconfig })` writes `outputFile` (convention: `./graphql-env.d.ts` beside the manifest). The temp directory is always removed afterward. `package.json` maps `sources:graphql` to `pnpm exec tsx scripts/sources/graphql.ts`; dependencies include `gql.tada` and `graphql`, and the devDependency `@gql.tada/cli-utils` supplies `generateOutput`.
 
 CLI (via `package.json`):
 

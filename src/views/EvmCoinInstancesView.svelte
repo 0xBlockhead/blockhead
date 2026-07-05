@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM coin instances',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM coin instances...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
-					$icon: true,
 					symbol: true,
 					name: true,
 					$network: true,
+					type: true,
+					$contract: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmCoinInstance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmCoinInstances)}
 			{@const uniqueEvmCoinInstances = [...new Map(evmCoinInstances.values.map((evmCoinInstance) => [evmCoinInstance[EntityMetaKey.SelectorKey], evmCoinInstance])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmCoinInstances.values.length === uniqueEvmCoinInstances.length && evmCoinInstances.totalCount != null && evmCoinInstances.totalCount >= uniqueEvmCoinInstances.length ? evmCoinInstances.totalCount : uniqueEvmCoinInstances.length}
+				totalCount={evmCoinInstances.totalCount}
 				getKey={(evmCoinInstance) => evmCoinInstance[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmCoinInstances}
 			>
@@ -113,23 +101,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmCoinInstance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmCoinInstance> })}
+					{@const evmCoinInstanceFields = { ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }}
+					{@const evmCoinInstanceHrefFields = { ...evmCoinInstance, ...evmCoinInstance[EntityMetaKey.Selector] }}
 					<EvmCoinInstanceView
+						selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+						prefetched={evmCoinInstanceFields}
 						href={
-							resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
-								chainId: String(({ ...evmCoinInstance.entitySelector, ...evmCoinInstance }).$network.caip2.reference),
-								coinInstanceSlug: String(
-									(
-										({ ...evmCoinInstance.entitySelector, ...evmCoinInstance }).type === 'NativeCurrency' ?
-											'native'
-										:
-											({ ...evmCoinInstance.entitySelector, ...evmCoinInstance }).$contract.address
-									)
-								),
-							})
+							(evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined && (evmCoinInstanceHrefFields.type !== undefined && (evmCoinInstanceHrefFields.type === 'NativeCurrency' ? true : evmCoinInstanceHrefFields.$contract !== undefined && evmCoinInstanceHrefFields.$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+								chainId: String(evmCoinInstanceHrefFields.$network.caip2.reference ?? ''),
+								coinInstanceSlug: String((evmCoinInstanceHrefFields.type === 'NativeCurrency' ? 'native' : evmCoinInstanceHrefFields.$contract.address)),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmCoinInstance, evmCoinInstance.entitySelector)}
-						prefetched={evmCoinInstance}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

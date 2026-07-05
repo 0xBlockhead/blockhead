@@ -43,6 +43,6 @@
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 			})[EntityProxyField]<EntityType.Url>('$$rpcUrls')
 		}
-		id='UrlsView-page'
+		id='rpc-urls'
 	/>
 </Page>

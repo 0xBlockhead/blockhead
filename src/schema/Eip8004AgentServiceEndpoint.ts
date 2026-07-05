@@ -1,17 +1,17 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { type } from 'arktype'
+
 export enum Eip8004AgentServiceEndpointSelector {
-	RegistrationFileEndpointKindEndpointUrl = '$registrationFile+endpointKind+endpointUrl',
+	RegistrationFileEndpointKindEndpointUrl = 'RegistrationFileEndpointKindEndpointUrl',
 }
 export default {
 	entityType: EntityType.Eip8004AgentServiceEndpoint,
-	label: 'eip8004 agent service endpoint',
-	labelPlural: 'eip8004 agent service endpoints',
+	label: 'EIP-8004 agent service endpoint',
+	labelPlural: 'EIP-8004 agent service endpoints',
 	selectors: [
 		{
 			name: Eip8004AgentServiceEndpointSelector.RegistrationFileEndpointKindEndpointUrl,
@@ -24,75 +24,68 @@ export default {
 	],
 	fields: [
 		{
-			name: '$registrationFile',
-			label: 'registration file',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Eip8004AgentRegistrationFile,
-			cardinality: EntityFieldCardinality.One,
+				name: '$registrationFile',
+				label: 'Registration file',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Eip8004AgentRegistrationFile,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'endpointKind',
-			label: 'endpoint kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'endpointKind',
+				label: 'Endpoint kind',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'endpointUrl',
-			label: 'endpoint URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'endpointUrl',
+				label: 'Endpoint URL',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'name',
-			label: 'Name',
-			description: 'The human-readable name of the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'name',
+				label: 'Name',
+				description: 'The human-readable name of the subject.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'version',
-			label: 'version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'version',
+				label: 'Version',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'protocolKind',
-			label: 'protocol kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'protocolKind',
+				label: 'Protocol kind',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'active',
-			label: 'active',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'active',
+				label: 'Active',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$a2aAgentCard',
-			label: 'a2a agent card',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.A2aAgentCard,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$mcpServer',
+				label: 'MCP server',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.McpServer,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$mcpServer',
-			label: 'mcp server',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.McpServer,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$paymentRequirements',
-			label: 'payment requirements',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.AgentPaymentRequirement_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$paymentRequirements',
+				label: 'Payment requirements',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.AgentPaymentRequirement_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

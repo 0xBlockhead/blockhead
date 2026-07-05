@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -40,21 +39,18 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmSelector = $derived(selection({
 		sources: [
 			Source.Openchain_Rest,
 		],
 		fields: {
 			signatures: true,
-			...(open && {
-				$$timestamps: true,
-			}),
 		},
 	}))
 	const titleFallback = $derived('EVM selector')
 	const viewDomId = $derived('evm-selector-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmSelector_TimestampsView from '$/views/EvmSelector_TimestampsView.svelte'
@@ -63,13 +59,13 @@
 
 <EntityView
 	entityType={EntityType.EvmSelector}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
-			hex: String(({ ...selection.entitySelector, ...prefetched }).hex),
-		})
+		href ?? (pendingEntity.hex !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+			hex: String(pendingEntity.hex ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
@@ -85,7 +81,7 @@
 			{/snippet}
 
 			{#snippet children(entity)}
-				{entity.signatures?.[0] ?? selection.entitySelector.hex}
+				{entity.signatures.values[0] ?? selection.entitySelector.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,18 +97,27 @@
 			<div>
 				<dt>Selector</dt>
 				<dd>
-					<ResourceBoundary resource={evmSelector}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									hex: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const hex = prefetched.hex ?? selection.entitySelector.hex}
+							{@const hex = selection.entitySelector.hex ?? prefetched.hex}
 							{#if hex !== undefined && hex !== null}
-								<TruncatedValue value={String(hex)} />
+								<TruncatedValue value={String((hex) ?? '')} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const hex = entity.hex ?? selection.entitySelector.hex ?? prefetched.hex}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const hex = resolvedEntity.hex}
 							{#if hex !== undefined && hex !== null}
-								<TruncatedValue value={String(hex)} />
+								<TruncatedValue value={String((hex) ?? '')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -120,14 +125,22 @@
 			</div>
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmSelector}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								signatures: true,
+							},
+						})
+					}
+				>
 					{#snippet children(entity)}
 						<div>
 							<dt>Signatures</dt>
 							<dd>
-								{#if entity.signatures?.length}
+								{#if entity.signatures.values.length}
 									<ul>
-										{#each entity.signatures as signature (signature)}
+										{#each entity.signatures.values as signature (signature)}
 											<li><code>{signature}</code></li>
 										{/each}
 									</ul>

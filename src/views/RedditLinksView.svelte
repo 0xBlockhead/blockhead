@@ -12,12 +12,16 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'Reddit submissions',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Reddit submissions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,9 +51,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import RedditLinkView from '$/views/RedditLinkView.svelte'
 </script>
 
 
@@ -62,7 +65,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Constants_Internal,
 				],
@@ -71,23 +74,10 @@
 					fullname: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RedditLink}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(redditLinks)}
 			{@const uniqueRedditLinks = [...new Map(redditLinks.values.map((redditLink) => [redditLink[EntityMetaKey.SelectorKey], redditLink])).values()]}
 			<EntitiesList
@@ -99,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={redditLinks.values.length === uniqueRedditLinks.length && redditLinks.totalCount != null && redditLinks.totalCount >= uniqueRedditLinks.length ? redditLinks.totalCount : uniqueRedditLinks.length}
+				totalCount={redditLinks.totalCount}
 				getKey={(redditLink) => redditLink[EntityMetaKey.SelectorKey]}
 				items={uniqueRedditLinks}
 			>
@@ -112,28 +102,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: redditLink }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditLink> })}
-					<EntityView
-						entityType={EntityType.RedditLink}
-						entitySelector={redditLink.entitySelector}
-						layout={EntityLayout.Summary}
+					{@const redditLinkFields = { ...redditLink[EntityMetaKey.Selector], ...redditLink }}
+					<RedditLinkView
+						selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector])}
+						prefetched={redditLinkFields}
+						layout={EntityLayout.Title}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const title0 = ({ ...redditLink.entitySelector, ...redditLink }).title}
-							{String((title0) ?? '')}
-							{@const fullname1 = ({ ...redditLink.entitySelector, ...redditLink }).fullname}
-							<TruncatedValue value={String(fullname1)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const createdAtAfter0 = ({ ...redditLink.entitySelector, ...redditLink }).createdAt}
-							{#if createdAtAfter0 != null}
-								<span data-text="muted">
-									<Timestamp timestamp={Number(createdAtAfter0)} />
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

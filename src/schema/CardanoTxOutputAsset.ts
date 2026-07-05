@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum CardanoTxOutputAssetSelector {
-	OutputAsset = '$output+$asset',
+	OutputAsset = 'OutputAsset',
 }
 export default {
 	entityType: EntityType.CardanoTxOutputAsset,
@@ -23,25 +22,25 @@ export default {
 	],
 	fields: [
 		{
-			name: '$output',
-			label: 'output',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CardanoTxOutput,
-			cardinality: EntityFieldCardinality.One,
+				name: '$output',
+				label: 'output',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.CardanoTxOutput,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$asset',
-			label: 'asset',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CardanoNativeAsset,
-			cardinality: EntityFieldCardinality.One,
+				name: '$asset',
+				label: 'asset',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.CardanoNativeAsset,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'quantity',
-			label: 'quantity',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'quantity',
+				label: 'quantity',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

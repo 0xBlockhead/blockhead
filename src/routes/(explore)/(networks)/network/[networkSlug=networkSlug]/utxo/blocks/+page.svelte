@@ -44,6 +44,6 @@
 				},
 			})[EntityProxyField]<EntityType.UtxoBlock>('$$blocks')
 		}
-		id='UtxoBlocksView-page'
+		id='blocks'
 	/>
 </Page>

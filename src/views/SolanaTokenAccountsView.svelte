@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Token accounts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Solana token accounts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					tokenAccountPubkey: true,
 					$mint: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTokenAccount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(solanaTokenAccounts)}
 			{@const uniqueSolanaTokenAccounts = [...new Map(solanaTokenAccounts.values.map((solanaTokenAccount) => [solanaTokenAccount[EntityMetaKey.SelectorKey], solanaTokenAccount])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaTokenAccounts.values.length === uniqueSolanaTokenAccounts.length && solanaTokenAccounts.totalCount != null && solanaTokenAccounts.totalCount >= uniqueSolanaTokenAccounts.length ? solanaTokenAccounts.totalCount : uniqueSolanaTokenAccounts.length}
+				totalCount={solanaTokenAccounts.totalCount}
 				getKey={(solanaTokenAccount) => solanaTokenAccount[EntityMetaKey.SelectorKey]}
 				items={uniqueSolanaTokenAccounts}
 			>
@@ -111,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: solanaTokenAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaTokenAccount> })}
+					{@const solanaTokenAccountFields = { ...solanaTokenAccount[EntityMetaKey.Selector], ...solanaTokenAccount }}
+					{@const solanaTokenAccountHrefFields = { ...solanaTokenAccount, ...solanaTokenAccount[EntityMetaKey.Selector] }}
 					<SolanaTokenAccountView
+						selection={select(EntityType.SolanaTokenAccount, solanaTokenAccount[EntityMetaKey.Selector])}
+						prefetched={solanaTokenAccountFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-account/[tokenAccountPubkey]', {
-								networkSlug: String(({ ...solanaTokenAccount.entitySelector, ...solanaTokenAccount }).$network.slug),
-								tokenAccountPubkey: String(({ ...solanaTokenAccount.entitySelector, ...solanaTokenAccount }).tokenAccountPubkey),
-							})
+							(solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.caip2 !== undefined && solanaTokenAccountHrefFields.$network.caip2.namespace !== undefined && solanaTokenAccountHrefFields.$network !== undefined && solanaTokenAccountHrefFields.$network.caip2 !== undefined && solanaTokenAccountHrefFields.$network.caip2.reference !== undefined && solanaTokenAccountHrefFields.tokenAccountPubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-account/[tokenAccountPubkey]', {
+								networkSlug: String(networkByCaip2[String(String(solanaTokenAccountHrefFields.$network.caip2.namespace) + ':' + String(solanaTokenAccountHrefFields.$network.caip2.reference))].slug ?? ''),
+								tokenAccountPubkey: String(solanaTokenAccountHrefFields.tokenAccountPubkey ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.SolanaTokenAccount, solanaTokenAccount.entitySelector)}
-						prefetched={solanaTokenAccount}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

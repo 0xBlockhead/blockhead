@@ -21,7 +21,7 @@
 		selection,
 		title = 'ERC-4337 account factories',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ERC-4337 account factories...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					address: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337AccountFactory}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(erc4337AccountFactories)}
 			{@const uniqueErc4337AccountFactories = [...new Map(erc4337AccountFactories.values.map((erc4337AccountFactory) => [erc4337AccountFactory[EntityMetaKey.SelectorKey], erc4337AccountFactory])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4337AccountFactories.values.length === uniqueErc4337AccountFactories.length && erc4337AccountFactories.totalCount != null && erc4337AccountFactories.totalCount >= uniqueErc4337AccountFactories.length ? erc4337AccountFactories.totalCount : uniqueErc4337AccountFactories.length}
+				totalCount={erc4337AccountFactories.totalCount}
 				getKey={(erc4337AccountFactory) => erc4337AccountFactory[EntityMetaKey.SelectorKey]}
 				items={uniqueErc4337AccountFactories}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: erc4337AccountFactory }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337AccountFactory> })}
+					{@const erc4337AccountFactoryFields = { ...erc4337AccountFactory[EntityMetaKey.Selector], ...erc4337AccountFactory }}
+					{@const erc4337AccountFactoryHrefFields = { ...erc4337AccountFactory, ...erc4337AccountFactory[EntityMetaKey.Selector] }}
 					<Erc4337AccountFactoryView
+						selection={select(EntityType.Erc4337AccountFactory, erc4337AccountFactory[EntityMetaKey.Selector])}
+						prefetched={erc4337AccountFactoryFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]', {
-								caip2: `${String(({ ...erc4337AccountFactory.entitySelector, ...erc4337AccountFactory }).caip2.namespace)}:${String(({ ...erc4337AccountFactory.entitySelector, ...erc4337AccountFactory }).caip2.reference)}`,
-								address: String(({ ...erc4337AccountFactory.entitySelector, ...erc4337AccountFactory }).address),
-							})
+							(erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.caip2 !== undefined && erc4337AccountFactoryHrefFields.$network.caip2.namespace !== undefined && erc4337AccountFactoryHrefFields.$network !== undefined && erc4337AccountFactoryHrefFields.$network.caip2 !== undefined && erc4337AccountFactoryHrefFields.$network.caip2.reference !== undefined && erc4337AccountFactoryHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]', {
+								caip2: `${String(erc4337AccountFactoryHrefFields.$network.caip2.namespace ?? '')}:${String(erc4337AccountFactoryHrefFields.$network.caip2.reference ?? '')}`,
+								address: String(erc4337AccountFactoryHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Erc4337AccountFactory, erc4337AccountFactory.entitySelector)}
-						prefetched={erc4337AccountFactory}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,19 +41,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmRollupTimestamp = $derived(selection({
 		fields: {
 			listingStage: true,
-			isArchived: true,
-			isUpcoming: true,
-			isUnderReview: true,
-			sourceUpdatedAt: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).listingStage) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp')
+	const titleFallback = $derived([String((prefetched.listingStage) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'EVM rollup timestamp')
 	const viewDomId = $derived('evm-rollup-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import EvmRollupView from '$/views/EvmRollupView.svelte'
@@ -62,179 +58,220 @@
 
 <EntityView
 	entityType={EntityType.EvmRollup_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$rollup.$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$rollup.$network.caip2.reference)}`,
-			projectId: String(({ ...selection.entitySelector, ...prefetched }).$rollup.projectId),
-			timestampMs: String(({ ...selection.entitySelector, ...prefetched }).timestampMs),
-			source: String(({ ...selection.entitySelector, ...prefetched }).source),
-		})
+		href ?? (pendingEntity.$rollup !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.caip2 !== undefined && pendingEntity.$rollup.$network.caip2.namespace !== undefined && pendingEntity.$rollup !== undefined && pendingEntity.$rollup.$network !== undefined && pendingEntity.$rollup.$network.caip2 !== undefined && pendingEntity.$rollup.$network.caip2.reference !== undefined && pendingEntity.$rollup !== undefined && pendingEntity.$rollup.projectId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
+			caip2: `${String(pendingEntity.$rollup.$network.caip2.namespace ?? '')}:${String(pendingEntity.$rollup.$network.caip2.reference ?? '')}`,
+			projectId: String(pendingEntity.$rollup.projectId ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).listingStage) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
-		{:else}
-			<ResourceBoundary resource={evmRollupTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).listingStage) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
-				{/snippet}
+		<ResourceBoundary resource={evmRollupTimestamp}>
+			{#snippet Pending()}
+				{[String((prefetched.listingStage) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.listingStage) ?? ''), String((entity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).listingStage) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).listingStage) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
-		{:else}
-			<ResourceBoundary resource={evmRollupTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).listingStage) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).listingStage) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
-				{/snippet}
+		<ResourceBoundary resource={evmRollupTimestamp}>
+			{#snippet Pending()}
+				{[String((prefetched.listingStage) ?? '')].filter(Boolean).join(' ') || [String((prefetched.listingStage) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || title || 'EVM rollup timestamp'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((entity.listingStage) ?? ''), String((entity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.listingStage) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.listingStage) ?? ''), String((resolvedEntity.timestampMs) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<span data-text="muted">
-				<EvmRollupView
-					selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
-					href={
-						resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-							caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace)}:${String(selection.entitySelector.$rollup.$network.caip2.reference)}`,
-							projectId: String(selection.entitySelector.$rollup.projectId),
-						})
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={evmRollupTimestamp}>
-				{#snippet Pending()}
-					<span data-text="muted">
-						<EvmRollupView
-							selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
-							href={
-								resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-									caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace)}:${String(selection.entitySelector.$rollup.$network.caip2.reference)}`,
-									projectId: String(selection.entitySelector.$rollup.projectId),
-								})
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
+		<ResourceBoundary resource={evmRollupTimestamp}>
+			{#snippet Pending()}
+				<span data-text="muted">
+					<EvmRollupView
+						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
+						href={
+							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.namespace !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.reference !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
+								caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$rollup.$network.caip2.reference ?? '')}`,
+								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<span data-text="muted">
-						<EvmRollupView
-							selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
-							href={
-								resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-									caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace)}:${String(selection.entitySelector.$rollup.$network.caip2.reference)}`,
-									projectId: String(selection.entitySelector.$rollup.projectId),
-								})
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<span data-text="muted">
+					<EvmRollupView
+						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
+						href={
+							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.namespace !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.reference !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
+								caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$rollup.$network.caip2.reference ?? '')}`,
+								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={evmRollupTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							listingStage: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const isArchived = prefetched.isArchived ?? selection.entitySelector.isArchived}
-					{#if isArchived !== undefined && isArchived !== null}
+					{@const listingStage = prefetched.listingStage}
+					{#if listingStage !== undefined && listingStage !== null}
 						<div>
-							<dt>Archived</dt>
+							<dt>Listing stage</dt>
 							<dd>
-								{String((isArchived) ?? '')}
+								{String((listingStage) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const isArchived = entity.isArchived ?? selection.entitySelector.isArchived ?? prefetched.isArchived}
-					{#if isArchived !== undefined && isArchived !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const listingStage = resolvedEntity.listingStage}
+					{#if listingStage !== undefined && listingStage !== null}
 						<div>
-							<dt>Archived</dt>
+							<dt>Listing stage</dt>
 							<dd>
-								{String((isArchived) ?? '')}
+								{String((listingStage) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmRollupTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							isArchived: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const isUpcoming = prefetched.isUpcoming ?? selection.entitySelector.isUpcoming}
-					{#if isUpcoming !== undefined && isUpcoming !== null}
+					{@const isArchived = prefetched.isArchived}
+					{#if isArchived !== undefined && isArchived !== null}
 						<div>
-							<dt>Upcoming</dt>
+							<dt>Archived</dt>
 							<dd>
-								{String((isUpcoming) ?? '')}
+								{isArchived ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const isUpcoming = entity.isUpcoming ?? selection.entitySelector.isUpcoming ?? prefetched.isUpcoming}
-					{#if isUpcoming !== undefined && isUpcoming !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const isArchived = resolvedEntity.isArchived}
+					{#if isArchived !== undefined && isArchived !== null}
 						<div>
-							<dt>Upcoming</dt>
+							<dt>Archived</dt>
 							<dd>
-								{String((isUpcoming) ?? '')}
+								{isArchived ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmRollupTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							isUpcoming: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const isUnderReview = prefetched.isUnderReview ?? selection.entitySelector.isUnderReview}
-					{#if isUnderReview !== undefined && isUnderReview !== null}
+					{@const isUpcoming = prefetched.isUpcoming}
+					{#if isUpcoming !== undefined && isUpcoming !== null}
 						<div>
-							<dt>Under review</dt>
+							<dt>Upcoming</dt>
 							<dd>
-								{String((isUnderReview) ?? '')}
+								{isUpcoming ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const isUnderReview = entity.isUnderReview ?? selection.entitySelector.isUnderReview ?? prefetched.isUnderReview}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const isUpcoming = resolvedEntity.isUpcoming}
+					{#if isUpcoming !== undefined && isUpcoming !== null}
+						<div>
+							<dt>Upcoming</dt>
+							<dd>
+								{isUpcoming ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							isUnderReview: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const isUnderReview = prefetched.isUnderReview}
 					{#if isUnderReview !== undefined && isUnderReview !== null}
 						<div>
 							<dt>Under review</dt>
 							<dd>
-								{String((isUnderReview) ?? '')}
+								{isUnderReview ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const isUnderReview = resolvedEntity.isUnderReview}
+					{#if isUnderReview !== undefined && isUnderReview !== null}
+						<div>
+							<dt>Under review</dt>
+							<dd>
+								{isUnderReview ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
@@ -243,9 +280,47 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={evmRollupTimestamp}>
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							sourceUpdatedAt: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const sourceUpdatedAt = prefetched.sourceUpdatedAt ?? selection.entitySelector.sourceUpdatedAt}
+					{@const sourceUpdatedAt = prefetched.sourceUpdatedAt}
 					{#if sourceUpdatedAt !== undefined && sourceUpdatedAt !== null}
 						<div>
 							<dt>Source updated at</dt>
@@ -257,7 +332,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const sourceUpdatedAt = entity.sourceUpdatedAt ?? selection.entitySelector.sourceUpdatedAt ?? prefetched.sourceUpdatedAt}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const sourceUpdatedAt = resolvedEntity.sourceUpdatedAt}
 					{#if sourceUpdatedAt !== undefined && sourceUpdatedAt !== null}
 						<div>
 							<dt>Source updated at</dt>
@@ -272,21 +348,49 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary resource={evmRollupTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const source = prefetched.source ?? selection.entitySelector.source}
+							{@const source = selection.entitySelector.source ?? prefetched.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const source = entity.source ?? selection.entitySelector.source ?? prefetched.source}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Rollup</dt>
+				<dd>
+					<EvmRollupView
+						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
+						href={
+							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.namespace !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.reference !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
+								caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$rollup.$network.caip2.reference ?? '')}`,
+								projectId: String(selection.entitySelector.$rollup.projectId ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
 				</dd>
 			</div>
 		</dl>

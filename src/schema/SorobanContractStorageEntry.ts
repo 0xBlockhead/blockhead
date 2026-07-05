@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum SorobanContractStorageEntrySelector {
-	ContractKeyHash = '$contract+keyHash',
+	ContractKeyHash = 'ContractKeyHash',
 }
 export default {
 	entityType: EntityType.SorobanContractStorageEntry,
@@ -23,32 +22,32 @@ export default {
 	],
 	fields: [
 		{
-			name: '$contract',
-			label: 'contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.SorobanContract,
-			cardinality: EntityFieldCardinality.One,
+				name: '$contract',
+				label: 'contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.SorobanContract,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'keyHash',
-			label: 'key hash',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'keyHash',
+				label: 'key hash',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'key',
-			label: 'key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("unknown"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'key',
+				label: 'key',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('unknown'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.SorobanContractStorageEntry_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.SorobanContractStorageEntry_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

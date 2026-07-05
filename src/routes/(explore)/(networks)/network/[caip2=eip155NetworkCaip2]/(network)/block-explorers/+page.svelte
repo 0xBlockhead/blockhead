@@ -43,6 +43,6 @@
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 			})[EntityProxyField]<EntityType.Url>('$$blockExplorerUrls')
 		}
-		id='UrlsView-page'
+		id='block-explorer-urls'
 	/>
 </Page>

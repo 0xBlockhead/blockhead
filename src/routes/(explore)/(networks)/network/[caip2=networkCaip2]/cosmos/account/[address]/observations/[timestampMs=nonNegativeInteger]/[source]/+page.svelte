@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.CosmosAccount_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					accountNumber: true,
 					sequence: true,

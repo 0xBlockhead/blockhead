@@ -21,7 +21,7 @@
 		selection,
 		title = 'Governance proposals',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos governance proposals...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					title: true,
 					proposalId: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosGovernanceProposal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosGovernanceProposals)}
 			{@const uniqueCosmosGovernanceProposals = [...new Map(cosmosGovernanceProposals.values.map((cosmosGovernanceProposal) => [cosmosGovernanceProposal[EntityMetaKey.SelectorKey], cosmosGovernanceProposal])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosGovernanceProposals.values.length === uniqueCosmosGovernanceProposals.length && cosmosGovernanceProposals.totalCount != null && cosmosGovernanceProposals.totalCount >= uniqueCosmosGovernanceProposals.length ? cosmosGovernanceProposals.totalCount : uniqueCosmosGovernanceProposals.length}
+				totalCount={cosmosGovernanceProposals.totalCount}
 				getKey={(cosmosGovernanceProposal) => cosmosGovernanceProposal[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosGovernanceProposals}
 			>
@@ -112,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosGovernanceProposal }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosGovernanceProposal> })}
+					{@const cosmosGovernanceProposalFields = { ...cosmosGovernanceProposal[EntityMetaKey.Selector], ...cosmosGovernanceProposal }}
+					{@const cosmosGovernanceProposalHrefFields = { ...cosmosGovernanceProposal, ...cosmosGovernanceProposal[EntityMetaKey.Selector] }}
 					<CosmosGovernanceProposalView
+						selection={select(EntityType.CosmosGovernanceProposal, cosmosGovernanceProposal[EntityMetaKey.Selector])}
+						prefetched={cosmosGovernanceProposalFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/governance/proposal/[proposalId]', {
-								caip2: `${String(({ ...cosmosGovernanceProposal.entitySelector, ...cosmosGovernanceProposal }).$network.caip2.namespace)}:${String(({ ...cosmosGovernanceProposal.entitySelector, ...cosmosGovernanceProposal }).$network.caip2.reference)}`,
-								proposalId: String(({ ...cosmosGovernanceProposal.entitySelector, ...cosmosGovernanceProposal }).proposalId),
-							})
+							(cosmosGovernanceProposalHrefFields.$network !== undefined && cosmosGovernanceProposalHrefFields.$network.caip2 !== undefined && cosmosGovernanceProposalHrefFields.$network.caip2.namespace !== undefined && cosmosGovernanceProposalHrefFields.$network !== undefined && cosmosGovernanceProposalHrefFields.$network.caip2 !== undefined && cosmosGovernanceProposalHrefFields.$network.caip2.reference !== undefined && cosmosGovernanceProposalHrefFields.proposalId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/governance/proposal/[proposalId]', {
+								caip2: `${String(cosmosGovernanceProposalHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosGovernanceProposalHrefFields.$network.caip2.reference ?? '')}`,
+								proposalId: String(cosmosGovernanceProposalHrefFields.proposalId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosGovernanceProposal, cosmosGovernanceProposal.entitySelector)}
-						prefetched={cosmosGovernanceProposal}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -31,6 +31,6 @@
 				scope: '_GlobalYoutubeNetwork',
 			})[EntityProxyField]<EntityType._GlobalYoutubeNetwork_Timestamp>('$$timestamps')
 		}
-		id='GlobalYoutubeNetwork_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

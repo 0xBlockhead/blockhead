@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='LensAccountsView-page'
+		id='lens-accounts'
 	/>
 </Page>

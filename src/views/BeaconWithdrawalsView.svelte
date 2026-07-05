@@ -21,7 +21,7 @@
 		selection,
 		title = 'Withdrawals',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Beacon withdrawals...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					indexInSlot: true,
 					amountGwei: true,
 					slot: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconWithdrawal}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(beaconWithdrawals)}
 			{@const uniqueBeaconWithdrawals = [...new Map(beaconWithdrawals.values.map((beaconWithdrawal) => [beaconWithdrawal[EntityMetaKey.SelectorKey], beaconWithdrawal])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconWithdrawals.values.length === uniqueBeaconWithdrawals.length && beaconWithdrawals.totalCount != null && beaconWithdrawals.totalCount >= uniqueBeaconWithdrawals.length ? beaconWithdrawals.totalCount : uniqueBeaconWithdrawals.length}
+				totalCount={beaconWithdrawals.totalCount}
 				getKey={(beaconWithdrawal) => beaconWithdrawal[EntityMetaKey.SelectorKey]}
 				items={uniqueBeaconWithdrawals}
 			>
@@ -112,16 +100,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: beaconWithdrawal }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconWithdrawal> })}
+					{@const beaconWithdrawalFields = { ...beaconWithdrawal[EntityMetaKey.Selector], ...beaconWithdrawal }}
+					{@const beaconWithdrawalHrefFields = { ...beaconWithdrawal, ...beaconWithdrawal[EntityMetaKey.Selector] }}
 					<BeaconWithdrawalView
+						selection={select(EntityType.BeaconWithdrawal, beaconWithdrawal[EntityMetaKey.Selector])}
+						prefetched={beaconWithdrawalFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
-								caip2: `${String(({ ...beaconWithdrawal.entitySelector, ...beaconWithdrawal }).caip2.namespace)}:${String(({ ...beaconWithdrawal.entitySelector, ...beaconWithdrawal }).caip2.reference)}`,
-								slot: String(({ ...beaconWithdrawal.entitySelector, ...beaconWithdrawal }).slot),
-								index: String(({ ...beaconWithdrawal.entitySelector, ...beaconWithdrawal }).indexInSlot),
-							})
+							(beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined && beaconWithdrawalHrefFields.$network.caip2.namespace !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined && beaconWithdrawalHrefFields.$network.caip2.reference !== undefined && beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {
+								caip2: `${String(beaconWithdrawalHrefFields.$network.caip2.namespace ?? '')}:${String(beaconWithdrawalHrefFields.$network.caip2.reference ?? '')}`,
+								slot: String(beaconWithdrawalHrefFields.slot ?? ''),
+								index: String(beaconWithdrawalHrefFields.indexInSlot ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BeaconWithdrawal, beaconWithdrawal.entitySelector)}
-						prefetched={beaconWithdrawal}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

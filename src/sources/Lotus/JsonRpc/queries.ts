@@ -4,6 +4,7 @@ import { lotusOrigins } from '$/sources/Lotus/index.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	LotusActor,
+	LotusMinerInfo,
 	LotusMinerPower,
 	LotusMessage,
 	LotusSectorOnChainInfo,
@@ -120,6 +121,25 @@ export const getMinerPower = ({
 	lotusJsonRpc<LotusMinerPower>({
 		rpcUrl,
 		method: 'Filecoin.StateMinerPower',
+		params: [
+			minerAddress,
+			tipsetKey,
+		],
+	})
+)
+
+export const getMinerInfo = ({
+	rpcUrl,
+	minerAddress,
+	tipsetKey,
+}: {
+	rpcUrl: string
+	minerAddress: string
+	tipsetKey: { '/': string }[] | null
+}) => (
+	lotusJsonRpc<LotusMinerInfo>({
+		rpcUrl,
+		method: 'Filecoin.StateMinerInfo',
 		params: [
 			minerAddress,
 			tipsetKey,

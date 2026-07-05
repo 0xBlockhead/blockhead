@@ -21,7 +21,7 @@
 		selection,
 		title = 'Currencies',
 		typeAnnotationParagraphs = ['A currency unit used for quoting values, balances, and market data.'],
-		placeholderText = 'Loading Currencies...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					name: true,
 					iso4217: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Currency}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(currencies)}
 			{@const uniqueCurrencies = [...new Map(currencies.values.map((currency) => [currency[EntityMetaKey.SelectorKey], currency])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={currencies.values.length === uniqueCurrencies.length && currencies.totalCount != null && currencies.totalCount >= uniqueCurrencies.length ? currencies.totalCount : uniqueCurrencies.length}
+				totalCount={currencies.totalCount}
 				getKey={(currency) => currency[EntityMetaKey.SelectorKey]}
 				items={uniqueCurrencies}
 			>
@@ -106,20 +93,22 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No currencies yet.</p>
+						<p data-text="muted">No Currencies yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: currency }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Currency> })}
+					{@const currencyFields = { ...currency[EntityMetaKey.Selector], ...currency }}
+					{@const currencyHrefFields = { ...currency, ...currency[EntityMetaKey.Selector] }}
 					<CurrencyView
+						selection={select(EntityType.Currency, currency[EntityMetaKey.Selector])}
+						prefetched={currencyFields}
 						href={
-							resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
-								iso4217: String(currency.entitySelector.iso4217),
-							})
+							(currencyHrefFields.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+								iso4217: String(currencyHrefFields.iso4217 ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Currency, currency.entitySelector)}
-						prefetched={currency}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

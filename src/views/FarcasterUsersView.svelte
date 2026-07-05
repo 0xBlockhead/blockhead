@@ -20,7 +20,7 @@
 		selection,
 		title = 'Farcaster users',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Farcaster users...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,30 +64,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$icon: true,
 					displayName: true,
 					username: true,
 					fid: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterUser}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(farcasterUsers)}
 			{@const uniqueFarcasterUsers = [...new Map(farcasterUsers.values.map((farcasterUser) => [farcasterUser[EntityMetaKey.SelectorKey], farcasterUser])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterUsers.values.length === uniqueFarcasterUsers.length && farcasterUsers.totalCount != null && farcasterUsers.totalCount >= uniqueFarcasterUsers.length ? farcasterUsers.totalCount : uniqueFarcasterUsers.length}
+				totalCount={farcasterUsers.totalCount}
 				getKey={(farcasterUser) => farcasterUser[EntityMetaKey.SelectorKey]}
 				items={uniqueFarcasterUsers}
 			>
@@ -112,9 +99,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: farcasterUser }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterUser> })}
+					{@const farcasterUserFields = { ...farcasterUser[EntityMetaKey.Selector], ...farcasterUser }}
 					<FarcasterUserView
-						selection={select(EntityType.FarcasterUser, farcasterUser.entitySelector)}
-						prefetched={farcasterUser}
+						selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
+						prefetched={farcasterUserFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

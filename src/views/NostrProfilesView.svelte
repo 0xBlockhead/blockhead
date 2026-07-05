@@ -12,12 +12,16 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'Nostr profiles',
 		typeAnnotationParagraphs = ['A Nostr profile is replaceable kind-0 metadata keyed by a 64-character lowercase hex public key.'],
-		placeholderText = 'Loading Nostr profiles...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,8 +51,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NostrProfileView from '$/views/NostrProfileView.svelte'
 </script>
 
 
@@ -61,7 +65,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Constants_Internal,
 				],
@@ -69,23 +73,10 @@
 					displayName: true,
 					pubkey: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrProfile}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(nostrProfiles)}
 			{@const uniqueNostrProfiles = [...new Map(nostrProfiles.values.map((nostrProfile) => [nostrProfile[EntityMetaKey.SelectorKey], nostrProfile])).values()]}
 			<EntitiesList
@@ -97,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrProfiles.values.length === uniqueNostrProfiles.length && nostrProfiles.totalCount != null && nostrProfiles.totalCount >= uniqueNostrProfiles.length ? nostrProfiles.totalCount : uniqueNostrProfiles.length}
+				totalCount={nostrProfiles.totalCount}
 				getKey={(nostrProfile) => nostrProfile[EntityMetaKey.SelectorKey]}
 				items={uniqueNostrProfiles}
 			>
@@ -110,19 +101,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: nostrProfile }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrProfile> })}
-					<EntityView
-						entityType={EntityType.NostrProfile}
-						entitySelector={nostrProfile.entitySelector}
-						layout={EntityLayout.Summary}
+					{@const nostrProfileFields = { ...nostrProfile[EntityMetaKey.Selector], ...nostrProfile }}
+					<NostrProfileView
+						selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
+						prefetched={nostrProfileFields}
+						layout={EntityLayout.Title}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const displayName0 = ({ ...nostrProfile.entitySelector, ...nostrProfile }).displayName}
-							{String((displayName0) ?? '')}
-							{@const pubkey1 = ({ ...nostrProfile.entitySelector, ...nostrProfile }).pubkey}
-							<TruncatedValue value={String(pubkey1)} />
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

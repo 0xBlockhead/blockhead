@@ -12,12 +12,16 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'YouTube playlists',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading YouTube playlists...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,8 +51,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import YoutubePlaylistView from '$/views/YoutubePlaylistView.svelte'
 </script>
 
 
@@ -61,7 +65,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Constants_Internal,
 				],
@@ -69,23 +73,10 @@
 					title: true,
 					playlistId: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.YoutubePlaylist}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(youtubePlaylists)}
 			{@const uniqueYoutubePlaylists = [...new Map(youtubePlaylists.values.map((youtubePlaylist) => [youtubePlaylist[EntityMetaKey.SelectorKey], youtubePlaylist])).values()]}
 			<EntitiesList
@@ -97,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={youtubePlaylists.values.length === uniqueYoutubePlaylists.length && youtubePlaylists.totalCount != null && youtubePlaylists.totalCount >= uniqueYoutubePlaylists.length ? youtubePlaylists.totalCount : uniqueYoutubePlaylists.length}
+				totalCount={youtubePlaylists.totalCount}
 				getKey={(youtubePlaylist) => youtubePlaylist[EntityMetaKey.SelectorKey]}
 				items={uniqueYoutubePlaylists}
 			>
@@ -110,19 +101,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: youtubePlaylist }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubePlaylist> })}
-					<EntityView
-						entityType={EntityType.YoutubePlaylist}
-						entitySelector={youtubePlaylist.entitySelector}
-						layout={EntityLayout.Summary}
+					{@const youtubePlaylistFields = { ...youtubePlaylist[EntityMetaKey.Selector], ...youtubePlaylist }}
+					<YoutubePlaylistView
+						selection={select(EntityType.YoutubePlaylist, youtubePlaylist[EntityMetaKey.Selector])}
+						prefetched={youtubePlaylistFields}
+						layout={EntityLayout.Title}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const title0 = ({ ...youtubePlaylist.entitySelector, ...youtubePlaylist }).title}
-							{String((title0) ?? '')}
-							{@const playlistId1 = ({ ...youtubePlaylist.entitySelector, ...youtubePlaylist }).playlistId}
-							<TruncatedValue value={String(playlistId1)} />
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -40,6 +39,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ethereumExecutionUpgrade = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -50,15 +50,11 @@
 			activationBlock: true,
 			activationEpoch: true,
 			activationTimestampMs: true,
-			...(open && {
-				$$proposals: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade')
+	const titleFallback = $derived([String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade')
 	const viewDomId = $derived('ethereum-execution-upgrade-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -68,56 +64,58 @@
 
 <EntityView
 	entityType={EntityType.EthereumExecutionUpgrade}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.reference)}`,
-			upgradeSlug: String(({ ...selection.entitySelector, ...prefetched }).slug),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			upgradeSlug: String(pendingEntity.slug ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade'}
-		{:else}
-			<ResourceBoundary resource={ethereumExecutionUpgrade}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade'}
-				{/snippet}
+		<ResourceBoundary resource={ethereumExecutionUpgrade}>
+			{#snippet Pending()}
+				{[String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade'}
-		{:else}
-			<ResourceBoundary resource={ethereumExecutionUpgrade}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade'}
-				{/snippet}
+		<ResourceBoundary resource={ethereumExecutionUpgrade}>
+			{#snippet Pending()}
+				{[String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum execution upgrade'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || [String((entity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={ethereumExecutionUpgrade}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							protocol: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const protocol = prefetched.protocol ?? selection.entitySelector.protocol}
+					{@const protocol = prefetched.protocol}
 					{#if protocol !== undefined && protocol !== null}
 						<div>
 							<dt>Execution fork</dt>
@@ -129,7 +127,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const protocol = entity.protocol ?? selection.entitySelector.protocol ?? prefetched.protocol}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const protocol = resolvedEntity.protocol}
 					{#if protocol !== undefined && protocol !== null}
 						<div>
 							<dt>Execution fork</dt>
@@ -141,9 +140,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={ethereumExecutionUpgrade}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+						],
+						fields: {
+							activationBlock: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activationBlock = prefetched.activationBlock ?? selection.entitySelector.activationBlock}
+					{@const activationBlock = prefetched.activationBlock}
 					{#if activationBlock !== undefined && activationBlock !== null}
 						<div>
 							<dt>Activation block</dt>
@@ -155,7 +165,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activationBlock = entity.activationBlock ?? selection.entitySelector.activationBlock ?? prefetched.activationBlock}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationBlock = resolvedEntity.activationBlock}
 					{#if activationBlock !== undefined && activationBlock !== null}
 						<div>
 							<dt>Activation block</dt>
@@ -167,9 +178,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={ethereumExecutionUpgrade}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+						],
+						fields: {
+							activationEpoch: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activationEpoch = prefetched.activationEpoch ?? selection.entitySelector.activationEpoch}
+					{@const activationEpoch = prefetched.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -181,7 +203,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activationEpoch = entity.activationEpoch ?? selection.entitySelector.activationEpoch ?? prefetched.activationEpoch}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationEpoch = resolvedEntity.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -193,9 +216,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={ethereumExecutionUpgrade}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+						],
+						fields: {
+							activationTimestampMs: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activationTimestampMs = prefetched.activationTimestampMs ?? selection.entitySelector.activationTimestampMs}
+					{@const activationTimestampMs = prefetched.activationTimestampMs}
 					{#if activationTimestampMs !== undefined && activationTimestampMs !== null}
 						<div>
 							<dt>Activation time</dt>
@@ -207,7 +241,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activationTimestampMs = entity.activationTimestampMs ?? selection.entitySelector.activationTimestampMs ?? prefetched.activationTimestampMs}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationTimestampMs = resolvedEntity.activationTimestampMs}
 					{#if activationTimestampMs !== undefined && activationTimestampMs !== null}
 						<div>
 							<dt>Activation time</dt>

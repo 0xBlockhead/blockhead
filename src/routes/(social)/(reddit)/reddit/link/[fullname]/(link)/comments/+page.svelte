@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,8 +41,13 @@
 		selection={
 			select(EntityType.RedditLink, {
 				fullname: decodeURIComponent(params.fullname),
-			})[EntityProxyField]<EntityType.RedditComment>('$$comments')
+			})[EntityProxyField]<EntityType.RedditComment>('$$comments', {
+				sources: [
+					Source.Constants_Internal,
+					Source.Reddit_PublicJson,
+				],
+			})
 		}
-		id='RedditCommentsView-page'
+		id='comments'
 	/>
 </Page>

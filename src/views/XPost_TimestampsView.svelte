@@ -21,7 +21,7 @@
 		selection,
 		title = 'X post observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading X post observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$post: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XPost_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(xPostTimestamps)}
 			{@const uniqueXPostTimestamps = [...new Map(xPostTimestamps.values.map((xPostTimestamp) => [xPostTimestamp[EntityMetaKey.SelectorKey], xPostTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xPostTimestamps.values.length === uniqueXPostTimestamps.length && xPostTimestamps.totalCount != null && xPostTimestamps.totalCount >= uniqueXPostTimestamps.length ? xPostTimestamps.totalCount : uniqueXPostTimestamps.length}
+				totalCount={xPostTimestamps.totalCount}
 				getKey={(xPostTimestamp) => xPostTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueXPostTimestamps}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: xPostTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XPost_Timestamp> })}
+					{@const xPostTimestampFields = { ...xPostTimestamp[EntityMetaKey.Selector], ...xPostTimestamp }}
+					{@const xPostTimestampHrefFields = { ...xPostTimestamp, ...xPostTimestamp[EntityMetaKey.Selector] }}
 					<XPost_TimestampView
+						selection={select(EntityType.XPost_Timestamp, xPostTimestamp[EntityMetaKey.Selector])}
+						prefetched={xPostTimestampFields}
 						href={
-							resolve('/(social)/(x)/x/post/[postId]/observations/[timestampMs=nonNegativeInteger]', {
-								postId: String(xPostTimestamp.entitySelector.$post.id),
-								timestampMs: String(xPostTimestamp.entitySelector.timestampMs),
-							})
+							(xPostTimestampHrefFields.$post !== undefined && xPostTimestampHrefFields.$post.id !== undefined && xPostTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(x)/x/post/[postId]/observations/[timestampMs=nonNegativeInteger]', {
+								postId: String(xPostTimestampHrefFields.$post.id ?? ''),
+								timestampMs: String(xPostTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.XPost_Timestamp, xPostTimestamp.entitySelector)}
-						prefetched={xPostTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

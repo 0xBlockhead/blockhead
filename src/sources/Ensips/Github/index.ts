@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const EnsipsGithubSource = {
+export default {
 	provider: SourceProvider.Ensips,
 	source: Source.Ensips_Github,
-	label: 'Ensips Github',
+	label: 'ENSIPs GitHub',
 } satisfies SourceDefinition
-
-export default EnsipsGithubSource

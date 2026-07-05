@@ -6,6 +6,7 @@
  * ```
  * pnpm run test:e2e:cors
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:cors
+ * E2E_PATH_PATTERN='^/farcaster(/|$)' pnpm run test:e2e:cors
  * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts -g probe
  * E2E_START_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts
  * ```
@@ -13,14 +14,15 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test'
 
 import {
+	assertMainSettled,
 	browserDevServerContaminationError,
 	collectBrowserCorsPolicyViolations,
-	expectMainVisible,
 	installChainlistRpcsJsonStub,
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
 import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
@@ -41,6 +43,7 @@ const corsQuietMs = (() => {
 
 const probePath = process.env.E2E_PROBE_PATH?.trim()
 const startPath = process.env.E2E_START_PATH?.trim()
+const pathPattern = process.env.E2E_PATH_PATTERN?.trim()
 
 const browserNetworkActivityCounter = (page: Page) => {
 	let count = 0
@@ -134,7 +137,9 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 			schemaVersion: Date.now(),
 		})
 		await installChainlistRpcsJsonStub(page)
-		const diagnostics = setupPageRuntimeDiagnostics(page)
+		const diagnostics = setupPageRuntimeDiagnostics(page, {
+			failFast: !e2eBoundaryLiveOptionalPathnames.has(probePath!),
+		})
 		const violations = collectBrowserCorsPolicyViolations(page)
 		const networkActivityCount = browserNetworkActivityCounter(page)
 		const devServerContaminationGate = routeViewSmokeDevServerContaminationGate(page)
@@ -144,10 +149,10 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 					waitUntil: 'load',
 					timeout: gotoLoadTimeoutMs,
 				}))
-					await expectMainVisible(page, settleTimeoutMs, diagnostics)
-					await waitForPageFetchSettle(page, () => violations.length, networkActivityCount)
-				})(),
-				devServerContaminationGate,
+				await assertMainSettled(page, settleTimeoutMs, diagnostics)
+				await waitForPageFetchSettle(page, () => violations.length, networkActivityCount)
+			})(),
+			devServerContaminationGate,
 		])
 		await assertNoCorsViolations(page, violations, probePath!, testInfo)
 	})
@@ -159,15 +164,25 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
 		const limit = Number(limitRaw)
 		let pageUrls = (
-			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-				all.slice(0, limit)
+			pathPattern ?
+				all.filter((path) => new RegExp(pathPattern).test(path))
 			:
 				all
+		)
+		pageUrls = (
+			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
+				pageUrls.slice(0, limit)
+			:
+				pageUrls
 		)
 		if (startPath) {
 			const index = pageUrls.indexOf(startPath)
 			pageUrls = index === -1 ? pageUrls : pageUrls.slice(index)
 		}
+		expect(
+			pageUrls,
+			`No discovered routes matched E2E_PATH_PATTERN=${pathPattern ?? '<unset>'} E2E_START_PATH=${startPath ?? '<unset>'}`
+		).not.toEqual([])
 
 		testInfo.setTimeout(pageUrls.length * (settleTimeoutMs + gotoLoadTimeoutMs + corsQuietMs + 30_000) + 60_000)
 
@@ -175,7 +190,9 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 			await test.step(path, async () => {
 				console.log(`[cors-policy] ${path}`)
 				const page = await browser.newPage()
-				const diagnostics = setupPageRuntimeDiagnostics(page)
+				const diagnostics = setupPageRuntimeDiagnostics(page, {
+					failFast: !e2eBoundaryLiveOptionalPathnames.has(path),
+				})
 				const violations = collectBrowserCorsPolicyViolations(page)
 				const networkActivityCount = browserNetworkActivityCounter(page)
 				try {
@@ -189,17 +206,17 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 					})
 					await installChainlistRpcsJsonStub(page)
 					const devServerContaminationGate = routeViewSmokeDevServerContaminationGate(page)
-					await Promise.race([
-						(async () => {
-							await diagnostics.step(page.goto(path, {
-								waitUntil: 'load',
-								timeout: gotoLoadTimeoutMs,
+						await Promise.race([
+							(async () => {
+								await diagnostics.step(page.goto(path, {
+									waitUntil: 'load',
+									timeout: gotoLoadTimeoutMs,
 								}))
-								await expectMainVisible(page, settleTimeoutMs, diagnostics)
+								await assertMainSettled(page, settleTimeoutMs, diagnostics)
 								await waitForPageFetchSettle(page, () => violations.length, networkActivityCount)
 							})(),
-						devServerContaminationGate,
-					])
+							devServerContaminationGate,
+						])
 					await assertNoCorsViolations(page, violations, path, testInfo)
 				}
 				finally {

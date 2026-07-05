@@ -1,19 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { cosmosAdrsBindings } from '$/sources/CosmosAdrs/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.CosmosAdrs,
-	label: 'Cosmos ADRs',
-	sources: [
-		{
-			provider: SourceProvider.CosmosAdrs,
-			source: Source.CosmosAdrs_Github,
-			label: 'Cosmos ADRs GitHub',
-		},
-	],
-	bindings: cosmosAdrsBindings,
-} satisfies SourceProviderDefinition
+	source: Source.CosmosAdrs_Github,
+	label: 'Cosmos ADRs GitHub',
+} satisfies SourceDefinition

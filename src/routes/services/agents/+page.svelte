@@ -37,6 +37,6 @@
 				limit: 100,
 			})
 		}
-		id='EvmNftsView-page'
+		id='eip8004-services'
 	/>
 </Page>

@@ -3,9 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,20 +42,16 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterUserTimestamp = $derived(selection({
 		sources: [
 			Source.Snapchain_Rest,
 			Source.Neynar_Rest,
 		],
-		fields: {
-			followerCount: true,
-			followingCount: true,
-		},
 	}))
 	const titleFallback = $derived('Farcaster user observation')
 	const viewDomId = $derived('farcaster-user-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -64,72 +61,117 @@
 
 <EntityView
 	entityType={EntityType.FarcasterUser_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.$user !== undefined && pendingEntity.$user.fid !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/observations/[timestampMs=nonNegativeInteger]', {
+			userId: String(pendingEntity.$user.fid ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<FarcasterUserView
-				selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
-				layout={EntityLayout.Title}
-				open={false}
-			/>
-		{:else}
-			<ResourceBoundary resource={farcasterUserTimestamp}>
-				{#snippet Pending()}
-					<FarcasterUserView
-						selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
+		<ResourceBoundary resource={farcasterUserTimestamp}>
+			{#snippet Pending()}
+				<FarcasterUserView
+					selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<FarcasterUserView
-						selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<FarcasterUserView
+					selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={farcasterUserTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={farcasterUserTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={farcasterUserTimestamp}>
+			<div>
+				<dt>User</dt>
+				<dd>
+					<FarcasterUserView
+						selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							followerCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const followerCount = prefetched.followerCount ?? selection.entitySelector.followerCount}
+					{@const followerCount = prefetched.followerCount}
 					{#if followerCount !== undefined && followerCount !== null}
 						<div>
 							<dt>Followers</dt>
@@ -141,7 +183,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const followerCount = entity.followerCount ?? selection.entitySelector.followerCount ?? prefetched.followerCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const followerCount = resolvedEntity.followerCount}
 					{#if followerCount !== undefined && followerCount !== null}
 						<div>
 							<dt>Followers</dt>
@@ -155,9 +198,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={farcasterUserTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							followingCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const followingCount = prefetched.followingCount ?? selection.entitySelector.followingCount}
+					{@const followingCount = prefetched.followingCount}
 					{#if followingCount !== undefined && followingCount !== null}
 						<div>
 							<dt>Following</dt>
@@ -169,7 +220,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const followingCount = entity.followingCount ?? selection.entitySelector.followingCount ?? prefetched.followingCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const followingCount = resolvedEntity.followingCount}
 					{#if followingCount !== undefined && followingCount !== null}
 						<div>
 							<dt>Following</dt>

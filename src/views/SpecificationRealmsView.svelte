@@ -4,16 +4,17 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import { EntityProxyField, type EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { specificationRealmById } from '$/constants/SpecificationProposal.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
+	import { Source } from '$/sources/Source.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import SpecificationProposalKindsView from '$/views/SpecificationProposalKindsView.svelte'
 	import SpecificationRealmView from '$/views/SpecificationRealmView.svelte'
 
@@ -27,7 +28,7 @@
 		selection,
 		title = 'Specification realms',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Specification realms...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -57,6 +58,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -66,6 +68,71 @@
 	{/each}
 {/snippet}
 
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection({
+				fields: {
+					label: true,
+					realm: true,
+				},
+			})
+		}
+		{placeholderText}
+	>
+		{#snippet children(specificationRealms)}
+			{@const uniqueSpecificationRealms = [...new Map(specificationRealms.values.map((specificationRealm) => [specificationRealm[EntityMetaKey.SelectorKey], specificationRealm])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SpecificationRealm}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={specificationRealms.totalCount}
+				getKey={(specificationRealm) => specificationRealm[EntityMetaKey.SelectorKey]}
+				items={uniqueSpecificationRealms}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Specification realms yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: specificationRealm }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SpecificationRealm> })}
+					{@const specificationRealmFields = { ...specificationRealm[EntityMetaKey.Selector], ...specificationRealm }}
+					{@const specificationRealmHrefFields = { ...specificationRealm, ...specificationRealm[EntityMetaKey.Selector] }}
+					<SpecificationRealmView
+						selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector])}
+						prefetched={specificationRealmFields}
+						href={
+							(specificationRealmHrefFields.realm !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+								specificationRealmSlug: String(specificationRealmById[String(specificationRealmHrefFields.realm)].slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.SpecificationRealm}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}
 
 <ResourceBoundary
 	resource={selection({
@@ -144,7 +211,9 @@
 									selection={select(
 										EntityType.SpecificationRealm,
 										{ realm: realm.entitySelector.realm }
-									)[EntityProxyField]<EntityType.SpecificationProposalKind>('$$proposalKinds')}
+									)[EntityProxyField]<EntityType.SpecificationProposalKind>('$$proposalKinds')({
+										sources: [Source.Constants_Internal],
+									})}
 									id={`proposal-realm:${String(realm.entitySelector.realm)}:proposal-kinds`}
 									open
 									title={String(realm.entitySelector.realm)}

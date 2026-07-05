@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,13 @@
 		selection={
 			select(EntityType._GlobalRedditNetwork, {
 				scope: '_GlobalRedditNetwork',
-			})[EntityProxyField]<EntityType.RedditSubreddit>('$$sourceWindowSubreddits')
+			})[EntityProxyField]<EntityType.RedditSubreddit>('$$sourceWindowSubreddits', {
+				sources: [
+					Source.Constants_Internal,
+					Source.Reddit_PublicJson,
+				],
+			})
 		}
-		id='RedditSubredditsView-page'
+		id='source-window-subreddits'
 	/>
 </Page>

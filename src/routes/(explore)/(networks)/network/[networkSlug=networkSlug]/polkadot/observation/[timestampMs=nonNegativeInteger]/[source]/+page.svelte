@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.PolkadotNetwork_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					runtimeSpecName: true,
 					finalizedBlockNumber: true,

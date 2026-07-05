@@ -9,7 +9,6 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -21,7 +20,7 @@
 		selection,
 		title = 'Sources',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Sources...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					label: true,
 					source: true,
 					id: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadSource}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadSources)}
 			{@const uniqueBlockheadSources = [...new Map(blockheadSources.values.map((blockheadSource) => [blockheadSource[EntityMetaKey.SelectorKey], blockheadSource])).values()]}
 			<EntitiesList
@@ -99,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadSources.values.length === uniqueBlockheadSources.length && blockheadSources.totalCount != null && blockheadSources.totalCount >= uniqueBlockheadSources.length ? blockheadSources.totalCount : uniqueBlockheadSources.length}
+				totalCount={blockheadSources.totalCount}
 				getKey={(blockheadSource) => blockheadSource[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadSources}
 			>
@@ -107,14 +93,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No sources yet.</p>
+						<p data-text="muted">No Sources yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadSource }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSource> })}
+					{@const blockheadSourceFields = { ...blockheadSource[EntityMetaKey.Selector], ...blockheadSource }}
 					<BlockheadSourceView
-						selection={select(EntityType.BlockheadSource, blockheadSource.entitySelector)}
-						prefetched={blockheadSource}
+						selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
+						prefetched={blockheadSourceFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -37,6 +37,6 @@
 				limit: 512,
 			})
 		}
-		id='EthereumNetworkUpgradesView-page'
+		id='network-upgrades'
 	/>
 </Page>

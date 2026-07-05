@@ -21,7 +21,7 @@
 		selection,
 		title = 'MEV relay observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading MEV relay observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					reachable: true,
 					statusCode: true,
 					timestampMs: true,
 					$relay: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MevRelay_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(mevRelayTimestamps)}
 			{@const uniqueMevRelayTimestamps = [...new Map(mevRelayTimestamps.values.map((mevRelayTimestamp) => [mevRelayTimestamp[EntityMetaKey.SelectorKey], mevRelayTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mevRelayTimestamps.values.length === uniqueMevRelayTimestamps.length && mevRelayTimestamps.totalCount != null && mevRelayTimestamps.totalCount >= uniqueMevRelayTimestamps.length ? mevRelayTimestamps.totalCount : uniqueMevRelayTimestamps.length}
+				totalCount={mevRelayTimestamps.totalCount}
 				getKey={(mevRelayTimestamp) => mevRelayTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueMevRelayTimestamps}
 			>
@@ -113,18 +101,20 @@
 				{/snippet}
 
 				{#snippet Item({ item: mevRelayTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MevRelay_Timestamp> })}
+					{@const mevRelayTimestampFields = { ...mevRelayTimestamp[EntityMetaKey.Selector], ...mevRelayTimestamp }}
+					{@const mevRelayTimestampHrefFields = { ...mevRelayTimestamp, ...mevRelayTimestamp[EntityMetaKey.Selector] }}
 					<MevRelay_TimestampView
+						selection={select(EntityType.MevRelay_Timestamp, mevRelayTimestamp[EntityMetaKey.Selector])}
+						prefetched={mevRelayTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...mevRelayTimestamp.entitySelector, ...mevRelayTimestamp }).$relay.$network.caip2.namespace)}:${String(({ ...mevRelayTimestamp.entitySelector, ...mevRelayTimestamp }).$relay.$network.caip2.reference)}`,
-								host: String(({ ...mevRelayTimestamp.entitySelector, ...mevRelayTimestamp }).$relay.host),
-								timestampMs: String(({ ...mevRelayTimestamp.entitySelector, ...mevRelayTimestamp }).timestampMs),
-								source: String(({ ...mevRelayTimestamp.entitySelector, ...mevRelayTimestamp }).source),
-							})
+							(mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2 !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2.namespace !== undefined && mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2 !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2.reference !== undefined && mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.host !== undefined && mevRelayTimestampHrefFields.timestampMs !== undefined && mevRelayTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(mevRelayTimestampHrefFields.$relay.$network.caip2.namespace ?? '')}:${String(mevRelayTimestampHrefFields.$relay.$network.caip2.reference ?? '')}`,
+								host: String(mevRelayTimestampHrefFields.$relay.host ?? ''),
+								timestampMs: String(mevRelayTimestampHrefFields.timestampMs ?? ''),
+								source: String(mevRelayTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.MevRelay_Timestamp, mevRelayTimestamp.entitySelector)}
-						prefetched={mevRelayTimestamp}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

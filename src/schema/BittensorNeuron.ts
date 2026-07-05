@@ -1,18 +1,16 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum BittensorNeuronSelector {
-	BittensorSubnetUid = 'bittensorSubnetUid',
-	SubnetUid = '$subnet+uid',
+	BittensorSubnetUid = 'BittensorSubnetUid',
 }
 export default {
 	entityType: EntityType.BittensorNeuron,
-	label: 'bittensor neuron',
-	labelPlural: 'bittensor neurons',
+	label: 'Bittensor neuron',
+	labelPlural: 'Bittensor neurons',
 	selectors: [
 		{
 			name: BittensorNeuronSelector.BittensorSubnetUid,
@@ -24,18 +22,18 @@ export default {
 	],
 	fields: [
 		{
-			name: '$subnet',
-			label: 'subnet',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BittensorSubnet,
-			cardinality: EntityFieldCardinality.One,
+				name: '$subnet',
+				label: 'Subnet',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BittensorSubnet,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'uid',
-			label: 'UID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'uid',
+				label: 'UID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

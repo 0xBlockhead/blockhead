@@ -41,9 +41,9 @@
 				fields: {
 					$icon: true,
 					displayName: true,
-					description: true,
 					indexedAt: true,
 					$banner: true,
+					description: true,
 				},
 			})
 		}

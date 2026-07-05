@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'UTXO network observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading UTXO network observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +66,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					timestampMs: true,
 					bestBlockHeight: true,
 					source: true,
 					bestBlockHash: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(utxoNetworkTimestamps)}
 			{@const uniqueUtxoNetworkTimestamps = [...new Map(utxoNetworkTimestamps.values.map((utxoNetworkTimestamp) => [utxoNetworkTimestamp[EntityMetaKey.SelectorKey], utxoNetworkTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoNetworkTimestamps.values.length === uniqueUtxoNetworkTimestamps.length && utxoNetworkTimestamps.totalCount != null && utxoNetworkTimestamps.totalCount >= uniqueUtxoNetworkTimestamps.length ? utxoNetworkTimestamps.totalCount : uniqueUtxoNetworkTimestamps.length}
+				totalCount={utxoNetworkTimestamps.totalCount}
 				getKey={(utxoNetworkTimestamp) => utxoNetworkTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueUtxoNetworkTimestamps}
 			>
@@ -113,16 +102,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: utxoNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoNetwork_Timestamp> })}
+					{@const utxoNetworkTimestampFields = { ...utxoNetworkTimestamp[EntityMetaKey.Selector], ...utxoNetworkTimestamp }}
+					{@const utxoNetworkTimestampHrefFields = { ...utxoNetworkTimestamp, ...utxoNetworkTimestamp[EntityMetaKey.Selector] }}
 					<UtxoNetwork_TimestampView
+						selection={select(EntityType.UtxoNetwork_Timestamp, utxoNetworkTimestamp[EntityMetaKey.Selector])}
+						prefetched={utxoNetworkTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								networkSlug: String(({ ...utxoNetworkTimestamp.entitySelector, ...utxoNetworkTimestamp }).$network.slug),
-								timestampMs: String(({ ...utxoNetworkTimestamp.entitySelector, ...utxoNetworkTimestamp }).timestampMs),
-								source: String(({ ...utxoNetworkTimestamp.entitySelector, ...utxoNetworkTimestamp }).source),
-							})
+							(utxoNetworkTimestampHrefFields.$network !== undefined && utxoNetworkTimestampHrefFields.$network.caip2 !== undefined && utxoNetworkTimestampHrefFields.$network.caip2.namespace !== undefined && utxoNetworkTimestampHrefFields.$network !== undefined && utxoNetworkTimestampHrefFields.$network.caip2 !== undefined && utxoNetworkTimestampHrefFields.$network.caip2.reference !== undefined && utxoNetworkTimestampHrefFields.timestampMs !== undefined && utxoNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								networkSlug: String(networkByCaip2[String(String(utxoNetworkTimestampHrefFields.$network.caip2.namespace) + ':' + String(utxoNetworkTimestampHrefFields.$network.caip2.reference))].slug ?? ''),
+								timestampMs: String(utxoNetworkTimestampHrefFields.timestampMs ?? ''),
+								source: String(utxoNetworkTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.UtxoNetwork_Timestamp, utxoNetworkTimestamp.entitySelector)}
-						prefetched={utxoNetworkTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

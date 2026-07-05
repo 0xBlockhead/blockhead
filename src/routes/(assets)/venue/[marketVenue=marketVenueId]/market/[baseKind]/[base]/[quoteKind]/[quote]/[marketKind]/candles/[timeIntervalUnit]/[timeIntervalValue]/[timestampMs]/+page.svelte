@@ -51,10 +51,7 @@
 					open: true,
 					high: true,
 					low: true,
-					volume: true,
 					quoteVolume: true,
-					tradeCount: true,
-					vwap: true,
 					$parentMarket: true,
 				},
 			})

@@ -3,9 +3,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import LightningNodesView from '$/views/LightningNodesView.svelte'
+	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
@@ -21,6 +20,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import LightningNodesView from '$/views/LightningNodesView.svelte'
 </script>
 
 
@@ -31,12 +31,19 @@
 
 <Page>
 	<LightningNodesView
-		selection={select(EntityType.LightningNetwork, {
-			$network: { slug: params.networkSlug },
-		})[EntityProxyField]<EntityType.LightningNode>('$$nodes')({ limit: 16 })}
-		href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes', {
-			networkSlug: params.networkSlug,
-		})}
+		href={
+			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes', {
+				networkSlug: params.networkSlug,
+			})
+		}
+		title='Nodes'
+		selection={
+			select(EntityType.LightningNetwork, {
+				$network: {
+					slug: params.networkSlug,
+				},
+			})[EntityProxyField]<EntityType.LightningNode>('$$nodes')
+		}
 		id='nodes'
 	/>
 </Page>

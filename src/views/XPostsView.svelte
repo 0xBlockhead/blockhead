@@ -20,7 +20,7 @@
 		selection,
 		title = 'X posts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading X posts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					text: true,
 					id: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XPost}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(xPosts)}
 			{@const uniqueXPosts = [...new Map(xPosts.values.map((xPost) => [xPost[EntityMetaKey.SelectorKey], xPost])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xPosts.values.length === uniqueXPosts.length && xPosts.totalCount != null && xPosts.totalCount >= uniqueXPosts.length ? xPosts.totalCount : uniqueXPosts.length}
+				totalCount={xPosts.totalCount}
 				getKey={(xPost) => xPost[EntityMetaKey.SelectorKey]}
 				items={uniqueXPosts}
 			>
@@ -111,9 +98,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: xPost }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XPost> })}
+					{@const xPostFields = { ...xPost[EntityMetaKey.Selector], ...xPost }}
 					<XPostView
-						selection={select(EntityType.XPost, xPost.entitySelector)}
-						prefetched={xPost}
+						selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
+						prefetched={xPostFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

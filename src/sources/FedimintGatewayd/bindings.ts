@@ -23,7 +23,6 @@ export const fedimintGatewaydBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:FEDIMINT_GATEWAYD_URL',
-				origin: 'env:FEDIMINT_GATEWAYD_URL',
 				corsEnabled: false,
 			},
 		],

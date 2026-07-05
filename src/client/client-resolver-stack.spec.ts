@@ -117,6 +117,11 @@ describe('client resolver stack architecture', () => {
 		}
 	})
 
+	it('keeps count rows are authoritative for paged and windowed list totals', () => {
+		expect(source('$subscribe.svelte.ts')).not.toMatch(/totalCount:[^\n]*values\.length/)
+		expect(source('$subscribe.svelte.ts')).not.toMatch(/loaded row length/)
+	})
+
 	it('keeps view-facing reads behind the proxy and subscribe files', () => {
 		expect(source('$proxy.svelte.ts')).not.toMatch(/entityCollections|entityFieldCollections|queryCollectionOptions/)
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/queryCollectionOptions|persistedCollectionOptions/)

@@ -21,7 +21,7 @@
 		selection,
 		title = 'Denoms',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos denoms...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					symbol: true,
 					display: true,
 					denom: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosDenom}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosDenoms)}
 			{@const uniqueCosmosDenoms = [...new Map(cosmosDenoms.values.map((cosmosDenom) => [cosmosDenom[EntityMetaKey.SelectorKey], cosmosDenom])).values()]}
 			<EntitiesList
@@ -100,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosDenoms.values.length === uniqueCosmosDenoms.length && cosmosDenoms.totalCount != null && cosmosDenoms.totalCount >= uniqueCosmosDenoms.length ? cosmosDenoms.totalCount : uniqueCosmosDenoms.length}
+				totalCount={cosmosDenoms.totalCount}
 				getKey={(cosmosDenom) => cosmosDenom[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosDenoms}
 			>
@@ -113,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosDenom }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosDenom> })}
+					{@const cosmosDenomFields = { ...cosmosDenom[EntityMetaKey.Selector], ...cosmosDenom }}
+					{@const cosmosDenomHrefFields = { ...cosmosDenom, ...cosmosDenom[EntityMetaKey.Selector] }}
 					<CosmosDenomView
+						selection={select(EntityType.CosmosDenom, cosmosDenom[EntityMetaKey.Selector])}
+						prefetched={cosmosDenomFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/denom/[denom]', {
-								caip2: `${String(({ ...cosmosDenom.entitySelector, ...cosmosDenom }).$network.caip2.namespace)}:${String(({ ...cosmosDenom.entitySelector, ...cosmosDenom }).$network.caip2.reference)}`,
-								denom: String(({ ...cosmosDenom.entitySelector, ...cosmosDenom }).denom),
-							})
+							(cosmosDenomHrefFields.$network !== undefined && cosmosDenomHrefFields.$network.caip2 !== undefined && cosmosDenomHrefFields.$network.caip2.namespace !== undefined && cosmosDenomHrefFields.$network !== undefined && cosmosDenomHrefFields.$network.caip2 !== undefined && cosmosDenomHrefFields.$network.caip2.reference !== undefined && cosmosDenomHrefFields.denom !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/denom/[denom]', {
+								caip2: `${String(cosmosDenomHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosDenomHrefFields.$network.caip2.reference ?? '')}`,
+								denom: String(cosmosDenomHrefFields.denom ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosDenom, cosmosDenom.entitySelector)}
-						prefetched={cosmosDenom}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

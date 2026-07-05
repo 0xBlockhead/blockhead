@@ -6,7 +6,6 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { TronTokenStandard } from '$/schema/TronToken.ts'
 import { Source } from '$/sources/Source.ts'
 import type {
 	TronScanBlock,
@@ -23,7 +22,9 @@ import { TronContractSelector } from '$/schema/TronContract.ts'
 import { TronContract_TimestampSelector } from '$/schema/TronContract_Timestamp.ts'
 import { TronTokenSelector } from '$/schema/TronToken.ts'
 import { TronToken_TimestampSelector } from '$/schema/TronToken_Timestamp.ts'
+import { TronAccountTokenBalance_TimestampSelector } from '$/schema/TronAccountTokenBalance_Timestamp.ts'
 import { TronTokenTransferSelector } from '$/schema/TronTokenTransfer.ts'
+import { TronTransactionReceiptSelector } from '$/schema/TronTransactionReceipt.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
@@ -46,21 +47,21 @@ const bigintFromWire = (value: number | string | null | undefined): bigint | und
 		BigInt(value)
 )
 
-const tokenStandardFromWire = (value: string | undefined): TronTokenStandard | undefined => {
+const tokenStandardFromWire = (value: string | undefined) => {
 	if (value == null) return undefined
 	const tokenStandard = value.toLowerCase().replace('-', '')
 	return (
 		tokenStandard === 'trc10' ?
-			TronTokenStandard.Trc10
+			'trc10'
 		:
 			tokenStandard === 'trc20' ?
-				TronTokenStandard.Trc20
+				'trc20'
 			:
 				tokenStandard === 'trc721' ?
-					TronTokenStandard.Trc721
+					'trc721'
 				:
 					tokenStandard === 'trc1155' ?
-					TronTokenStandard.Trc1155
+					'trc1155'
 				:
 					undefined
 	)
@@ -115,6 +116,7 @@ const transactionFieldsFromTronScanTransaction = (
 	transaction: TronScanTransaction
 ) => {
 	const blockHeight = transaction.block ?? transaction.blockNumber
+	const transactionId = transaction.hash ?? transaction.transactionHash
 	const ownerAddress = transaction.contractData?.owner_address ?? transaction.ownerAddress
 	const toAddress = transaction.contractData?.to_address ?? transaction.toAddress
 	const contractAddress = transaction.contractData?.contract_address ?? transaction.contractAddress
@@ -133,6 +135,16 @@ const transactionFieldsFromTronScanTransaction = (
 		contractType: transaction.contractType?.toString(),
 		result: transaction.contractRet,
 		feeSun: bigintFromWire(transaction.cost?.fee),
+		...(transactionId != null && {
+			$receipt: {
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: network,
+						transactionId,
+					},
+				},
+			},
+		}),
 		...(ownerAddress != null && {
 			$owner: accountReference(network, ownerAddress),
 		}),
@@ -172,7 +184,7 @@ const tokenFieldsFromTronScanToken = (
 		...(ownerAddress != null && {
 			$owner: accountReference(network, ownerAddress),
 		}),
-		...(tokenId != null && standard !== TronTokenStandard.Trc10 && {
+		...(tokenId != null && standard !== 'trc10' && {
 			$contract: {
 				[EntityMetaKey.Selector]: {
 					$network: network,
@@ -292,7 +304,7 @@ const tokenTransferFieldsFromTronScanTransfer = (
 				},
 			},
 		}),
-		standard: TronTokenStandard.Trc20,
+		standard: 'trc20',
 		...(transfer.from_address != null && {
 			$from: accountReference(network, transfer.from_address),
 		}),
@@ -309,6 +321,18 @@ const tokenTransferFieldsFromTronScanTransfer = (
 		timestampMs: transfer.block_ts ?? transfer.timestamp,
 	}
 }
+
+const accountTokenBalanceTimestampFieldsFromTronScanToken = (
+	token: TronScanToken
+) => ({
+	...(tokenStandardFromWire(token.tokenType ?? token.type) != null && {
+		standard: tokenStandardFromWire(token.tokenType ?? token.type),
+	}),
+	balance: bigintFromWire(token.balance ?? token.balanceStr),
+	tokenId: tokenIdFromTronScanToken(token),
+	tokenName: token.name ?? token.tokenName,
+	tokenSymbol: token.symbol ?? token.abbr ?? token.tokenAbbr,
+})
 
 export default {
 	source: Source.TronScan_Rest,
@@ -441,6 +465,7 @@ export default {
 				contractType: (transaction) => transaction.contractType,
 				result: (transaction) => transaction.result,
 				feeSun: (transaction) => transaction.feeSun,
+				$receipt: (transaction) => transaction.$receipt,
 				$owner: (transaction) => transaction.$owner,
 				$to: (transaction) => transaction.$to,
 				$contract: (transaction) => transaction.$contract,
@@ -506,6 +531,29 @@ export default {
 				verifyStatus: (contract) => contract.verifyStatus,
 				isProxy: (contract) => contract.isProxy,
 				$implementation: (contract) => contract.$implementation,
+			},
+		}),
+
+		defineResolver(Source.TronScan_Rest, {
+			entityType: EntityType.TronTransactionReceipt,
+			resolve: {
+				[TronTransactionReceiptSelector.Transaction]: async ({ $transaction }) => {
+					assertTronMainnet($transaction.$network)
+					const { getTransaction } = await import('$/sources/TronScan/Rest/queries.ts')
+					const transaction = await getTransaction({
+						restBaseUrl: await tronScanRestBaseUrl(),
+						transactionId: $transaction.transactionId,
+					})
+					return transactionFieldsFromTronScanTransaction(
+						$transaction.$network,
+						transaction.data?.[0] ?? transaction
+					)
+				}
+			},
+		})({
+			fields: {
+				feeSun: (receipt) => receipt.feeSun,
+				result: (receipt) => receipt.result,
 			},
 		}),
 
@@ -614,6 +662,34 @@ export default {
 		}),
 
 		defineResolver(Source.TronScan_Rest, {
+			entityType: EntityType.TronAccountTokenBalance_Timestamp,
+			resolve: {
+				[TronAccountTokenBalance_TimestampSelector.AccountTokenTimestampMsSource]: async ({ $account, $token }, context) => {
+					assertTronMainnet($account.$network)
+					const { getAccountTokens } = await import('$/sources/TronScan/Rest/queries.ts')
+					const token = (await getAccountTokens({
+						restBaseUrl: await tronScanRestBaseUrl(),
+						address: $account.address,
+						limit: resolverContextRowLimit(context),
+					})).data.find((accountToken) => (
+						tokenIdFromTronScanToken(accountToken) === $token.tokenId
+					))
+					if (token == null)
+						throw new Error(`TronScan_Rest: account token balance not found for ${$account.address}:${$token.tokenId}`)
+					return accountTokenBalanceTimestampFieldsFromTronScanToken(token)
+				}
+			},
+		})({
+			fields: {
+				standard: (timestamp) => timestamp.standard,
+				balance: (timestamp) => timestamp.balance,
+				tokenId: (timestamp) => timestamp.tokenId,
+				tokenName: (timestamp) => timestamp.tokenName,
+				tokenSymbol: (timestamp) => timestamp.tokenSymbol,
+			},
+		}),
+
+		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount,
 			resolve: {
 				[TronAccountSelector.NetworkAddress]: async ({ $network, address }, context) => {
@@ -625,7 +701,6 @@ export default {
 							limit: resolverContextRowLimit(context),
 						})).data.flatMap((token) => {
 							const tokenId = tokenIdFromTronScanToken(token)
-							const standard = tokenStandardFromWire(token.tokenType ?? token.type)
 							return (
 								tokenId == null ?
 									[]
@@ -650,13 +725,7 @@ export default {
 													tokenId,
 												},
 											},
-											...(standard != null && {
-												standard,
-											}),
-											balance: bigintFromWire(token.balance ?? token.balanceStr),
-											tokenId,
-											tokenName: token.name ?? token.tokenName,
-											tokenSymbol: token.symbol ?? token.abbr ?? token.tokenAbbr,
+											...accountTokenBalanceTimestampFieldsFromTronScanToken(token),
 										},
 									]
 							)

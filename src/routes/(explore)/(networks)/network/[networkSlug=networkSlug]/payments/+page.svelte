@@ -3,9 +3,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import BlockheadLightningPaymentsView from '$/views/BlockheadLightningPaymentsView.svelte'
+	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
@@ -21,6 +20,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import BlockheadLightningPaymentsView from '$/views/BlockheadLightningPaymentsView.svelte'
 </script>
 
 
@@ -31,12 +31,19 @@
 
 <Page>
 	<BlockheadLightningPaymentsView
-		selection={select(EntityType.LightningNetwork, {
-			$network: { slug: params.networkSlug },
-		})[EntityProxyField]<EntityType.BlockheadLightningPayment>('$$payments')({ limit: 16 })}
-		href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/payments', {
-			networkSlug: params.networkSlug,
-		})}
+		href={
+			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/payments', {
+				networkSlug: params.networkSlug,
+			})
+		}
+		title='Payments'
+		selection={
+			select(EntityType.LightningNetwork, {
+				$network: {
+					slug: params.networkSlug,
+				},
+			})[EntityProxyField]<EntityType.BlockheadLightningPayment>('$$payments')
+		}
 		id='payments'
 	/>
 </Page>

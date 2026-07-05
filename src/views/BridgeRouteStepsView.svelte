@@ -21,7 +21,7 @@
 		selection,
 		title = 'Steps',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Bridge route steps...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					indexInRoute: true,
 					tool: true,
 					stepType: true,
+					$route: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BridgeRouteStep}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(bridgeRouteSteps)}
 			{@const uniqueBridgeRouteSteps = [...new Map(bridgeRouteSteps.values.map((bridgeRouteStep) => [bridgeRouteStep[EntityMetaKey.SelectorKey], bridgeRouteStep])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bridgeRouteSteps.values.length === uniqueBridgeRouteSteps.length && bridgeRouteSteps.totalCount != null && bridgeRouteSteps.totalCount >= uniqueBridgeRouteSteps.length ? bridgeRouteSteps.totalCount : uniqueBridgeRouteSteps.length}
+				totalCount={bridgeRouteSteps.totalCount}
 				getKey={(bridgeRouteStep) => bridgeRouteStep[EntityMetaKey.SelectorKey]}
 				items={uniqueBridgeRouteSteps}
 			>
@@ -107,27 +95,29 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No bridge route steps yet.</p>
+						<p data-text="muted">No Bridge route steps yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: bridgeRouteStep }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BridgeRouteStep> })}
+					{@const bridgeRouteStepFields = { ...bridgeRouteStep[EntityMetaKey.Selector], ...bridgeRouteStep }}
+					{@const bridgeRouteStepHrefFields = { ...bridgeRouteStep, ...bridgeRouteStep[EntityMetaKey.Selector] }}
 					<BridgeRouteStepView
+						selection={select(EntityType.BridgeRouteStep, bridgeRouteStep[EntityMetaKey.Selector])}
+						prefetched={bridgeRouteStepFields}
 						href={
-							resolve('/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
-								fromChainId: String(bridgeRouteStep.entitySelector.$route.fromChainId),
-								toChainId: String(bridgeRouteStep.entitySelector.$route.toChainId),
-								fromToken: String(bridgeRouteStep.entitySelector.$route.fromToken),
-								toToken: String(bridgeRouteStep.entitySelector.$route.toToken),
-								fromAmount: String(bridgeRouteStep.entitySelector.$route.fromAmount),
-								fromAddress: String(bridgeRouteStep.entitySelector.$route.fromAddress),
-								slippage: String(bridgeRouteStep.entitySelector.$route.slippage),
-								toAddress: String(bridgeRouteStep.entitySelector.$route.toAddress),
-								stepIndex: String(bridgeRouteStep.entitySelector.indexInRoute),
-							})
+							(bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromChainId !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toChainId !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromToken !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toToken !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromAmount !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromAddress !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.slippage !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toAddress !== undefined && bridgeRouteStepHrefFields.indexInRoute !== undefined ? resolve('/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex=bridgeRouteStepIndex]', {
+								fromChainId: String(bridgeRouteStepHrefFields.$route.fromChainId ?? ''),
+								toChainId: String(bridgeRouteStepHrefFields.$route.toChainId ?? ''),
+								fromToken: String(bridgeRouteStepHrefFields.$route.fromToken ?? ''),
+								toToken: String(bridgeRouteStepHrefFields.$route.toToken ?? ''),
+								fromAmount: String(bridgeRouteStepHrefFields.$route.fromAmount ?? ''),
+								fromAddress: String(bridgeRouteStepHrefFields.$route.fromAddress ?? ''),
+								slippage: String(bridgeRouteStepHrefFields.$route.slippage ?? ''),
+								toAddress: String(bridgeRouteStepHrefFields.$route.toAddress ?? ''),
+								stepIndex: String(bridgeRouteStepHrefFields.indexInRoute ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BridgeRouteStep, bridgeRouteStep.entitySelector)}
-						prefetched={bridgeRouteStep}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

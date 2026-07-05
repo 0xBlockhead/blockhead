@@ -1,0 +1,207 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		prefetched = {},
+		title,
+		href,
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
+		...EntityViewProps
+	}: WithRest<
+		{
+			selection: EntityProxyResource<typeof schema, EntityType.TezosToken>
+			prefetched?: Partial<EntityProxyData<typeof schema, EntityType.TezosToken>>
+			title?: string
+			href?: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'collapsible'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
+
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	const tezosToken = $derived(selection({}))
+	const titleFallback = $derived('tezos token')
+	const viewDomId = $derived('tezos-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
+	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
+	import TezosContractView from '$/views/TezosContractView.svelte'
+</script>
+
+
+<EntityView
+	entityType={EntityType.TezosToken}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
+	id={viewDomId}
+	title={title ?? titleFallback}
+	{href}
+	{layout}
+	bind:open
+	{...EntityViewProps}
+>
+	{#snippet Title()}
+		<ResourceBoundary resource={tezosToken}>
+			{#snippet Pending()}
+				{title || 'tezos token'}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>network</dt>
+				<dd>
+					<TezosNetworkView
+						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>contract address</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									contractAddress: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const contractAddress = selection.entitySelector.contractAddress ?? prefetched.contractAddress}
+							{#if contractAddress !== undefined && contractAddress !== null}
+								<TruncatedValue value={String((contractAddress) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const contractAddress = resolvedEntity.contractAddress}
+							{#if contractAddress !== undefined && contractAddress !== null}
+								<TruncatedValue value={String((contractAddress) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Token ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									tokenId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const tokenId = selection.entitySelector.tokenId ?? prefetched.tokenId}
+							{#if tokenId !== undefined && tokenId !== null}
+								{String((tokenId) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const tokenId = resolvedEntity.tokenId}
+							{#if tokenId !== undefined && tokenId !== null}
+								{String((tokenId) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							standard: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const standard = prefetched.standard}
+					{#if standard !== undefined && standard !== null}
+						<div>
+							<dt>standard</dt>
+							<dd>
+								{String((standard) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const standard = resolvedEntity.standard}
+					{#if standard !== undefined && standard !== null}
+						<div>
+							<dt>standard</dt>
+							<dd>
+								{String((standard) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={selection[EntityProxyField]<EntityType.TezosContract, false>('$contract')}
+			>
+				{#snippet children(tezosContract)}
+					{#if tezosContract != null && tezosContract[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>contract</dt>
+							<dd>
+								<TezosContractView
+									selection={select(EntityType.TezosContract, tezosContract[EntityMetaKey.Selector])}
+									prefetched={tezosContract}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
+</EntityView>

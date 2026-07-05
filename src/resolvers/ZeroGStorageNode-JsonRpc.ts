@@ -82,19 +82,12 @@ export default {
 					const fileInfo = await fileInfoForDataBlob(entitySelector)
 					return {
 						sizeBytes: BigInt(fileInfo.tx.size),
-						$$chunks: fileInfo.tx.streamIds.map((_chunkRoot, chunkIndex) => ({
-							[EntityMetaKey.Selector]: {
-								$dataBlob: entitySelector,
-								chunkIndex,
-							},
-						})),
 					}
 				}
 			},
 		})({
 			fields: {
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
-				$$chunks: (snapshot) => snapshot.$$chunks,
 			},
 		}),
 
@@ -106,19 +99,12 @@ export default {
 					const chunkRoot = fileInfo.tx.streamIds.at(chunkIndex)
 					if (chunkRoot == null) throw new Error(`ZeroGStorageNode_JsonRpc: chunk not found ${$dataBlob.dataRoot}:${String(chunkIndex)}`)
 					return {
-						$storageNode: {
-							[EntityMetaKey.Selector]: {
-								$network: $dataBlob.$network,
-								nodeId: await localStorageNodeId(),
-							},
-						},
 						chunkRoot,
 					}
 				}
 			},
 		})({
 			fields: {
-				$storageNode: (snapshot) => snapshot.$storageNode,
 				chunkRoot: (snapshot) => snapshot.chunkRoot,
 			},
 		}),

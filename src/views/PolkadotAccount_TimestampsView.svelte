@@ -22,7 +22,7 @@
 		selection,
 		title = 'Account snapshots',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Polkadot account observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,30 +66,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					source: true,
 					freeBalancePlancks: true,
 					nonce: true,
 					timestampMs: true,
+					$account: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(polkadotAccountTimestamps)}
 			{@const uniquePolkadotAccountTimestamps = [...new Map(polkadotAccountTimestamps.values.map((polkadotAccountTimestamp) => [polkadotAccountTimestamp[EntityMetaKey.SelectorKey], polkadotAccountTimestamp])).values()]}
 			<EntitiesList
@@ -101,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotAccountTimestamps.values.length === uniquePolkadotAccountTimestamps.length && polkadotAccountTimestamps.totalCount != null && polkadotAccountTimestamps.totalCount >= uniquePolkadotAccountTimestamps.length ? polkadotAccountTimestamps.totalCount : uniquePolkadotAccountTimestamps.length}
+				totalCount={polkadotAccountTimestamps.totalCount}
 				getKey={(polkadotAccountTimestamp) => polkadotAccountTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniquePolkadotAccountTimestamps}
 			>
@@ -114,17 +102,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: polkadotAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotAccount_Timestamp> })}
+					{@const polkadotAccountTimestampFields = { ...polkadotAccountTimestamp[EntityMetaKey.Selector], ...polkadotAccountTimestamp }}
+					{@const polkadotAccountTimestampHrefFields = { ...polkadotAccountTimestamp, ...polkadotAccountTimestamp[EntityMetaKey.Selector] }}
 					<PolkadotAccount_TimestampView
+						selection={select(EntityType.PolkadotAccount_Timestamp, polkadotAccountTimestamp[EntityMetaKey.Selector])}
+						prefetched={polkadotAccountTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]/observation/[timestampMs=nonNegativeInteger]/[source]', {
-								networkSlug: String(networkByCaip2[String(({ ...polkadotAccountTimestamp.entitySelector, ...polkadotAccountTimestamp }).$account.$network.caip2)].slug),
-								accountId: String(({ ...polkadotAccountTimestamp.entitySelector, ...polkadotAccountTimestamp }).$account.accountId),
-								timestampMs: String(({ ...polkadotAccountTimestamp.entitySelector, ...polkadotAccountTimestamp }).timestampMs),
-								source: String(({ ...polkadotAccountTimestamp.entitySelector, ...polkadotAccountTimestamp }).source),
-							})
+							(polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.$network !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2 !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2.namespace !== undefined && polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.$network !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2 !== undefined && polkadotAccountTimestampHrefFields.$account.$network.caip2.reference !== undefined && polkadotAccountTimestampHrefFields.$account !== undefined && polkadotAccountTimestampHrefFields.$account.accountId !== undefined && polkadotAccountTimestampHrefFields.timestampMs !== undefined && polkadotAccountTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]/observation/[timestampMs=nonNegativeInteger]/[source]', {
+								networkSlug: String(networkByCaip2[String(String(polkadotAccountTimestampHrefFields.$account.$network.caip2.namespace) + ':' + String(polkadotAccountTimestampHrefFields.$account.$network.caip2.reference))].slug ?? ''),
+								accountId: String(polkadotAccountTimestampHrefFields.$account.accountId ?? ''),
+								timestampMs: String(polkadotAccountTimestampHrefFields.timestampMs ?? ''),
+								source: String(polkadotAccountTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.PolkadotAccount_Timestamp, polkadotAccountTimestamp.entitySelector)}
-						prefetched={polkadotAccountTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

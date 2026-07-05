@@ -51,5 +51,12 @@ export default {
 					Source.Reddit_PublicJson,
 				],
 		},
+		{
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType._GlobalRedditNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+		},
 	],
 } as const satisfies EntityDefinition

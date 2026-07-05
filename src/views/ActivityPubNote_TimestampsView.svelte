@@ -21,7 +21,7 @@
 		selection,
 		title = 'ActivityPub note observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ActivityPub note observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$note: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubNote_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(activityPubNoteTimestamps)}
 			{@const uniqueActivityPubNoteTimestamps = [...new Map(activityPubNoteTimestamps.values.map((activityPubNoteTimestamp) => [activityPubNoteTimestamp[EntityMetaKey.SelectorKey], activityPubNoteTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubNoteTimestamps.values.length === uniqueActivityPubNoteTimestamps.length && activityPubNoteTimestamps.totalCount != null && activityPubNoteTimestamps.totalCount >= uniqueActivityPubNoteTimestamps.length ? activityPubNoteTimestamps.totalCount : uniqueActivityPubNoteTimestamps.length}
+				totalCount={activityPubNoteTimestamps.totalCount}
 				getKey={(activityPubNoteTimestamp) => activityPubNoteTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueActivityPubNoteTimestamps}
 			>
@@ -111,16 +98,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: activityPubNoteTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubNote_Timestamp> })}
+					{@const activityPubNoteTimestampFields = { ...activityPubNoteTimestamp[EntityMetaKey.Selector], ...activityPubNoteTimestamp }}
+					{@const activityPubNoteTimestampHrefFields = { ...activityPubNoteTimestamp, ...activityPubNoteTimestamp[EntityMetaKey.Selector] }}
 					<ActivityPubNote_TimestampView
+						selection={select(EntityType.ActivityPubNote_Timestamp, activityPubNoteTimestamp[EntityMetaKey.Selector])}
+						prefetched={activityPubNoteTimestampFields}
 						href={
-							resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/(note)/observations/[timestampMs=nonNegativeInteger]', {
-								instanceOrigin: String(activityPubNoteTimestamp.entitySelector.$note.instanceOrigin),
-								localStatusId: String(activityPubNoteTimestamp.entitySelector.$note.localStatusId),
-								timestampMs: String(activityPubNoteTimestamp.entitySelector.timestampMs),
-							})
+							(activityPubNoteTimestampHrefFields.$note !== undefined && activityPubNoteTimestampHrefFields.$note.instanceOrigin !== undefined && activityPubNoteTimestampHrefFields.$note !== undefined && activityPubNoteTimestampHrefFields.$note.localStatusId !== undefined && activityPubNoteTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/(note)/observations/[timestampMs=nonNegativeInteger]', {
+								instanceOrigin: String(activityPubNoteTimestampHrefFields.$note.instanceOrigin ?? ''),
+								localStatusId: String(activityPubNoteTimestampHrefFields.$note.localStatusId ?? ''),
+								timestampMs: String(activityPubNoteTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.ActivityPubNote_Timestamp, activityPubNoteTimestamp.entitySelector)}
-						prefetched={activityPubNoteTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

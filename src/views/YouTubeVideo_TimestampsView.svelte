@@ -21,7 +21,7 @@
 		selection,
 		title = 'YouTube video observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading YouTube video observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$video: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.YoutubeVideo_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(youtubeVideoTimestamps)}
 			{@const uniqueYoutubeVideoTimestamps = [...new Map(youtubeVideoTimestamps.values.map((youtubeVideoTimestamp) => [youtubeVideoTimestamp[EntityMetaKey.SelectorKey], youtubeVideoTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={youtubeVideoTimestamps.values.length === uniqueYoutubeVideoTimestamps.length && youtubeVideoTimestamps.totalCount != null && youtubeVideoTimestamps.totalCount >= uniqueYoutubeVideoTimestamps.length ? youtubeVideoTimestamps.totalCount : uniqueYoutubeVideoTimestamps.length}
+				totalCount={youtubeVideoTimestamps.totalCount}
 				getKey={(youtubeVideoTimestamp) => youtubeVideoTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueYoutubeVideoTimestamps}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: youtubeVideoTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubeVideo_Timestamp> })}
+					{@const youtubeVideoTimestampFields = { ...youtubeVideoTimestamp[EntityMetaKey.Selector], ...youtubeVideoTimestamp }}
+					{@const youtubeVideoTimestampHrefFields = { ...youtubeVideoTimestamp, ...youtubeVideoTimestamp[EntityMetaKey.Selector] }}
 					<YoutubeVideo_TimestampView
+						selection={select(EntityType.YoutubeVideo_Timestamp, youtubeVideoTimestamp[EntityMetaKey.Selector])}
+						prefetched={youtubeVideoTimestampFields}
 						href={
-							resolve('/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]', {
-								videoId: String(youtubeVideoTimestamp.entitySelector.$video.videoId),
-								timestampMs: String(youtubeVideoTimestamp.entitySelector.timestampMs),
-							})
+							(youtubeVideoTimestampHrefFields.$video !== undefined && youtubeVideoTimestampHrefFields.$video.videoId !== undefined && youtubeVideoTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]/observations/[timestampMs]', {
+								videoId: String(youtubeVideoTimestampHrefFields.$video.videoId ?? ''),
+								timestampMs: String(youtubeVideoTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.YoutubeVideo_Timestamp, youtubeVideoTimestamp.entitySelector)}
-						prefetched={youtubeVideoTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

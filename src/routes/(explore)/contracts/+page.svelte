@@ -40,6 +40,6 @@
 				limit: 16,
 			})
 		}
-		id='EvmContractsView-page'
+		id='contracts'
 	/>
 </Page>

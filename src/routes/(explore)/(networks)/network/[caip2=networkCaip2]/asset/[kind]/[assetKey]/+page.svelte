@@ -41,11 +41,11 @@
 		selection={
 			select(EntityType.AssetInstance, data.selector, {
 				fields: {
-					$icon: true,
 					symbol: true,
 					name: true,
 					coinId: true,
 					decimals: true,
+					$icon: true,
 				},
 			})
 		}

@@ -21,7 +21,7 @@
 		selection,
 		title = 'X user observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading X user observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$user: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.XUser_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(xUserTimestamps)}
 			{@const uniqueXUserTimestamps = [...new Map(xUserTimestamps.values.map((xUserTimestamp) => [xUserTimestamp[EntityMetaKey.SelectorKey], xUserTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={xUserTimestamps.values.length === uniqueXUserTimestamps.length && xUserTimestamps.totalCount != null && xUserTimestamps.totalCount >= uniqueXUserTimestamps.length ? xUserTimestamps.totalCount : uniqueXUserTimestamps.length}
+				totalCount={xUserTimestamps.totalCount}
 				getKey={(xUserTimestamp) => xUserTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueXUserTimestamps}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: xUserTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XUser_Timestamp> })}
+					{@const xUserTimestampFields = { ...xUserTimestamp[EntityMetaKey.Selector], ...xUserTimestamp }}
+					{@const xUserTimestampHrefFields = { ...xUserTimestamp, ...xUserTimestamp[EntityMetaKey.Selector] }}
 					<XUser_TimestampView
+						selection={select(EntityType.XUser_Timestamp, xUserTimestamp[EntityMetaKey.Selector])}
+						prefetched={xUserTimestampFields}
 						href={
-							resolve('/(social)/(x)/x/user/[userId]/observations/[timestampMs=nonNegativeInteger]', {
-								userId: String(xUserTimestamp.entitySelector.$user.id),
-								timestampMs: String(xUserTimestamp.entitySelector.timestampMs),
-							})
+							(xUserTimestampHrefFields.$user !== undefined && xUserTimestampHrefFields.$user.id !== undefined && xUserTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(x)/x/user/[userId]/observations/[timestampMs=nonNegativeInteger]', {
+								userId: String(xUserTimestampHrefFields.$user.id ?? ''),
+								timestampMs: String(xUserTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.XUser_Timestamp, xUserTimestamp.entitySelector)}
-						prefetched={xUserTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

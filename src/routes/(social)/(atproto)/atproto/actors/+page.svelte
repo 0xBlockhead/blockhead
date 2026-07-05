@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='AtprotoActorsView-page'
+		id='source-window-actors'
 	/>
 </Page>

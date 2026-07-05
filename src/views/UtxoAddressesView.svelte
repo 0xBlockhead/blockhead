@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'UTXO addresses',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading UTXO addresses...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					address: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(utxoAddresses)}
 			{@const uniqueUtxoAddresses = [...new Map(utxoAddresses.values.map((utxoAddress) => [utxoAddress[EntityMetaKey.SelectorKey], utxoAddress])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoAddresses.values.length === uniqueUtxoAddresses.length && utxoAddresses.totalCount != null && utxoAddresses.totalCount >= uniqueUtxoAddresses.length ? utxoAddresses.totalCount : uniqueUtxoAddresses.length}
+				totalCount={utxoAddresses.totalCount}
 				getKey={(utxoAddress) => utxoAddress[EntityMetaKey.SelectorKey]}
 				items={uniqueUtxoAddresses}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: utxoAddress }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoAddress> })}
+					{@const utxoAddressFields = { ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }}
+					{@const utxoAddressHrefFields = { ...utxoAddress, ...utxoAddress[EntityMetaKey.Selector] }}
 					<UtxoAddressView
+						selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+						prefetched={utxoAddressFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/address/[address]', {
-								networkSlug: String(({ ...utxoAddress.entitySelector, ...utxoAddress }).$network.slug),
-								address: String(({ ...utxoAddress.entitySelector, ...utxoAddress }).address),
-							})
+							(utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined && utxoAddressHrefFields.$network.caip2.namespace !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined && utxoAddressHrefFields.$network.caip2.reference !== undefined && utxoAddressHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
+								networkSlug: String(networkByCaip2[String(String(utxoAddressHrefFields.$network.caip2.namespace) + ':' + String(utxoAddressHrefFields.$network.caip2.reference))].slug ?? ''),
+								address: String(utxoAddressHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.UtxoAddress, utxoAddress.entitySelector)}
-						prefetched={utxoAddress}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

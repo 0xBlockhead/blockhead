@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,12 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			})[EntityProxyField]<EntityType.NostrProfile>('$$sourceWindowProfiles')
+			})[EntityProxyField]<EntityType.NostrProfile>('$$sourceWindowProfiles', {
+				sources: [
+					Source.NostrBand_Rest,
+				],
+			})
 		}
-		id='NostrProfilesView-page'
+		id='source-window-profiles'
 	/>
 </Page>

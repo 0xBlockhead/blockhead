@@ -43,6 +43,7 @@
 		}
 		selection={
 			select(EntityType.AssetSupply_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					totalSupply: true,
 					circulatingSupply: true,

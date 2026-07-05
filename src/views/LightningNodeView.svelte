@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -43,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lightningNode = $derived(selection({
 		sources: [
 			Source.LightningMempoolSpace_Rest,
@@ -52,95 +52,110 @@
 			alias: true,
 			capacitySats: true,
 			channelCount: true,
-			...(open && {
-				countryCode: true,
-				city: true,
-				networkAddresses: true,
-				$$timestamps: true,
-				$$channels: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).alias) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node')
+	const titleFallback = $derived([String((prefetched.alias) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.publicKey ?? prefetched.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node')
 	const viewDomId = $derived('lightning-node-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
+	import LightningNode_TimestampsView from '$/views/LightningNode_TimestampsView.svelte'
+	import BlockheadLightningNodeStatesView from '$/views/BlockheadLightningNodeStatesView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.LightningNode}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).$network.slug),
-			pubkey: String(({ ...selection.entitySelector, ...prefetched }).publicKey),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.slug !== undefined && pendingEntity.publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
+			networkSlug: String(pendingEntity.$network.slug ?? ''),
+			pubkey: String(pendingEntity.publicKey ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).alias) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node'}
-		{:else}
-			<ResourceBoundary resource={lightningNode}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).alias) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node'}
-				{/snippet}
+		<ResourceBoundary resource={lightningNode}>
+			{#snippet Pending()}
+				{[String((prefetched.alias) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.publicKey ?? prefetched.publicKey) ?? '')].filter(Boolean).join(' ') || 'Lightning node'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.alias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.alias) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const channelCount0 = ({ ...selection.entitySelector, ...prefetched }).channelCount}
-			{#if channelCount0 !== undefined && channelCount0 !== null}
-				<NumberValue value={Number(channelCount0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={lightningNode}>
-				{#snippet Pending()}
-					{@const channelCount0 = ({ ...selection.entitySelector, ...prefetched }).channelCount}
-					{#if channelCount0 !== undefined && channelCount0 !== null}
-						<NumberValue value={Number(channelCount0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={lightningNode}>
+			{#snippet Pending()}
+				{@const channelCount0 = prefetched.channelCount}
+				{#if channelCount0 !== undefined && channelCount0 !== null}
+					<NumberValue value={Number(channelCount0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const channelCount0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).channelCount}
-					{#if channelCount0 !== undefined && channelCount0 !== null}
-						<NumberValue value={Number(channelCount0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const channelCount0 = resolvedEntity.channelCount}
+				{#if channelCount0 !== undefined && channelCount0 !== null}
+					<NumberValue value={Number(channelCount0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
+			<div>
+				<dt>Public key</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									publicKey: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const publicKey = selection.entitySelector.publicKey ?? prefetched.publicKey}
+							{#if publicKey !== undefined && publicKey !== null}
+								<TruncatedValue value={String((publicKey) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const publicKey = resolvedEntity.publicKey}
+							{#if publicKey !== undefined && publicKey !== null}
+								<TruncatedValue value={String((publicKey) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
 			<div>
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -151,9 +166,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lightningNode}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							capacitySats: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const capacitySats = prefetched.capacitySats ?? selection.entitySelector.capacitySats}
+					{@const capacitySats = prefetched.capacitySats}
 					{#if capacitySats !== undefined && capacitySats !== null}
 						<div>
 							<dt>Capacity sats</dt>
@@ -165,12 +188,48 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const capacitySats = entity.capacitySats ?? selection.entitySelector.capacitySats ?? prefetched.capacitySats}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const capacitySats = resolvedEntity.capacitySats}
 					{#if capacitySats !== undefined && capacitySats !== null}
 						<div>
 							<dt>Capacity sats</dt>
 							<dd>
 								<NumberValue value={Number(capacitySats)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							channelCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const channelCount = prefetched.channelCount}
+					{#if channelCount !== undefined && channelCount !== null}
+						<div>
+							<dt>Channels</dt>
+							<dd>
+								<NumberValue value={Number(channelCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const channelCount = resolvedEntity.channelCount}
+					{#if channelCount !== undefined && channelCount !== null}
+						<div>
+							<dt>Channels</dt>
+							<dd>
+								<NumberValue value={Number(channelCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -179,9 +238,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lightningNode}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							countryCode: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const countryCode = prefetched.countryCode ?? selection.entitySelector.countryCode}
+					{@const countryCode = prefetched.countryCode}
 					{#if countryCode !== undefined && countryCode !== null}
 						<div>
 							<dt>Country</dt>
@@ -193,7 +260,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const countryCode = entity.countryCode ?? selection.entitySelector.countryCode ?? prefetched.countryCode}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const countryCode = resolvedEntity.countryCode}
 					{#if countryCode !== undefined && countryCode !== null}
 						<div>
 							<dt>Country</dt>
@@ -205,9 +273,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={lightningNode}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							city: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const city = prefetched.city ?? selection.entitySelector.city}
+					{@const city = prefetched.city}
 					{#if city !== undefined && city !== null}
 						<div>
 							<dt>City</dt>
@@ -219,7 +295,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const city = entity.city ?? selection.entitySelector.city ?? prefetched.city}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const city = resolvedEntity.city}
 					{#if city !== undefined && city !== null}
 						<div>
 							<dt>City</dt>
@@ -231,26 +308,35 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={lightningNode}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							networkAddresses: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const networkAddresses = prefetched.networkAddresses ?? selection.entitySelector.networkAddresses}
+					{@const networkAddresses = prefetched.networkAddresses}
 					{#if networkAddresses !== undefined && networkAddresses !== null}
 						<div>
 							<dt>Network addresses</dt>
 							<dd>
-								{networkAddresses == null ? '' : String(((networkAddresses).join(', ')) ?? '')}
+								{networkAddresses.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const networkAddresses = entity.networkAddresses ?? selection.entitySelector.networkAddresses ?? prefetched.networkAddresses}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const networkAddresses = resolvedEntity.networkAddresses}
 					{#if networkAddresses !== undefined && networkAddresses !== null}
 						<div>
 							<dt>Network addresses</dt>
 							<dd>
-								{networkAddresses == null ? '' : String(((networkAddresses).join(', ')) ?? '')}
+								{networkAddresses.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							</dd>
 						</div>
 					{/if}
@@ -266,6 +352,20 @@
 				title='Channels'
 				emptyText='No channels yet.'
 				id='LightningChannelsView-$$channels'
+			/>
+
+			<LightningNode_TimestampsView
+				selection={selection[EntityProxyField]<EntityType.LightningNode_Timestamp>('$$timestamps')}
+				title='Observations'
+				emptyText='No observations yet.'
+				id='LightningNode_TimestampsView-$$timestamps'
+			/>
+
+			<BlockheadLightningNodeStatesView
+				selection={selection[EntityProxyField]<EntityType.BlockheadLightningNodeState>('$$localNodeStates')}
+				title='Local node states'
+				emptyText='No local node states.'
+				id='BlockheadLightningNodeStatesView-$$localNodeStates'
 			/>
 		{/if}
 	{/snippet}

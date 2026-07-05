@@ -31,6 +31,6 @@
 				scope: '$$specificationRealms',
 			})[EntityProxyField]<EntityType.SpecificationRealm>('$$specificationRealms')
 		}
-		id='SpecificationRealmsView-page'
+		id='specification-realms'
 	/>
 </Page>

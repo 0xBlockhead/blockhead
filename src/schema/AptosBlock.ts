@@ -1,13 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum AptosBlockSelector {
-	NetworkHeight = '$network+height',
-	NetworkContainsVersion = '$network+containsVersion',
+	NetworkHeight = 'NetworkHeight',
+	NetworkContainsVersion = 'NetworkContainsVersion',
 }
 export default {
 	entityType: EntityType.AptosBlock,
@@ -31,55 +30,55 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AptosNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.AptosNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'height',
-			label: 'Height',
-			description: 'The block or ledger height in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'height',
+				label: 'Height',
+				description: 'The block or ledger height in its network.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'containsVersion',
-			label: 'contains version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'containsVersion',
+				label: 'contains version',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'firstVersion',
-			label: 'first version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'firstVersion',
+				label: 'first version',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'lastVersion',
-			label: 'last version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'lastVersion',
+				label: 'last version',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$transactions',
-			label: 'transactions',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.AptosTransaction,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$transactions',
+				label: 'transactions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.AptosTransaction,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

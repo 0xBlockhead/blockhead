@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.EnsRecord_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					value: true,
 				},

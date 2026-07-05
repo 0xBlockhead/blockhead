@@ -1457,6 +1457,17 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337SmartAccount,
 			resolve: {
+				[Erc4337SmartAccountSelector.EvmNetworkAddress]: async (entitySelector) => erc4337ContractField(entitySelector),
+			},
+		})({
+			fields: {
+				$contract: (account) => account.$contract,
+			},
+		}),
+
+		defineResolver(Source.Blockscout_Rest, {
+			entityType: EntityType.Erc4337SmartAccount,
+			resolve: {
 				[Erc4337SmartAccountSelector.EvmNetworkAddress]: async (entitySelector) => {
 					const {
 						blockscoutExplorerRestV2OriginByChainId,
@@ -1475,8 +1486,7 @@ export default {
 						:
 							undefined
 					)
-						return {
-							...erc4337ContractField(entitySelector),
+					return {
 						...(factoryAddress != null && {
 							$factory: {
 								[EntityMetaKey.Selector]: {
@@ -1490,7 +1500,6 @@ export default {
 			},
 		})({
 			fields: {
-				$contract: (account) => account.$contract,
 				$factory: (account) => account.$factory,
 			},
 		}),
@@ -1498,22 +1507,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337Paymaster,
 			resolve: {
-				[Erc4337PaymasterSelector.EvmNetworkAddress]: async (entitySelector) => {
-					const {
-						blockscoutExplorerRestV2OriginByChainId,
-					} = await import('$/sources/Blockscout/Rest/constants.ts')
-					const { getErc4337PaymasterDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$network)]
-					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
-					const wire = await getErc4337PaymasterDetail({
-						explorerOrigin: origin,
-						address: entitySelector.address,
-					})
-						return {
-							...erc4337ContractField(entitySelector),
-					}
-				}
+				[Erc4337PaymasterSelector.EvmNetworkAddress]: async (entitySelector) => erc4337ContractField(entitySelector)
 			},
 		})({
 			fields: {
@@ -1524,22 +1518,7 @@ export default {
 		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.Erc4337AccountFactory,
 			resolve: {
-				[Erc4337AccountFactorySelector.EvmNetworkAddress]: async (entitySelector) => {
-					const {
-						blockscoutExplorerRestV2OriginByChainId,
-					} = await import('$/sources/Blockscout/Rest/constants.ts')
-					const { getErc4337AccountFactoryDetail } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector.$network)]
-					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector.$network)}`)
-					const wire = await getErc4337AccountFactoryDetail({
-						explorerOrigin: origin,
-						address: entitySelector.address,
-					})
-						return {
-							...erc4337ContractField(entitySelector),
-					}
-				}
+				[Erc4337AccountFactorySelector.EvmNetworkAddress]: async (entitySelector) => erc4337ContractField(entitySelector),
 			},
 		})({
 			fields: {
@@ -1815,12 +1794,15 @@ export default {
 		}),
 
 		defineResolver(Source.Blockscout_Rest, {
-			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
-			resolve: {
-				[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource]: async ({ $network, timestampMs }) => {
-					const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId($network))
-					if (stats == null)
-						throw new Error(
+				entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
+				resolve: {
+					[EvmNetwork_GasEstimate_TimestampSelector.NetworkTimestampMsSource]: async ({ $network, timestampMs, source }) => {
+						if (source !== Source.Blockscout_Rest)
+							throw new Error('Blockscout_Rest: EvmNetwork_GasEstimate_Timestamp selector source mismatch')
+
+						const stats = await blockscoutStatsForChain(chainIdFromEvmNetworkId($network))
+						if (stats == null)
+							throw new Error(
 							`Blockscout_Rest: EvmNetwork_GasEstimate_Timestamp unsupported for chain ${String(chainIdFromEvmNetworkId($network))}`
 					)
 					const observation = gasEstimateObservationFromBlockscoutStats(stats)
@@ -2442,17 +2424,22 @@ export default {
 			resolve: {
 				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
 					const {
+						blockscoutErc4337RegistryListSupportByChainId,
 						blockscoutExplorerRestV2OriginByChainId,
 						blockscoutV2ItemsCountMax,
 					} = await import('$/sources/Blockscout/Rest/constants.ts')
+					const chainId = chainIdFromEvmNetworkId(entitySelector)
+					if (blockscoutErc4337RegistryListSupportByChainId[chainId] == null)
+						return []
+
 					const limit = Math.min(
 						resolverContextRowLimit(context),
 						blockscoutV2ItemsCountMax
 					)
 					const { getErc4337BundlerList } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector)]
+					const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
 					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector)}`)
+						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
 					let wires: BlockscoutErc4337RegistryEntry[]
 					try {
 						wires = await getErc4337BundlerList({
@@ -2463,7 +2450,7 @@ export default {
 						return []
 					}
 					return erc4337RegistryEntitiesFromBlockscoutWires<EntityType.Erc4337Bundler>({
-						chainId: chainIdFromEvmNetworkId(entitySelector),
+						chainId,
 						items: wires,
 					})
 				}
@@ -2479,17 +2466,22 @@ export default {
 			resolve: {
 				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
 					const {
+						blockscoutErc4337RegistryListSupportByChainId,
 						blockscoutExplorerRestV2OriginByChainId,
 						blockscoutV2ItemsCountMax,
 					} = await import('$/sources/Blockscout/Rest/constants.ts')
+					const chainId = chainIdFromEvmNetworkId(entitySelector)
+					if (blockscoutErc4337RegistryListSupportByChainId[chainId] == null)
+						return []
+
 					const limit = Math.min(
 						resolverContextRowLimit(context),
 						blockscoutV2ItemsCountMax
 					)
 					const { getErc4337PaymasterList } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector)]
+					const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
 					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector)}`)
+						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
 					let wires: BlockscoutErc4337RegistryEntry[]
 					try {
 						wires = await getErc4337PaymasterList({
@@ -2500,7 +2492,7 @@ export default {
 						return []
 					}
 					return erc4337RegistryEntitiesFromBlockscoutWires<EntityType.Erc4337Paymaster>({
-						chainId: chainIdFromEvmNetworkId(entitySelector),
+						chainId,
 						items: wires,
 					})
 				}
@@ -2516,17 +2508,22 @@ export default {
 			resolve: {
 				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
 					const {
+						blockscoutErc4337RegistryListSupportByChainId,
 						blockscoutExplorerRestV2OriginByChainId,
 						blockscoutV2ItemsCountMax,
 					} = await import('$/sources/Blockscout/Rest/constants.ts')
+					const chainId = chainIdFromEvmNetworkId(entitySelector)
+					if (blockscoutErc4337RegistryListSupportByChainId[chainId] == null)
+						return []
+
 					const limit = Math.min(
 						resolverContextRowLimit(context),
 						blockscoutV2ItemsCountMax
 					)
 					const { getErc4337AccountFactoryList } = await import('$/sources/Blockscout/Rest/queries.ts')
-					const origin = blockscoutExplorerRestV2OriginByChainId[chainIdFromEvmNetworkId(entitySelector)]
+					const origin = blockscoutExplorerRestV2OriginByChainId[chainId]
 					if (origin == null)
-						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entitySelector)}`)
+						throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
 					let wires: BlockscoutErc4337RegistryEntry[]
 					try {
 						wires = await getErc4337AccountFactoryList({
@@ -2537,7 +2534,7 @@ export default {
 						return []
 					}
 					return erc4337RegistryEntitiesFromBlockscoutWires<EntityType.Erc4337AccountFactory>({
-						chainId: chainIdFromEvmNetworkId(entitySelector),
+						chainId,
 						items: wires,
 					})
 				}

@@ -20,7 +20,7 @@
 		selection,
 		title = 'Reddit',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Reddit...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,19 +66,6 @@
 		resource={selection}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalRedditNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalRedditNetworks)}
 			{@const uniqueGlobalRedditNetworks = [...new Map(globalRedditNetworks.values.map((globalRedditNetwork) => [globalRedditNetwork[EntityMetaKey.SelectorKey], globalRedditNetwork])).values()]}
 			<EntitiesList
@@ -90,7 +77,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalRedditNetworks.values.length === uniqueGlobalRedditNetworks.length && globalRedditNetworks.totalCount != null && globalRedditNetworks.totalCount >= uniqueGlobalRedditNetworks.length ? globalRedditNetworks.totalCount : uniqueGlobalRedditNetworks.length}
+				totalCount={globalRedditNetworks.totalCount}
 				getKey={(globalRedditNetwork) => globalRedditNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalRedditNetworks}
 			>
@@ -103,9 +90,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: globalRedditNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalRedditNetwork> })}
+					{@const globalRedditNetworkFields = { ...globalRedditNetwork[EntityMetaKey.Selector], ...globalRedditNetwork }}
 					<GlobalRedditNetworkView
-						selection={select(EntityType._GlobalRedditNetwork, globalRedditNetwork.entitySelector)}
-						prefetched={globalRedditNetwork}
+						selection={select(EntityType._GlobalRedditNetwork, globalRedditNetwork[EntityMetaKey.Selector])}
+						prefetched={globalRedditNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

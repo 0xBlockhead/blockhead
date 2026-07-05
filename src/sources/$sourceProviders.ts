@@ -1,8 +1,290 @@
 // Generated from APP.ts. Do not edit by hand.
 
+import a2aServiceHttpSourceDefinition from '$/sources/A2a/A2aService/Http/index.ts'
+import a2aWellKnownHttpSourceDefinition from '$/sources/A2a/index.ts'
+import acpRegistryRestSourceDefinition from '$/sources/Acp/AcpRegistry/Rest/index.ts'
+import acpLocalJsonRpcSourceDefinition from '$/sources/Acp/index.ts'
+import checkedInAcrossSourceProviderDefinition from '$/sources/Across/index.ts'
+import checkedInAlgodSourceProviderDefinition from '$/sources/Algod/index.ts'
+import checkedInAlgorandIndexerSourceProviderDefinition from '$/sources/AlgorandIndexer/index.ts'
+import checkedInAlgorandWalletSourceProviderDefinition from '$/sources/AlgorandWallet/index.ts'
+import alliumRestSourceDefinition from '$/sources/Allium/Rest/index.ts'
+import ambossGraphqlSourceDefinition from '$/sources/Amboss/Graphql/index.ts'
+import anthropicRestSourceDefinition from '$/sources/Anthropic/index.ts'
+import checkedInAptosAip62SourceProviderDefinition from '$/sources/AptosAip62/index.ts'
+import checkedInAptosFullnodeSourceProviderDefinition from '$/sources/AptosFullnode/index.ts'
+import checkedInAptosIndexerSourceProviderDefinition from '$/sources/AptosIndexer/index.ts'
+import checkedInArweaveSourceProviderDefinition from '$/sources/Arweave/index.ts'
+import atprotoXrpcSourceDefinition from '$/sources/AtprotoBsky/Rest/index.ts'
+import atprotoBskySocialXrpcSourceDefinition from '$/sources/AtprotoBskySocial/Rest/index.ts'
+import atprotoSyncXrpcSourceDefinition from '$/sources/AtprotoSync/index.ts'
+import checkedInAvailSourceProviderDefinition from '$/sources/Avail/index.ts'
+import checkedInAvailExplorerSourceProviderDefinition from '$/sources/AvailExplorer/index.ts'
+import checkedInAvalancheInfoSourceProviderDefinition from '$/sources/AvalancheInfo/index.ts'
+import checkedInAvalanchePlatformVmSourceProviderDefinition from '$/sources/AvalanchePlatformVm/index.ts'
+import checkedInAvascanSourceProviderDefinition from '$/sources/Avascan/index.ts'
+import checkedInAwsBedrockSourceProviderDefinition from '$/sources/AwsBedrock/index.ts'
+import checkedInAxelarscanSourceProviderDefinition from '$/sources/Axelarscan/index.ts'
+import checkedInAzureAiFoundrySourceProviderDefinition from '$/sources/AzureAiFoundry/index.ts'
+import beaconRestSourceDefinition from '$/sources/Beacon/Rest/index.ts'
+import beaconchaInRestSourceDefinition from '$/sources/BeaconchaIn/Rest/index.ts'
+import betterCallDevRestSourceDefinition from '$/sources/BetterCallDev/index.ts'
+import checkedInBigDipperSourceProviderDefinition from '$/sources/BigDipper/index.ts'
+import checkedInBinanceChainApiSourceProviderDefinition from '$/sources/BinanceChainApi/index.ts'
+import checkedInBinanceChainExplorerSourceProviderDefinition from '$/sources/BinanceChainExplorer/index.ts'
+import bitcoinBipsGithubSourceDefinition from '$/sources/BitcoinBips/index.ts'
+import bitcoinCashBcmrGithubSourceDefinition from '$/sources/BitcoinCashBcmr/Github/index.ts'
+import bitcoinCashChipsGitlabSourceDefinition from '$/sources/BitcoinCashChips/index.ts'
+import bitcoinCashNodeJsonRpcSourceDefinition from '$/sources/BitcoinCashNode/JsonRpc/index.ts'
+import bitcoinCoreJsonRpcSourceDefinition from '$/sources/BitcoinCore/JsonRpc/index.ts'
+import checkedInBithompSourceProviderDefinition from '$/sources/Bithomp/index.ts'
+import bittensorJsonRpcSourceDefinition from '$/sources/Bittensor/JsonRpc/index.ts'
+import checkedInBitTorrentSourceProviderDefinition from '$/sources/BitTorrent/index.ts'
+import blobscanRestSourceDefinition from '$/sources/Blobscan/Rest/index.ts'
+import blockchairRestSourceDefinition from '$/sources/Blockchair/Rest/index.ts'
+import checkedInBlockfrostSourceProviderDefinition from '$/sources/Blockfrost/index.ts'
+import blockscoutRestSourceDefinition from '$/sources/Blockscout/Rest/index.ts'
+import checkedInBnbBeaconArchiveSourceProviderDefinition from '$/sources/BnbBeaconArchive/index.ts'
+import checkedInBnbChainFusionSourceProviderDefinition from '$/sources/BnbChainFusion/index.ts'
+import caipsGithubSourceDefinition from '$/sources/Caips/Github/index.ts'
+import checkedInCardanoBlockfrostSourceProviderDefinition from '$/sources/CardanoBlockfrost/index.ts'
+import checkedInCardanoCip30SourceProviderDefinition from '$/sources/CardanoCip30/index.ts'
+import checkedInCardanoDbSyncSourceProviderDefinition from '$/sources/CardanoDbSync/index.ts'
+import checkedInCardanoKoiosSourceProviderDefinition from '$/sources/CardanoKoios/index.ts'
+import checkedInCardanoNodeSourceProviderDefinition from '$/sources/CardanoNode/index.ts'
+import checkedInCardanoscanSourceProviderDefinition from '$/sources/Cardanoscan/index.ts'
+import cashuMintRestSourceDefinition from '$/sources/Cashu/Mint/Rest/index.ts'
+import checkedInCeleniumSourceProviderDefinition from '$/sources/Celenium/index.ts'
+import checkedInCelestiaSourceProviderDefinition from '$/sources/Celestia/index.ts'
+import checkedInChainlinkDataFeedsSourceProviderDefinition from '$/sources/ChainlinkDataFeeds/index.ts'
+import chainlistRestSourceDefinition from '$/sources/Chainlist/Rest/index.ts'
+import circleCctpContractsEvmSourceDefinition from '$/sources/CircleCctp/CircleCctpContracts/Evm/index.ts'
+import circleCctpIrisApiSourceDefinition from '$/sources/CircleCctp/index.ts'
+import checkedInCodexNetworkPresetsSourceProviderDefinition from '$/sources/CodexNetworkPresets/index.ts'
+import checkedInCodexNodeSourceProviderDefinition from '$/sources/CodexNode/index.ts'
+import checkedInCohereSourceProviderDefinition from '$/sources/Cohere/index.ts'
+import coingeckoOpenApiSourceDefinition from '$/sources/Coingecko/OpenApi/index.ts'
+import coingeckoRestSourceDefinition from '$/sources/Coingecko/Rest/index.ts'
+import coinMarketCapRestSourceDefinition from '$/sources/CoinMarketCap/Rest/index.ts'
+import coinpaprikaOpenApiSourceDefinition from '$/sources/Coinpaprika/OpenApi/index.ts'
+import cometBftRestSourceDefinition from '$/sources/CometBft/Rest/index.ts'
+import checkedInConseilSourceProviderDefinition from '$/sources/Conseil/index.ts'
+import constantsInternalSourceDefinition from '$/sources/Constants/Internal/index.ts'
+import cosmosAdrsGithubSourceDefinition from '$/sources/CosmosAdrs/index.ts'
+import cosmosChainRegistryGithubSourceDefinition from '$/sources/CosmosChainRegistry/index.ts'
+import cosmosSdkRestSourceDefinition from '$/sources/CosmosSdk/Rest/index.ts'
+import checkedInCronosExplorerSourceProviderDefinition from '$/sources/CronosExplorer/index.ts'
+import checkedInCycloneDxSourceProviderDefinition from '$/sources/CycloneDx/index.ts'
+import defillamaOpenApiSourceDefinition from '$/sources/Defillama/OpenApi/index.ts'
+import defillamaRestSourceDefinition from '$/sources/Defillama/Rest/index.ts'
+import dexscreenerOpenApiSourceDefinition from '$/sources/Dexscreener/OpenApi/index.ts'
+import dogecoinCoreJsonRpcSourceDefinition from '$/sources/DogecoinCore/JsonRpc/index.ts'
+import dogecoinDipsGithubSourceDefinition from '$/sources/DogecoinDips/index.ts'
+import duneRestSourceDefinition from '$/sources/Dune/Rest/index.ts'
+import dydxValidatorRestSourceDefinition from '$/sources/Dydx/DydxValidator/Rest/index.ts'
+import dydxIndexerRestSourceDefinition from '$/sources/Dydx/index.ts'
+import easContractsEvmSourceDefinition from '$/sources/Eas/index.ts'
+import easScanGraphqlSourceDefinition from '$/sources/EasScan/index.ts'
+import eigenExplorerRestSourceDefinition from '$/sources/EigenExplorer/index.ts'
+import eigenLayerContractsEvmSourceDefinition from '$/sources/EigenLayer/index.ts'
+import eigenLayerSubgraphGraphqlSourceDefinition from '$/sources/EigenLayerSubgraph/index.ts'
+import eip8004ScanRestSourceDefinition from '$/sources/Eip8004Scan/Rest/index.ts'
+import ensipsGithubSourceDefinition from '$/sources/Ensips/Github/index.ts'
+import checkedInEnsMetadataServiceSourceProviderDefinition from '$/sources/EnsMetadataService/index.ts'
+import checkedInErigonSourceProviderDefinition from '$/sources/Erigon/index.ts'
+import esploraRestSourceDefinition from '$/sources/Esplora/Rest/index.ts'
+import ethereumEipsGithubSourceDefinition from '$/sources/EthereumEips/Github/index.ts'
+import ethereumListsRestSourceDefinition from '$/sources/EthereumLists/Rest/index.ts'
+import ethereumSpecsGithubSourceDefinition from '$/sources/EthereumSpecs/Github/index.ts'
+import etherscanRestSourceDefinition from '$/sources/Etherscan/Rest/index.ts'
+import checkedInEthForksSourceProviderDefinition from '$/sources/EthForks/index.ts'
+import farcasterRestSourceDefinition from '$/sources/Farcaster/Rest/index.ts'
+import fediRestSourceDefinition from '$/sources/Fedi/Rest/index.ts'
+import checkedInFedimintClientSourceProviderDefinition from '$/sources/FedimintClient/index.ts'
+import checkedInFedimintGatewaydSourceProviderDefinition from '$/sources/FedimintGatewayd/index.ts'
+import filecoinFipsGithubSourceDefinition from '$/sources/FilecoinFips/index.ts'
+import filfoxRestSourceDefinition from '$/sources/Filfox/Rest/index.ts'
+import checkedInForgejoSourceProviderDefinition from '$/sources/Forgejo/index.ts'
+import checkedInFreighterSourceProviderDefinition from '$/sources/Freighter/index.ts'
+import xFxEmbedRestSourceDefinition from '$/sources/FxEmbed/Rest/index.ts'
+import checkedInGitSourceProviderDefinition from '$/sources/Git/index.ts'
+import checkedInGithubSourceProviderDefinition from '$/sources/Github/index.ts'
+import checkedInGitlabSourceProviderDefinition from '$/sources/Gitlab/index.ts'
+import checkedInGoogleAiSourceProviderDefinition from '$/sources/GoogleAi/index.ts'
+import checkedInHashConnectSourceProviderDefinition from '$/sources/HashConnect/index.ts'
+import checkedInHederaMirrorNodeSourceProviderDefinition from '$/sources/HederaMirrorNode/index.ts'
+import checkedInHederaSdkSourceProviderDefinition from '$/sources/HederaSdk/index.ts'
+import checkedInHederaWalletConnectSourceProviderDefinition from '$/sources/HederaWalletConnect/index.ts'
+import heliusRestSourceDefinition from '$/sources/Helius/index.ts'
+import checkedInHuggingFaceSourceProviderDefinition from '$/sources/HuggingFace/index.ts'
+import hyperliquidJsonRpcSourceDefinition from '$/sources/Hyperliquid/JsonRpc/index.ts'
+import hyperliquidRestSourceDefinition from '$/sources/Hyperliquid/Rest/index.ts'
+import hyperliquidDocsRestSourceDefinition from '$/sources/HyperliquidDocs/index.ts'
+import checkedInInternetComputerSourceProviderDefinition from '$/sources/InternetComputer/index.ts'
+import checkedInInternetIdentitySourceProviderDefinition from '$/sources/InternetIdentity/index.ts'
+import ipfsRestSourceDefinition from '$/sources/Ipfs/Rest/index.ts'
+import junoJsonRpcSourceDefinition from '$/sources/Juno/index.ts'
+import checkedInKabilaSourceProviderDefinition from '$/sources/Kabila/index.ts'
+import checkedInKaspaExplorerSourceProviderDefinition from '$/sources/KaspaExplorer/index.ts'
+import checkedInKaspaNodeSourceProviderDefinition from '$/sources/KaspaNode/index.ts'
+import checkedInKaspaWalletCliSourceProviderDefinition from '$/sources/KaspaWalletCli/index.ts'
+import checkedInKaspaWalletSdkSourceProviderDefinition from '$/sources/KaspaWalletSdk/index.ts'
+import checkedInKaswareWalletSourceProviderDefinition from '$/sources/KaswareWallet/index.ts'
+import checkedInKeplrSourceProviderDefinition from '$/sources/Keplr/index.ts'
+import checkedInKoiosSourceProviderDefinition from '$/sources/Koios/index.ts'
+import l2BeatRestSourceDefinition from '$/sources/L2Beat/Rest/index.ts'
+import checkedInLayerZeroScanSourceProviderDefinition from '$/sources/LayerZeroScan/index.ts'
+import checkedInLeapSourceProviderDefinition from '$/sources/Leap/index.ts'
+import checkedInLedgerFilecoinSourceProviderDefinition from '$/sources/LedgerFilecoin/index.ts'
+import lensGraphqlSourceDefinition from '$/sources/Lens/Graphql/index.ts'
+import checkedInLibtorrentSessionSourceProviderDefinition from '$/sources/LibtorrentSession/index.ts'
+import lifiStatusRestSourceDefinition from '$/sources/Lifi/index.ts'
+import lifiRestSourceDefinition from '$/sources/Lifi/Rest/index.ts'
+import lightningLndGrpcSourceDefinition from '$/sources/LightningLnd/index.ts'
+import lightningLndRestSourceDefinition from '$/sources/LightningLnd/Rest/index.ts'
+import lightningMempoolSpaceRestSourceDefinition from '$/sources/LightningMempoolSpace/Rest/index.ts'
+import litecoinCoreJsonRpcSourceDefinition from '$/sources/LitecoinCore/JsonRpc/index.ts'
+import litecoinLipsGithubSourceDefinition from '$/sources/LitecoinLips/index.ts'
+import checkedInLitecoinWalletRpcSourceProviderDefinition from '$/sources/LitecoinWalletRpc/index.ts'
+import localInternalSourceDefinition from '$/sources/Local/Internal/index.ts'
+import logosBlockchainNodeRestSourceDefinition from '$/sources/LogosBlockchainNode/index.ts'
+import logosDocsRestSourceDefinition from '$/sources/LogosDocs/Rest/index.ts'
+import lotusJsonRpcSourceDefinition from '$/sources/Lotus/JsonRpc/index.ts'
+import checkedInMagicSourceProviderDefinition from '$/sources/Magic/index.ts'
+import checkedInMagnetUriSourceProviderDefinition from '$/sources/MagnetUri/index.ts'
+import checkedInMartianSourceProviderDefinition from '$/sources/Martian/index.ts'
+import mastodonRestSourceDefinition from '$/sources/Mastodon/Rest/index.ts'
+import mcpConfiguredProtocolSourceDefinition from '$/sources/Mcp/index.ts'
+import mcpPackageRegistryRestSourceDefinition from '$/sources/Mcp/McpPackageRegistry/Rest/index.ts'
+import mempoolSpaceRestSourceDefinition from '$/sources/MempoolSpace/index.ts'
+import metadataVisionRestSourceDefinition from '$/sources/MetadataVision/Rest/index.ts'
+import checkedInMetaplexDASSourceProviderDefinition from '$/sources/MetaplexDAS/index.ts'
+import mevRelayRestSourceDefinition from '$/sources/MevRelay/Rest/index.ts'
+import checkedInMintscanSourceProviderDefinition from '$/sources/Mintscan/index.ts'
+import checkedInMistralAiSourceProviderDefinition from '$/sources/MistralAi/index.ts'
+import checkedInMlCommonsSourceProviderDefinition from '$/sources/MlCommons/index.ts'
+import checkedInMlflowSourceProviderDefinition from '$/sources/Mlflow/index.ts'
+import moneroDaemonRpcJsonRpcSourceDefinition from '$/sources/MoneroDaemonRpc/JsonRpc/index.ts'
+import checkedInMoneroWalletRpcSourceProviderDefinition from '$/sources/MoneroWalletRpc/index.ts'
+import nearBlocksRestSourceDefinition from '$/sources/NearBlocks/Rest/index.ts'
+import checkedInNearConnectSourceProviderDefinition from '$/sources/NearConnect/index.ts'
+import nearNepsGithubSourceDefinition from '$/sources/NearNeps/index.ts'
+import nearRpcJsonRpcSourceDefinition from '$/sources/NearRpc/JsonRpc/index.ts'
+import checkedInNearWalletSelectorSourceProviderDefinition from '$/sources/NearWalletSelector/index.ts'
+import neynarRestSourceDefinition from '$/sources/Neynar/Rest/index.ts'
+import checkedInNfidSourceProviderDefinition from '$/sources/Nfid/index.ts'
+import checkedInNitroSourceProviderDefinition from '$/sources/Nitro/index.ts'
+import checkedInNodelySourceProviderDefinition from '$/sources/Nodely/index.ts'
+import nostrBandRestSourceDefinition from '$/sources/NostrBand/Rest/index.ts'
+import nostrRelayNip11HttpSourceDefinition from '$/sources/NostrRelay/index.ts'
+import nostrRelayWebSocketSourceDefinition from '$/sources/NostrRelay/WebSocket/index.ts'
+import checkedInOciRegistrySourceProviderDefinition from '$/sources/OciRegistry/index.ts'
+import checkedInOgmiosSourceProviderDefinition from '$/sources/Ogmios/index.ts'
+import checkedInOneInchSwapSourceProviderDefinition from '$/sources/OneInchSwap/index.ts'
+import checkedInOnnxSourceProviderDefinition from '$/sources/Onnx/index.ts'
+import openAIRestSourceDefinition from '$/sources/OpenAI/index.ts'
+import openchainRestSourceDefinition from '$/sources/Openchain/Rest/index.ts'
+import checkedInOpenSeaSourceProviderDefinition from '$/sources/OpenSea/index.ts'
+import checkedInOsmosisLCDSourceProviderDefinition from '$/sources/OsmosisLCD/index.ts'
+import checkedInParaswapSourceProviderDefinition from '$/sources/Paraswap/index.ts'
+import pathfinderJsonRpcSourceDefinition from '$/sources/Pathfinder/index.ts'
+import payjoinDirectoryRestSourceDefinition from '$/sources/Payjoin/Directory/Rest/index.ts'
+import checkedInPetraSourceProviderDefinition from '$/sources/Petra/index.ts'
+import pipedRestSourceDefinition from '$/sources/Piped/Rest/index.ts'
+import checkedInPlugWalletSourceProviderDefinition from '$/sources/PlugWallet/index.ts'
+import polkadotJsonRpcSourceDefinition from '$/sources/Polkadot/index.ts'
+import checkedInPolkadotInjectedWeb3SourceProviderDefinition from '$/sources/PolkadotInjectedWeb3/index.ts'
+import polkadotRfcsGithubSourceDefinition from '$/sources/PolkadotRfcs/index.ts'
+import checkedInPontemSourceProviderDefinition from '$/sources/Pontem/index.ts'
+import primalRestSourceDefinition from '$/sources/Primal/Rest/index.ts'
+import pythEvmContractSourceDefinition from '$/sources/Pyth/index.ts'
+import pythBenchmarksRestSourceDefinition from '$/sources/Pyth/PythBenchmarks/Rest/index.ts'
+import pythHermesRestSourceDefinition from '$/sources/Pyth/PythHermes/Rest/index.ts'
+import pythPriceFeedsCatalogRestSourceDefinition from '$/sources/Pyth/PythPriceFeedsCatalog/Rest/index.ts'
+import pythSolanaProgramSourceDefinition from '$/sources/Pyth/SolanaProgram/index.ts'
+import checkedInqBittorrentWebUiSourceProviderDefinition from '$/sources/qBittorrentWebUi/index.ts'
+import quilibriumDocsRestSourceDefinition from '$/sources/QuilibriumDocs/index.ts'
+import quilibriumNodeGrpcSourceDefinition from '$/sources/QuilibriumNode/index.ts'
+import quilibriumNodeMetricsPrometheusSourceDefinition from '$/sources/QuilibriumNodeMetrics/index.ts'
+import quilibriumNodeRpcGrpcSourceDefinition from '$/sources/QuilibriumNodeRpc/Grpc/index.ts'
+import checkedInRadicleSourceProviderDefinition from '$/sources/Radicle/index.ts'
+import checkedInRadicleCliSourceProviderDefinition from '$/sources/RadicleCli/index.ts'
+import checkedInRadicleNodeSourceProviderDefinition from '$/sources/RadicleNode/index.ts'
+import redditRestSourceDefinition from '$/sources/Reddit/Rest/index.ts'
+import redditPublicJsonSourceDefinition from '$/sources/RedditPublic/Rest/index.ts'
+import checkedInReservoirSourceProviderDefinition from '$/sources/Reservoir/index.ts'
+import checkedInRethSourceProviderDefinition from '$/sources/Reth/index.ts'
+import rssRestSourceDefinition from '$/sources/Rss/Rest/index.ts'
+import rss2JsonRestSourceDefinition from '$/sources/Rss2Json/Rest/index.ts'
+import checkedInSigstoreRekorSourceProviderDefinition from '$/sources/SigstoreRekor/index.ts'
+import snapchainRestSourceDefinition from '$/sources/Snapchain/Rest/index.ts'
+import solanaJsonRpcSourceDefinition from '$/sources/Solana/JsonRpc/index.ts'
+import checkedInSolanaMobileWalletAdapterSourceProviderDefinition from '$/sources/SolanaMobileWalletAdapter/index.ts'
+import solanaSimdsGithubSourceDefinition from '$/sources/SolanaSimds/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol } from '$/sources/SourceBinding.ts'
 import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import sourcifyRestSourceDefinition from '$/sources/Sourcify/Rest/index.ts'
+import checkedInSpdxSourceProviderDefinition from '$/sources/Spdx/index.ts'
+import starknetJsonRpcSourceDefinition from '$/sources/Starknet/index.ts'
+import starkscanRestSourceDefinition from '$/sources/Starkscan/index.ts'
+import checkedInStellarExpertSourceProviderDefinition from '$/sources/StellarExpert/index.ts'
+import checkedInStellarHorizonSourceProviderDefinition from '$/sources/StellarHorizon/index.ts'
+import checkedInStellarRpcSourceProviderDefinition from '$/sources/StellarRpc/index.ts'
+import checkedInStellarTomlSourceProviderDefinition from '$/sources/StellarToml/index.ts'
+import checkedInStoicWalletSourceProviderDefinition from '$/sources/StoicWallet/index.ts'
+import subscanRestSourceDefinition from '$/sources/Subscan/Rest/index.ts'
+import substrateSidecarRestSourceDefinition from '$/sources/SubstrateSidecar/Rest/index.ts'
+import checkedInSuiSourceProviderDefinition from '$/sources/Sui/index.ts'
+import superchainGithubSourceDefinition from '$/sources/Superchain/Github/index.ts'
+import swarmRestSourceDefinition from '$/sources/Swarm/Rest/index.ts'
+import tezosDappetizerPostgresSourceDefinition from '$/sources/TezosDappetizer/index.ts'
+import tezosNodeRpcSourceDefinition from '$/sources/TezosNode/index.ts'
+import theGraphGraphqlSourceDefinition from '$/sources/TheGraph/Graphql/index.ts'
+import threeXplRestSourceDefinition from '$/sources/ThreeXpl/Rest/index.ts'
+import checkedInTonApiSourceProviderDefinition from '$/sources/TonApi/index.ts'
+import checkedInTonCenterSourceProviderDefinition from '$/sources/TonCenter/index.ts'
+import checkedInTonConnectSourceProviderDefinition from '$/sources/TonConnect/index.ts'
+import checkedInTonlibSourceProviderDefinition from '$/sources/Tonlib/index.ts'
+import checkedInTonLiteServerSourceProviderDefinition from '$/sources/TonLiteServer/index.ts'
+import checkedInTonVerifierSourceProviderDefinition from '$/sources/TonVerifier/index.ts'
+import tradingViewRestSourceDefinition from '$/sources/TradingView/Rest/index.ts'
+import checkedInTransmissionSourceProviderDefinition from '$/sources/Transmission/index.ts'
+import tronFullNodeRestSourceDefinition from '$/sources/TronFullNode/Rest/index.ts'
+import tronGridRestSourceDefinition from '$/sources/TronGrid/Rest/index.ts'
+import checkedInTronLinkSourceProviderDefinition from '$/sources/TronLink/index.ts'
+import tronScanRestSourceDefinition from '$/sources/TronScan/Rest/index.ts'
+import tronSolidityNodeRestSourceDefinition from '$/sources/TronSolidityNode/Rest/index.ts'
+import checkedInTronTip1193SourceProviderDefinition from '$/sources/TronTip1193/index.ts'
+import checkedInTronTip6963SourceProviderDefinition from '$/sources/TronTip6963/index.ts'
+import trustWalletAssetsGithubSourceDefinition from '$/sources/TrustWalletAssets/Github/index.ts'
+import tzktRestSourceDefinition from '$/sources/Tzkt/index.ts'
+import voltaireJsonRpcSourceDefinition from '$/sources/Voltaire/JsonRpc/index.ts'
+import voyagerRestSourceDefinition from '$/sources/Voyager/index.ts'
+import checkedInWakuNodeSourceProviderDefinition from '$/sources/WakuNode/index.ts'
+import checkedInWalletConnectSourceProviderDefinition from '$/sources/WalletConnect/index.ts'
+import checkedInWalletStandardSourceProviderDefinition from '$/sources/WalletStandard/index.ts'
+import checkedInWebTorrentSourceProviderDefinition from '$/sources/WebTorrent/index.ts'
+import checkedInWormholescanSourceProviderDefinition from '$/sources/Wormholescan/index.ts'
+import xRestSourceDefinition from '$/sources/X/Rest/index.ts'
+import checkedInX402SourceProviderDefinition from '$/sources/X402/index.ts'
+import checkedInXamanSourceProviderDefinition from '$/sources/Xaman/index.ts'
+import checkedInXmtpSourceProviderDefinition from '$/sources/Xmtp/index.ts'
+import checkedInXrplSourceProviderDefinition from '$/sources/Xrpl/index.ts'
+import checkedInXrplClioSourceProviderDefinition from '$/sources/XrplClio/index.ts'
+import checkedInXrpScanSourceProviderDefinition from '$/sources/XrpScan/index.ts'
+import youtubeRestSourceDefinition from '$/sources/Youtube/Rest/index.ts'
+import zcashClientBackendLocalSourceDefinition from '$/sources/ZcashClientBackend/index.ts'
+import zcashdJsonRpcSourceDefinition from '$/sources/Zcashd/JsonRpc/index.ts'
+import zcashdWalletJsonRpcSourceDefinition from '$/sources/Zcashd/ZcashdWallet/JsonRpc/index.ts'
+import zcashLightwalletdGrpcSourceDefinition from '$/sources/ZcashLightwalletd/index.ts'
+import zcashZipsGithubSourceDefinition from '$/sources/ZcashZips/index.ts'
+import zebraJsonRpcSourceDefinition from '$/sources/Zebra/index.ts'
+import checkedInZeroExSwapSourceProviderDefinition from '$/sources/ZeroExSwap/index.ts'
+import zeroGChainJsonRpcSourceDefinition from '$/sources/ZeroG/Chain/JsonRpc/index.ts'
+import zeroGChainScanRestSourceDefinition from '$/sources/ZeroG/ChainScan/Rest/index.ts'
+import zeroGStorageNodeJsonRpcSourceDefinition from '$/sources/ZeroG/StorageNode/JsonRpc/index.ts'
+import zeroGStorageScanRestSourceDefinition from '$/sources/ZeroG/StorageScan/Rest/index.ts'
 import { type } from 'arktype'
 
 export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
@@ -10,11 +292,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		provider: SourceProvider._Constants,
 		label: 'Constants',
 		sources: [
-			{
-				provider: SourceProvider._Constants,
-				source: Source.Constants_Internal,
-				label: 'Checked-in constants',
-			},
+			constantsInternalSourceDefinition,
 		],
 		bindings: [
 			{
@@ -48,11 +326,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		provider: SourceProvider.Local,
 		label: 'Local device',
 		sources: [
-			{
-				provider: SourceProvider.Local,
-				source: Source.Local_Internal,
-				label: 'Local user state',
-			},
+			localInternalSourceDefinition,
 		],
 		bindings: [
 			{
@@ -86,11 +360,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		provider: SourceProvider.AtprotoBsky,
 		label: 'AT Protocol public appview',
 		sources: [
-			{
-				provider: SourceProvider.AtprotoBsky,
-				source: Source.Atproto_Xrpc,
-				label: 'AT Protocol public XRPC',
-			},
+			atprotoXrpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -133,16 +403,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://public.api.bsky.app',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.AtprotoBskySocial,
 		label: 'Bluesky social appview',
 		sources: [
-			{
-				provider: SourceProvider.AtprotoBskySocial,
-				source: Source.Atproto_BskySocial_Xrpc,
-				label: 'Bluesky social XRPC',
-			},
+			atprotoBskySocialXrpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -185,16 +457,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://bsky.social',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.AtprotoSync,
 		label: 'AT Protocol sync',
 		sources: [
-			{
-				provider: SourceProvider.AtprotoSync,
-				source: Source.AtprotoSync_Xrpc,
-				label: 'AT Protocol sync XRPC',
-			},
+			atprotoSyncXrpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -230,16 +504,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://{pds-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Allium,
 		label: 'Allium',
 		sources: [
-			{
-				provider: SourceProvider.Allium,
-				source: Source.Allium_Rest,
-				label: 'Allium REST',
-			},
+			alliumRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -276,16 +552,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.allium.so',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Amboss,
 		label: 'Amboss',
 		sources: [
-			{
-				provider: SourceProvider.Amboss,
-				source: Source.Amboss_Graphql,
-				label: 'Amboss Space GraphQL',
-			},
+			ambossGraphqlSourceDefinition,
 		],
 		bindings: [
 			{
@@ -336,16 +614,227 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.amboss.space',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.A2a,
+		label: 'Agent2Agent',
+		sources: [
+			a2aWellKnownHttpSourceDefinition,
+			a2aServiceHttpSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.A2a,
+				source: Source.A2aWellKnown_Http,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'a2a-well-known',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{origin}/.well-known/agent.json',
+						origin: 'https://{origin}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.A2aProtocol,
+				operationGroups: [
+					SourceOperationGroup.AgentCapabilityCatalog,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/A2a/Http/types.ts',
+						generated: false,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.A2a,
+				source: Source.A2aService_Http,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'a2a-service',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{origin}/{agent-path}',
+						origin: 'https://{origin}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.A2aProtocol,
+				operationGroups: [
+					SourceOperationGroup.AgentRuntimeInvocation,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.UserDelegated,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/A2a/Http/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{origin}',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Acp,
+		label: 'Agent Client Protocol',
+		sources: [
+			acpLocalJsonRpcSourceDefinition,
+			acpRegistryRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Acp,
+				source: Source.AcpLocal_JsonRpc,
+				target: {
+					kind: SourceTargetKind.LocalDevice,
+					key: 'acp-local',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.LocalProcess,
+						locator: 'acp',
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.AcpProtocol,
+				operationGroups: [
+					SourceOperationGroup.AgentCapabilityCatalog,
+					SourceOperationGroup.AgentRuntimeInvocation,
+				],
+				delivery: SourceDelivery.LocalOnly,
+				credentials: [
+					{
+						scope: SourceCredentialScope.LocalSecret,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Acp,
+				source: Source.AcpRegistry_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'acp-registry',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json',
+						origin: 'https://cdn.agentclientprotocol.com',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.AgentCapabilityCatalog,
+					SourceOperationGroup.AiArtifactCatalog,
+					SourceOperationGroup.RepositoryMetadata,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Acp/Rest/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://cdn.agentclientprotocol.com',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Anthropic,
+		label: 'Anthropic',
+		sources: [
+			anthropicRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Anthropic,
+				source: Source.Anthropic_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'anthropic-api',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://api.anthropic.com',
+						origin: 'https://api.anthropic.com',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.AiModelCatalog,
+					SourceOperationGroup.AiProviderOperationCatalog,
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.RuntimeSecret,
+						keys: [
+							'ANTHROPIC_API_KEY',
+						],
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://api.anthropic.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.BetterCallDev,
 		label: 'Better Call Dev',
 		sources: [
-			{
-				provider: SourceProvider.BetterCallDev,
-				source: Source.BetterCallDev_Rest,
-				label: 'Better Call Dev REST',
-			},
+			betterCallDevRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -376,16 +865,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.better-call.dev',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Beacon,
 		label: 'Beacon',
 		sources: [
-			{
-				provider: SourceProvider.Beacon,
-				source: Source.Beacon_Rest,
-				label: 'Beacon (consensus) REST',
-			},
+			beaconRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -521,16 +1012,26 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://ethereum-beacon-api.publicnode.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://ethereum-sepolia-beacon-api.publicnode.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://ethereum-holesky-beacon-api.publicnode.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.BeaconchaIn,
 		label: 'Beaconcha.in',
 		sources: [
-			{
-				provider: SourceProvider.BeaconchaIn,
-				source: Source.BeaconchaIn_Rest,
-				label: 'Beaconcha.in REST',
-			},
+			beaconchaInRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -682,16 +1183,30 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://beaconcha.in',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://sepolia.beaconcha.in',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://holesky.beaconcha.in',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://hoodi.beaconcha.in',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.BitcoinBips,
 		label: 'Bitcoin BIPs',
 		sources: [
-			{
-				provider: SourceProvider.BitcoinBips,
-				source: Source.BitcoinBips_Github,
-				label: 'Bitcoin BIPs GitHub',
-			},
+			bitcoinBipsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -728,16 +1243,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.BitcoinCashBcmr,
 		label: 'Bitcoin Cash BCMR',
 		sources: [
-			{
-				provider: SourceProvider.BitcoinCashBcmr,
-				source: Source.BitcoinCashBcmr_Github,
-				label: 'Bitcoin Cash BCMR GitHub',
-			},
+			bitcoinCashBcmrGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -774,16 +1295,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.BitcoinCashChips,
 		label: 'Bitcoin Cash CHIPs',
 		sources: [
-			{
-				provider: SourceProvider.BitcoinCashChips,
-				source: Source.BitcoinCashChips_Gitlab,
-				label: 'Bitcoin Cash CHIPs GitLab',
-			},
+			bitcoinCashChipsGitlabSourceDefinition,
 		],
 		bindings: [
 			{
@@ -814,16 +1341,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://gitlab.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.BitcoinCashNode,
 		label: 'Bitcoin Cash Node',
 		sources: [
-			{
-				provider: SourceProvider.BitcoinCashNode,
-				source: Source.BitcoinCashNode_JsonRpc,
-				label: 'Bitcoin Cash Node JSON-RPC',
-			},
+			bitcoinCashNodeJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -854,16 +1383,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:8332',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.BitcoinCore,
 		label: 'Bitcoin Core',
 		sources: [
-			{
-				provider: SourceProvider.BitcoinCore,
-				source: Source.BitcoinCore_JsonRpc,
-				label: 'Bitcoin Core JSON-RPC',
-			},
+			bitcoinCoreJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -894,16 +1425,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:8332',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Bittensor,
 		label: 'Bittensor',
 		sources: [
-			{
-				provider: SourceProvider.Bittensor,
-				source: Source.Bittensor_JsonRpc,
-				label: 'Bittensor JSON-RPC',
-			},
+			bittensorJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -947,16 +1480,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://entrypoint-finney.opentensor.ai',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://lite.chain.opentensor.ai',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Blockchair,
 		label: 'Blockchair',
 		sources: [
-			{
-				provider: SourceProvider.Blockchair,
-				source: Source.Blockchair_Rest,
-				label: 'Blockchair REST',
-			},
+			blockchairRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -997,16 +1536,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.blockchair.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Blockscout,
 		label: 'Blockscout',
 		sources: [
-			{
-				provider: SourceProvider.Blockscout,
-				source: Source.Blockscout_Rest,
-				label: 'Blockscout REST',
-			},
+			blockscoutRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1402,16 +1943,42 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://eth.blockscout.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://optimism.blockscout.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://gnosis.blockscout.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://polygon.blockscout.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://base.blockscout.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://arbitrum.blockscout.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://eth-sepolia.blockscout.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Blobscan,
 		label: 'Blobscan',
 		sources: [
-			{
-				provider: SourceProvider.Blobscan,
-				source: Source.Blobscan_Rest,
-				label: 'Blobscan REST',
-			},
+			blobscanRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1551,16 +2118,30 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.blobscan.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://api.sepolia.blobscan.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://api.gnosis.blobscan.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://api.hoodi.blobscan.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Caips,
 		label: 'CAIPs',
 		sources: [
-			{
-				provider: SourceProvider.Caips,
-				source: Source.Caips_Github,
-				label: 'CAIPs GitHub',
-			},
+			caipsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1597,16 +2178,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Chainlist,
 		label: 'Chainlist',
 		sources: [
-			{
-				provider: SourceProvider.Chainlist,
-				source: Source.Chainlist_Rest,
-				label: 'Chainlist REST',
-			},
+			chainlistRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1644,16 +2231,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://chainlist.org',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Cashu,
 		label: 'Cashu',
 		sources: [
-			{
-				provider: SourceProvider.Cashu,
-				source: Source.CashuMint_Rest,
-				label: 'Cashu mint REST',
-			},
+			cashuMintRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1691,21 +2280,87 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://8333.space:3338',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.CircleCctp,
+		label: 'Circle CCTP',
+		sources: [
+			circleCctpIrisApiSourceDefinition,
+			circleCctpContractsEvmSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.CircleCctp,
+				source: Source.CircleCctp_IrisApi,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'circle-cctp-iris-api',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{circle-iris-api-host}',
+						origin: 'https://{circle-iris-api-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.CircleCctp,
+				source: Source.CircleCctpContracts_Evm,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: 'configured-chain',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.InProcess,
+						locator: 'circle-cctp-evm-contract-catalog',
+					},
+				],
+				wireProtocol: WireProtocol.InProcess,
+				apiFamily: ApiFamily.CatalogRows,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.BrowserDirect,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{circle-iris-api-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Coingecko,
 		label: 'Coingecko',
 		sources: [
-			{
-				provider: SourceProvider.Coingecko,
-				source: Source.Coingecko_OpenApi,
-				label: 'Coingecko OpenAPI',
-			},
-			{
-				provider: SourceProvider.Coingecko,
-				source: Source.Coingecko_Rest,
-				label: 'Coingecko REST',
-			},
+			coingeckoOpenApiSourceDefinition,
+			coingeckoRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1795,16 +2450,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.coingecko.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.CoinMarketCap,
 		label: 'CoinMarketCap',
 		sources: [
-			{
-				provider: SourceProvider.CoinMarketCap,
-				source: Source.CoinMarketCap_Rest,
-				label: 'CoinMarketCap REST',
-			},
+			coinMarketCapRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1848,16 +2505,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://pro-api.coinmarketcap.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Coinpaprika,
 		label: 'Coinpaprika',
 		sources: [
-			{
-				provider: SourceProvider.Coinpaprika,
-				source: Source.Coinpaprika_OpenApi,
-				label: 'Coinpaprika OpenAPI',
-			},
+			coinpaprikaOpenApiSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1914,16 +2573,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.coinpaprika.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://api-pro.coinpaprika.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.CometBft,
 		label: 'CometBFT',
 		sources: [
-			{
-				provider: SourceProvider.CometBft,
-				source: Source.CometBft_Rest,
-				label: 'CometBFT REST',
-			},
+			cometBftRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -1961,16 +2626,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://cosmos-rpc.publicnode.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.CosmosAdrs,
 		label: 'Cosmos ADRs',
 		sources: [
-			{
-				provider: SourceProvider.CosmosAdrs,
-				source: Source.CosmosAdrs_Github,
-				label: 'Cosmos ADRs GitHub',
-			},
+			cosmosAdrsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2007,16 +2674,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.CosmosChainRegistry,
 		label: 'Cosmos Chain Registry',
 		sources: [
-			{
-				provider: SourceProvider.CosmosChainRegistry,
-				source: Source.CosmosChainRegistry_Github,
-				label: 'Cosmos Chain Registry GitHub',
-			},
+			cosmosChainRegistryGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2053,16 +2726,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.CosmosSdk,
 		label: 'Cosmos SDK',
 		sources: [
-			{
-				provider: SourceProvider.CosmosSdk,
-				source: Source.CosmosSdk_Rest,
-				label: 'Cosmos SDK REST',
-			},
+			cosmosSdkRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2100,21 +2779,19 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://cosmos-rest.publicnode.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Defillama,
 		label: 'Defillama',
 		sources: [
-			{
-				provider: SourceProvider.Defillama,
-				source: Source.Defillama_OpenApi,
-				label: 'Defillama OpenAPI',
-			},
-			{
-				provider: SourceProvider.Defillama,
-				source: Source.Defillama_Rest,
-				label: 'Defillama REST',
-			},
+			defillamaOpenApiSourceDefinition,
+			defillamaRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2208,16 +2885,26 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://coins.llama.fi',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://icons.llama.fi',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://pro-api.llama.fi',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Dexscreener,
 		label: 'Dexscreener',
 		sources: [
-			{
-				provider: SourceProvider.Dexscreener,
-				source: Source.Dexscreener_OpenApi,
-				label: 'Dexscreener OpenAPI',
-			},
+			dexscreenerOpenApiSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2265,16 +2952,92 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.dexscreener.com',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Dydx,
+		label: 'dYdX',
+		sources: [
+			dydxIndexerRestSourceDefinition,
+			dydxValidatorRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Dydx,
+				source: Source.DydxIndexer_Rest,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'dydx-chain',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{dydx-indexer-host}',
+						origin: 'https://{dydx-indexer-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.DydxIndexerRest,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Dydx,
+				source: Source.DydxValidator_Rest,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'dydx-chain',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{dydx-validator-rest-host}',
+						origin: 'https://{dydx-validator-rest-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.CosmosLcdApi,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{dydx-indexer-host}',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://{dydx-validator-rest-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.DogecoinDips,
 		label: 'Dogecoin DIPs',
 		sources: [
-			{
-				provider: SourceProvider.DogecoinDips,
-				source: Source.DogecoinDips_Github,
-				label: 'Dogecoin DIPs GitHub',
-			},
+			dogecoinDipsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2311,16 +3074,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Dune,
 		label: 'Dune',
 		sources: [
-			{
-				provider: SourceProvider.Dune,
-				source: Source.Dune_Rest,
-				label: 'Dune REST',
-			},
+			duneRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2361,16 +3130,240 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.dune.com',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Eas,
+		label: 'Ethereum Attestation Service',
+		sources: [
+			easContractsEvmSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Eas,
+				source: Source.EasContracts_Evm,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: 'configured-chain',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.InProcess,
+						locator: 'eas-evm-contract-catalog',
+					},
+				],
+				wireProtocol: WireProtocol.InProcess,
+				apiFamily: ApiFamily.CatalogRows,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.BrowserDirect,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+	},
+	{
+		provider: SourceProvider.EasScan,
+		label: 'EAS Scan',
+		sources: [
+			easScanGraphqlSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.EasScan,
+				source: Source.EasScan_Graphql,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'eas-scan',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{eas-scan-graphql-host}',
+						origin: 'https://{eas-scan-graphql-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.Graphql,
+				apiFamily: ApiFamily.GraphqlHttp,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/EasScan/Graphql/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{eas-scan-graphql-host}',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.EigenExplorer,
+		label: 'EigenExplorer',
+		sources: [
+			eigenExplorerRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.EigenExplorer,
+				source: Source.EigenExplorer_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'eigen-explorer-api',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{eigen-explorer-api-host}',
+						origin: 'https://{eigen-explorer-api-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/EigenExplorer/Rest/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{eigen-explorer-api-host}',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.EigenLayer,
+		label: 'EigenLayer',
+		sources: [
+			eigenLayerContractsEvmSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.EigenLayer,
+				source: Source.EigenLayerContracts_Evm,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: 'configured-chain',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.InProcess,
+						locator: 'eigenlayer-evm-contract-catalog',
+					},
+				],
+				wireProtocol: WireProtocol.InProcess,
+				apiFamily: ApiFamily.CatalogRows,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.BrowserDirect,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/EigenLayer/Catalog/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+	},
+	{
+		provider: SourceProvider.EigenLayerSubgraph,
+		label: 'EigenLayer subgraph',
+		sources: [
+			eigenLayerSubgraphGraphqlSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.EigenLayerSubgraph,
+				source: Source.EigenLayerSubgraph_Graphql,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'eigenlayer-subgraph',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{eigenlayer-subgraph-host}',
+						origin: 'https://{eigenlayer-subgraph-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.Graphql,
+				apiFamily: ApiFamily.GraphqlHttp,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/EigenLayerSubgraph/Graphql/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{eigenlayer-subgraph-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.DogecoinCore,
 		label: 'Dogecoin Core',
 		sources: [
-			{
-				provider: SourceProvider.DogecoinCore,
-				source: Source.DogecoinCore_JsonRpc,
-				label: 'Dogecoin Core JSON-RPC',
-			},
+			dogecoinCoreJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2401,16 +3394,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:22555',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Ensips,
 		label: 'ENSIPs',
 		sources: [
-			{
-				provider: SourceProvider.Ensips,
-				source: Source.Ensips_Github,
-				label: 'ENSIPs GitHub',
-			},
+			ensipsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2447,16 +3442,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Eip8004Scan,
 		label: '8004scan',
 		sources: [
-			{
-				provider: SourceProvider.Eip8004Scan,
-				source: Source.Eip8004Scan_Rest,
-				label: '8004scan REST',
-			},
+			eip8004ScanRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2494,16 +3495,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://8004scan.io',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Esplora,
 		label: 'Esplora',
 		sources: [
-			{
-				provider: SourceProvider.Esplora,
-				source: Source.Esplora_Rest,
-				label: 'Esplora REST',
-			},
+			esploraRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2575,16 +3578,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://mempool.space',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://blockstream.info',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.EthereumLists,
 		label: 'Ethereum Lists',
 		sources: [
-			{
-				provider: SourceProvider.EthereumLists,
-				source: Source.EthereumLists_Rest,
-				label: 'Ethereum Lists REST',
-			},
+			ethereumListsRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2605,7 +3614,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://api.github.com',
 						origin: 'https://api.github.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -2628,16 +3637,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://chainid.network',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.EthereumEips,
 		label: 'Ethereum EIPs',
 		sources: [
-			{
-				provider: SourceProvider.EthereumEips,
-				source: Source.EthereumEips_Github,
-				label: 'Ethereum EIPs GitHub',
-			},
+			ethereumEipsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2707,16 +3722,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.EthereumSpecs,
 		label: 'Ethereum specs',
 		sources: [
-			{
-				provider: SourceProvider.EthereumSpecs,
-				source: Source.EthereumSpecs_Github,
-				label: 'Ethereum specs GitHub',
-			},
+			ethereumSpecsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2753,16 +3774,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Etherscan,
 		label: 'Etherscan',
 		sources: [
-			{
-				provider: SourceProvider.Etherscan,
-				source: Source.Etherscan_Rest,
-				label: 'Etherscan REST',
-			},
+			etherscanRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2808,16 +3835,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.etherscan.io',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Filfox,
 		label: 'Filfox',
 		sources: [
-			{
-				provider: SourceProvider.Filfox,
-				source: Source.Filfox_Rest,
-				label: 'Filfox REST',
-			},
+			filfoxRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2855,16 +3884,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://filfox.info',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.FilecoinFips,
 		label: 'Filecoin FIPs',
 		sources: [
-			{
-				provider: SourceProvider.FilecoinFips,
-				source: Source.FilecoinFips_Github,
-				label: 'Filecoin FIPs GitHub',
-			},
+			filecoinFipsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2901,16 +3932,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Helius,
 		label: 'Helius',
 		sources: [
-			{
-				provider: SourceProvider.Helius,
-				source: Source.Helius_Rest,
-				label: 'Helius REST',
-			},
+			heliusRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2954,16 +3991,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api-mainnet.helius-rpc.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.FxEmbed,
 		label: 'FxEmbed',
 		sources: [
-			{
-				provider: SourceProvider.FxEmbed,
-				source: Source.X_FxEmbed_Rest,
-				label: 'FxEmbed REST',
-			},
+			xFxEmbedRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3001,16 +4040,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.fxtwitter.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Farcaster,
 		label: 'Farcaster',
 		sources: [
-			{
-				provider: SourceProvider.Farcaster,
-				source: Source.Farcaster_Rest,
-				label: 'Farcaster REST',
-			},
+			farcasterRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3060,21 +4101,27 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.farcaster.xyz',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://farcaster.xyz',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://haatz.quilibrium.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Hyperliquid,
 		label: 'Hyperliquid',
 		sources: [
-			{
-				provider: SourceProvider.Hyperliquid,
-				source: Source.Hyperliquid_Rest,
-				label: 'Hyperliquid REST',
-			},
-			{
-				provider: SourceProvider.Hyperliquid,
-				source: Source.Hyperliquid_JsonRpc,
-				label: 'HyperEVM JSON-RPC',
-			},
+			hyperliquidRestSourceDefinition,
+			hyperliquidJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3151,16 +4198,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.hyperliquid.xyz',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://rpc.hyperliquid.xyz',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.HyperliquidDocs,
 		label: 'Hyperliquid docs',
 		sources: [
-			{
-				provider: SourceProvider.HyperliquidDocs,
-				source: Source.HyperliquidDocs_Rest,
-				label: 'Hyperliquid docs REST',
-			},
+			hyperliquidDocsRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3191,16 +4244,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://hyperliquid.gitbook.io',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Ipfs,
 		label: 'IPFS',
 		sources: [
-			{
-				provider: SourceProvider.Ipfs,
-				source: Source.Ipfs_Rest,
-				label: 'IPFS gateway',
-			},
+			ipfsRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3244,16 +4299,64 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://ipfs.io',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://cloudflare-ipfs.com',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Juno,
+		label: 'Juno',
+		sources: [
+			junoJsonRpcSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Juno,
+				source: Source.Juno_JsonRpc,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'starknet',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{juno-rpc-host}',
+						origin: 'https://{juno-rpc-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.StarknetJsonRpc,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{juno-rpc-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.L2Beat,
 		label: 'L2Beat',
 		sources: [
-			{
-				provider: SourceProvider.L2Beat,
-				source: Source.L2Beat_Rest,
-				label: 'L2Beat REST',
-			},
+			l2BeatRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3291,21 +4394,19 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://l2beat.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.LightningLnd,
 		label: 'LND',
 		sources: [
-			{
-				provider: SourceProvider.LightningLnd,
-				source: Source.LightningLnd_Grpc,
-				label: 'LND gRPC',
-			},
-			{
-				provider: SourceProvider.LightningLnd,
-				source: Source.LightningLnd_Rest,
-				label: 'LND REST',
-			},
+			lightningLndGrpcSourceDefinition,
+			lightningLndRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3378,7 +4479,6 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						scope: SourceCredentialScope.PublicConfig,
 						keys: [
 							'PUBLIC_LND_MACAROON_HEX',
-							'PUBLIC_LND_REST_BASE_URL',
 						],
 					},
 				],
@@ -3391,16 +4491,30 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://127.0.0.1:8080',
+				corsEnabled: false,
+			},
+			{
+				origin: 'http://127.0.0.1:8080',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://localhost:8080',
+				corsEnabled: false,
+			},
+			{
+				origin: 'http://localhost:8080',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.LightningMempoolSpace,
 		label: 'mempool.space Lightning',
 		sources: [
-			{
-				provider: SourceProvider.LightningMempoolSpace,
-				source: Source.LightningMempoolSpace_Rest,
-				label: 'mempool.space Lightning REST',
-			},
+			lightningMempoolSpaceRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3438,16 +4552,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://mempool.space',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.LitecoinCore,
 		label: 'Litecoin Core',
 		sources: [
-			{
-				provider: SourceProvider.LitecoinCore,
-				source: Source.LitecoinCore_JsonRpc,
-				label: 'Litecoin Core JSON-RPC',
-			},
+			litecoinCoreJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3478,16 +4594,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:9332',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.MempoolSpace,
 		label: 'mempool.space',
 		sources: [
-			{
-				provider: SourceProvider.MempoolSpace,
-				source: Source.MempoolSpace_Rest,
-				label: 'mempool.space REST',
-			},
+			mempoolSpaceRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3518,16 +4636,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://mempool.space',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.MetadataVision,
 		label: 'Metadata Vision',
 		sources: [
-			{
-				provider: SourceProvider.MetadataVision,
-				source: Source.MetadataVision_Rest,
-				label: 'Metadata Vision REST',
-			},
+			metadataVisionRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3565,21 +4685,19 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://og.metadata.vision',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Lifi,
 		label: 'LI.FI',
 		sources: [
-			{
-				provider: SourceProvider.Lifi,
-				source: Source.LifiStatus_Rest,
-				label: 'LI.FI status REST',
-			},
-			{
-				provider: SourceProvider.Lifi,
-				source: Source.Lifi_Rest,
-				label: 'LI.FI REST',
-			},
+			lifiStatusRestSourceDefinition,
+			lifiRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3655,16 +4773,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://li.quest',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://staging.li.quest',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Lotus,
 		label: 'Lotus',
 		sources: [
-			{
-				provider: SourceProvider.Lotus,
-				source: Source.Lotus_JsonRpc,
-				label: 'Lotus JSON-RPC',
-			},
+			lotusJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3736,16 +4860,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.node.glif.io',
+				corsEnabled: true,
+			},
+			{
+				origin: 'http://127.0.0.1:1234',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.LogosDocs,
 		label: 'Logos docs',
 		sources: [
-			{
-				provider: SourceProvider.LogosDocs,
-				source: Source.LogosDocs_Rest,
-				label: 'Logos docs REST',
-			},
+			logosDocsRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3783,16 +4913,53 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://docs.logoslabs.io',
+				corsEnabled: true,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.LogosBlockchainNode,
+		label: 'Logos blockchain node',
+		sources: [
+			logosBlockchainNodeRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.LogosBlockchainNode,
+				source: Source.LogosBlockchainNode_Rest,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'logos',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'env:LOGOS_BLOCKCHAIN_NODE_URL',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Lens,
 		label: 'Lens',
 		sources: [
-			{
-				provider: SourceProvider.Lens,
-				source: Source.Lens_Graphql,
-				label: 'Lens GraphQL',
-			},
+			lensGraphqlSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3849,16 +5016,93 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.lens.xyz',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://api.hey.xyz',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Mcp,
+		label: 'MCP',
+		sources: [
+			mcpConfiguredProtocolSourceDefinition,
+			mcpPackageRegistryRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Mcp,
+				source: Source.McpConfigured_Protocol,
+				target: {
+					kind: SourceTargetKind.LocalDevice,
+					key: 'mcp-configured',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.LocalProcess,
+						locator: 'mcp',
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.McpProtocol,
+				operationGroups: [
+					SourceOperationGroup.AgentCapabilityCatalog,
+					SourceOperationGroup.AgentRuntimeInvocation,
+				],
+				delivery: SourceDelivery.LocalOnly,
+				credentials: [
+					{
+						scope: SourceCredentialScope.LocalSecret,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Mcp,
+				source: Source.McpPackageRegistry_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'mcp-package-registry',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://registry.modelcontextprotocol.io/v0.1/servers',
+						origin: 'https://registry.modelcontextprotocol.io',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.AgentCapabilityCatalog,
+					SourceOperationGroup.AiArtifactCatalog,
+					SourceOperationGroup.RepositoryMetadata,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://registry.modelcontextprotocol.io',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.MevRelay,
 		label: 'MEV relay',
 		sources: [
-			{
-				provider: SourceProvider.MevRelay,
-				source: Source.MevRelay_Rest,
-				label: 'MEV relay REST',
-			},
+			mevRelayRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3896,16 +5140,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://boost-relay.flashbots.net',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.MoneroDaemonRpc,
 		label: 'Monero daemon RPC',
 		sources: [
-			{
-				provider: SourceProvider.MoneroDaemonRpc,
-				source: Source.MoneroDaemonRpc_JsonRpc,
-				label: 'Monero daemon JSON-RPC',
-			},
+			moneroDaemonRpcJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -3983,16 +5229,26 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://xmr-node.cakewallet.com:18081',
+				corsEnabled: false,
+			},
+			{
+				origin: 'http://nodes.hashvault.pro:18081',
+				corsEnabled: false,
+			},
+			{
+				origin: 'http://127.0.0.1:18081',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.NearBlocks,
 		label: 'NearBlocks',
 		sources: [
-			{
-				provider: SourceProvider.NearBlocks,
-				source: Source.NearBlocks_Rest,
-				label: 'NearBlocks REST',
-			},
+			nearBlocksRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4030,16 +5286,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.nearblocks.io',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.LitecoinLips,
 		label: 'Litecoin LIPs',
 		sources: [
-			{
-				provider: SourceProvider.LitecoinLips,
-				source: Source.LitecoinLips_Github,
-				label: 'Litecoin LIPs GitHub',
-			},
+			litecoinLipsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4076,16 +5334,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.NearNeps,
 		label: 'NEAR NEPs',
 		sources: [
-			{
-				provider: SourceProvider.NearNeps,
-				source: Source.NearNeps_Github,
-				label: 'NEAR NEPs GitHub',
-			},
+			nearNepsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4122,16 +5386,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.NearRpc,
 		label: 'NEAR RPC',
 		sources: [
-			{
-				provider: SourceProvider.NearRpc,
-				source: Source.NearRpc_JsonRpc,
-				label: 'NEAR JSON-RPC',
-			},
+			nearRpcJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4169,16 +5439,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://rpc.mainnet.near.org',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Neynar,
 		label: 'Neynar',
 		sources: [
-			{
-				provider: SourceProvider.Neynar,
-				source: Source.Neynar_Rest,
-				label: 'Neynar REST',
-			},
+			neynarRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4229,16 +5501,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.neynar.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.NostrBand,
 		label: 'NostrBand',
 		sources: [
-			{
-				provider: SourceProvider.NostrBand,
-				source: Source.NostrBand_Rest,
-				label: 'NostrBand REST',
-			},
+			nostrBandRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4276,16 +5550,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.nostr.band',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Mastodon,
 		label: 'Mastodon',
 		sources: [
-			{
-				provider: SourceProvider.Mastodon,
-				source: Source.Mastodon_Rest,
-				label: 'Mastodon REST',
-			},
+			mastodonRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4323,16 +5599,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://mastodon.social',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Fedi,
 		label: 'Fedi',
 		sources: [
-			{
-				provider: SourceProvider.Fedi,
-				source: Source.Fedi_Rest,
-				label: 'Fedi REST',
-			},
+			fediRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4370,21 +5648,19 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://fosstodon.org',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.NostrRelay,
 		label: 'Nostr relay',
 		sources: [
-			{
-				provider: SourceProvider.NostrRelay,
-				source: Source.NostrRelay_Nip11_Http,
-				label: 'Nostr relay NIP-11 HTTP',
-			},
-			{
-				provider: SourceProvider.NostrRelay,
-				source: Source.NostrRelay_WebSocket,
-				label: 'Nostr relay WebSocket',
-			},
+			nostrRelayNip11HttpSourceDefinition,
+			nostrRelayWebSocketSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4432,7 +5708,6 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					{
 						endpointKind: SourceEndpointKind.WebSocketUrl,
 						locator: 'wss://{relay-host}',
-						origin: 'wss://{relay-host}',
 					},
 				],
 				wireProtocol: WireProtocol.JsonRpc2,
@@ -4456,16 +5731,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://{relay-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Openchain,
 		label: 'Openchain',
 		sources: [
-			{
-				provider: SourceProvider.Openchain,
-				source: Source.Openchain_Rest,
-				label: 'Openchain REST',
-			},
+			openchainRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4503,16 +5780,107 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.openchain.xyz',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.OpenAI,
+		label: 'OpenAI',
+		sources: [
+			openAIRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.OpenAI,
+				source: Source.OpenAI_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'openai-api',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://api.openai.com',
+						origin: 'https://api.openai.com',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.AiModelCatalog,
+					SourceOperationGroup.AiProviderOperationCatalog,
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.RuntimeSecret,
+						keys: [
+							'OPENAI_API_KEY',
+						],
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://api.openai.com',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Pathfinder,
+		label: 'Pathfinder',
+		sources: [
+			pathfinderJsonRpcSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Pathfinder,
+				source: Source.Pathfinder_JsonRpc,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'starknet',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{pathfinder-rpc-host}',
+						origin: 'https://{pathfinder-rpc-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.StarknetJsonRpc,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{pathfinder-rpc-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Payjoin,
 		label: 'Payjoin',
 		sources: [
-			{
-				provider: SourceProvider.Payjoin,
-				source: Source.PayjoinDirectory_Rest,
-				label: 'Payjoin directory REST',
-			},
+			payjoinDirectoryRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4562,16 +5930,26 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://payjo.in',
+				corsEnabled: false,
+			},
+			{
+				origin: 'http://127.0.0.1:8080',
+				corsEnabled: false,
+			},
+			{
+				origin: 'http://localhost:8080',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Piped,
 		label: 'Piped',
 		sources: [
-			{
-				provider: SourceProvider.Piped,
-				source: Source.Piped_Rest,
-				label: 'Piped REST',
-			},
+			pipedRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4609,16 +5987,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.piped.private.coffee',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Polkadot,
 		label: 'Polkadot',
 		sources: [
-			{
-				provider: SourceProvider.Polkadot,
-				source: Source.Polkadot_JsonRpc,
-				label: 'Polkadot JSON-RPC',
-			},
+			polkadotJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4656,16 +6036,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://rpc.polkadot.io',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Primal,
 		label: 'Primal',
 		sources: [
-			{
-				provider: SourceProvider.Primal,
-				source: Source.Primal_Rest,
-				label: 'Primal REST',
-			},
+			primalRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4703,16 +6085,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.primal.net',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.PolkadotRfcs,
 		label: 'Polkadot RFCs',
 		sources: [
-			{
-				provider: SourceProvider.PolkadotRfcs,
-				source: Source.PolkadotRfcs_Github,
-				label: 'Polkadot RFCs GitHub',
-			},
+			polkadotRfcsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4749,16 +6133,197 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Pyth,
+		label: 'Pyth',
+		sources: [
+			pythEvmContractSourceDefinition,
+			pythSolanaProgramSourceDefinition,
+			pythHermesRestSourceDefinition,
+			pythBenchmarksRestSourceDefinition,
+			pythPriceFeedsCatalogRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Pyth,
+				source: Source.Pyth_EvmContract,
+				target: {
+					kind: SourceTargetKind.Eip155Chain,
+					key: 'configured-chain',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.InProcess,
+						locator: 'pyth-evm-contract-catalog',
+					},
+				],
+				wireProtocol: WireProtocol.InProcess,
+				apiFamily: ApiFamily.CatalogRows,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.BrowserDirect,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Pyth,
+				source: Source.Pyth_SolanaProgram,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'solana',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.InProcess,
+						locator: 'pyth-solana-program-catalog',
+					},
+				],
+				wireProtocol: WireProtocol.InProcess,
+				apiFamily: ApiFamily.CatalogRows,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.BrowserDirect,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Pyth,
+				source: Source.PythHermes_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'pyth-hermes',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://hermes.pyth.network',
+						origin: 'https://hermes.pyth.network',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Pyth/Rest/types.ts',
+						generated: false,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Pyth,
+				source: Source.PythBenchmarks_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'pyth-benchmarks',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://benchmarks.pyth.network',
+						origin: 'https://benchmarks.pyth.network',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Pyth/Rest/types.ts',
+						generated: false,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Pyth,
+				source: Source.PythPriceFeedsCatalog_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'pyth-price-feeds-catalog',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://benchmarks.pyth.network',
+						origin: 'https://benchmarks.pyth.network',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.HttpProxy,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/Pyth/Rest/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://hermes.pyth.network',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://benchmarks.pyth.network',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.QuilibriumDocs,
 		label: 'Quilibrium docs',
 		sources: [
-			{
-				provider: SourceProvider.QuilibriumDocs,
-				source: Source.QuilibriumDocs_Rest,
-				label: 'Quilibrium docs REST',
-			},
+			quilibriumDocsRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4795,16 +6360,98 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://docs.quilibrium.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://quilibrium.com',
+				corsEnabled: true,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.QuilibriumNode,
+		label: 'Quilibrium node',
+		sources: [
+			quilibriumNodeGrpcSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.QuilibriumNode,
+				source: Source.QuilibriumNode_Grpc,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'quilibrium',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.TcpAddress,
+						locator: 'env:QUILIBRIUM_NODE_GRPC_ENDPOINT',
+					},
+				],
+				wireProtocol: WireProtocol.Grpc,
+				apiFamily: ApiFamily.GrpcService,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.ServerOnly,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.HandwrittenTypes,
+						path: 'src/sources/QuilibriumNode/Grpc/types.ts',
+						generated: false,
+					},
+				],
+			},
+		],
+	},
+	{
+		provider: SourceProvider.QuilibriumNodeMetrics,
+		label: 'Quilibrium node metrics',
+		sources: [
+			quilibriumNodeMetricsPrometheusSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.QuilibriumNodeMetrics,
+				source: Source.QuilibriumNodeMetrics_Prometheus,
+				target: {
+					kind: SourceTargetKind.LocalDevice,
+					key: 'configured-quilibrium-node',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'env:QUILIBRIUM_NODE_PROMETHEUS_URL',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.Prometheus,
+				apiFamily: ApiFamily.PrometheusText,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.ServerOnly,
+				credentials: [
+					{
+						scope: SourceCredentialScope.LocalSecret,
+					},
+				],
+			},
+		],
 	},
 	{
 		provider: SourceProvider.QuilibriumNodeRpc,
 		label: 'Quilibrium node RPC',
 		sources: [
-			{
-				provider: SourceProvider.QuilibriumNodeRpc,
-				source: Source.QuilibriumNodeRpc_Grpc,
-				label: 'Quilibrium node RPC gRPC',
-			},
+			quilibriumNodeRpcGrpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4845,11 +6492,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		provider: SourceProvider.Reddit,
 		label: 'Reddit',
 		sources: [
-			{
-				provider: SourceProvider.Reddit,
-				source: Source.Reddit_Rest,
-				label: 'Reddit REST',
-			},
+			redditRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4901,16 +6544,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://oauth.reddit.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://www.reddit.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.RedditPublic,
 		label: 'Reddit public JSON',
 		sources: [
-			{
-				provider: SourceProvider.RedditPublic,
-				source: Source.Reddit_PublicJson,
-				label: 'Reddit public JSON',
-			},
+			redditPublicJsonSourceDefinition,
 		],
 		bindings: [
 			{
@@ -4947,16 +6596,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://www.reddit.com',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://old.reddit.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Rss,
 		label: 'RSS',
 		sources: [
-			{
-				provider: SourceProvider.Rss,
-				source: Source.Rss_Rest,
-				label: 'RSS REST',
-			},
+			rssRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5000,16 +6655,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://hnrss.org',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://feeds.bbci.co.uk',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Rss2Json,
 		label: 'rss2json',
 		sources: [
-			{
-				provider: SourceProvider.Rss2Json,
-				source: Source.Rss2Json_Rest,
-				label: 'rss2json REST',
-			},
+			rss2JsonRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5050,16 +6711,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.rss2json.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Superchain,
 		label: 'Superchain Registry',
 		sources: [
-			{
-				provider: SourceProvider.Superchain,
-				source: Source.Superchain_Github,
-				label: 'Superchain Registry GitHub',
-			},
+			superchainGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5096,16 +6759,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Solana,
 		label: 'Solana',
 		sources: [
-			{
-				provider: SourceProvider.Solana,
-				source: Source.Solana_JsonRpc,
-				label: 'Solana JSON-RPC',
-			},
+			solanaJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5175,16 +6844,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.mainnet.solana.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.SolanaSimds,
 		label: 'Solana SIMDs',
 		sources: [
-			{
-				provider: SourceProvider.SolanaSimds,
-				source: Source.SolanaSimds_Github,
-				label: 'Solana SIMDs GitHub',
-			},
+			solanaSimdsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5221,16 +6892,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Snapchain,
 		label: 'Snapchain',
 		sources: [
-			{
-				provider: SourceProvider.Snapchain,
-				source: Source.Snapchain_Rest,
-				label: 'Snapchain REST',
-			},
+			snapchainRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5286,16 +6963,30 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://hub.pinata.cloud',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://snap.farcaster.xyz:3381',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://pop.farcaster.xyz:3381',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://haatz.quilibrium.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Sourcify,
 		label: 'Sourcify',
 		sources: [
-			{
-				provider: SourceProvider.Sourcify,
-				source: Source.Sourcify_Rest,
-				label: 'Sourcify REST',
-			},
+			sourcifyRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5333,16 +7024,102 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://sourcify.dev',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Starknet,
+		label: 'Starknet',
+		sources: [
+			starknetJsonRpcSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Starknet,
+				source: Source.Starknet_JsonRpc,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'starknet',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{starknet-rpc-host}',
+						origin: 'https://{starknet-rpc-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.StarknetJsonRpc,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{starknet-rpc-host}',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Starkscan,
+		label: 'Starkscan',
+		sources: [
+			starkscanRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Starkscan,
+				source: Source.Starkscan_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'starkscan-api',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{starkscan-api-host}',
+						origin: 'https://{starkscan-api-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{starkscan-api-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Subscan,
 		label: 'Subscan',
 		sources: [
-			{
-				provider: SourceProvider.Subscan,
-				source: Source.Subscan_Rest,
-				label: 'Subscan REST',
-			},
+			subscanRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5383,16 +7160,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://polkadot.api.subscan.io',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.SubstrateSidecar,
 		label: 'Substrate Sidecar',
 		sources: [
-			{
-				provider: SourceProvider.SubstrateSidecar,
-				source: Source.SubstrateSidecar_Rest,
-				label: 'Substrate Sidecar REST',
-			},
+			substrateSidecarRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5418,10 +7197,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
-						scope: SourceCredentialScope.PublicConfig,
-						keys: [
-							'PUBLIC_SUBSTRATE_SIDECAR_REST_BASE_URL',
-						],
+						scope: SourceCredentialScope.None,
 					},
 				],
 				artifacts: [
@@ -5433,16 +7209,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:8080',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Swarm,
 		label: 'Swarm',
 		sources: [
-			{
-				provider: SourceProvider.Swarm,
-				source: Source.Swarm_Rest,
-				label: 'Swarm gateway',
-			},
+			swarmRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5486,16 +7264,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.gateway.ethswarm.org',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://gateway.ethswarm.org',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.TezosDappetizer,
 		label: 'Tezos Dappetizer',
 		sources: [
-			{
-				provider: SourceProvider.TezosDappetizer,
-				source: Source.TezosDappetizer_Postgres,
-				label: 'Tezos Dappetizer Postgres',
-			},
+			tezosDappetizerPostgresSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5532,11 +7316,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		provider: SourceProvider.TezosNode,
 		label: 'Tezos node RPC',
 		sources: [
-			{
-				provider: SourceProvider.TezosNode,
-				source: Source.TezosNode_Rpc,
-				label: 'Tezos node RPC',
-			},
+			tezosNodeRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5567,16 +7347,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://rpc.tzkt.io',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.TheGraph,
 		label: 'The Graph',
 		sources: [
-			{
-				provider: SourceProvider.TheGraph,
-				source: Source.TheGraph_Graphql,
-				label: 'The Graph ENS GraphQL',
-			},
+			theGraphGraphqlSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5603,6 +7385,9 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				credentials: [
 					{
 						scope: SourceCredentialScope.PublicConfig,
+						env: type({
+							'PUBLIC_THEGRAPH_API_KEY': 'string > 0',
+						}),
 						keys: [
 							'PUBLIC_THEGRAPH_API_KEY',
 						],
@@ -5632,16 +7417,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://gateway.thegraph.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.ThreeXpl,
 		label: '3xpl',
 		sources: [
-			{
-				provider: SourceProvider.ThreeXpl,
-				source: Source.ThreeXpl_Rest,
-				label: '3xpl REST',
-			},
+			threeXplRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5685,16 +7472,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://sandbox-api.3xpl.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://api.3xpl.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.TradingView,
 		label: 'TradingView',
 		sources: [
-			{
-				provider: SourceProvider.TradingView,
-				source: Source.TradingView_Rest,
-				label: 'TradingView REST',
-			},
+			tradingViewRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5732,16 +7525,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://scanner.tradingview.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.TronFullNode,
 		label: 'TRON full node',
 		sources: [
-			{
-				provider: SourceProvider.TronFullNode,
-				source: Source.TronFullNode_Rest,
-				label: 'TRON full node REST',
-			},
+			tronFullNodeRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5767,10 +7562,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
-						scope: SourceCredentialScope.PublicConfig,
-						keys: [
-							'PUBLIC_TRON_FULL_NODE_REST_BASE_URL',
-						],
+						scope: SourceCredentialScope.None,
 					},
 				],
 				artifacts: [
@@ -5782,16 +7574,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:8090',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.TronGrid,
 		label: 'TronGrid',
 		sources: [
-			{
-				provider: SourceProvider.TronGrid,
-				source: Source.TronGrid_Rest,
-				label: 'TronGrid REST',
-			},
+			tronGridRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5829,16 +7623,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.trongrid.io',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.TronScan,
 		label: 'TronScan',
 		sources: [
-			{
-				provider: SourceProvider.TronScan,
-				source: Source.TronScan_Rest,
-				label: 'TronScan REST',
-			},
+			tronScanRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5876,16 +7672,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://apilist.tronscanapi.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.TronSolidityNode,
 		label: 'TRON solidity node',
 		sources: [
-			{
-				provider: SourceProvider.TronSolidityNode,
-				source: Source.TronSolidityNode_Rest,
-				label: 'TRON solidity node REST',
-			},
+			tronSolidityNodeRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5911,10 +7709,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				delivery: SourceDelivery.HttpProxy,
 				credentials: [
 					{
-						scope: SourceCredentialScope.PublicConfig,
-						keys: [
-							'PUBLIC_TRON_SOLIDITY_NODE_REST_BASE_URL',
-						],
+						scope: SourceCredentialScope.None,
 					},
 				],
 				artifacts: [
@@ -5926,16 +7721,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:8091',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.TrustWalletAssets,
 		label: 'Trust Wallet assets',
 		sources: [
-			{
-				provider: SourceProvider.TrustWalletAssets,
-				source: Source.TrustWalletAssets_Github,
-				label: 'Trust Wallet assets GitHub',
-			},
+			trustWalletAssetsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -5972,16 +7769,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Tzkt,
 		label: 'TzKT',
 		sources: [
-			{
-				provider: SourceProvider.Tzkt,
-				source: Source.Tzkt_Rest,
-				label: 'TzKT REST',
-			},
+			tzktRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -6012,16 +7815,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.tzkt.io',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Voltaire,
 		label: 'Voltaire',
 		sources: [
-			{
-				provider: SourceProvider.Voltaire,
-				source: Source.Voltaire_JsonRpc,
-				label: 'Voltaire JSON-RPC',
-			},
+			voltaireJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -6109,31 +7914,67 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://eth.drpc.org',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://ethereum.publicnode.com',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.Voyager,
+		label: 'Voyager',
+		sources: [
+			voyagerRestSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.Voyager,
+				source: Source.Voyager_Rest,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'voyager-api',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{voyager-api-host}',
+						origin: 'https://{voyager-api-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'https://{voyager-api-host}',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.ZeroG,
 		label: '0G',
 		sources: [
-			{
-				provider: SourceProvider.ZeroG,
-				source: Source.ZeroGChain_JsonRpc,
-				label: '0G Chain JSON-RPC',
-			},
-			{
-				provider: SourceProvider.ZeroG,
-				source: Source.ZeroGChainScan_Rest,
-				label: '0G ChainScan REST',
-			},
-			{
-				provider: SourceProvider.ZeroG,
-				source: Source.ZeroGStorageNode_JsonRpc,
-				label: '0G Storage node JSON-RPC',
-			},
-			{
-				provider: SourceProvider.ZeroG,
-				source: Source.ZeroGStorageScan_Rest,
-				label: '0G StorageScan REST',
-			},
+			zeroGChainJsonRpcSourceDefinition,
+			zeroGChainScanRestSourceDefinition,
+			zeroGStorageNodeJsonRpcSourceDefinition,
+			zeroGStorageScanRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -6278,16 +8119,30 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://evmrpc.0g.ai',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://chainscan.0g.ai',
+				corsEnabled: true,
+			},
+			{
+				origin: 'http://127.0.0.1:5678',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://storagescan.0g.ai',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.X,
 		label: 'X',
 		sources: [
-			{
-				provider: SourceProvider.X,
-				source: Source.X_Rest,
-				label: 'X REST',
-			},
+			xRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -6331,16 +8186,18 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.x.com',
+				corsEnabled: false,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Youtube,
 		label: 'YouTube',
 		sources: [
-			{
-				provider: SourceProvider.Youtube,
-				source: Source.Youtube_Rest,
-				label: 'YouTube REST',
-			},
+			youtubeRestSourceDefinition,
 		],
 		bindings: [
 			{
@@ -6389,16 +8246,99 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://www.googleapis.com',
+				corsEnabled: false,
+			},
+		],
+	},
+	{
+		provider: SourceProvider.ZcashClientBackend,
+		label: 'zcash_client_backend',
+		sources: [
+			zcashClientBackendLocalSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.ZcashClientBackend,
+				source: Source.ZcashClientBackend_Local,
+				target: {
+					kind: SourceTargetKind.LocalDevice,
+					key: 'zcash-client-backend',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.LocalFilePath,
+						locator: 'env:ZCASH_CLIENT_BACKEND_PATH',
+					},
+				],
+				wireProtocol: WireProtocol.LocalFile,
+				apiFamily: ApiFamily.LocalStateStore,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.LocalOnly,
+				credentials: [
+					{
+						scope: SourceCredentialScope.LocalSecret,
+					},
+				],
+			},
+		],
+	},
+	{
+		provider: SourceProvider.ZcashLightwalletd,
+		label: 'Zcash lightwalletd',
+		sources: [
+			zcashLightwalletdGrpcSourceDefinition,
+		],
+		bindings: [
+			{
+				provider: SourceProvider.ZcashLightwalletd,
+				source: Source.ZcashLightwalletd_Grpc,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'zcash',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.TcpAddress,
+						locator: 'env:ZCASH_LIGHTWALLETD_GRPC_ENDPOINT',
+					},
+				],
+				wireProtocol: WireProtocol.Grpc,
+				apiFamily: ApiFamily.GrpcService,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.ServerOnly,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+				artifacts: [
+					{
+						kind: SourceArtifactKind.Proto,
+						path: 'src/sources/ZcashLightwalletd/Grpc/proto',
+						generated: false,
+					},
+					{
+						kind: SourceArtifactKind.GenerationManifest,
+						path: 'src/sources/ZcashLightwalletd/Grpc/schema-source.ts',
+						generated: false,
+					},
+				],
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Zcashd,
 		label: 'zcashd',
 		sources: [
-			{
-				provider: SourceProvider.Zcashd,
-				source: Source.Zcashd_JsonRpc,
-				label: 'zcashd JSON-RPC',
-			},
+			zcashdJsonRpcSourceDefinition,
+			zcashdWalletJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -6428,17 +8368,47 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					},
 				],
 			},
+			{
+				provider: SourceProvider.Zcashd,
+				source: Source.ZcashdWallet_JsonRpc,
+				target: {
+					kind: SourceTargetKind.LocalDevice,
+					key: 'wallet-rpc',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'http://127.0.0.1:8232',
+						origin: 'http://127.0.0.1:8232',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.JsonRpc2,
+				apiFamily: ApiFamily.JsonRpcApi,
+				operationGroups: [
+					SourceOperationGroup.WalletAccountRead,
+					SourceOperationGroup.WalletSign,
+				],
+				delivery: SourceDelivery.LocalOnly,
+				credentials: [
+					{
+						scope: SourceCredentialScope.LocalSecret,
+					},
+				],
+			},
+		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:8232',
+				corsEnabled: false,
+			},
 		],
 	},
 	{
 		provider: SourceProvider.ZcashZips,
 		label: 'Zcash ZIPs',
 		sources: [
-			{
-				provider: SourceProvider.ZcashZips,
-				source: Source.ZcashZips_Github,
-				label: 'Zcash ZIPs GitHub',
-			},
+			zcashZipsGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -6475,16 +8445,22 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'https://api.github.com',
+				corsEnabled: true,
+			},
+			{
+				origin: 'https://raw.githubusercontent.com',
+				corsEnabled: true,
+			},
+		],
 	},
 	{
 		provider: SourceProvider.Zebra,
 		label: 'Zebra',
 		sources: [
-			{
-				provider: SourceProvider.Zebra,
-				source: Source.Zebra_JsonRpc,
-				label: 'Zebra JSON-RPC',
-			},
+			zebraJsonRpcSourceDefinition,
 		],
 		bindings: [
 			{
@@ -6515,7 +8491,145 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				],
 			},
 		],
+		origins: [
+			{
+				origin: 'http://127.0.0.1:8232',
+				corsEnabled: false,
+			},
+		],
 	},
+	checkedInAcrossSourceProviderDefinition,
+	checkedInAlgodSourceProviderDefinition,
+	checkedInAlgorandIndexerSourceProviderDefinition,
+	checkedInAlgorandWalletSourceProviderDefinition,
+	checkedInAptosAip62SourceProviderDefinition,
+	checkedInAptosFullnodeSourceProviderDefinition,
+	checkedInAptosIndexerSourceProviderDefinition,
+	checkedInArweaveSourceProviderDefinition,
+	checkedInAvailSourceProviderDefinition,
+	checkedInAvailExplorerSourceProviderDefinition,
+	checkedInAvalancheInfoSourceProviderDefinition,
+	checkedInAvalanchePlatformVmSourceProviderDefinition,
+	checkedInAvascanSourceProviderDefinition,
+	checkedInAwsBedrockSourceProviderDefinition,
+	checkedInAxelarscanSourceProviderDefinition,
+	checkedInAzureAiFoundrySourceProviderDefinition,
+	checkedInBigDipperSourceProviderDefinition,
+	checkedInBinanceChainApiSourceProviderDefinition,
+	checkedInBinanceChainExplorerSourceProviderDefinition,
+	checkedInBithompSourceProviderDefinition,
+	checkedInBitTorrentSourceProviderDefinition,
+	checkedInBlockfrostSourceProviderDefinition,
+	checkedInBnbBeaconArchiveSourceProviderDefinition,
+	checkedInBnbChainFusionSourceProviderDefinition,
+	checkedInCardanoBlockfrostSourceProviderDefinition,
+	checkedInCardanoCip30SourceProviderDefinition,
+	checkedInCardanoDbSyncSourceProviderDefinition,
+	checkedInCardanoKoiosSourceProviderDefinition,
+	checkedInCardanoNodeSourceProviderDefinition,
+	checkedInCardanoscanSourceProviderDefinition,
+	checkedInCeleniumSourceProviderDefinition,
+	checkedInCelestiaSourceProviderDefinition,
+	checkedInChainlinkDataFeedsSourceProviderDefinition,
+	checkedInCodexNetworkPresetsSourceProviderDefinition,
+	checkedInCodexNodeSourceProviderDefinition,
+	checkedInCohereSourceProviderDefinition,
+	checkedInConseilSourceProviderDefinition,
+	checkedInCronosExplorerSourceProviderDefinition,
+	checkedInCycloneDxSourceProviderDefinition,
+	checkedInEnsMetadataServiceSourceProviderDefinition,
+	checkedInErigonSourceProviderDefinition,
+	checkedInEthForksSourceProviderDefinition,
+	checkedInFedimintClientSourceProviderDefinition,
+	checkedInFedimintGatewaydSourceProviderDefinition,
+	checkedInForgejoSourceProviderDefinition,
+	checkedInFreighterSourceProviderDefinition,
+	checkedInGitSourceProviderDefinition,
+	checkedInGithubSourceProviderDefinition,
+	checkedInGitlabSourceProviderDefinition,
+	checkedInGoogleAiSourceProviderDefinition,
+	checkedInHashConnectSourceProviderDefinition,
+	checkedInHederaMirrorNodeSourceProviderDefinition,
+	checkedInHederaSdkSourceProviderDefinition,
+	checkedInHederaWalletConnectSourceProviderDefinition,
+	checkedInHuggingFaceSourceProviderDefinition,
+	checkedInInternetComputerSourceProviderDefinition,
+	checkedInInternetIdentitySourceProviderDefinition,
+	checkedInKabilaSourceProviderDefinition,
+	checkedInKaspaExplorerSourceProviderDefinition,
+	checkedInKaspaNodeSourceProviderDefinition,
+	checkedInKaspaWalletCliSourceProviderDefinition,
+	checkedInKaspaWalletSdkSourceProviderDefinition,
+	checkedInKaswareWalletSourceProviderDefinition,
+	checkedInKeplrSourceProviderDefinition,
+	checkedInKoiosSourceProviderDefinition,
+	checkedInLayerZeroScanSourceProviderDefinition,
+	checkedInLeapSourceProviderDefinition,
+	checkedInLedgerFilecoinSourceProviderDefinition,
+	checkedInLibtorrentSessionSourceProviderDefinition,
+	checkedInLitecoinWalletRpcSourceProviderDefinition,
+	checkedInMagicSourceProviderDefinition,
+	checkedInMagnetUriSourceProviderDefinition,
+	checkedInMartianSourceProviderDefinition,
+	checkedInMetaplexDASSourceProviderDefinition,
+	checkedInMintscanSourceProviderDefinition,
+	checkedInMistralAiSourceProviderDefinition,
+	checkedInMlCommonsSourceProviderDefinition,
+	checkedInMlflowSourceProviderDefinition,
+	checkedInMoneroWalletRpcSourceProviderDefinition,
+	checkedInNearConnectSourceProviderDefinition,
+	checkedInNearWalletSelectorSourceProviderDefinition,
+	checkedInNfidSourceProviderDefinition,
+	checkedInNitroSourceProviderDefinition,
+	checkedInNodelySourceProviderDefinition,
+	checkedInOciRegistrySourceProviderDefinition,
+	checkedInOgmiosSourceProviderDefinition,
+	checkedInOneInchSwapSourceProviderDefinition,
+	checkedInOnnxSourceProviderDefinition,
+	checkedInOpenSeaSourceProviderDefinition,
+	checkedInOsmosisLCDSourceProviderDefinition,
+	checkedInParaswapSourceProviderDefinition,
+	checkedInPetraSourceProviderDefinition,
+	checkedInPlugWalletSourceProviderDefinition,
+	checkedInPolkadotInjectedWeb3SourceProviderDefinition,
+	checkedInPontemSourceProviderDefinition,
+	checkedInqBittorrentWebUiSourceProviderDefinition,
+	checkedInRadicleSourceProviderDefinition,
+	checkedInRadicleCliSourceProviderDefinition,
+	checkedInRadicleNodeSourceProviderDefinition,
+	checkedInReservoirSourceProviderDefinition,
+	checkedInRethSourceProviderDefinition,
+	checkedInSigstoreRekorSourceProviderDefinition,
+	checkedInSolanaMobileWalletAdapterSourceProviderDefinition,
+	checkedInSpdxSourceProviderDefinition,
+	checkedInStellarExpertSourceProviderDefinition,
+	checkedInStellarHorizonSourceProviderDefinition,
+	checkedInStellarRpcSourceProviderDefinition,
+	checkedInStellarTomlSourceProviderDefinition,
+	checkedInStoicWalletSourceProviderDefinition,
+	checkedInSuiSourceProviderDefinition,
+	checkedInTonApiSourceProviderDefinition,
+	checkedInTonCenterSourceProviderDefinition,
+	checkedInTonConnectSourceProviderDefinition,
+	checkedInTonlibSourceProviderDefinition,
+	checkedInTonLiteServerSourceProviderDefinition,
+	checkedInTonVerifierSourceProviderDefinition,
+	checkedInTransmissionSourceProviderDefinition,
+	checkedInTronLinkSourceProviderDefinition,
+	checkedInTronTip1193SourceProviderDefinition,
+	checkedInTronTip6963SourceProviderDefinition,
+	checkedInWakuNodeSourceProviderDefinition,
+	checkedInWalletConnectSourceProviderDefinition,
+	checkedInWalletStandardSourceProviderDefinition,
+	checkedInWebTorrentSourceProviderDefinition,
+	checkedInWormholescanSourceProviderDefinition,
+	checkedInX402SourceProviderDefinition,
+	checkedInXamanSourceProviderDefinition,
+	checkedInXmtpSourceProviderDefinition,
+	checkedInXrplSourceProviderDefinition,
+	checkedInXrplClioSourceProviderDefinition,
+	checkedInXrpScanSourceProviderDefinition,
+	checkedInZeroExSwapSourceProviderDefinition,
 ]
 
 export const sourceProviders = sourceProviderDefinitions

@@ -1,13 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum EvmNetworkActorCoinBalance_EvmBlockSelector {
-	EvmNetworkActorCoinBalanceEvmBlock = 'evmNetworkActorCoinBalanceEvmBlock',
-	ActorCoinBlock = '$actorCoin+$block',
+	EvmNetworkActorCoinBalanceEvmBlock = 'EvmNetworkActorCoinBalanceEvmBlock',
 }
 export default {
 	entityType: EntityType.EvmNetworkActorCoinBalance_EvmBlock,
@@ -24,32 +22,32 @@ export default {
 	],
 	fields: [
 		{
-			name: '$actorCoin',
-			label: 'actor coin',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetworkActorCoinBalance,
-			cardinality: EntityFieldCardinality.One,
+				name: '$actorCoin',
+				label: 'Actor coin',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmNetworkActorCoinBalance,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$block',
-			label: 'block',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmBlock,
-			cardinality: EntityFieldCardinality.One,
+				name: '$block',
+				label: 'Block',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmBlock,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'balance',
-			label: 'balance',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'balance',
+				label: 'Balance',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'usdValue',
-			label: 'usd value',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'usdValue',
+				label: 'USD value',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

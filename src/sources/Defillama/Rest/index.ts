@@ -1,16 +1,11 @@
-import { type as arktype } from 'arktype'
+// Generated from APP.ts. Do not edit by hand.
 
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const DefillamaRestSource = {
+export default {
 	provider: SourceProvider.Defillama,
 	source: Source.Defillama_Rest,
-	label: 'Defillama Rest',
-	env: arktype({
-		PUBLIC_DEFILLAMA_PRO_API_KEY: 'string > 0',
-	}),
+	label: 'Defillama REST',
 } satisfies SourceDefinition
-
-export default DefillamaRestSource

@@ -4,35 +4,39 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
-	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
 
 
 	// Context
+	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
 
 
 	// State
 	let {
+		data,
 		params,
 	}: PageProps = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import UtxoAddressView from '$/views/UtxoAddressView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>Address • Blockhead</title>
+	<title>UTXO address • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<UtxoAddressView
-		selection={select(EntityType.UtxoAddress, {
-			$network: { slug: params.networkSlug },
-			address: params.address,
-		})}
-		open={true}
+		href={
+			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
+				networkSlug: params.networkSlug,
+				address: params.address,
+			})
+		}
+		selection={select(EntityType.UtxoAddress, data.selector)}
 	/>
 </Page>

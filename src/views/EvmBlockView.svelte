@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -44,6 +43,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmBlock = $derived(selection({
 		sources: [
 			Source.Voltaire_JsonRpc,
@@ -51,23 +51,11 @@
 		fields: {
 			timestamp: true,
 			transactionCount: true,
-			...(open && {
-				parentHash: true,
-				$parent: true,
-				$miner: true,
-				gasUsed: true,
-				gasLimit: true,
-				baseFeePerGas: true,
-				blobGasUsed: true,
-				excessBlobGas: true,
-				$$transactions: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived((String((({ ...selection.entitySelector, ...prefetched }).blockNumber) ?? '') ? 'Block #' + String((({ ...selection.entitySelector, ...prefetched }).blockNumber) ?? '') : '') || [String((({ ...selection.entitySelector, ...prefetched }).hash) ?? '')].filter(Boolean).join(' ') || 'EVM block')
+	const titleFallback = $derived((String((prefetched.blockNumber) ?? '') ? 'Block #' + String((prefetched.blockNumber) ?? '') : '') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'EVM block')
 	const viewDomId = $derived('evm-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -80,22 +68,22 @@
 
 <EntityView
 	entityType={EntityType.EvmBlock}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(({ ...selection.entitySelector, ...prefetched }).blockNumber ?? '')}
+	idDragPlainText={String(prefetched.blockNumber ?? '')}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.reference)}`,
-			blockNumber: String(({ ...selection.entitySelector, ...prefetched }).blockNumber),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			blockNumber: String(pendingEntity.blockNumber ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).blockNumber}
+		{@const serialValue = prefetched.blockNumber}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Block </span>
@@ -104,18 +92,18 @@
 				</span>
 			</span>
 		{:else}
-			{[String((({ ...selection.entitySelector, ...prefetched }).hash) ?? '')].filter(Boolean).join(' ')}
+			{[String((prefetched.hash) ?? '')].filter(Boolean).join(' ')}
 		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).blockNumber}
+		{@const serialValue = prefetched.blockNumber}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
 			</span>
 		{:else}
-			{[String((({ ...selection.entitySelector, ...prefetched }).hash) ?? '')].filter(Boolean).join(' ')}
+			{[String((prefetched.hash) ?? '')].filter(Boolean).join(' ')}
 		{/if}
 	{/snippet}
 
@@ -130,27 +118,44 @@
 			<div>
 				<dt>Hash</dt>
 				<dd>
-					<ResourceBoundary resource={evmBlock}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									hash: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const hash = prefetched.hash ?? selection.entitySelector.hash}
+							{@const hash = prefetched.hash}
 							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String(hash)} />
+								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const hash = entity.hash ?? selection.entitySelector.hash ?? prefetched.hash}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const hash = resolvedEntity.hash}
 							{#if hash !== undefined && hash !== null}
-								<TruncatedValue value={String(hash)} />
+								<TruncatedValue value={String((hash) ?? '')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={evmBlock}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							transactionCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const transactionCount = prefetched.transactionCount ?? selection.entitySelector.transactionCount}
+					{@const transactionCount = prefetched.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>Transactions</dt>
@@ -162,7 +167,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const transactionCount = entity.transactionCount ?? selection.entitySelector.transactionCount ?? prefetched.transactionCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionCount = resolvedEntity.transactionCount}
 					{#if transactionCount !== undefined && transactionCount !== null}
 						<div>
 							<dt>Transactions</dt>
@@ -174,9 +180,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={evmBlock}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							timestamp: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const timestamp = prefetched.timestamp ?? selection.entitySelector.timestamp}
+					{@const timestamp = prefetched.timestamp}
 					{#if timestamp !== undefined && timestamp !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -188,7 +202,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const timestamp = entity.timestamp ?? selection.entitySelector.timestamp ?? prefetched.timestamp}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const timestamp = resolvedEntity.timestamp}
 					{#if timestamp !== undefined && timestamp !== null}
 						<div>
 							<dt>Timestamp</dt>
@@ -203,9 +218,17 @@
 
 		<dl data-column-item="center">
 			{#if contentOpen}
-				<ResourceBoundary resource={evmBlock}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								gasUsed: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const gasUsed = prefetched.gasUsed ?? selection.entitySelector.gasUsed}
+						{@const gasUsed = prefetched.gasUsed}
 						{#if gasUsed !== undefined && gasUsed !== null}
 							<div>
 								<dt>Gas used</dt>
@@ -217,7 +240,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const gasUsed = entity.gasUsed ?? selection.entitySelector.gasUsed ?? prefetched.gasUsed}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const gasUsed = resolvedEntity.gasUsed}
 						{#if gasUsed !== undefined && gasUsed !== null}
 							<div>
 								<dt>Gas used</dt>
@@ -231,9 +255,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmBlock}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								gasLimit: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const gasLimit = prefetched.gasLimit ?? selection.entitySelector.gasLimit}
+						{@const gasLimit = prefetched.gasLimit}
 						{#if gasLimit !== undefined && gasLimit !== null}
 							<div>
 								<dt>Gas limit</dt>
@@ -245,7 +277,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const gasLimit = entity.gasLimit ?? selection.entitySelector.gasLimit ?? prefetched.gasLimit}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const gasLimit = resolvedEntity.gasLimit}
 						{#if gasLimit !== undefined && gasLimit !== null}
 							<div>
 								<dt>Gas limit</dt>
@@ -259,9 +292,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmBlock}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								baseFeePerGas: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const baseFeePerGas = prefetched.baseFeePerGas ?? selection.entitySelector.baseFeePerGas}
+						{@const baseFeePerGas = prefetched.baseFeePerGas}
 						{#if baseFeePerGas !== undefined && baseFeePerGas !== null}
 							<div>
 								<dt>Base fee</dt>
@@ -273,7 +314,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const baseFeePerGas = entity.baseFeePerGas ?? selection.entitySelector.baseFeePerGas ?? prefetched.baseFeePerGas}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const baseFeePerGas = resolvedEntity.baseFeePerGas}
 						{#if baseFeePerGas !== undefined && baseFeePerGas !== null}
 							<div>
 								<dt>Base fee</dt>
@@ -287,9 +329,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmBlock}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								blobGasUsed: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const blobGasUsed = prefetched.blobGasUsed ?? selection.entitySelector.blobGasUsed}
+						{@const blobGasUsed = prefetched.blobGasUsed}
 						{#if blobGasUsed !== undefined && blobGasUsed !== null}
 							<div>
 								<dt>Blob gas used</dt>
@@ -301,7 +351,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const blobGasUsed = entity.blobGasUsed ?? selection.entitySelector.blobGasUsed ?? prefetched.blobGasUsed}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const blobGasUsed = resolvedEntity.blobGasUsed}
 						{#if blobGasUsed !== undefined && blobGasUsed !== null}
 							<div>
 								<dt>Blob gas used</dt>
@@ -315,9 +366,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmBlock}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								excessBlobGas: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const excessBlobGas = prefetched.excessBlobGas ?? selection.entitySelector.excessBlobGas}
+						{@const excessBlobGas = prefetched.excessBlobGas}
 						{#if excessBlobGas !== undefined && excessBlobGas !== null}
 							<div>
 								<dt>Excess blob gas</dt>
@@ -329,7 +388,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const excessBlobGas = entity.excessBlobGas ?? selection.entitySelector.excessBlobGas ?? prefetched.excessBlobGas}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const excessBlobGas = resolvedEntity.excessBlobGas}
 						{#if excessBlobGas !== undefined && excessBlobGas !== null}
 							<div>
 								<dt>Excess blob gas</dt>
@@ -349,18 +409,18 @@
 					resource={selection[EntityProxyField]<EntityType.EvmBlock, false>('$parent')}
 				>
 					{#snippet children(evmBlock)}
-						{#if evmBlock != null}
+						{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Parent block</dt>
 								<dd>
 									<EvmBlockView
-										selection={select(EntityType.EvmBlock, evmBlock.entitySelector)}
+										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 										prefetched={evmBlock}
 										href={
-											resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-												caip2: `${String(evmBlock.entitySelector.$network.caip2.namespace)}:${String(evmBlock.entitySelector.$network.caip2.reference)}`,
-												blockNumber: String(evmBlock.entitySelector.blockNumber),
-											})
+											(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+												caip2: `${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace ?? '')}:${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference ?? '')}`,
+												blockNumber: String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber ?? ''),
+											}) : undefined)
 										}
 										layout={EntityLayout.Title}
 										open={false}
@@ -377,17 +437,17 @@
 					resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$miner')}
 				>
 					{#snippet children(evmAccount)}
-						{#if evmAccount != null}
+						{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Miner / validator</dt>
 								<dd>
 									<EvmAccountView
-										selection={select(EntityType.EvmAccount, evmAccount.entitySelector)}
+										selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 										prefetched={evmAccount}
 										href={
-											resolve('/(explore)/account/[address=evmAddress]', {
-												address: String(evmAccount.entitySelector.address),
-											})
+											(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+												address: String(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address ?? ''),
+											}) : undefined)
 										}
 										layout={EntityLayout.Title}
 										open={false}

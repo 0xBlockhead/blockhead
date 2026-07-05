@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,12 @@
 		selection={
 			select(EntityType.XNetwork, {
 				scope: 'XNetwork',
-			})[EntityProxyField]<EntityType.XUser>('$$xUsers')
+			})[EntityProxyField]<EntityType.XUser>('$$xUsers', {
+				sources: [
+					Source.X_FxEmbed_Rest,
+				],
+			})
 		}
-		id='XUsersView-page'
+		id='x-users'
 	/>
 </Page>

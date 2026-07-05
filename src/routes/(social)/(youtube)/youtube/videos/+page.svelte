@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -18,19 +19,24 @@
 
 
 <svelte:head>
-	<title>YouTube videos • Blockhead</title>
+	<title>YouTube Videos • Blockhead</title>
 </svelte:head>
 
 
 <Page>
 	<YoutubeVideosView
 		href={resolve('/(social)/(youtube)/youtube/videos')}
-		title='YouTube videos'
+		title='YouTube Videos'
 		selection={
 			select(EntityType._GlobalYoutubeNetwork, {
 				scope: '_GlobalYoutubeNetwork',
-			})[EntityProxyField]<EntityType.YoutubeVideo>('$$sourceWindowVideos')
+			})[EntityProxyField]<EntityType.YoutubeVideo>('$$sourceWindowVideos', {
+				sources: [
+					Source.Constants_Internal,
+					Source.Youtube_Rest,
+				],
+			})
 		}
-		id='YoutubeVideosView-page'
+		id='source-window-videos'
 	/>
 </Page>

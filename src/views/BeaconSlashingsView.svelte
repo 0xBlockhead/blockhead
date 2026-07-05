@@ -21,7 +21,7 @@
 		selection,
 		title = 'Slashings',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Beacon slashings...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					indexInSlot: true,
 					kind: true,
 					slot: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconSlashing}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(beaconSlashings)}
 			{@const uniqueBeaconSlashings = [...new Map(beaconSlashings.values.map((beaconSlashing) => [beaconSlashing[EntityMetaKey.SelectorKey], beaconSlashing])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconSlashings.values.length === uniqueBeaconSlashings.length && beaconSlashings.totalCount != null && beaconSlashings.totalCount >= uniqueBeaconSlashings.length ? beaconSlashings.totalCount : uniqueBeaconSlashings.length}
+				totalCount={beaconSlashings.totalCount}
 				getKey={(beaconSlashing) => beaconSlashing[EntityMetaKey.SelectorKey]}
 				items={uniqueBeaconSlashings}
 			>
@@ -112,17 +100,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: beaconSlashing }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconSlashing> })}
+					{@const beaconSlashingFields = { ...beaconSlashing[EntityMetaKey.Selector], ...beaconSlashing }}
+					{@const beaconSlashingHrefFields = { ...beaconSlashing, ...beaconSlashing[EntityMetaKey.Selector] }}
 					<BeaconSlashingView
+						selection={select(EntityType.BeaconSlashing, beaconSlashing[EntityMetaKey.Selector])}
+						prefetched={beaconSlashingFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/slashing/[kind]/[index=nonNegativeInteger]', {
-								caip2: `${String(({ ...beaconSlashing.entitySelector, ...beaconSlashing }).caip2.namespace)}:${String(({ ...beaconSlashing.entitySelector, ...beaconSlashing }).caip2.reference)}`,
-								slot: String(({ ...beaconSlashing.entitySelector, ...beaconSlashing }).slot),
-								kind: String(({ ...beaconSlashing.entitySelector, ...beaconSlashing }).kind),
-								index: String(({ ...beaconSlashing.entitySelector, ...beaconSlashing }).indexInSlot),
-							})
+							(beaconSlashingHrefFields.$network !== undefined && beaconSlashingHrefFields.$network.caip2 !== undefined && beaconSlashingHrefFields.$network.caip2.namespace !== undefined && beaconSlashingHrefFields.$network !== undefined && beaconSlashingHrefFields.$network.caip2 !== undefined && beaconSlashingHrefFields.$network.caip2.reference !== undefined && beaconSlashingHrefFields.slot !== undefined && beaconSlashingHrefFields.kind !== undefined && beaconSlashingHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/slashing/[kind]/[index=nonNegativeInteger]', {
+								caip2: `${String(beaconSlashingHrefFields.$network.caip2.namespace ?? '')}:${String(beaconSlashingHrefFields.$network.caip2.reference ?? '')}`,
+								slot: String(beaconSlashingHrefFields.slot ?? ''),
+								kind: String(beaconSlashingHrefFields.kind ?? ''),
+								index: String(beaconSlashingHrefFields.indexInSlot ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BeaconSlashing, beaconSlashing.entitySelector)}
-						prefetched={beaconSlashing}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

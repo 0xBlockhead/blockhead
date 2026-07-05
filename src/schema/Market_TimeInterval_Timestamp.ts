@@ -105,12 +105,6 @@ export default {
 				],
 		},
 		{
-				name: 'volume',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('bigint'),
-				cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 				name: 'quoteVolume',
 				label: 'Quote volume',
 				description: 'Quote-leg candle volume, scaled by 1e8 like quote prices.',
@@ -121,19 +115,6 @@ export default {
 					Source.Coinpaprika_OpenApi,
 					Source.CoinMarketCap_Rest,
 				],
-		},
-		{
-				name: 'tradeCount',
-				label: 'Trade count',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('number'),
-				cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-				name: 'vwap',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('bigint'),
-				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -71,7 +71,6 @@ const topLevelMarkdownFiles = readdirSync(rootPath)
 	.map((fileName) => join(rootPath, fileName))
 const sourceRegistryEnumNames = [
 	'Source',
-	'SourceBinding',
 	'SourceProvider',
 ] as const
 
@@ -79,7 +78,6 @@ describe('client resolver architecture', () => {
 	it('keeps top-level markdown enum references aligned with source registries', () => {
 		const enumValuesByName = {
 			Source: new Set(Object.keys(Source)),
-			SourceBinding: new Set(Object.keys(Source)),
 			SourceProvider: new Set(Object.keys(SourceProvider)),
 		} as const
 

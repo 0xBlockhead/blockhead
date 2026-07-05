@@ -18,6 +18,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
 import { FarcasterUser_TimestampSelector } from '$/schema/FarcasterUser_Timestamp.ts'
+import { FarcasterVerifiedAddressSelector } from '$/schema/FarcasterVerifiedAddress.ts'
 import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
 import { FarcasterCast_TimestampSelector } from '$/schema/FarcasterCast_Timestamp.ts'
 import { BlockheadFarcasterAccountConnectionSelector } from '$/schema/BlockheadFarcasterAccountConnection.ts'
@@ -179,9 +180,9 @@ export default {
 					return userFields
 				}
 			},
-		})({
-			fields: {
-				username: (user) => user.username,
+			})({
+				fields: {
+					username: (user) => user.username,
 				displayName: (user) => user.displayName,
 				iconUrl: (user) => user.iconUrl,
 				$icon: (user) => user.$icon,
@@ -189,11 +190,90 @@ export default {
 				url: (user) => user.url,
 				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
 				$$verifiedAddresses: (user) => user.$$verifiedAddresses ?? [],
-			},
-		}),
+				},
+			}),
 
-		defineResolver(Source.Snapchain_Rest, {
-			entityType: EntityType.FarcasterUser_Timestamp,
+			defineResolver(Source.Snapchain_Rest, {
+				entityType: EntityType.FarcasterVerifiedAddress,
+				resolve: {
+					[FarcasterVerifiedAddressSelector.FidProtocolAddress]: async (verifiedAddress) => {
+						type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
+						const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+						const { verifications } = await getUserBundleByFid({
+							fid: verifiedAddress.fid,
+						})
+						const verified = (
+							(verifications.messages ?? [])
+								.some((message: SnapVerify) => {
+									const body = message.data?.verificationAddAddressBody
+									const protocol = (
+										body?.protocol === 'PROTOCOL_ETHEREUM' ?
+											'ethereum' as const
+										:
+											body?.protocol === 'PROTOCOL_SOLANA' ?
+												'solana' as const
+											:
+												undefined
+									)
+									const address = optionalNonemptyString(body?.address)
+									return (
+										protocol === verifiedAddress.protocol
+										&& (
+											protocol === 'ethereum' ?
+												address != null && EvmAddress.assert(address) === EvmAddress.assert(verifiedAddress.address)
+											:
+												address === verifiedAddress.address
+										)
+									)
+								})
+						)
+						if (!verified) throw new Error('Snapchain_Rest: verified address not found')
+
+						return {
+							fid: verifiedAddress.fid,
+							protocol: verifiedAddress.protocol,
+							address: verifiedAddress.protocol === 'ethereum' ? EvmAddress.assert(verifiedAddress.address) : verifiedAddress.address,
+							$user: {
+								[EntityMetaKey.Selector]: {
+									fid: verifiedAddress.fid,
+								},
+							},
+							...(verifiedAddress.protocol === 'ethereum' && {
+								$evmAccount: {
+									[EntityMetaKey.Selector]: {
+										address: EvmAddress.assert(verifiedAddress.address),
+									},
+								},
+							}),
+							...(verifiedAddress.protocol === 'solana' && {
+								$solanaAccount: {
+									[EntityMetaKey.Selector]: {
+										$network: {
+											caip2: {
+												namespace: 'solana',
+												reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+											},
+										},
+										pubkey: verifiedAddress.address,
+									},
+								},
+							}),
+						}
+					},
+				},
+			})({
+				fields: {
+					fid: (verifiedAddress) => verifiedAddress.fid,
+					protocol: (verifiedAddress) => verifiedAddress.protocol,
+					address: (verifiedAddress) => verifiedAddress.address,
+					$user: (verifiedAddress) => verifiedAddress.$user,
+					$evmAccount: (verifiedAddress) => verifiedAddress.$evmAccount,
+					$solanaAccount: (verifiedAddress) => verifiedAddress.$solanaAccount,
+				},
+			}),
+
+			defineResolver(Source.Snapchain_Rest, {
+				entityType: EntityType.FarcasterUser_Timestamp,
 			resolve: {
 				[FarcasterUser_TimestampSelector.FarcasterUserTimestampMs]: async ({ $user }) => {
 					const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')

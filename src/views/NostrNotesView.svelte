@@ -12,12 +12,16 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'Nostr notes',
 		typeAnnotationParagraphs = ['A Nostr text note is a kind-1 event addressed by event id; author, reply, root, reaction, and relay facets remain separate fields.'],
-		placeholderText = 'Loading Nostr notes...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,9 +51,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NostrNoteView from '$/views/NostrNoteView.svelte'
 </script>
 
 
@@ -62,7 +65,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Constants_Internal,
 				],
@@ -71,23 +74,10 @@
 					eventId: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrNote}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(nostrNotes)}
 			{@const uniqueNostrNotes = [...new Map(nostrNotes.values.map((nostrNote) => [nostrNote[EntityMetaKey.SelectorKey], nostrNote])).values()]}
 			<EntitiesList
@@ -99,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrNotes.values.length === uniqueNostrNotes.length && nostrNotes.totalCount != null && nostrNotes.totalCount >= uniqueNostrNotes.length ? nostrNotes.totalCount : uniqueNostrNotes.length}
+				totalCount={nostrNotes.totalCount}
 				getKey={(nostrNote) => nostrNote[EntityMetaKey.SelectorKey]}
 				items={uniqueNostrNotes}
 			>
@@ -112,28 +102,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: nostrNote }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrNote> })}
-					<EntityView
-						entityType={EntityType.NostrNote}
-						entitySelector={nostrNote.entitySelector}
+					{@const nostrNoteFields = { ...nostrNote[EntityMetaKey.Selector], ...nostrNote }}
+					<NostrNoteView
+						selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
+						prefetched={nostrNoteFields}
 						layout={EntityLayout.Summary}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const content0 = ({ ...nostrNote.entitySelector, ...nostrNote }).content}
-							<span data-text="long-text">{String((content0) ?? '')}</span>
-							{@const eventId1 = ({ ...nostrNote.entitySelector, ...nostrNote }).eventId}
-							<TruncatedValue value={String(eventId1)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const createdAtAfter0 = ({ ...nostrNote.entitySelector, ...nostrNote }).createdAt}
-							{#if createdAtAfter0 != null}
-								<span data-text="muted">
-									<Timestamp timestamp={Number(createdAtAfter0)} />
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

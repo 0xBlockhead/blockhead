@@ -21,7 +21,7 @@
 		selection,
 		title = 'Messages',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos messages...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					indexInTransaction: true,
 					typeUrl: true,
+					$transaction: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosMessage}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosMessages)}
 			{@const uniqueCosmosMessages = [...new Map(cosmosMessages.values.map((cosmosMessage) => [cosmosMessage[EntityMetaKey.SelectorKey], cosmosMessage])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosMessages.values.length === uniqueCosmosMessages.length && cosmosMessages.totalCount != null && cosmosMessages.totalCount >= uniqueCosmosMessages.length ? cosmosMessages.totalCount : uniqueCosmosMessages.length}
+				totalCount={cosmosMessages.totalCount}
 				getKey={(cosmosMessage) => cosmosMessage[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosMessages}
 			>
@@ -111,16 +99,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosMessage> })}
+					{@const cosmosMessageFields = { ...cosmosMessage[EntityMetaKey.Selector], ...cosmosMessage }}
+					{@const cosmosMessageHrefFields = { ...cosmosMessage, ...cosmosMessage[EntityMetaKey.Selector] }}
 					<CosmosMessageView
+						selection={select(EntityType.CosmosMessage, cosmosMessage[EntityMetaKey.Selector])}
+						prefetched={cosmosMessageFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]/messages/[messageIndex=nonNegativeInteger]', {
-								caip2: `${String(({ ...cosmosMessage.entitySelector, ...cosmosMessage }).$transaction.$network.caip2.namespace)}:${String(({ ...cosmosMessage.entitySelector, ...cosmosMessage }).$transaction.$network.caip2.reference)}`,
-								txHash: String(({ ...cosmosMessage.entitySelector, ...cosmosMessage }).$transaction.txHash),
-								messageIndex: String(({ ...cosmosMessage.entitySelector, ...cosmosMessage }).indexInTransaction),
-							})
+							(cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.$network !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2 !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2.namespace !== undefined && cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.$network !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2 !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2.reference !== undefined && cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.txHash !== undefined && cosmosMessageHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]/messages/[messageIndex=nonNegativeInteger]', {
+								caip2: `${String(cosmosMessageHrefFields.$transaction.$network.caip2.namespace ?? '')}:${String(cosmosMessageHrefFields.$transaction.$network.caip2.reference ?? '')}`,
+								txHash: String(cosmosMessageHrefFields.$transaction.txHash ?? ''),
+								messageIndex: String(cosmosMessageHrefFields.indexInTransaction ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosMessage, cosmosMessage.entitySelector)}
-						prefetched={cosmosMessage}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

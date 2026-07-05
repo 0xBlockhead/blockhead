@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Network snapshots',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Solana network observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +66,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					source: true,
 					absoluteSlot: true,
 					blockHeight: true,
 					health: true,
+					$network: true,
+					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(solanaNetworkTimestamps)}
 			{@const uniqueSolanaNetworkTimestamps = [...new Map(solanaNetworkTimestamps.values.map((solanaNetworkTimestamp) => [solanaNetworkTimestamp[EntityMetaKey.SelectorKey], solanaNetworkTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +90,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaNetworkTimestamps.values.length === uniqueSolanaNetworkTimestamps.length && solanaNetworkTimestamps.totalCount != null && solanaNetworkTimestamps.totalCount >= uniqueSolanaNetworkTimestamps.length ? solanaNetworkTimestamps.totalCount : uniqueSolanaNetworkTimestamps.length}
+				totalCount={solanaNetworkTimestamps.totalCount}
 				getKey={(solanaNetworkTimestamp) => solanaNetworkTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueSolanaNetworkTimestamps}
 			>
@@ -113,16 +103,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: solanaNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaNetwork_Timestamp> })}
+					{@const solanaNetworkTimestampFields = { ...solanaNetworkTimestamp[EntityMetaKey.Selector], ...solanaNetworkTimestamp }}
+					{@const solanaNetworkTimestampHrefFields = { ...solanaNetworkTimestamp, ...solanaNetworkTimestamp[EntityMetaKey.Selector] }}
 					<SolanaNetwork_TimestampView
+						selection={select(EntityType.SolanaNetwork_Timestamp, solanaNetworkTimestamp[EntityMetaKey.Selector])}
+						prefetched={solanaNetworkTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								networkSlug: String(({ ...solanaNetworkTimestamp.entitySelector, ...solanaNetworkTimestamp }).$network.slug),
-								timestampMs: String(({ ...solanaNetworkTimestamp.entitySelector, ...solanaNetworkTimestamp }).timestampMs),
-								source: String(({ ...solanaNetworkTimestamp.entitySelector, ...solanaNetworkTimestamp }).source),
-							})
+							(solanaNetworkTimestampHrefFields.$network !== undefined && solanaNetworkTimestampHrefFields.$network.caip2 !== undefined && solanaNetworkTimestampHrefFields.$network.caip2.namespace !== undefined && solanaNetworkTimestampHrefFields.$network !== undefined && solanaNetworkTimestampHrefFields.$network.caip2 !== undefined && solanaNetworkTimestampHrefFields.$network.caip2.reference !== undefined && solanaNetworkTimestampHrefFields.timestampMs !== undefined && solanaNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								networkSlug: String(networkByCaip2[String(String(solanaNetworkTimestampHrefFields.$network.caip2.namespace) + ':' + String(solanaNetworkTimestampHrefFields.$network.caip2.reference))].slug ?? ''),
+								timestampMs: String(solanaNetworkTimestampHrefFields.timestampMs ?? ''),
+								source: String(solanaNetworkTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.SolanaNetwork_Timestamp, solanaNetworkTimestamp.entitySelector)}
-						prefetched={solanaNetworkTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

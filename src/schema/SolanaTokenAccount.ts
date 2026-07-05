@@ -70,5 +70,12 @@ export default {
 				entityType: EntityType.SolanaAccount,
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
+		{
+				name: '$$timestamps',
+				label: 'Observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.SolanaTokenAccount_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+		},
 	],
 } as const satisfies EntityDefinition

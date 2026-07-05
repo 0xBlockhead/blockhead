@@ -15,6 +15,7 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
+import { FarcasterVerifiedAddressSelector } from '$/schema/FarcasterVerifiedAddress.ts'
 import { BlockheadFarcasterAccountConnectionSelector } from '$/schema/BlockheadFarcasterAccountConnection.ts'
 import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
 import { FarcasterFeedSelector } from '$/schema/FarcasterFeed.ts'
@@ -161,20 +162,104 @@ export default {
 					}
 				}
 			},
-		})({
-			fields: {
-				username: (user) => user.username,
+			})({
+				fields: {
+					username: (user) => user.username,
 				displayName: (user) => user.displayName,
 				iconUrl: (user) => user.iconUrl,
 				$icon: (user) => user.$icon,
 				bio: (user) => user.bio,
 				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
 				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
-			},
-		}),
+				},
+			}),
 
-		defineResolver(Source.Neynar_Rest, {
-			entityType: EntityType.BlockheadFarcasterAccountConnection,
+			defineResolver(Source.Neynar_Rest, {
+				entityType: EntityType.FarcasterVerifiedAddress,
+				resolve: {
+					[FarcasterVerifiedAddressSelector.FidProtocolAddress]: async (verifiedAddress, context) => {
+						const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
+						const bulkUsers = await getBulkUsers({
+							publicEnv: context.publicEnv,
+							fids: [verifiedAddress.fid],
+						})
+						const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === verifiedAddress.fid)
+						if (user == null) throw new Error('Neynar_Rest: user not found')
+						const ethAddresses = (
+							[
+								...(user.verified_addresses?.primary?.eth_address != null ?
+									[user.verified_addresses.primary.eth_address]
+								:
+									[]),
+								...(user.verified_addresses?.eth_addresses ?? []),
+							]
+								.map(optionalNonemptyString)
+								.filter((address): address is string => address != null)
+						)
+						const solAddresses = (
+							[
+								...(user.verified_addresses?.primary?.sol_address != null ?
+									[user.verified_addresses.primary.sol_address]
+								:
+									[]),
+								...(user.verified_addresses?.sol_addresses ?? []),
+							]
+								.map(optionalNonemptyString)
+								.filter((address): address is string => address != null)
+						)
+						const verified = (
+							verifiedAddress.protocol === 'ethereum' ?
+								ethAddresses.some((address) => EvmAddress.assert(address) === EvmAddress.assert(verifiedAddress.address))
+							:
+								solAddresses.includes(verifiedAddress.address)
+						)
+						if (!verified) throw new Error('Neynar_Rest: verified address not found')
+
+						return {
+							fid: verifiedAddress.fid,
+							protocol: verifiedAddress.protocol,
+							address: verifiedAddress.protocol === 'ethereum' ? EvmAddress.assert(verifiedAddress.address) : verifiedAddress.address,
+							$user: {
+								[EntityMetaKey.Selector]: {
+									fid: verifiedAddress.fid,
+								},
+							},
+							...(verifiedAddress.protocol === 'ethereum' && {
+								$evmAccount: {
+									[EntityMetaKey.Selector]: {
+										address: EvmAddress.assert(verifiedAddress.address),
+									},
+								},
+							}),
+							...(verifiedAddress.protocol === 'solana' && {
+								$solanaAccount: {
+									[EntityMetaKey.Selector]: {
+										$network: {
+											caip2: {
+												namespace: 'solana',
+												reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+											},
+										},
+										pubkey: verifiedAddress.address,
+									},
+								},
+							}),
+						}
+					},
+				},
+			})({
+				fields: {
+					fid: (verifiedAddress) => verifiedAddress.fid,
+					protocol: (verifiedAddress) => verifiedAddress.protocol,
+					address: (verifiedAddress) => verifiedAddress.address,
+					$user: (verifiedAddress) => verifiedAddress.$user,
+					$evmAccount: (verifiedAddress) => verifiedAddress.$evmAccount,
+					$solanaAccount: (verifiedAddress) => verifiedAddress.$solanaAccount,
+				},
+			}),
+
+			defineResolver(Source.Neynar_Rest, {
+				entityType: EntityType.BlockheadFarcasterAccountConnection,
 			resolve: {
 				[BlockheadFarcasterAccountConnectionSelector.Fid]: async ({ fid }, context) => {
 					const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')

@@ -1,38 +1,11 @@
-import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import {
-	heliusBindings,
-	heliusPublicEnv,
-} from '$/sources/Helius/bindings.ts'
+// Generated from APP.ts. Do not edit by hand.
 
-export const heliusOrigins = [
-	...new Map(
-		heliusBindings
-			.flatMap((binding) => binding.endpoints)
-			.map((endpoint) => [
-				endpoint.origin,
-				{
-					origin: endpoint.origin,
-					corsEnabled: endpoint.corsEnabled,
-				},
-			])
-	).values(),
-]
+import type { SourceDefinition } from '$/sources/index.ts'
+import { Source } from '$/sources/Source.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.Helius,
-	label: 'Helius',
-	env: heliusPublicEnv,
-	sources: [
-		{
-			provider: SourceProvider.Helius,
-			source: Source.Helius_Rest,
-			label: 'Helius REST',
-			env: heliusPublicEnv,
-		},
-	],
-	bindings: heliusBindings,
-} satisfies SourceProviderDefinition
+	source: Source.Helius_Rest,
+	label: 'Helius REST',
+} satisfies SourceDefinition

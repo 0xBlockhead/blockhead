@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.UtxoNetwork_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					bestBlockHeight: true,
 					bestBlockHash: true,

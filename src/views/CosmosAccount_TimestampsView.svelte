@@ -21,7 +21,7 @@
 		selection,
 		title = 'Account snapshots',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos account observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					source: true,
 					accountNumber: true,
 					sequence: true,
 					timestampMs: true,
+					$account: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosAccountTimestamps)}
 			{@const uniqueCosmosAccountTimestamps = [...new Map(cosmosAccountTimestamps.values.map((cosmosAccountTimestamp) => [cosmosAccountTimestamp[EntityMetaKey.SelectorKey], cosmosAccountTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosAccountTimestamps.values.length === uniqueCosmosAccountTimestamps.length && cosmosAccountTimestamps.totalCount != null && cosmosAccountTimestamps.totalCount >= uniqueCosmosAccountTimestamps.length ? cosmosAccountTimestamps.totalCount : uniqueCosmosAccountTimestamps.length}
+				totalCount={cosmosAccountTimestamps.totalCount}
 				getKey={(cosmosAccountTimestamp) => cosmosAccountTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosAccountTimestamps}
 			>
@@ -113,17 +101,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosAccount_Timestamp> })}
+					{@const cosmosAccountTimestampFields = { ...cosmosAccountTimestamp[EntityMetaKey.Selector], ...cosmosAccountTimestamp }}
+					{@const cosmosAccountTimestampHrefFields = { ...cosmosAccountTimestamp, ...cosmosAccountTimestamp[EntityMetaKey.Selector] }}
 					<CosmosAccount_TimestampView
+						selection={select(EntityType.CosmosAccount_Timestamp, cosmosAccountTimestamp[EntityMetaKey.Selector])}
+						prefetched={cosmosAccountTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...cosmosAccountTimestamp.entitySelector, ...cosmosAccountTimestamp }).$account.$network.caip2.namespace)}:${String(({ ...cosmosAccountTimestamp.entitySelector, ...cosmosAccountTimestamp }).$account.$network.caip2.reference)}`,
-								address: String(({ ...cosmosAccountTimestamp.entitySelector, ...cosmosAccountTimestamp }).$account.address),
-								timestampMs: String(({ ...cosmosAccountTimestamp.entitySelector, ...cosmosAccountTimestamp }).timestampMs),
-								source: String(({ ...cosmosAccountTimestamp.entitySelector, ...cosmosAccountTimestamp }).source),
-							})
+							(cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.$network !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2 !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2.namespace !== undefined && cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.$network !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2 !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2.reference !== undefined && cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.address !== undefined && cosmosAccountTimestampHrefFields.timestampMs !== undefined && cosmosAccountTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(cosmosAccountTimestampHrefFields.$account.$network.caip2.namespace ?? '')}:${String(cosmosAccountTimestampHrefFields.$account.$network.caip2.reference ?? '')}`,
+								address: String(cosmosAccountTimestampHrefFields.$account.address ?? ''),
+								timestampMs: String(cosmosAccountTimestampHrefFields.timestampMs ?? ''),
+								source: String(cosmosAccountTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosAccount_Timestamp, cosmosAccountTimestamp.entitySelector)}
-						prefetched={cosmosAccountTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

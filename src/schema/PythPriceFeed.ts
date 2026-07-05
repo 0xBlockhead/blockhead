@@ -1,17 +1,17 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { type } from 'arktype'
+
 export enum PythPriceFeedSelector {
-	PriceFeedIdChannel = 'priceFeedId+channel',
+	PriceFeedIdChannel = 'PriceFeedIdChannel',
 }
 export default {
 	entityType: EntityType.PythPriceFeed,
-	label: 'pyth price feed',
-	labelPlural: 'pyth price feeds',
+	label: 'Pyth price feed',
+	labelPlural: 'Pyth price feeds',
 	selectors: [
 		{
 			name: PythPriceFeedSelector.PriceFeedIdChannel,
@@ -23,61 +23,61 @@ export default {
 	],
 	fields: [
 		{
-			name: 'priceFeedId',
-			label: 'price feed ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'priceFeedId',
+				label: 'Price feed ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: (ZeroExHex),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'channel',
-			label: 'channel',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'channel',
+				label: 'Channel',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'symbol',
-			label: 'Symbol',
-			description: 'The short ticker or symbol used for display.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'symbol',
+				label: 'Symbol',
+				description: 'The short ticker or symbol used for display.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'assetClass',
-			label: 'asset class',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'assetClass',
+				label: 'Asset class',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'baseAsset',
-			label: 'base asset',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'baseAsset',
+				label: 'Base asset',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'quoteAsset',
-			label: 'quote asset',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'quoteAsset',
+				label: 'Quote asset',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$market',
-			label: 'market',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Market,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$market',
+				label: 'Market',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Market,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.PythPriceFeed_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'Timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PythPriceFeed_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

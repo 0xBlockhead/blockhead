@@ -3,6 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -12,12 +13,16 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
-		title = 'YouTube videos',
+		title = 'YouTube Videos',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading YouTube videos...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,9 +52,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import YoutubeVideoView from '$/views/YoutubeVideoView.svelte'
 </script>
 
 
@@ -62,7 +66,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Constants_Internal,
 				],
@@ -71,23 +75,10 @@
 					videoId: true,
 					publishedAtMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.YoutubeVideo}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(youtubeVideos)}
 			{@const uniqueYoutubeVideos = [...new Map(youtubeVideos.values.map((youtubeVideo) => [youtubeVideo[EntityMetaKey.SelectorKey], youtubeVideo])).values()]}
 			<EntitiesList
@@ -99,7 +90,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={youtubeVideos.values.length === uniqueYoutubeVideos.length && youtubeVideos.totalCount != null && youtubeVideos.totalCount >= uniqueYoutubeVideos.length ? youtubeVideos.totalCount : uniqueYoutubeVideos.length}
+				totalCount={youtubeVideos.totalCount}
 				getKey={(youtubeVideo) => youtubeVideo[EntityMetaKey.SelectorKey]}
 				items={uniqueYoutubeVideos}
 			>
@@ -107,33 +98,24 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No YouTube videos yet.</p>
+						<p data-text="muted">No YouTube Videos yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: youtubeVideo }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubeVideo> })}
-					<EntityView
-						entityType={EntityType.YoutubeVideo}
-						entitySelector={youtubeVideo.entitySelector}
-						layout={EntityLayout.Summary}
+					{@const youtubeVideoFields = { ...youtubeVideo[EntityMetaKey.Selector], ...youtubeVideo }}
+					{@const youtubeVideoHrefFields = { ...youtubeVideo, ...youtubeVideo[EntityMetaKey.Selector] }}
+					<YoutubeVideoView
+						selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector])}
+						prefetched={youtubeVideoFields}
+						href={
+							(youtubeVideoHrefFields.videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {
+								videoId: encodeURIComponent(String(youtubeVideoHrefFields.videoId ?? '')),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const title0 = ({ ...youtubeVideo.entitySelector, ...youtubeVideo }).title}
-							{String((title0) ?? '')}
-							{@const videoId1 = ({ ...youtubeVideo.entitySelector, ...youtubeVideo }).videoId}
-							<TruncatedValue value={String(videoId1)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const publishedAtMsAfter0 = ({ ...youtubeVideo.entitySelector, ...youtubeVideo }).publishedAtMs}
-							{#if publishedAtMsAfter0 != null}
-								<span data-text="muted">
-									<Timestamp timestamp={Number(publishedAtMsAfter0)} />
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

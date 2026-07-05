@@ -21,7 +21,7 @@
 		selection,
 		title = 'ERC-4337 smart account observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ERC-4337 smart account observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					timestampMs: true,
 					userOperationsCount: true,
 					source: true,
+					$account: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337SmartAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(erc4337SmartAccountTimestamps)}
 			{@const uniqueErc4337SmartAccountTimestamps = [...new Map(erc4337SmartAccountTimestamps.values.map((erc4337SmartAccountTimestamp) => [erc4337SmartAccountTimestamp[EntityMetaKey.SelectorKey], erc4337SmartAccountTimestamp])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4337SmartAccountTimestamps.values.length === uniqueErc4337SmartAccountTimestamps.length && erc4337SmartAccountTimestamps.totalCount != null && erc4337SmartAccountTimestamps.totalCount >= uniqueErc4337SmartAccountTimestamps.length ? erc4337SmartAccountTimestamps.totalCount : uniqueErc4337SmartAccountTimestamps.length}
+				totalCount={erc4337SmartAccountTimestamps.totalCount}
 				getKey={(erc4337SmartAccountTimestamp) => erc4337SmartAccountTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueErc4337SmartAccountTimestamps}
 			>
@@ -112,17 +100,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: erc4337SmartAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337SmartAccount_Timestamp> })}
+					{@const erc4337SmartAccountTimestampFields = { ...erc4337SmartAccountTimestamp[EntityMetaKey.Selector], ...erc4337SmartAccountTimestamp }}
+					{@const erc4337SmartAccountTimestampHrefFields = { ...erc4337SmartAccountTimestamp, ...erc4337SmartAccountTimestamp[EntityMetaKey.Selector] }}
 					<Erc4337SmartAccount_TimestampView
+						selection={select(EntityType.Erc4337SmartAccount_Timestamp, erc4337SmartAccountTimestamp[EntityMetaKey.Selector])}
+						prefetched={erc4337SmartAccountTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...erc4337SmartAccountTimestamp.entitySelector, ...erc4337SmartAccountTimestamp }).$account.$network.caip2.namespace)}:${String(({ ...erc4337SmartAccountTimestamp.entitySelector, ...erc4337SmartAccountTimestamp }).$account.$network.caip2.reference)}`,
-								address: String(({ ...erc4337SmartAccountTimestamp.entitySelector, ...erc4337SmartAccountTimestamp }).$account.address),
-								timestampMs: String(({ ...erc4337SmartAccountTimestamp.entitySelector, ...erc4337SmartAccountTimestamp }).timestampMs),
-								source: String(({ ...erc4337SmartAccountTimestamp.entitySelector, ...erc4337SmartAccountTimestamp }).source),
-							})
+							(erc4337SmartAccountTimestampHrefFields.$account !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network.caip2 !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network.caip2.namespace !== undefined && erc4337SmartAccountTimestampHrefFields.$account !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network.caip2 !== undefined && erc4337SmartAccountTimestampHrefFields.$account.$network.caip2.reference !== undefined && erc4337SmartAccountTimestampHrefFields.$account !== undefined && erc4337SmartAccountTimestampHrefFields.$account.address !== undefined && erc4337SmartAccountTimestampHrefFields.timestampMs !== undefined && erc4337SmartAccountTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-account/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(erc4337SmartAccountTimestampHrefFields.$account.$network.caip2.namespace ?? '')}:${String(erc4337SmartAccountTimestampHrefFields.$account.$network.caip2.reference ?? '')}`,
+								address: String(erc4337SmartAccountTimestampHrefFields.$account.address ?? ''),
+								timestampMs: String(erc4337SmartAccountTimestampHrefFields.timestampMs ?? ''),
+								source: String(erc4337SmartAccountTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Erc4337SmartAccount_Timestamp, erc4337SmartAccountTimestamp.entitySelector)}
-						prefetched={erc4337SmartAccountTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

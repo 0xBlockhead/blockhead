@@ -21,7 +21,7 @@
 		selection,
 		title = 'Transactions',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos transactions...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					txHash: true,
 					code: true,
 					gasUsed: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosTransaction}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosTransactions)}
 			{@const uniqueCosmosTransactions = [...new Map(cosmosTransactions.values.map((cosmosTransaction) => [cosmosTransaction[EntityMetaKey.SelectorKey], cosmosTransaction])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosTransactions.values.length === uniqueCosmosTransactions.length && cosmosTransactions.totalCount != null && cosmosTransactions.totalCount >= uniqueCosmosTransactions.length ? cosmosTransactions.totalCount : uniqueCosmosTransactions.length}
+				totalCount={cosmosTransactions.totalCount}
 				getKey={(cosmosTransaction) => cosmosTransaction[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosTransactions}
 			>
@@ -112,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosTransaction> })}
+					{@const cosmosTransactionFields = { ...cosmosTransaction[EntityMetaKey.Selector], ...cosmosTransaction }}
+					{@const cosmosTransactionHrefFields = { ...cosmosTransaction, ...cosmosTransaction[EntityMetaKey.Selector] }}
 					<CosmosTransactionView
+						selection={select(EntityType.CosmosTransaction, cosmosTransaction[EntityMetaKey.Selector])}
+						prefetched={cosmosTransactionFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]', {
-								caip2: `${String(({ ...cosmosTransaction.entitySelector, ...cosmosTransaction }).$network.caip2.namespace)}:${String(({ ...cosmosTransaction.entitySelector, ...cosmosTransaction }).$network.caip2.reference)}`,
-								txHash: String(({ ...cosmosTransaction.entitySelector, ...cosmosTransaction }).txHash),
-							})
+							(cosmosTransactionHrefFields.$network !== undefined && cosmosTransactionHrefFields.$network.caip2 !== undefined && cosmosTransactionHrefFields.$network.caip2.namespace !== undefined && cosmosTransactionHrefFields.$network !== undefined && cosmosTransactionHrefFields.$network.caip2 !== undefined && cosmosTransactionHrefFields.$network.caip2.reference !== undefined && cosmosTransactionHrefFields.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]', {
+								caip2: `${String(cosmosTransactionHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosTransactionHrefFields.$network.caip2.reference ?? '')}`,
+								txHash: String(cosmosTransactionHrefFields.txHash ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosTransaction, cosmosTransaction.entitySelector)}
-						prefetched={cosmosTransaction}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

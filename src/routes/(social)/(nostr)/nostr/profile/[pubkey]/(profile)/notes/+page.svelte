@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,7 +39,14 @@
 			})
 		}
 		title='Profile notes'
-		selection={select(EntityType.NostrProfile, data.selector)[EntityProxyField]<EntityType.NostrNote>('$$notes')}
-		id='NostrNotesView-page'
+		selection={
+			select(EntityType.NostrProfile, data.selector)[EntityProxyField]<EntityType.NostrNote>('$$notes', {
+				sources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+			})
+		}
+		id='notes'
 	/>
 </Page>

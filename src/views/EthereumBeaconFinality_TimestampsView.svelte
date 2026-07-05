@@ -21,7 +21,7 @@
 		selection,
 		title = 'Finality',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Ethereum beacon finality observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					finalizedCheckpointEpoch: true,
 					timestampMs: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EthereumBeaconFinality_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(ethereumBeaconFinalityTimestamps)}
 			{@const uniqueEthereumBeaconFinalityTimestamps = [...new Map(ethereumBeaconFinalityTimestamps.values.map((ethereumBeaconFinalityTimestamp) => [ethereumBeaconFinalityTimestamp[EntityMetaKey.SelectorKey], ethereumBeaconFinalityTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ethereumBeaconFinalityTimestamps.values.length === uniqueEthereumBeaconFinalityTimestamps.length && ethereumBeaconFinalityTimestamps.totalCount != null && ethereumBeaconFinalityTimestamps.totalCount >= uniqueEthereumBeaconFinalityTimestamps.length ? ethereumBeaconFinalityTimestamps.totalCount : uniqueEthereumBeaconFinalityTimestamps.length}
+				totalCount={ethereumBeaconFinalityTimestamps.totalCount}
 				getKey={(ethereumBeaconFinalityTimestamp) => ethereumBeaconFinalityTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueEthereumBeaconFinalityTimestamps}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: ethereumBeaconFinalityTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EthereumBeaconFinality_Timestamp> })}
+					{@const ethereumBeaconFinalityTimestampFields = { ...ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector], ...ethereumBeaconFinalityTimestamp }}
+					{@const ethereumBeaconFinalityTimestampHrefFields = { ...ethereumBeaconFinalityTimestamp, ...ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector] }}
 					<EthereumBeaconFinality_TimestampView
+						selection={select(EntityType.EthereumBeaconFinality_Timestamp, ethereumBeaconFinalityTimestamp[EntityMetaKey.Selector])}
+						prefetched={ethereumBeaconFinalityTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/finality/[timestampMs=nonNegativeInteger]', {
-								caip2: `${String(({ ...ethereumBeaconFinalityTimestamp.entitySelector, ...ethereumBeaconFinalityTimestamp }).$network.caip2.namespace)}:${String(({ ...ethereumBeaconFinalityTimestamp.entitySelector, ...ethereumBeaconFinalityTimestamp }).$network.caip2.reference)}`,
-								timestampMs: String(({ ...ethereumBeaconFinalityTimestamp.entitySelector, ...ethereumBeaconFinalityTimestamp }).timestampMs),
-							})
+							(ethereumBeaconFinalityTimestampHrefFields.$network !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2 !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2.namespace !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2 !== undefined && ethereumBeaconFinalityTimestampHrefFields.$network.caip2.reference !== undefined && ethereumBeaconFinalityTimestampHrefFields.timestampMs !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/finality/[timestampMs=nonNegativeInteger]', {
+								caip2: `${String(ethereumBeaconFinalityTimestampHrefFields.$network.caip2.namespace ?? '')}:${String(ethereumBeaconFinalityTimestampHrefFields.$network.caip2.reference ?? '')}`,
+								timestampMs: String(ethereumBeaconFinalityTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EthereumBeaconFinality_Timestamp, ethereumBeaconFinalityTimestamp.entitySelector)}
-						prefetched={ethereumBeaconFinalityTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

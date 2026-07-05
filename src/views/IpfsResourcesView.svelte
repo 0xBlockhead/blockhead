@@ -21,7 +21,7 @@
 		selection,
 		title = 'IPFS resources',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading IPFS resources...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					canonicalUri: true,
 					contentType: true,
 					displayType: true,
+					namespace: true,
+					target: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.IpfsResource}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(ipfsResources)}
 			{@const uniqueIpfsResources = [...new Map(ipfsResources.values.map((ipfsResource) => [ipfsResource[EntityMetaKey.SelectorKey], ipfsResource])).values()]}
 			<EntitiesList
@@ -99,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ipfsResources.values.length === uniqueIpfsResources.length && ipfsResources.totalCount != null && ipfsResources.totalCount >= uniqueIpfsResources.length ? ipfsResources.totalCount : uniqueIpfsResources.length}
+				totalCount={ipfsResources.totalCount}
 				getKey={(ipfsResource) => ipfsResource[EntityMetaKey.SelectorKey]}
 				items={uniqueIpfsResources}
 			>
@@ -112,19 +101,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: ipfsResource }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IpfsResource> })}
+					{@const ipfsResourceFields = { ...ipfsResource[EntityMetaKey.Selector], ...ipfsResource }}
+					{@const ipfsResourceHrefFields = { ...ipfsResource, ...ipfsResource[EntityMetaKey.Selector] }}
 					<IpfsResourceView
+						selection={select(EntityType.IpfsResource, ipfsResource[EntityMetaKey.Selector])}
+						prefetched={ipfsResourceFields}
 						href={
-							(({ ...ipfsResource.entitySelector, ...ipfsResource })?.namespace != null && ({ ...ipfsResource.entitySelector, ...ipfsResource })?.target != null && ({ ...ipfsResource.entitySelector, ...ipfsResource })?.contentPath != null ? resolve('/(explore)/(ipfs)/ipfs/[namespace]/[target]', {
-								namespace: String(({ ...ipfsResource.entitySelector, ...ipfsResource }).namespace),
-								target: String(({ ...ipfsResource.entitySelector, ...ipfsResource }).target),
-							}) : ({ ...ipfsResource.entitySelector, ...ipfsResource })?.namespace != null && ({ ...ipfsResource.entitySelector, ...ipfsResource })?.target != null && ({ ...ipfsResource.entitySelector, ...ipfsResource })?.contentPath != null ? resolve('/(explore)/(ipfs)/ipfs/[namespace]/[target]/(ipfsResource)/path/[...contentPath]', {
-								namespace: String(({ ...ipfsResource.entitySelector, ...ipfsResource }).namespace),
-								target: String(({ ...ipfsResource.entitySelector, ...ipfsResource }).target),
-								contentPath: String(({ ...ipfsResource.entitySelector, ...ipfsResource }).contentPath),
+							(ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined ? resolve('/(explore)/(ipfs)/ipfs/[namespace]/[target]', {
+								namespace: String(ipfsResourceHrefFields.namespace ?? ''),
+								target: String(ipfsResourceHrefFields.target ?? ''),
 							}) : undefined)
 						}
-						selection={select(EntityType.IpfsResource, ipfsResource.entitySelector)}
-						prefetched={ipfsResource}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

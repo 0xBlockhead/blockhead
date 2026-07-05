@@ -20,7 +20,7 @@
 		selection,
 		title = 'Rooms',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Rooms...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					name: true,
 					createdAt: true,
 					id: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadRoom}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadRooms)}
 			{@const uniqueBlockheadRooms = [...new Map(blockheadRooms.values.map((blockheadRoom) => [blockheadRoom[EntityMetaKey.SelectorKey], blockheadRoom])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadRooms.values.length === uniqueBlockheadRooms.length && blockheadRooms.totalCount != null && blockheadRooms.totalCount >= uniqueBlockheadRooms.length ? blockheadRooms.totalCount : uniqueBlockheadRooms.length}
+				totalCount={blockheadRooms.totalCount}
 				getKey={(blockheadRoom) => blockheadRoom[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadRooms}
 			>
@@ -106,14 +93,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No rooms yet.</p>
+						<p data-text="muted">No Rooms yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadRoom }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadRoom> })}
+					{@const blockheadRoomFields = { ...blockheadRoom[EntityMetaKey.Selector], ...blockheadRoom }}
 					<BlockheadRoomView
-						selection={select(EntityType.BlockheadRoom, blockheadRoom.entitySelector)}
-						prefetched={blockheadRoom}
+						selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
+						prefetched={blockheadRoomFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

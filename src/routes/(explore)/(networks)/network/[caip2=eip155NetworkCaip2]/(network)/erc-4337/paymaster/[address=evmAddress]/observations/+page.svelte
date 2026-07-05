@@ -47,6 +47,6 @@
 				address: decodeURIComponent(params.address),
 			})[EntityProxyField]<EntityType.Erc4337Paymaster_Timestamp>('$$timestamps')
 		}
-		id='Erc4337Paymaster_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

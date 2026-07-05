@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum NftCollectionSelector {
-	AssetInstance = '$assetInstance',
+	AssetInstance = 'AssetInstance',
 }
 export default {
 	entityType: EntityType.NftCollection,
@@ -22,25 +21,25 @@ export default {
 	],
 	fields: [
 		{
-			name: '$assetInstance',
-			label: 'asset instance',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AssetInstance,
-			cardinality: EntityFieldCardinality.One,
+				name: '$assetInstance',
+				label: 'asset instance',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.AssetInstance,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$tokens',
-			label: 'tokens',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NftToken,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$tokens',
+				label: 'tokens',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NftToken,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$royaltyTimestamps',
-			label: 'royalty timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.RoyaltyRight_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$royaltyTimestamps',
+				label: 'royalty timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.RoyaltyRight_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

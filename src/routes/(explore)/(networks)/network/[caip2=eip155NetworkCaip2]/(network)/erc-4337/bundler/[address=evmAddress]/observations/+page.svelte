@@ -47,6 +47,6 @@
 				address: decodeURIComponent(params.address),
 			})[EntityProxyField]<EntityType.Erc4337Bundler_Timestamp>('$$timestamps')
 		}
-		id='Erc4337Bundler_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

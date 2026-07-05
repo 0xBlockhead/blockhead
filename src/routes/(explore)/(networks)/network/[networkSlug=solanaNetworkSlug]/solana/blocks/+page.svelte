@@ -43,6 +43,6 @@
 				caip2: networkBySlug[params.networkSlug].caip2,
 			})[EntityProxyField]<EntityType.SolanaBlock>('$$blocks')
 		}
-		id='SolanaBlocksView-page'
+		id='blocks'
 	/>
 </Page>

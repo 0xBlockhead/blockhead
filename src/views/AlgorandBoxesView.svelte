@@ -1,0 +1,115 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'Algorand boxes',
+		typeAnnotationParagraphs = [],
+		placeholderText,
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'AlgorandBoxes-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.AlgorandBox>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import AlgorandBoxView from '$/views/AlgorandBoxView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={selection}
+		{placeholderText}
+	>
+		{#snippet children(algorandBoxes)}
+			{@const uniqueAlgorandBoxes = [...new Map(algorandBoxes.values.map((algorandBox) => [algorandBox[EntityMetaKey.SelectorKey], algorandBox])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandBox}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={algorandBoxes.totalCount}
+				getKey={(algorandBox) => algorandBox[EntityMetaKey.SelectorKey]}
+				items={uniqueAlgorandBoxes}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Algorand boxes yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: algorandBox }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandBox> })}
+					{@const algorandBoxFields = { ...algorandBox[EntityMetaKey.Selector], ...algorandBox }}
+					<AlgorandBoxView
+						selection={select(EntityType.AlgorandBox, algorandBox[EntityMetaKey.Selector])}
+						prefetched={algorandBoxFields}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.AlgorandBox}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

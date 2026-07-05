@@ -47,6 +47,6 @@
 				],
 			})
 		}
-		id='FarcasterCastsView-page'
+		id='casts'
 	/>
 </Page>

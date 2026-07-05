@@ -1,17 +1,17 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum SolanaValidator_TimestampSelector {
-	ValidatorSlotSource = '$validator+slot+source',
+	ValidatorSlotSource = 'ValidatorSlotSource',
 }
 export default {
 	entityType: EntityType.SolanaValidator_Timestamp,
 	label: 'solana validator timestamp',
-	labelPlural: 'solana validator observations',
+	labelPlural: 'Solana validator observations',
 	selectors: [
 		{
 			name: SolanaValidator_TimestampSelector.ValidatorSlotSource,
@@ -24,76 +24,94 @@ export default {
 	],
 	fields: [
 		{
-			name: '$validator',
-			label: 'validator',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.SolanaValidator,
-			cardinality: EntityFieldCardinality.One,
+				name: '$validator',
+				label: 'Validator',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.SolanaValidator,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'slot',
-			label: 'slot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'slot',
+				label: 'Slot',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'activatedStakeLamports',
-			label: 'activated stake lamports',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'activatedStakeLamports',
+				label: 'Activated stake',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 		},
 		{
-			name: 'commission',
-			label: 'commission',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'commission',
+				label: 'Commission',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 		},
 		{
-			name: 'delinquent',
-			label: 'delinquent',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'delinquent',
+				label: 'Delinquent',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 		},
 		{
-			name: 'lastVoteSlot',
-			label: 'last vote slot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'lastVoteSlot',
+				label: 'Last vote slot',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 		},
 		{
-			name: 'rootSlot',
-			label: 'root slot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'rootSlot',
+				label: 'Root slot',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 		},
 		{
-			name: 'epochCredits',
-			label: 'epoch credits',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("unknown"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'epochCredits',
+				label: 'Epoch credits',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('unknown'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Solana_JsonRpc,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

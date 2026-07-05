@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,8 +41,13 @@
 		selection={
 			select(EntityType.YoutubeVideo, {
 				videoId: decodeURIComponent(params.videoId),
-			})[EntityProxyField]<EntityType.YoutubeComment>('$$comments')
+			})[EntityProxyField]<EntityType.YoutubeComment>('$$comments', {
+				sources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+			})
 		}
-		id='YoutubeCommentsView-page'
+		id='comments'
 	/>
 </Page>

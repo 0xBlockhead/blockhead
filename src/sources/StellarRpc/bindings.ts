@@ -23,7 +23,6 @@ export const stellarRpcBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:STELLAR_RPC_URL',
-				origin: 'env:STELLAR_RPC_URL',
 				corsEnabled: false,
 			},
 		],

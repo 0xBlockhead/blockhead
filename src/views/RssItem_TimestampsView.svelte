@@ -21,7 +21,7 @@
 		selection,
 		title = 'RSS item observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading RSS item observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$item: true,
 					timestampMs: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssItem_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(rssItemTimestamps)}
 			{@const uniqueRssItemTimestamps = [...new Map(rssItemTimestamps.values.map((rssItemTimestamp) => [rssItemTimestamp[EntityMetaKey.SelectorKey], rssItemTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={rssItemTimestamps.values.length === uniqueRssItemTimestamps.length && rssItemTimestamps.totalCount != null && rssItemTimestamps.totalCount >= uniqueRssItemTimestamps.length ? rssItemTimestamps.totalCount : uniqueRssItemTimestamps.length}
+				totalCount={rssItemTimestamps.totalCount}
 				getKey={(rssItemTimestamp) => rssItemTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueRssItemTimestamps}
 			>
@@ -111,17 +99,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: rssItemTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RssItem_Timestamp> })}
+					{@const rssItemTimestampFields = { ...rssItemTimestamp[EntityMetaKey.Selector], ...rssItemTimestamp }}
+					{@const rssItemTimestampHrefFields = { ...rssItemTimestamp, ...rssItemTimestamp[EntityMetaKey.Selector] }}
 					<RssItem_TimestampView
+						selection={select(EntityType.RssItem_Timestamp, rssItemTimestamp[EntityMetaKey.Selector])}
+						prefetched={rssItemTimestampFields}
 						href={
-							resolve('/(social)/(rss)/rss/item/[feedKey]/[guid]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								feedKey: String(rssItemTimestamp.entitySelector.$rssItemTimestamp.feedUrl),
-								guid: String(rssItemTimestamp.entitySelector.$rssItemTimestamp.guid),
-								timestampMs: String(rssItemTimestamp.entitySelector.timestampMs),
-								source: String(rssItemTimestamp.entitySelector.source),
-							})
+							(rssItemTimestampHrefFields.$item !== undefined && rssItemTimestampHrefFields.$item.feedUrl !== undefined && rssItemTimestampHrefFields.$item !== undefined && rssItemTimestampHrefFields.$item.guid !== undefined && rssItemTimestampHrefFields.timestampMs !== undefined && rssItemTimestampHrefFields.source !== undefined ? resolve('/(social)/(rss)/rss/item/[feedKey]/[guid]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								feedKey: String(rssItemTimestampHrefFields.$item.feedUrl ?? ''),
+								guid: String(rssItemTimestampHrefFields.$item.guid ?? ''),
+								timestampMs: String(rssItemTimestampHrefFields.timestampMs ?? ''),
+								source: String(rssItemTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.RssItem_Timestamp, rssItemTimestamp.entitySelector)}
-						prefetched={rssItemTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

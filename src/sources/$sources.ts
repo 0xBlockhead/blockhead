@@ -28,7 +28,7 @@ export type SourceProviderDefinition<
 	label: string
 	env?: Type<SourcePublicEnv>
 	sources: readonly SourceDefinition<_SourceProvider, _Source>[]
-	bindings: readonly SourceBinding[]
+	bindings?: readonly SourceBinding[]
 }
 
 export const requiredPublicEnvString = (
@@ -139,7 +139,7 @@ export const indexSourceProviders = <
 			if (sourceSubset == null)
 				return []
 
-			const sourceBindings = sourceProvider.bindings.filter((binding) => (
+			const sourceBindings = (sourceProvider.bindings ?? []).filter((binding) => (
 				binding.source === sourceDefinition.source
 			))
 			const bindingSubsets = sourceBindings.flatMap((binding) => {
@@ -183,6 +183,9 @@ export const indexSourceProviders = <
 				entry.sourceDefinition.source,
 				entry.publicEnv,
 			]))
+		),
+		enabledSources: new Set(
+			enabledSourceEntries.map((entry) => entry.sourceDefinition.source)
 		),
 	}
 }

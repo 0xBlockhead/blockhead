@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM contracts',
 		typeAnnotationParagraphs = ['A smart contract account and its contract-specific metadata on an EVM-compatible network.'],
-		placeholderText = 'Loading EVM contracts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					precompileName: true,
 					address: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmContracts)}
 			{@const uniqueEvmContracts = [...new Map(evmContracts.values.map((evmContract) => [evmContract[EntityMetaKey.SelectorKey], evmContract])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmContracts.values.length === uniqueEvmContracts.length && evmContracts.totalCount != null && evmContracts.totalCount >= uniqueEvmContracts.length ? evmContracts.totalCount : uniqueEvmContracts.length}
+				totalCount={evmContracts.totalCount}
 				getKey={(evmContract) => evmContract[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmContracts}
 			>
@@ -112,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmContract }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmContract> })}
+					{@const evmContractFields = { ...evmContract[EntityMetaKey.Selector], ...evmContract }}
+					{@const evmContractHrefFields = { ...evmContract, ...evmContract[EntityMetaKey.Selector] }}
 					<EvmContractView
+						selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+						prefetched={evmContractFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(({ ...evmContract.entitySelector, ...evmContract }).$network.caip2.namespace)}:${String(({ ...evmContract.entitySelector, ...evmContract }).$network.caip2.reference)}`,
-								address: String(({ ...evmContract.entitySelector, ...evmContract }).address),
-							})
+							(evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.caip2 !== undefined && evmContractHrefFields.$network.caip2.namespace !== undefined && evmContractHrefFields.$network !== undefined && evmContractHrefFields.$network.caip2 !== undefined && evmContractHrefFields.$network.caip2.reference !== undefined && evmContractHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+								caip2: `${String(evmContractHrefFields.$network.caip2.namespace ?? '')}:${String(evmContractHrefFields.$network.caip2.reference ?? '')}`,
+								address: String(evmContractHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmContract, evmContract.entitySelector)}
-						prefetched={evmContract}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -20,7 +20,7 @@
 		selection,
 		title = 'Liquidity pool observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Liquidity pool observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,7 +64,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					baseTokenSymbol: true,
 					quoteTokenSymbol: true,
@@ -72,23 +72,10 @@
 					liquidityUsd: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LiquidityPool_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(liquidityPoolTimestamps)}
 			{@const uniqueLiquidityPoolTimestamps = [...new Map(liquidityPoolTimestamps.values.map((liquidityPoolTimestamp) => [liquidityPoolTimestamp[EntityMetaKey.SelectorKey], liquidityPoolTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={liquidityPoolTimestamps.values.length === uniqueLiquidityPoolTimestamps.length && liquidityPoolTimestamps.totalCount != null && liquidityPoolTimestamps.totalCount >= uniqueLiquidityPoolTimestamps.length ? liquidityPoolTimestamps.totalCount : uniqueLiquidityPoolTimestamps.length}
+				totalCount={liquidityPoolTimestamps.totalCount}
 				getKey={(liquidityPoolTimestamp) => liquidityPoolTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueLiquidityPoolTimestamps}
 			>
@@ -108,14 +95,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No liquidity pool observations yet.</p>
+						<p data-text="muted">No Liquidity pool observations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: liquidityPoolTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LiquidityPool_Timestamp> })}
+					{@const liquidityPoolTimestampFields = { ...liquidityPoolTimestamp[EntityMetaKey.Selector], ...liquidityPoolTimestamp }}
 					<LiquidityPool_TimestampView
-						selection={select(EntityType.LiquidityPool_Timestamp, liquidityPoolTimestamp.entitySelector)}
-						prefetched={liquidityPoolTimestamp}
+						selection={select(EntityType.LiquidityPool_Timestamp, liquidityPoolTimestamp[EntityMetaKey.Selector])}
+						prefetched={liquidityPoolTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -121,6 +121,13 @@ export default {
 				cardinality: EntityFieldCardinality.Many,
 		},
 		{
+				name: '$$managers',
+				label: 'Managers',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.LensAccountManager,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
 				name: '$$posts',
 				label: 'Posts',
 				type: EntityFieldType.EntitiesReference,

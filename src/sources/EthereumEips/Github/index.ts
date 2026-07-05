@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const EthereumEipsGithubSource = {
+export default {
 	provider: SourceProvider.EthereumEips,
 	source: Source.EthereumEips_Github,
-	label: 'Ethereum Eips Github',
+	label: 'Ethereum EIPs GitHub',
 } satisfies SourceDefinition
-
-export default EthereumEipsGithubSource

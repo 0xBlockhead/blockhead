@@ -1,24 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
-import {
-	SourceProvider,
-	type SourceProviderDefinition,
-} from '$/sources/SourceProvider.ts'
-import { acpBindings } from '$/sources/Acp/bindings.ts'
+import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.Acp,
-	label: 'ACP',
-	sources: [
-		{
-			provider: SourceProvider.Acp,
-			source: Source.AcpLocal_JsonRpc,
-			label: 'ACP local JSON-RPC',
-		},
-		{
-			provider: SourceProvider.Acp,
-			source: Source.AcpRegistry_Rest,
-			label: 'ACP registry REST',
-		},
-	],
-	bindings: acpBindings,
-} satisfies SourceProviderDefinition
+	source: Source.AcpLocal_JsonRpc,
+	label: 'ACP local JSON-RPC',
+} satisfies SourceDefinition

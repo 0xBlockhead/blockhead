@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.EvmNetwork_Txpool_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					pendingCount: true,
 					queuedCount: true,

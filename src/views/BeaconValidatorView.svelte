@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -42,24 +42,18 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const beaconValidator = $derived(selection({
 		sources: [
 			Source.Beacon_Rest,
 		],
 		fields: {
 			status: true,
-			...(open && {
-				balanceGwei: true,
-				effectiveBalanceGwei: true,
-				slashed: true,
-				pubkey: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived((String((({ ...selection.entitySelector, ...prefetched }).indexInNetwork) ?? '') ? 'Validator #' + String((({ ...selection.entitySelector, ...prefetched }).indexInNetwork) ?? '') : '') || 'beacon validator')
+	const titleFallback = $derived((String((prefetched.indexInNetwork) ?? '') ? 'Validator #' + String((prefetched.indexInNetwork) ?? '') : '') || 'beacon validator')
 	const viewDomId = $derived('beacon-validator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -69,22 +63,22 @@
 
 <EntityView
 	entityType={EntityType.BeaconValidator}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(({ ...selection.entitySelector, ...prefetched }).indexInNetwork ?? '')}
+	idDragPlainText={String(prefetched.indexInNetwork ?? '')}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).caip2.reference)}`,
-			validatorIndex: String(({ ...selection.entitySelector, ...prefetched }).indexInNetwork),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.indexInNetwork !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			validatorIndex: String(pendingEntity.indexInNetwork ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).indexInNetwork}
+		{@const serialValue = prefetched.indexInNetwork}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Validator </span>
@@ -96,7 +90,7 @@
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).indexInNetwork}
+		{@const serialValue = prefetched.indexInNetwork}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
@@ -105,34 +99,26 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const status0 = prefetched.status}
-			{#if status0 !== undefined && status0 !== null}
-				<span data-text="muted">
-					{String((status0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={beaconValidator}>
-				{#snippet Pending()}
-					{@const status0 = prefetched.status}
-					{#if status0 !== undefined && status0 !== null}
-						<span data-text="muted">
-							{String((status0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={beaconValidator}>
+			{#snippet Pending()}
+				{@const status0 = prefetched.status}
+				{#if status0 !== undefined && status0 !== null}
+					<span data-text="muted">
+						{String((status0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const status0 = entity.status}
-					{#if status0 !== undefined && status0 !== null}
-						<span data-text="muted">
-							{String((status0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const status0 = resolvedEntity.status}
+				{#if status0 !== undefined && status0 !== null}
+					<span data-text="muted">
+						{String((status0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -140,16 +126,25 @@
 			<div>
 				<dt>Index in network</dt>
 				<dd>
-					<ResourceBoundary resource={beaconValidator}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									indexInNetwork: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const indexInNetwork = prefetched.indexInNetwork ?? selection.entitySelector.indexInNetwork}
+							{@const indexInNetwork = prefetched.indexInNetwork}
 							{#if indexInNetwork !== undefined && indexInNetwork !== null}
 								<NumberValue value={Number(indexInNetwork)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const indexInNetwork = entity.indexInNetwork ?? selection.entitySelector.indexInNetwork ?? prefetched.indexInNetwork}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const indexInNetwork = resolvedEntity.indexInNetwork}
 							{#if indexInNetwork !== undefined && indexInNetwork !== null}
 								<NumberValue value={Number(indexInNetwork)} />
 							{/if}
@@ -158,26 +153,70 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={beaconValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							status: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const slashed = prefetched.slashed ?? selection.entitySelector.slashed}
-					{#if slashed !== undefined && slashed !== null}
+					{@const status = prefetched.status}
+					{#if status !== undefined && status !== null}
 						<div>
-							<dt>Slashed</dt>
+							<dt>Status</dt>
 							<dd>
-								{String((slashed) ?? '')}
+								{String((status) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const slashed = entity.slashed ?? selection.entitySelector.slashed ?? prefetched.slashed}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const status = resolvedEntity.status}
+					{#if status !== undefined && status !== null}
+						<div>
+							<dt>Status</dt>
+							<dd>
+								{String((status) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							slashed: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const slashed = prefetched.slashed}
 					{#if slashed !== undefined && slashed !== null}
 						<div>
 							<dt>Slashed</dt>
 							<dd>
-								{String((slashed) ?? '')}
+								{slashed ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const slashed = resolvedEntity.slashed}
+					{#if slashed !== undefined && slashed !== null}
+						<div>
+							<dt>Slashed</dt>
+							<dd>
+								{slashed ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
@@ -186,9 +225,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={beaconValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							balanceGwei: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const balanceGwei = prefetched.balanceGwei ?? selection.entitySelector.balanceGwei}
+					{@const balanceGwei = prefetched.balanceGwei}
 					{#if balanceGwei !== undefined && balanceGwei !== null}
 						<div>
 							<dt>Balance</dt>
@@ -202,7 +249,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const balanceGwei = entity.balanceGwei ?? selection.entitySelector.balanceGwei ?? prefetched.balanceGwei}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const balanceGwei = resolvedEntity.balanceGwei}
 					{#if balanceGwei !== undefined && balanceGwei !== null}
 						<div>
 							<dt>Balance</dt>
@@ -216,9 +264,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={beaconValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							effectiveBalanceGwei: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const effectiveBalanceGwei = prefetched.effectiveBalanceGwei ?? selection.entitySelector.effectiveBalanceGwei}
+					{@const effectiveBalanceGwei = prefetched.effectiveBalanceGwei}
 					{#if effectiveBalanceGwei !== undefined && effectiveBalanceGwei !== null}
 						<div>
 							<dt>Effective balance</dt>
@@ -232,7 +288,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const effectiveBalanceGwei = entity.effectiveBalanceGwei ?? selection.entitySelector.effectiveBalanceGwei ?? prefetched.effectiveBalanceGwei}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const effectiveBalanceGwei = resolvedEntity.effectiveBalanceGwei}
 					{#if effectiveBalanceGwei !== undefined && effectiveBalanceGwei !== null}
 						<div>
 							<dt>Effective balance</dt>
@@ -248,26 +305,35 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={beaconValidator}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							pubkey: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const pubkey = prefetched.pubkey ?? selection.entitySelector.pubkey}
+					{@const pubkey = prefetched.pubkey}
 					{#if pubkey !== undefined && pubkey !== null}
 						<div>
 							<dt>Public key</dt>
 							<dd>
-								<TruncatedValue value={String(pubkey)} />
+								<TruncatedValue value={String((pubkey) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const pubkey = entity.pubkey ?? selection.entitySelector.pubkey ?? prefetched.pubkey}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const pubkey = resolvedEntity.pubkey}
 					{#if pubkey !== undefined && pubkey !== null}
 						<div>
 							<dt>Public key</dt>
 							<dd>
-								<TruncatedValue value={String(pubkey)} />
+								<TruncatedValue value={String((pubkey) ?? '')} />
 							</dd>
 						</div>
 					{/if}
@@ -280,10 +346,8 @@
 					<EvmNetworkView
 						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

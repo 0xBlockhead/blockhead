@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.EvmError_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					signatures: true,
 					filteredSignatureCount: true,

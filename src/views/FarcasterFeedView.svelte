@@ -5,7 +5,8 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -36,6 +37,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterFeed = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -44,15 +46,11 @@
 		],
 		fields: {
 			label: true,
-			...(open && {
-				$$entries: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).label) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).variant) ?? '')].filter(Boolean).join(' ') || 'Farcaster feed')
+	const titleFallback = $derived([String((prefetched.label) ?? ''), String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || 'Farcaster feed')
 	const viewDomId = $derived('farcaster-feed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
@@ -60,7 +58,7 @@
 
 <EntityView
 	entityType={EntityType.FarcasterFeed}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -69,42 +67,76 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).label) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
-		{:else}
-			<ResourceBoundary resource={farcasterFeed}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).label) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
-				{/snippet}
+		<ResourceBoundary resource={farcasterFeed}>
+			{#snippet Pending()}
+				{[String((prefetched.label) ?? ''), String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.label) ?? ''), String((entity.variant) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.label) ?? ''), String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).variant) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).label) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
-		{:else}
-			<ResourceBoundary resource={farcasterFeed}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).variant) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).label) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
-				{/snippet}
+		<ResourceBoundary resource={farcasterFeed}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? ''), String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || title || 'Farcaster feed'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.variant) ?? '')].filter(Boolean).join(' ') || [String((entity.label) ?? ''), String((entity.variant) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? ''), String((resolvedEntity.variant) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={farcasterFeed}>
+			<div>
+				<dt>Variant</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									variant: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const variant = selection.entitySelector.variant ?? prefetched.variant}
+							{#if variant !== undefined && variant !== null}
+								{String((variant) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const variant = resolvedEntity.variant}
+							{#if variant !== undefined && variant !== null}
+								{String((variant) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							fid: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const fid = prefetched.fid ?? selection.entitySelector.fid}
+					{@const fid = prefetched.fid}
 					{#if fid !== undefined && fid !== null}
 						<div>
 							<dt>FID</dt>
@@ -116,7 +148,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const fid = entity.fid ?? selection.entitySelector.fid ?? prefetched.fid}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const fid = resolvedEntity.fid}
 					{#if fid !== undefined && fid !== null}
 						<div>
 							<dt>FID</dt>
@@ -130,9 +163,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={farcasterFeed}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							channelId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const channelId = prefetched.channelId ?? selection.entitySelector.channelId}
+					{@const channelId = prefetched.channelId}
 					{#if channelId !== undefined && channelId !== null}
 						<div>
 							<dt>Channel ID</dt>
@@ -144,7 +185,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const channelId = entity.channelId ?? selection.entitySelector.channelId ?? prefetched.channelId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const channelId = resolvedEntity.channelId}
 					{#if channelId !== undefined && channelId !== null}
 						<div>
 							<dt>Channel ID</dt>
@@ -158,9 +200,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={farcasterFeed}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							viewerFid: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const viewerFid = prefetched.viewerFid ?? selection.entitySelector.viewerFid}
+					{@const viewerFid = prefetched.viewerFid}
 					{#if viewerFid !== undefined && viewerFid !== null}
 						<div>
 							<dt>Viewer FID</dt>
@@ -172,7 +222,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const viewerFid = entity.viewerFid ?? selection.entitySelector.viewerFid ?? prefetched.viewerFid}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const viewerFid = resolvedEntity.viewerFid}
 					{#if viewerFid !== undefined && viewerFid !== null}
 						<div>
 							<dt>Viewer FID</dt>

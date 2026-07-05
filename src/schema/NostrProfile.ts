@@ -111,9 +111,6 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: (UrlString),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: [
-					Source.NostrBand_Rest,
-				],
 		},
 		{
 				name: '$icon',
@@ -131,9 +128,6 @@ export default {
 				type: EntityFieldType.Primitive,
 				primitiveType: (UrlString),
 				cardinality: EntityFieldCardinality.ZeroOrOne,
-				defaultSources: [
-					Source.NostrBand_Rest,
-				],
 		},
 		{
 				name: '$banner',

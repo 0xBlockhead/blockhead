@@ -31,6 +31,6 @@
 				scope: '_GlobalAtprotoNetwork',
 			})[EntityProxyField]<EntityType._GlobalAtprotoNetwork_Timestamp>('$$timestamps')
 		}
-		id='GlobalAtprotoNetwork_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

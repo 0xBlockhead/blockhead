@@ -21,7 +21,7 @@
 		selection,
 		title = 'MEV relay proposer payloads delivered',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading MEV relay proposer payloads delivered...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					slot: true,
 					value: true,
 					$builder: true,
+					$network: true,
+					relayHost: true,
+					blockHash: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MevRelay_ProposerPayloadDelivered}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(mevRelayProposerPayloadDeliveredRows)}
 			{@const uniqueMevRelayProposerPayloadDeliveredRows = [...new Map(mevRelayProposerPayloadDeliveredRows.values.map((mevRelayProposerPayloadDelivered) => [mevRelayProposerPayloadDelivered[EntityMetaKey.SelectorKey], mevRelayProposerPayloadDelivered])).values()]}
 			<EntitiesList
@@ -99,7 +89,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mevRelayProposerPayloadDeliveredRows.values.length === uniqueMevRelayProposerPayloadDeliveredRows.length && mevRelayProposerPayloadDeliveredRows.totalCount != null && mevRelayProposerPayloadDeliveredRows.totalCount >= uniqueMevRelayProposerPayloadDeliveredRows.length ? mevRelayProposerPayloadDeliveredRows.totalCount : uniqueMevRelayProposerPayloadDeliveredRows.length}
+				totalCount={mevRelayProposerPayloadDeliveredRows.totalCount}
 				getKey={(mevRelayProposerPayloadDelivered) => mevRelayProposerPayloadDelivered[EntityMetaKey.SelectorKey]}
 				items={uniqueMevRelayProposerPayloadDeliveredRows}
 			>
@@ -112,18 +102,20 @@
 				{/snippet}
 
 				{#snippet Item({ item: mevRelayProposerPayloadDelivered }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered> })}
+					{@const mevRelayProposerPayloadDeliveredFields = { ...mevRelayProposerPayloadDelivered[EntityMetaKey.Selector], ...mevRelayProposerPayloadDelivered }}
+					{@const mevRelayProposerPayloadDeliveredHrefFields = { ...mevRelayProposerPayloadDelivered, ...mevRelayProposerPayloadDelivered[EntityMetaKey.Selector] }}
 					<MevRelay_ProposerPayloadDeliveredView
+						selection={select(EntityType.MevRelay_ProposerPayloadDelivered, mevRelayProposerPayloadDelivered[EntityMetaKey.Selector])}
+						prefetched={mevRelayProposerPayloadDeliveredFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/payload/[relayHost]/[slot=nonNegativeInteger]/[blockHash]', {
-								caip2: `${String(({ ...mevRelayProposerPayloadDelivered.entitySelector, ...mevRelayProposerPayloadDelivered }).$network.caip2.namespace)}:${String(({ ...mevRelayProposerPayloadDelivered.entitySelector, ...mevRelayProposerPayloadDelivered }).$network.caip2.reference)}`,
-								relayHost: String(({ ...mevRelayProposerPayloadDelivered.entitySelector, ...mevRelayProposerPayloadDelivered }).relayHost),
-								slot: String(({ ...mevRelayProposerPayloadDelivered.entitySelector, ...mevRelayProposerPayloadDelivered }).slot),
-								blockHash: String(({ ...mevRelayProposerPayloadDelivered.entitySelector, ...mevRelayProposerPayloadDelivered }).blockHash),
-							})
+							(mevRelayProposerPayloadDeliveredHrefFields.$network !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.caip2 !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.caip2.namespace !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.caip2 !== undefined && mevRelayProposerPayloadDeliveredHrefFields.$network.caip2.reference !== undefined && mevRelayProposerPayloadDeliveredHrefFields.relayHost !== undefined && mevRelayProposerPayloadDeliveredHrefFields.slot !== undefined && mevRelayProposerPayloadDeliveredHrefFields.blockHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/payload/[relayHost]/[slot=nonNegativeInteger]/[blockHash]', {
+								caip2: `${String(mevRelayProposerPayloadDeliveredHrefFields.$network.caip2.namespace ?? '')}:${String(mevRelayProposerPayloadDeliveredHrefFields.$network.caip2.reference ?? '')}`,
+								relayHost: String(mevRelayProposerPayloadDeliveredHrefFields.relayHost ?? ''),
+								slot: String(mevRelayProposerPayloadDeliveredHrefFields.slot ?? ''),
+								blockHash: String(mevRelayProposerPayloadDeliveredHrefFields.blockHash ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.MevRelay_ProposerPayloadDelivered, mevRelayProposerPayloadDelivered.entitySelector)}
-						prefetched={mevRelayProposerPayloadDelivered}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

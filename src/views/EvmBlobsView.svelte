@@ -22,7 +22,7 @@
 		selection,
 		title = 'EVM blobs',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM blobs...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -72,32 +72,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Voltaire_JsonRpc,
-					Source.Blobscan_Rest,
 				],
 				fields: {
 					indexInTransaction: true,
 					versionedHash: true,
+					$transaction: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmBlob}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-			/>
-		{/snippet}
-
 		{#snippet children(evmBlobs)}
 			{@const uniqueEvmBlobs = [...new Map(evmBlobs.values.map((evmBlob) => [evmBlob[EntityMetaKey.SelectorKey], evmBlob])).values()]}
 			<EntitiesList
@@ -109,7 +96,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmBlobs.values.length === uniqueEvmBlobs.length && evmBlobs.totalCount != null && evmBlobs.totalCount >= uniqueEvmBlobs.length ? evmBlobs.totalCount : uniqueEvmBlobs.length}
+				totalCount={evmBlobs.totalCount}
 				getKey={(evmBlob) => evmBlob[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmBlobs}
 			>
@@ -122,16 +109,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmBlob }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmBlob> })}
+					{@const evmBlobFields = { ...evmBlob[EntityMetaKey.Selector], ...evmBlob }}
+					{@const evmBlobHrefFields = { ...evmBlob, ...evmBlob[EntityMetaKey.Selector] }}
 					<EvmBlobView
+						selection={select(EntityType.EvmBlob, evmBlob[EntityMetaKey.Selector])}
+						prefetched={evmBlobFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
-								caip2: `${String(({ ...evmBlob.entitySelector, ...evmBlob }).$transaction.$network.caip2.namespace)}:${String(({ ...evmBlob.entitySelector, ...evmBlob }).$transaction.$network.caip2.reference)}`,
-								transactionId: String(({ ...evmBlob.entitySelector, ...evmBlob }).$transaction.txHash),
-								indexInTransaction: String(({ ...evmBlob.entitySelector, ...evmBlob }).indexInTransaction),
-							})
+							(evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.caip2 !== undefined && evmBlobHrefFields.$transaction.$network.caip2.namespace !== undefined && evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.$network !== undefined && evmBlobHrefFields.$transaction.$network.caip2 !== undefined && evmBlobHrefFields.$transaction.$network.caip2.reference !== undefined && evmBlobHrefFields.$transaction !== undefined && evmBlobHrefFields.$transaction.txHash !== undefined && evmBlobHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blobs)/blob/[transactionId=evmTxHash]/[indexInTransaction=nonNegativeInteger]', {
+								caip2: `${String(evmBlobHrefFields.$transaction.$network.caip2.namespace ?? '')}:${String(evmBlobHrefFields.$transaction.$network.caip2.reference ?? '')}`,
+								transactionId: String(evmBlobHrefFields.$transaction.txHash ?? ''),
+								indexInTransaction: String(evmBlobHrefFields.indexInTransaction ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmBlob, evmBlob.entitySelector)}
-						prefetched={evmBlob}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Validators',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Polkadot validators...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					stashAccountId: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotValidator}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(polkadotValidators)}
 			{@const uniquePolkadotValidators = [...new Map(polkadotValidators.values.map((polkadotValidator) => [polkadotValidator[EntityMetaKey.SelectorKey], polkadotValidator])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotValidators.values.length === uniquePolkadotValidators.length && polkadotValidators.totalCount != null && polkadotValidators.totalCount >= uniquePolkadotValidators.length ? polkadotValidators.totalCount : uniquePolkadotValidators.length}
+				totalCount={polkadotValidators.totalCount}
 				getKey={(polkadotValidator) => polkadotValidator[EntityMetaKey.SelectorKey]}
 				items={uniquePolkadotValidators}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: polkadotValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotValidator> })}
+					{@const polkadotValidatorFields = { ...polkadotValidator[EntityMetaKey.Selector], ...polkadotValidator }}
+					{@const polkadotValidatorHrefFields = { ...polkadotValidator, ...polkadotValidator[EntityMetaKey.Selector] }}
 					<PolkadotValidatorView
+						selection={select(EntityType.PolkadotValidator, polkadotValidator[EntityMetaKey.Selector])}
+						prefetched={polkadotValidatorFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/validator/[stashAccountId]', {
-								networkSlug: String(({ ...polkadotValidator.entitySelector, ...polkadotValidator }).$network.slug),
-								stashAccountId: String(({ ...polkadotValidator.entitySelector, ...polkadotValidator }).stashAccountId),
-							})
+							(polkadotValidatorHrefFields.$network !== undefined && polkadotValidatorHrefFields.$network.caip2 !== undefined && polkadotValidatorHrefFields.$network.caip2.namespace !== undefined && polkadotValidatorHrefFields.$network !== undefined && polkadotValidatorHrefFields.$network.caip2 !== undefined && polkadotValidatorHrefFields.$network.caip2.reference !== undefined && polkadotValidatorHrefFields.stashAccountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/validator/[stashAccountId]', {
+								networkSlug: String(networkByCaip2[String(String(polkadotValidatorHrefFields.$network.caip2.namespace) + ':' + String(polkadotValidatorHrefFields.$network.caip2.reference))].slug ?? ''),
+								stashAccountId: String(polkadotValidatorHrefFields.stashAccountId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.PolkadotValidator, polkadotValidator.entitySelector)}
-						prefetched={polkadotValidator}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

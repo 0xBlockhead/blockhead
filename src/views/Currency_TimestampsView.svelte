@@ -21,7 +21,7 @@
 		selection,
 		title = 'Currency observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Currency observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$currency: true,
 					marketCap: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Currency_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(currencyTimestamps)}
 			{@const uniqueCurrencyTimestamps = [...new Map(currencyTimestamps.values.map((currencyTimestamp) => [currencyTimestamp[EntityMetaKey.SelectorKey], currencyTimestamp])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={currencyTimestamps.values.length === uniqueCurrencyTimestamps.length && currencyTimestamps.totalCount != null && currencyTimestamps.totalCount >= uniqueCurrencyTimestamps.length ? currencyTimestamps.totalCount : uniqueCurrencyTimestamps.length}
+				totalCount={currencyTimestamps.totalCount}
 				getKey={(currencyTimestamp) => currencyTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueCurrencyTimestamps}
 			>
@@ -107,20 +94,22 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No currency observations yet.</p>
+						<p data-text="muted">No Currency observations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: currencyTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Currency_Timestamp> })}
+					{@const currencyTimestampFields = { ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }}
+					{@const currencyTimestampHrefFields = { ...currencyTimestamp, ...currencyTimestamp[EntityMetaKey.Selector] }}
 					<Currency_TimestampView
+						selection={select(EntityType.Currency_Timestamp, currencyTimestamp[EntityMetaKey.Selector])}
+						prefetched={currencyTimestampFields}
 						href={
-							resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-								iso4217: String(({ ...currencyTimestamp.entitySelector, ...currencyTimestamp }).$currency.iso4217),
-								timestampMs: String(({ ...currencyTimestamp.entitySelector, ...currencyTimestamp }).timestampMs),
-							})
+							(currencyTimestampHrefFields.$currency !== undefined && currencyTimestampHrefFields.$currency.iso4217 !== undefined && currencyTimestampHrefFields.timestampMs !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
+								iso4217: String(currencyTimestampHrefFields.$currency.iso4217 ?? ''),
+								timestampMs: String(currencyTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Currency_Timestamp, currencyTimestamp.entitySelector)}
-						prefetched={currencyTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

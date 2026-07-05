@@ -4,13 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -42,17 +42,11 @@
 		>
 	> = $props()
 
-	const polkadotBlock = $derived(selection({
-		fields: {
-			stateRoot: true,
-			extrinsicsRoot: true,
-			$parent: true,
-		},
-	}))
-	const titleFallback = $derived((String((({ ...selection.entitySelector, ...prefetched }).blockNumber) ?? '') ? 'Block #' + String((({ ...selection.entitySelector, ...prefetched }).blockNumber) ?? '') : '') || [String((({ ...selection.entitySelector, ...prefetched }).hash) ?? '')].filter(Boolean).join(' ') || 'Polkadot block')
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	const polkadotBlock = $derived(selection({}))
+	const titleFallback = $derived((String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') ? 'Block #' + String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') : '') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'Polkadot block')
 	const viewDomId = $derived('polkadot-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -65,23 +59,23 @@
 
 <EntityView
 	entityType={EntityType.PolkadotBlock}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	idDragPlainText={String(({ ...selection.entitySelector, ...prefetched }).blockNumber ?? '')}
+	idDragPlainText={String(selection.entitySelector.blockNumber ?? prefetched.blockNumber ?? '')}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]', {
-			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).$network.slug),
-			blockNumber: String(({ ...selection.entitySelector, ...prefetched }).blockNumber),
-			hash: String(({ ...selection.entitySelector, ...prefetched }).hash),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.blockNumber !== undefined && pendingEntity.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]', {
+			networkSlug: String(networkByCaip2[String(String(pendingEntity.$network.caip2.namespace) + ':' + String(pendingEntity.$network.caip2.reference))].slug ?? ''),
+			blockNumber: String(pendingEntity.blockNumber ?? ''),
+			hash: String(pendingEntity.hash ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).blockNumber}
+		{@const serialValue = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-row="inline align-center gap-2 wrap">
 				<span>Block </span>
@@ -90,50 +84,42 @@
 				</span>
 			</span>
 		{:else}
-			{[String((({ ...selection.entitySelector, ...prefetched }).hash) ?? '')].filter(Boolean).join(' ')}
+			{[String((prefetched.hash) ?? '')].filter(Boolean).join(' ')}
 		{/if}
 	{/snippet}
 
 	{#snippet Value()}
-		{@const serialValue = ({ ...selection.entitySelector, ...prefetched }).blockNumber}
+		{@const serialValue = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
 		{#if serialValue !== undefined && serialValue !== null}
 			<span data-badge="small">
 				#{String((serialValue) ?? '')}
 			</span>
 		{:else}
-			{[String((({ ...selection.entitySelector, ...prefetched }).hash) ?? '')].filter(Boolean).join(' ')}
+			{[String((prefetched.hash) ?? '')].filter(Boolean).join(' ')}
 		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const hash0 = prefetched.hash}
-			{#if hash0 !== undefined && hash0 !== null}
-				<span data-text="muted">
-					<TruncatedValue value={String(hash0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={polkadotBlock}>
-				{#snippet Pending()}
-					{@const hash0 = prefetched.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String(hash0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={polkadotBlock}>
+			{#snippet Pending()}
+				{@const hash0 = prefetched.hash}
+				{#if hash0 !== undefined && hash0 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((hash0) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const hash0 = entity.hash}
-					{#if hash0 !== undefined && hash0 !== null}
-						<span data-text="muted">
-							<TruncatedValue value={String(hash0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const hash0 = resolvedEntity.hash}
+				{#if hash0 !== undefined && hash0 !== null}
+					<span data-text="muted">
+						<TruncatedValue value={String((hash0) ?? '')} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -141,16 +127,25 @@
 			<div>
 				<dt>Block number</dt>
 				<dd>
-					<ResourceBoundary resource={polkadotBlock}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									blockNumber: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const blockNumber = prefetched.blockNumber ?? selection.entitySelector.blockNumber}
+							{@const blockNumber = selection.entitySelector.blockNumber ?? prefetched.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
 								{String((blockNumber) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const blockNumber = entity.blockNumber ?? selection.entitySelector.blockNumber ?? prefetched.blockNumber}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const blockNumber = resolvedEntity.blockNumber}
 							{#if blockNumber !== undefined && blockNumber !== null}
 								{String((blockNumber) ?? '')}
 							{/if}
@@ -159,52 +154,100 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={polkadotBlock}>
+			<div>
+				<dt>Hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									hash: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const hash = prefetched.hash}
+							{#if hash !== undefined && hash !== null}
+								<TruncatedValue value={String((hash) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const hash = resolvedEntity.hash}
+							{#if hash !== undefined && hash !== null}
+								<TruncatedValue value={String((hash) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							stateRoot: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const stateRoot = prefetched.stateRoot ?? selection.entitySelector.stateRoot}
+					{@const stateRoot = prefetched.stateRoot}
 					{#if stateRoot !== undefined && stateRoot !== null}
 						<div>
 							<dt>State root</dt>
 							<dd>
-								<TruncatedValue value={String(stateRoot)} />
+								<TruncatedValue value={String((stateRoot) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const stateRoot = entity.stateRoot ?? selection.entitySelector.stateRoot ?? prefetched.stateRoot}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const stateRoot = resolvedEntity.stateRoot}
 					{#if stateRoot !== undefined && stateRoot !== null}
 						<div>
 							<dt>State root</dt>
 							<dd>
-								<TruncatedValue value={String(stateRoot)} />
+								<TruncatedValue value={String((stateRoot) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={polkadotBlock}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							extrinsicsRoot: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const extrinsicsRoot = prefetched.extrinsicsRoot ?? selection.entitySelector.extrinsicsRoot}
+					{@const extrinsicsRoot = prefetched.extrinsicsRoot}
 					{#if extrinsicsRoot !== undefined && extrinsicsRoot !== null}
 						<div>
 							<dt>Extrinsics root</dt>
 							<dd>
-								<TruncatedValue value={String(extrinsicsRoot)} />
+								<TruncatedValue value={String((extrinsicsRoot) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const extrinsicsRoot = entity.extrinsicsRoot ?? selection.entitySelector.extrinsicsRoot ?? prefetched.extrinsicsRoot}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const extrinsicsRoot = resolvedEntity.extrinsicsRoot}
 					{#if extrinsicsRoot !== undefined && extrinsicsRoot !== null}
 						<div>
 							<dt>Extrinsics root</dt>
 							<dd>
-								<TruncatedValue value={String(extrinsicsRoot)} />
+								<TruncatedValue value={String((extrinsicsRoot) ?? '')} />
 							</dd>
 						</div>
 					{/if}
@@ -217,19 +260,19 @@
 				resource={selection[EntityProxyField]<EntityType.PolkadotBlock, false>('$parent')}
 			>
 				{#snippet children(polkadotBlock)}
-					{#if polkadotBlock != null}
+					{#if polkadotBlock != null && polkadotBlock[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Parent</dt>
 							<dd>
 								<PolkadotBlockView
-									selection={select(EntityType.PolkadotBlock, polkadotBlock.entitySelector)}
+									selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector])}
 									prefetched={polkadotBlock}
 									href={
-										resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]', {
-											networkSlug: String(polkadotBlock.entitySelector.$network.slug),
-											blockNumber: String(polkadotBlock.entitySelector.blockNumber),
-											hash: String(polkadotBlock.entitySelector.hash),
-										})
+										(({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).$network !== undefined && ({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).$network.caip2 !== undefined && ({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).$network.caip2.namespace !== undefined && ({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).$network !== undefined && ({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).$network.caip2 !== undefined && ({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).$network.caip2.reference !== undefined && ({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).blockNumber !== undefined && ({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]', {
+											networkSlug: String(networkByCaip2[String(String(({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).$network.caip2.namespace) + ':' + String(({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).$network.caip2.reference))].slug ?? ''),
+											blockNumber: String(({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).blockNumber ?? ''),
+											hash: String(({ ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }).hash ?? ''),
+										}) : undefined)
 									}
 									layout={EntityLayout.Title}
 									open={false}
@@ -246,10 +289,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

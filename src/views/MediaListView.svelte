@@ -21,7 +21,7 @@
 		selection,
 		title = 'Media',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Media...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					url: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Media}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(mediaList)}
 			{@const uniqueMediaList = [...new Map(mediaList.values.map((media) => [media[EntityMetaKey.SelectorKey], media])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={mediaList.values.length === uniqueMediaList.length && mediaList.totalCount != null && mediaList.totalCount >= uniqueMediaList.length ? mediaList.totalCount : uniqueMediaList.length}
+				totalCount={mediaList.totalCount}
 				getKey={(media) => media[EntityMetaKey.SelectorKey]}
 				items={uniqueMediaList}
 			>
@@ -105,20 +92,22 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No media yet.</p>
+						<p data-text="muted">No Media yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: media }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Media> })}
+					{@const mediaFields = { ...media[EntityMetaKey.Selector], ...media }}
+					{@const mediaHrefFields = { ...media, ...media[EntityMetaKey.Selector] }}
 					<MediaView
+						selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
+						prefetched={mediaFields}
 						href={
-							resolve('/(explore)/media/[url]', {
-								url: String(({ ...media.entitySelector, ...media }).url),
-							})
+							(mediaHrefFields.url !== undefined ? resolve('/(explore)/media/[url]', {
+								url: String(mediaHrefFields.url ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Media, media.entitySelector)}
-						prefetched={media}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

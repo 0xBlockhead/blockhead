@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,8 +41,13 @@
 		selection={
 			select(EntityType.YoutubeChannel, {
 				channelId: decodeURIComponent(params.channelId),
-			})[EntityProxyField]<EntityType.YoutubePlaylist>('$$playlists')
+			})[EntityProxyField]<EntityType.YoutubePlaylist>('$$playlists', {
+				sources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+			})
 		}
-		id='YoutubePlaylistsView-page'
+		id='playlists'
 	/>
 </Page>

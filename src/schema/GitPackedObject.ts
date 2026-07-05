@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { type } from 'arktype'
+
 export enum GitPackedObjectSelector {
-	PackHashObjectIdObjectFormat = 'packHash+objectId+objectFormat',
+	PackHashObjectIdObjectFormat = 'PackHashObjectIdObjectFormat',
 }
 export default {
 	entityType: EntityType.GitPackedObject,
@@ -24,60 +24,60 @@ export default {
 	],
 	fields: [
 		{
-			name: 'packHash',
-			label: 'pack hash',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'packHash',
+				label: 'pack hash',
+				type: EntityFieldType.Primitive,
+				primitiveType: (ZeroExHex),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'objectId',
-			label: 'object ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'objectId',
+				label: 'object ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: (ZeroExHex),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'objectFormat',
-			label: 'object format',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'objectFormat',
+				label: 'object format',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'offset',
-			label: 'offset',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'offset',
+				label: 'offset',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'deltaBaseObjectId',
-			label: 'delta base object ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'deltaBaseObjectId',
+				label: 'delta base object ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: (ZeroExHex),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'storedKind',
-			label: 'stored kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'storedKind',
+				label: 'stored kind',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$packfile',
-			label: 'packfile',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.GitPackfile,
-			cardinality: EntityFieldCardinality.One,
+				name: '$packfile',
+				label: 'packfile',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.GitPackfile,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$object',
-			label: 'object',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.GitObject,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$object',
+				label: 'object',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.GitObject,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -43,6 +43,6 @@
 				caip2: networkBySlug[params.networkSlug].caip2,
 			})[EntityProxyField]<EntityType.SolanaNetwork_Timestamp>('$$timestamps')
 		}
-		id='SolanaNetwork_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

@@ -5,7 +5,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,6 +41,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadFarcasterAccountConnection = $derived(selection({
 		sources: [
 			Source.Local_Internal,
@@ -51,19 +52,11 @@
 			displayName: true,
 			username: true,
 			$icon: true,
-			...(open && {
-				bio: true,
-				verifications: true,
-				custody: true,
-				authMethod: true,
-				signedAt: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).fid) ?? '')].filter(Boolean).join(' ') || 'Blockhead Farcaster account connection')
+	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || 'Blockhead Farcaster account connection')
 	const viewDomId = $derived('blockhead-farcaster-account-connection-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -75,7 +68,7 @@
 
 <EntityView
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -105,93 +98,121 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
-		{:else}
-			<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
-				{/snippet}
+		<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
+			{#snippet Pending()}
+				{[String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.displayName) ?? ''), String((entity.username) ?? ''), String((entity.fid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).fid) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
-		{:else}
-			<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).fid) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
-				{/snippet}
+		<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || [String((prefetched.displayName) ?? ''), String((prefetched.username) ?? ''), String((selection.entitySelector.fid ?? prefetched.fid) ?? '')].filter(Boolean).join(' ') || title || 'Blockhead Farcaster account connection'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.fid) ?? '')].filter(Boolean).join(' ') || [String((entity.displayName) ?? ''), String((entity.username) ?? ''), String((entity.fid) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.displayName) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.fid) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const username0 = prefetched.username}
-			{#if username0 !== undefined && username0 !== null}
-				<span data-text="muted">
-					<span>@</span>
-					{String((username0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
-				{#snippet Pending()}
-					{@const username0 = prefetched.username}
-					{#if username0 !== undefined && username0 !== null}
-						<span data-text="muted">
-							<span>@</span>
-							{String((username0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
+			{#snippet Pending()}
+				{@const username0 = prefetched.username}
+				{#if username0 !== undefined && username0 !== null}
+					<span data-text="muted">
+						<span>@</span>
+						{String((username0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const username0 = entity.username}
-					{#if username0 !== undefined && username0 !== null}
-						<span data-text="muted">
-							<span>@</span>
-							{String((username0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const username0 = resolvedEntity.username}
+				{#if username0 !== undefined && username0 !== null}
+					<span data-text="muted">
+						<span>@</span>
+						{String((username0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
+			<div>
+				<dt>FID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									fid: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const fid = selection.entitySelector.fid ?? prefetched.fid}
+							{#if fid !== undefined && fid !== null}
+								<NumberValue value={Number(fid)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const fid = resolvedEntity.fid}
+							{#if fid !== undefined && fid !== null}
+								<NumberValue value={Number(fid)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							username: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const custody = prefetched.custody ?? selection.entitySelector.custody}
-					{#if custody !== undefined && custody !== null}
+					{@const username = prefetched.username}
+					{#if username !== undefined && username !== null}
 						<div>
-							<dt>Custody</dt>
+							<dt>Username</dt>
 							<dd>
-								<TruncatedValue value={String(custody)} />
+								<span>@</span>
+								{String((username) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const custody = entity.custody ?? selection.entitySelector.custody ?? prefetched.custody}
-					{#if custody !== undefined && custody !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const username = resolvedEntity.username}
+					{#if username !== undefined && username !== null}
 						<div>
-							<dt>Custody</dt>
+							<dt>Username</dt>
 							<dd>
-								<TruncatedValue value={String(custody)} />
+								<span>@</span>
+								{String((username) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -200,9 +221,54 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							custody: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const authMethod = prefetched.authMethod ?? selection.entitySelector.authMethod}
+					{@const custody = prefetched.custody}
+					{#if custody !== undefined && custody !== null}
+						<div>
+							<dt>Custody</dt>
+							<dd>
+								<TruncatedValue value={String((custody) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const custody = resolvedEntity.custody}
+					{#if custody !== undefined && custody !== null}
+						<div>
+							<dt>Custody</dt>
+							<dd>
+								<TruncatedValue value={String((custody) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							authMethod: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const authMethod = prefetched.authMethod}
 					{#if authMethod !== undefined && authMethod !== null}
 						<div>
 							<dt>Auth method</dt>
@@ -214,7 +280,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const authMethod = entity.authMethod ?? selection.entitySelector.authMethod ?? prefetched.authMethod}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const authMethod = resolvedEntity.authMethod}
 					{#if authMethod !== undefined && authMethod !== null}
 						<div>
 							<dt>Auth method</dt>
@@ -228,9 +295,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							signedAt: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const signedAt = prefetched.signedAt ?? selection.entitySelector.signedAt}
+					{@const signedAt = prefetched.signedAt}
 					{#if signedAt !== undefined && signedAt !== null}
 						<div>
 							<dt>Signed</dt>
@@ -242,7 +317,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const signedAt = entity.signedAt ?? selection.entitySelector.signedAt ?? prefetched.signedAt}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const signedAt = resolvedEntity.signedAt}
 					{#if signedAt !== undefined && signedAt !== null}
 						<div>
 							<dt>Signed</dt>
@@ -255,12 +331,19 @@
 			</ResourceBoundary>
 		</dl>
 
-		<ResourceBoundary resource={blockheadFarcasterAccountConnection}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						bio: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const bio = entity.bio ?? selection.entitySelector.bio ?? prefetched.bio}
-				{#if bio === undefined || bio === null || bio === ''}
-					<p data-text="muted">No bio available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const bio = resolvedEntity.bio}
+				{#if bio !== undefined && bio !== null && bio !== ''}
 					<p data-text="long-text">{String((bio) ?? '')}</p>
 				{/if}
 			{/snippet}

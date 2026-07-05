@@ -31,6 +31,11 @@ import { NearAccountSelector } from '$/schema/NearAccount.ts'
 import { NearContractSelector } from '$/schema/NearContract.ts'
 import { NearAccessKeySelector } from '$/schema/NearAccessKey.ts'
 import { NearValidatorSelector } from '$/schema/NearValidator.ts'
+import { NearAccount_TimestampSelector } from '$/schema/NearAccount_Timestamp.ts'
+import { NearContract_TimestampSelector } from '$/schema/NearContract_Timestamp.ts'
+import { NearAccessKey_TimestampSelector } from '$/schema/NearAccessKey_Timestamp.ts'
+import { NearNetwork_TimestampSelector } from '$/schema/NearNetwork_Timestamp.ts'
+import { NearValidator_TimestampSelector } from '$/schema/NearValidator_Timestamp.ts'
 
 const nearMainnetRpcUrl = async () =>
 	(await import('$/sources/NearRpc/JsonRpc/queries.ts')).nearMainnetRpcEndpoints[0].url
@@ -91,6 +96,13 @@ const nearActionFields = (action: NearRpcAction) => ({
 const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
 	nonce: BigInt(accessKey.nonce),
 	permission: accessKey.permission === 'FullAccess' ? 'FullAccess' : 'FunctionCall',
+	...(accessKey.permission !== 'FullAccess' && {
+		...(accessKey.permission.FunctionCall.allowance != null && {
+			allowanceYoctoNear: BigInt(accessKey.permission.FunctionCall.allowance),
+		}),
+		receiverId: accessKey.permission.FunctionCall.receiver_id,
+		methodNames: accessKey.permission.FunctionCall.method_names,
+	}),
 })
 
 const nearExecutionOutcomeFields = (
@@ -229,6 +241,89 @@ const getNearTransactionStatus = async ({ $network, hash, signerAccountId }: {
 		txHash: hash,
 		senderAccountId: signerAccountId,
 	})
+}
+
+const nearNetworkTimestampFields = ({
+	headBlock,
+	currentGasPrice,
+	nodeStatus,
+	validatorSet,
+}: {
+	headBlock: NearRpcBlock
+	currentGasPrice: NearRpcGasPrice
+	nodeStatus: NearRpcStatus
+	validatorSet: NearRpcValidators
+}) => ({
+	headHeight: BigInt(headBlock.header.height),
+	headHash: headBlock.header.hash,
+	epochId: headBlock.header.epoch_id,
+	epochHeight: BigInt(validatorSet.epoch_height),
+	epochStartHeight: BigInt(validatorSet.epoch_start_height),
+	chunkCount: headBlock.chunks.length,
+	gasPriceYoctoNear: BigInt(currentGasPrice.gas_price),
+	currentValidatorCount: validatorSet.current_validators.length,
+	nextValidatorCount: validatorSet.next_validators.length,
+	currentProposalCount: validatorSet.current_proposals.length,
+	protocolVersion: nodeStatus.protocol_version,
+	latestProtocolVersion: nodeStatus.latest_protocol_version,
+	nodeVersion: nodeStatus.version.version,
+	syncing: nodeStatus.sync_info.syncing,
+})
+
+const nearNetworkTimestampFieldResolvers = {
+	headHeight: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.headHeight,
+	headHash: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.headHash,
+	epochId: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.epochId,
+	epochHeight: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.epochHeight,
+	epochStartHeight: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.epochStartHeight,
+	chunkCount: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.chunkCount,
+	gasPriceYoctoNear: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.gasPriceYoctoNear,
+	currentValidatorCount: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.currentValidatorCount,
+	nextValidatorCount: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.nextValidatorCount,
+	currentProposalCount: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.currentProposalCount,
+	protocolVersion: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.protocolVersion,
+	latestProtocolVersion: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.latestProtocolVersion,
+	nodeVersion: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.nodeVersion,
+	syncing: (timestamp: ReturnType<typeof nearNetworkTimestampFields>) => timestamp.syncing,
+}
+
+const getNearNetworkTimestampFields = async () => {
+	const {
+		getBlock,
+		getGasPrice,
+		getStatus,
+		getValidators,
+	} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+	const rpcUrl = await nearMainnetRpcUrl()
+	const [
+		headBlock,
+		currentGasPrice,
+		nodeStatus,
+		validatorSet,
+	] = await Promise.all([
+		getBlock({
+			rpcUrl,
+			blockId: 'final',
+		}),
+		getGasPrice({
+			rpcUrl,
+		}),
+		getStatus({
+			rpcUrl,
+		}),
+		getValidators({
+			rpcUrl,
+		}),
+	])
+	return {
+		timestampMs: Number(BigInt(headBlock.header.timestamp_nanosec) / 1_000_000n),
+		...nearNetworkTimestampFields({
+			headBlock,
+			currentGasPrice,
+			nodeStatus,
+			validatorSet,
+		}),
+	}
 }
 
 export default {
@@ -488,6 +583,54 @@ export default {
 		}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.NearAccount_Timestamp,
+			resolve: {
+				[NearAccount_TimestampSelector.AccountTimestampMsSource]: async ({ $account }) => {
+					assertNearMainnet($account.$network)
+					const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+					const account = await viewAccount({
+						rpcUrl: await nearMainnetRpcUrl(),
+						accountId: $account.accountId,
+					})
+					return {
+						amountYoctoNear: BigInt(account.amount),
+						storageUsageBytes: BigInt(account.storage_usage),
+						codeHash: account.code_hash,
+					}
+				}
+			},
+		})({
+			fields: {
+				amountYoctoNear: (timestamp) => timestamp.amountYoctoNear,
+				storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
+				codeHash: (timestamp) => timestamp.codeHash,
+			},
+		}),
+
+		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.NearContract_Timestamp,
+			resolve: {
+				[NearContract_TimestampSelector.ContractTimestampMsSource]: async ({ $contract }) => {
+					assertNearMainnet($contract.$network)
+					const { viewAccount } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+					const account = await viewAccount({
+						rpcUrl: await nearMainnetRpcUrl(),
+						accountId: $contract.accountId,
+					})
+					if (account.code_hash === '11111111111111111111111111111111')
+						throw new Error(`NearRpc_JsonRpc: account ${$contract.accountId} has no deployed contract code`)
+					return {
+						codeHash: account.code_hash,
+					}
+				}
+			},
+		})({
+			fields: {
+				codeHash: (timestamp) => timestamp.codeHash,
+			},
+		}),
+
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccessKey,
 			resolve: {
 				[NearAccessKeySelector.NearAccountPublicKey]: async ({ $account, publicKey }) => {
@@ -504,6 +647,29 @@ export default {
 			fields: {
 				nonce: (accessKey) => accessKey.nonce,
 				permission: (accessKey) => accessKey.permission,
+			},
+		}),
+
+		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.NearAccessKey_Timestamp,
+			resolve: {
+				[NearAccessKey_TimestampSelector.AccessKeyTimestampMsSource]: async ({ $accessKey }) => {
+					assertNearMainnet($accessKey.$account.$network)
+					const { viewAccessKey } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+					return nearAccessKeyFields(await viewAccessKey({
+						rpcUrl: await nearMainnetRpcUrl(),
+						accountId: $accessKey.$account.accountId,
+						publicKey: $accessKey.publicKey,
+					}))
+				}
+			},
+		})({
+			fields: {
+				nonce: (timestamp) => timestamp.nonce,
+				permission: (timestamp) => timestamp.permission,
+				allowanceYoctoNear: (timestamp) => timestamp.allowanceYoctoNear,
+				receiverId: (timestamp) => timestamp.receiverId,
+				methodNames: (timestamp) => timestamp.methodNames ?? [],
 			},
 		}),
 
@@ -533,58 +699,55 @@ export default {
 		}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.NearValidator_Timestamp,
+			resolve: {
+				[NearValidator_TimestampSelector.ValidatorEpochIdSource]: async ({ $validator }) => {
+					assertNearMainnet($validator.$network)
+					const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+					const validatorSet = await getValidators({
+						rpcUrl: await nearMainnetRpcUrl(),
+					})
+					const validator = validatorSet.current_validators.find((nearValidator) => (
+						nearValidator.account_id === $validator.accountId
+					))
+					if (validator == null) throw new Error(`NearRpc_JsonRpc: validator ${$validator.accountId} not found`)
+					return {
+						epochHeight: BigInt(validatorSet.epoch_height),
+						epochStartHeight: BigInt(validatorSet.epoch_start_height),
+						validatorSetRole: 'current',
+						...nearValidatorFields(validator),
+					}
+				}
+			},
+		})({
+			fields: {
+				epochHeight: (timestamp) => timestamp.epochHeight,
+				epochStartHeight: (timestamp) => timestamp.epochStartHeight,
+				validatorSetRole: (timestamp) => timestamp.validatorSetRole,
+				publicKey: (timestamp) => timestamp.publicKey,
+				stakeYoctoNear: (timestamp) => timestamp.stakeYoctoNear,
+				isSlashed: (timestamp) => timestamp.isSlashed,
+				expectedBlocks: (timestamp) => timestamp.expectedBlocks,
+				producedBlocks: (timestamp) => timestamp.producedBlocks,
+				expectedChunks: (timestamp) => timestamp.expectedChunks,
+				producedChunks: (timestamp) => timestamp.producedChunks,
+			},
+		}),
+
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				[NearNetworkSelector.Slug]: async (entitySelector) => {
 					assertNearMainnet(entitySelector)
-					const {
-						getBlock,
-						getGasPrice,
-						getStatus,
-						getValidators,
-					} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-					const rpcUrl = await nearMainnetRpcUrl()
-					const [
-						headBlock,
-					currentGasPrice,
-					nodeStatus,
-					validatorSet,
-					] = await Promise.all([
-						getBlock({
-							rpcUrl,
-							blockId: 'final',
-						}),
-						getGasPrice({
-							rpcUrl,
-						}),
-						getStatus({
-							rpcUrl,
-						}),
-						getValidators({
-							rpcUrl,
-						}),
-					])
+					const timestamp = await getNearNetworkTimestampFields()
 					return [
 						{
 							[EntityMetaKey.Selector]: {
 								$network: entitySelector,
-								timestampMs: Number(BigInt(headBlock.header.timestamp_nanosec) / 1_000_000n),
+								timestampMs: timestamp.timestampMs,
 								source: Source.NearRpc_JsonRpc,
 							},
-							headHeight: BigInt(headBlock.header.height),
-							headHash: headBlock.header.hash,
-							epochId: headBlock.header.epoch_id,
-							epochHeight: BigInt(validatorSet.epoch_height),
-							epochStartHeight: BigInt(validatorSet.epoch_start_height),
-							chunkCount: headBlock.chunks.length,
-							gasPriceYoctoNear: BigInt(currentGasPrice.gas_price),
-							currentValidatorCount: validatorSet.current_validators.length,
-							nextValidatorCount: validatorSet.next_validators.length,
-							currentProposalCount: validatorSet.current_proposals.length,
-							protocolVersion: nodeStatus.protocol_version,
-							latestProtocolVersion: nodeStatus.latest_protocol_version,
-							nodeVersion: nodeStatus.version.version,
-							syncing: nodeStatus.sync_info.syncing,
+							...timestamp,
 						},
 					]
 				}
@@ -593,6 +756,18 @@ export default {
 			fields: {
 				$$timestamps: (timestamps) => timestamps,
 			},
+		}),
+
+		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.NearNetwork_Timestamp,
+			resolve: {
+				[NearNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }) => {
+					assertNearMainnet($network)
+					return getNearNetworkTimestampFields()
+				}
+			},
+		})({
+			fields: nearNetworkTimestampFieldResolvers,
 		}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {

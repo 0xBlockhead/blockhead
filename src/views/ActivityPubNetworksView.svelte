@@ -20,7 +20,7 @@
 		selection,
 		title = 'ActivityPub',
 		typeAnnotationParagraphs = ['ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from configured instance sources.'],
-		placeholderText = 'Loading ActivityPub...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,27 +64,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.ActivityPubNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(activityPubNetworks)}
 			{@const uniqueActivityPubNetworks = [...new Map(activityPubNetworks.values.map((activityPubNetwork) => [activityPubNetwork[EntityMetaKey.SelectorKey], activityPubNetwork])).values()]}
 			<EntitiesList
@@ -96,7 +83,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={activityPubNetworks.values.length === uniqueActivityPubNetworks.length && activityPubNetworks.totalCount != null && activityPubNetworks.totalCount >= uniqueActivityPubNetworks.length ? activityPubNetworks.totalCount : uniqueActivityPubNetworks.length}
+				totalCount={activityPubNetworks.totalCount}
 				getKey={(activityPubNetwork) => activityPubNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueActivityPubNetworks}
 			>
@@ -109,9 +96,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: activityPubNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubNetwork> })}
+					{@const activityPubNetworkFields = { ...activityPubNetwork[EntityMetaKey.Selector], ...activityPubNetwork }}
 					<ActivityPubNetworkView
-						selection={select(EntityType.ActivityPubNetwork, activityPubNetwork.entitySelector)}
-						prefetched={activityPubNetwork}
+						selection={select(EntityType.ActivityPubNetwork, activityPubNetwork[EntityMetaKey.Selector])}
+						prefetched={activityPubNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

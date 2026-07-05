@@ -39,6 +39,7 @@
 		}
 		selection={
 			select(EntityType._GlobalIpfsAccess_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					configuredAccessEndpointCount: true,
 					reachableAccessEndpointCount: true,

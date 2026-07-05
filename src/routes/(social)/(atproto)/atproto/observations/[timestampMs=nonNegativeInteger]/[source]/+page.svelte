@@ -39,6 +39,7 @@
 		}
 		selection={
 			select(EntityType._GlobalAtprotoNetwork_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					sourceWindowActorCount: true,
 					sourceWindowPostCount: true,

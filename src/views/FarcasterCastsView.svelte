@@ -21,7 +21,7 @@
 		selection,
 		title = 'Farcaster casts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Farcaster casts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					text: true,
 					hash: true,
 					fid: true,
 					timestamp: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterCast}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(farcasterCasts)}
 			{@const uniqueFarcasterCasts = [...new Map(farcasterCasts.values.map((farcasterCast) => [farcasterCast[EntityMetaKey.SelectorKey], farcasterCast])).values()]}
 			<EntitiesList
@@ -100,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterCasts.values.length === uniqueFarcasterCasts.length && farcasterCasts.totalCount != null && farcasterCasts.totalCount >= uniqueFarcasterCasts.length ? farcasterCasts.totalCount : uniqueFarcasterCasts.length}
+				totalCount={farcasterCasts.totalCount}
 				getKey={(farcasterCast) => farcasterCast[EntityMetaKey.SelectorKey]}
 				items={uniqueFarcasterCasts}
 			>
@@ -113,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: farcasterCast }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterCast> })}
+					{@const farcasterCastFields = { ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }}
+					{@const farcasterCastHrefFields = { ...farcasterCast, ...farcasterCast[EntityMetaKey.Selector] }}
 					<FarcasterCastView
+						selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
+						prefetched={farcasterCastFields}
 						href={
-							resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-								fid: String(({ ...farcasterCast.entitySelector, ...farcasterCast }).fid),
-								hash: String(({ ...farcasterCast.entitySelector, ...farcasterCast }).hash),
-							})
+							(farcasterCastHrefFields.fid !== undefined && farcasterCastHrefFields.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+								fid: String(farcasterCastHrefFields.fid ?? ''),
+								hash: String(farcasterCastHrefFields.hash ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.FarcasterCast, farcasterCast.entitySelector)}
-						prefetched={farcasterCast}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

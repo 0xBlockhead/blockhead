@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='BlockheadPanelTreesView-page'
+		id='blockhead-panel-trees'
 	/>
 </Page>

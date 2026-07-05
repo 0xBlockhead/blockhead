@@ -21,7 +21,7 @@
 		selection,
 		title = 'Farcaster user observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Farcaster user observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$user: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterUser_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(farcasterUserTimestamps)}
 			{@const uniqueFarcasterUserTimestamps = [...new Map(farcasterUserTimestamps.values.map((farcasterUserTimestamp) => [farcasterUserTimestamp[EntityMetaKey.SelectorKey], farcasterUserTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterUserTimestamps.values.length === uniqueFarcasterUserTimestamps.length && farcasterUserTimestamps.totalCount != null && farcasterUserTimestamps.totalCount >= uniqueFarcasterUserTimestamps.length ? farcasterUserTimestamps.totalCount : uniqueFarcasterUserTimestamps.length}
+				totalCount={farcasterUserTimestamps.totalCount}
 				getKey={(farcasterUserTimestamp) => farcasterUserTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueFarcasterUserTimestamps}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: farcasterUserTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterUser_Timestamp> })}
+					{@const farcasterUserTimestampFields = { ...farcasterUserTimestamp[EntityMetaKey.Selector], ...farcasterUserTimestamp }}
+					{@const farcasterUserTimestampHrefFields = { ...farcasterUserTimestamp, ...farcasterUserTimestamp[EntityMetaKey.Selector] }}
 					<FarcasterUser_TimestampView
+						selection={select(EntityType.FarcasterUser_Timestamp, farcasterUserTimestamp[EntityMetaKey.Selector])}
+						prefetched={farcasterUserTimestampFields}
 						href={
-							resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/observations/[timestampMs=nonNegativeInteger]', {
-								userId: String(farcasterUserTimestamp.entitySelector.$user.fid),
-								timestampMs: String(farcasterUserTimestamp.entitySelector.timestampMs),
-							})
+							(farcasterUserTimestampHrefFields.$user !== undefined && farcasterUserTimestampHrefFields.$user.fid !== undefined && farcasterUserTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/observations/[timestampMs=nonNegativeInteger]', {
+								userId: String(farcasterUserTimestampHrefFields.$user.fid ?? ''),
+								timestampMs: String(farcasterUserTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.FarcasterUser_Timestamp, farcasterUserTimestamp.entitySelector)}
-						prefetched={farcasterUserTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

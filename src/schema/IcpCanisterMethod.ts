@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum IcpCanisterMethodSelector {
-	CanisterMethodNameMethodKind = '$canister+methodName+methodKind',
+	CanisterMethodNameMethodKind = 'CanisterMethodNameMethodKind',
 }
 export default {
 	entityType: EntityType.IcpCanisterMethod,
@@ -24,32 +23,32 @@ export default {
 	],
 	fields: [
 		{
-			name: '$canister',
-			label: 'canister',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.IcpCanister,
-			cardinality: EntityFieldCardinality.One,
+				name: '$canister',
+				label: 'canister',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.IcpCanister,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'methodName',
-			label: 'method name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'methodName',
+				label: 'method name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'methodKind',
-			label: 'method kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'methodKind',
+				label: 'method kind',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.IcpCanisterMethod_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.IcpCanisterMethod_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

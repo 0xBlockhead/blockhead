@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Polkadot networks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Polkadot networks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +66,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.PolkadotNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(polkadotNetworks)}
 			{@const uniquePolkadotNetworks = [...new Map(polkadotNetworks.values.map((polkadotNetwork) => [polkadotNetwork[EntityMetaKey.SelectorKey], polkadotNetwork])).values()]}
 			<EntitiesList
@@ -97,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={polkadotNetworks.values.length === uniquePolkadotNetworks.length && polkadotNetworks.totalCount != null && polkadotNetworks.totalCount >= uniquePolkadotNetworks.length ? polkadotNetworks.totalCount : uniquePolkadotNetworks.length}
+				totalCount={polkadotNetworks.totalCount}
 				getKey={(polkadotNetwork) => polkadotNetwork[EntityMetaKey.SelectorKey]}
 				items={uniquePolkadotNetworks}
 			>
@@ -110,14 +98,16 @@
 				{/snippet}
 
 				{#snippet Item({ item: polkadotNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotNetwork> })}
+					{@const polkadotNetworkFields = { ...polkadotNetwork[EntityMetaKey.Selector], ...polkadotNetwork }}
+					{@const polkadotNetworkHrefFields = { ...polkadotNetwork, ...polkadotNetwork[EntityMetaKey.Selector] }}
 					<PolkadotNetworkView
+						selection={select(EntityType.PolkadotNetwork, polkadotNetwork[EntityMetaKey.Selector])}
+						prefetched={polkadotNetworkFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
-								networkSlug: String(({ ...polkadotNetwork.entitySelector, ...polkadotNetwork }).$network.slug),
-							})
+							(polkadotNetworkHrefFields.$network !== undefined && polkadotNetworkHrefFields.$network.caip2 !== undefined && polkadotNetworkHrefFields.$network.caip2.namespace !== undefined && polkadotNetworkHrefFields.$network !== undefined && polkadotNetworkHrefFields.$network.caip2 !== undefined && polkadotNetworkHrefFields.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+								networkSlug: String(networkByCaip2[String(String(polkadotNetworkHrefFields.$network.caip2.namespace) + ':' + String(polkadotNetworkHrefFields.$network.caip2.reference))].slug ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.PolkadotNetwork, polkadotNetwork.entitySelector)}
-						prefetched={polkadotNetwork}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

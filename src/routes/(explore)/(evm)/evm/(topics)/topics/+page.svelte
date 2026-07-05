@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='EvmTopicsView-page'
+		id='evm-topics'
 	/>
 </Page>

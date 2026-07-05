@@ -21,7 +21,7 @@
 		selection,
 		title = 'Contracts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos contracts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					address: true,
 					codeId: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosContract}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosContracts)}
 			{@const uniqueCosmosContracts = [...new Map(cosmosContracts.values.map((cosmosContract) => [cosmosContract[EntityMetaKey.SelectorKey], cosmosContract])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosContracts.values.length === uniqueCosmosContracts.length && cosmosContracts.totalCount != null && cosmosContracts.totalCount >= uniqueCosmosContracts.length ? cosmosContracts.totalCount : uniqueCosmosContracts.length}
+				totalCount={cosmosContracts.totalCount}
 				getKey={(cosmosContract) => cosmosContract[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosContracts}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosContract }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosContract> })}
+					{@const cosmosContractFields = { ...cosmosContract[EntityMetaKey.Selector], ...cosmosContract }}
+					{@const cosmosContractHrefFields = { ...cosmosContract, ...cosmosContract[EntityMetaKey.Selector] }}
 					<CosmosContractView
+						selection={select(EntityType.CosmosContract, cosmosContract[EntityMetaKey.Selector])}
+						prefetched={cosmosContractFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/contract/[address]', {
-								caip2: `${String(({ ...cosmosContract.entitySelector, ...cosmosContract }).$network.caip2.namespace)}:${String(({ ...cosmosContract.entitySelector, ...cosmosContract }).$network.caip2.reference)}`,
-								address: String(({ ...cosmosContract.entitySelector, ...cosmosContract }).address),
-							})
+							(cosmosContractHrefFields.$network !== undefined && cosmosContractHrefFields.$network.caip2 !== undefined && cosmosContractHrefFields.$network.caip2.namespace !== undefined && cosmosContractHrefFields.$network !== undefined && cosmosContractHrefFields.$network.caip2 !== undefined && cosmosContractHrefFields.$network.caip2.reference !== undefined && cosmosContractHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/contract/[address]', {
+								caip2: `${String(cosmosContractHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosContractHrefFields.$network.caip2.reference ?? '')}`,
+								address: String(cosmosContractHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosContract, cosmosContract.entitySelector)}
-						prefetched={cosmosContract}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

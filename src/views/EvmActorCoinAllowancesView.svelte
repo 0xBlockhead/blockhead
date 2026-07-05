@@ -20,7 +20,7 @@
 		selection,
 		title = 'Allowances',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Allowances...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,28 +64,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$contract: true,
 					$spender: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmActorCoinAllowance}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmActorCoinAllowances)}
 			{@const uniqueEvmActorCoinAllowances = [...new Map(evmActorCoinAllowances.values.map((evmActorCoinAllowance) => [evmActorCoinAllowance[EntityMetaKey.SelectorKey], evmActorCoinAllowance])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmActorCoinAllowances.values.length === uniqueEvmActorCoinAllowances.length && evmActorCoinAllowances.totalCount != null && evmActorCoinAllowances.totalCount >= uniqueEvmActorCoinAllowances.length ? evmActorCoinAllowances.totalCount : uniqueEvmActorCoinAllowances.length}
+				totalCount={evmActorCoinAllowances.totalCount}
 				getKey={(evmActorCoinAllowance) => evmActorCoinAllowance[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmActorCoinAllowances}
 			>
@@ -105,14 +92,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No allowances yet.</p>
+						<p data-text="muted">No Allowances yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: evmActorCoinAllowance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmActorCoinAllowance> })}
+					{@const evmActorCoinAllowanceFields = { ...evmActorCoinAllowance[EntityMetaKey.Selector], ...evmActorCoinAllowance }}
 					<EvmActorCoinAllowanceView
-						selection={select(EntityType.EvmActorCoinAllowance, evmActorCoinAllowance.entitySelector)}
-						prefetched={evmActorCoinAllowance}
+						selection={select(EntityType.EvmActorCoinAllowance, evmActorCoinAllowance[EntityMetaKey.Selector])}
+						prefetched={evmActorCoinAllowanceFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

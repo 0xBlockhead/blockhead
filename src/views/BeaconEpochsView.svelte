@@ -21,7 +21,7 @@
 		selection,
 		title = 'Epochs',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Beacon epochs...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					epoch: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BeaconEpoch}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(beaconEpochs)}
 			{@const uniqueBeaconEpochs = [...new Map(beaconEpochs.values.map((beaconEpoch) => [beaconEpoch[EntityMetaKey.SelectorKey], beaconEpoch])).values()]}
 			<EntitiesList
@@ -97,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={beaconEpochs.values.length === uniqueBeaconEpochs.length && beaconEpochs.totalCount != null && beaconEpochs.totalCount >= uniqueBeaconEpochs.length ? beaconEpochs.totalCount : uniqueBeaconEpochs.length}
+				totalCount={beaconEpochs.totalCount}
 				getKey={(beaconEpoch) => beaconEpoch[EntityMetaKey.SelectorKey]}
 				items={uniqueBeaconEpochs}
 			>
@@ -110,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: beaconEpoch }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BeaconEpoch> })}
+					{@const beaconEpochFields = { ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }}
+					{@const beaconEpochHrefFields = { ...beaconEpoch, ...beaconEpoch[EntityMetaKey.Selector] }}
 					<BeaconEpochView
+						selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
+						prefetched={beaconEpochFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-								caip2: `${String(({ ...beaconEpoch.entitySelector, ...beaconEpoch }).$network.caip2.namespace)}:${String(({ ...beaconEpoch.entitySelector, ...beaconEpoch }).$network.caip2.reference)}`,
-								epoch: String(({ ...beaconEpoch.entitySelector, ...beaconEpoch }).epoch),
-							})
+							(beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.caip2 !== undefined && beaconEpochHrefFields.$network.caip2.namespace !== undefined && beaconEpochHrefFields.$network !== undefined && beaconEpochHrefFields.$network.caip2 !== undefined && beaconEpochHrefFields.$network.caip2.reference !== undefined && beaconEpochHrefFields.epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+								caip2: `${String(beaconEpochHrefFields.$network.caip2.namespace ?? '')}:${String(beaconEpochHrefFields.$network.caip2.reference ?? '')}`,
+								epoch: String(beaconEpochHrefFields.epoch ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BeaconEpoch, beaconEpoch.entitySelector)}
-						prefetched={beaconEpoch}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

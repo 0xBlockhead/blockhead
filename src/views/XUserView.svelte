@@ -5,7 +5,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,6 +41,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const xUser = $derived(selection({
 		sources: [
 			Source.X_Rest,
@@ -55,16 +56,11 @@
 			createdAt: true,
 			$icon: true,
 			$profileBanner: true,
-			...(open && {
-				$$timestamps: true,
-				$$posts: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || 'X user')
+	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.username) ?? ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || 'X user')
 	const viewDomId = $derived('xuser-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -75,7 +71,7 @@
 
 <EntityView
 	entityType={EntityType.XUser}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -105,90 +101,119 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
-		{:else}
-			<ResourceBoundary resource={xUser}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
-				{/snippet}
+		<ResourceBoundary resource={xUser}>
+			{#snippet Pending()}
+				{[String((prefetched.name) ?? ''), String((prefetched.username) ?? ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? ''), String((entity.username) ?? ''), String((entity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{['@' + String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
-		{:else}
-			<ResourceBoundary resource={xUser}>
-				{#snippet Pending()}
-					{['@' + String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).username) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
-				{/snippet}
+		<ResourceBoundary resource={xUser}>
+			{#snippet Pending()}
+				{[(String((prefetched.username) ?? '') ? '@' + String((prefetched.username) ?? '') : ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((prefetched.username) ?? ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'X user'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{['@' + String((entity.username) ?? ''), String((entity.id) ?? '')].filter(Boolean).join(' ') || [String((entity.name) ?? ''), String((entity.username) ?? ''), String((entity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[(String((resolvedEntity.username) ?? '') ? '@' + String((resolvedEntity.username) ?? '') : ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? ''), String((resolvedEntity.username) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const createdAt0 = prefetched.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={xUser}>
-				{#snippet Pending()}
-					{@const createdAt0 = prefetched.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={xUser}>
+			{#snippet Pending()}
+				{@const createdAt0 = prefetched.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const createdAt0 = entity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const createdAt0 = resolvedEntity.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={xUser}>
+			<div>
+				<dt>Username</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									username: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const username = prefetched.username}
+							{#if username !== undefined && username !== null}
+								<span>@</span>
+								{String((username) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const username = resolvedEntity.username}
+							{#if username !== undefined && username !== null}
+								<span>@</span>
+								{String((username) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							verified: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const verified = prefetched.verified ?? selection.entitySelector.verified}
+					{@const verified = prefetched.verified}
 					{#if verified !== undefined && verified !== null}
 						<div>
 							<dt>Verified</dt>
 							<dd>
-								{String((verified) ?? '')}
+								{verified ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const verified = entity.verified ?? selection.entitySelector.verified ?? prefetched.verified}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const verified = resolvedEntity.verified}
 					{#if verified !== undefined && verified !== null}
 						<div>
 							<dt>Verified</dt>
 							<dd>
-								{String((verified) ?? '')}
+								{verified ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
@@ -197,9 +222,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={xUser}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							location: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const location = prefetched.location ?? selection.entitySelector.location}
+					{@const location = prefetched.location}
 					{#if location !== undefined && location !== null}
 						<div>
 							<dt>Location</dt>
@@ -211,7 +244,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const location = entity.location ?? selection.entitySelector.location ?? prefetched.location}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const location = resolvedEntity.location}
 					{#if location !== undefined && location !== null}
 						<div>
 							<dt>Location</dt>
@@ -225,9 +259,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={xUser}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							websiteUrl: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const websiteUrl = prefetched.websiteUrl ?? selection.entitySelector.websiteUrl}
+					{@const websiteUrl = prefetched.websiteUrl}
 					{#if websiteUrl !== undefined && websiteUrl !== null}
 						<div>
 							<dt>Website URL</dt>
@@ -246,7 +288,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const websiteUrl = entity.websiteUrl ?? selection.entitySelector.websiteUrl ?? prefetched.websiteUrl}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const websiteUrl = resolvedEntity.websiteUrl}
 					{#if websiteUrl !== undefined && websiteUrl !== null}
 						<div>
 							<dt>Website URL</dt>
@@ -266,12 +309,56 @@
 			</ResourceBoundary>
 		</dl>
 
-		<ResourceBoundary resource={xUser}>
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							createdAt: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const createdAt = prefetched.createdAt}
+					{#if createdAt !== undefined && createdAt !== null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={Number(createdAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt = resolvedEntity.createdAt}
+					{#if createdAt !== undefined && createdAt !== null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={Number(createdAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						description: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const description = entity.description ?? selection.entitySelector.description ?? prefetched.description}
-				{#if description === undefined || description === null || description === ''}
-					<p data-text="muted">No description available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const description = resolvedEntity.description}
+				{#if description !== undefined && description !== null && description !== ''}
 					<p data-text="long-text">{String((description) ?? '')}</p>
 				{/if}
 			{/snippet}

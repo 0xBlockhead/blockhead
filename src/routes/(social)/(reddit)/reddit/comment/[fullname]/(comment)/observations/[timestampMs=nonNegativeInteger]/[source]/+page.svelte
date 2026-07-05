@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.RedditComment_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					score: true,
 				},

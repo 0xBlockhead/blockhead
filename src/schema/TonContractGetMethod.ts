@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum TonContractGetMethodSelector {
-	ContractMethodName = '$contract+methodName',
+	ContractMethodName = 'ContractMethodName',
 }
 export default {
 	entityType: EntityType.TonContractGetMethod,
@@ -23,25 +22,25 @@ export default {
 	],
 	fields: [
 		{
-			name: '$contract',
-			label: 'contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TonContract,
-			cardinality: EntityFieldCardinality.One,
+				name: '$contract',
+				label: 'contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.TonContract,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'methodName',
-			label: 'method name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'methodName',
+				label: 'method name',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.TonContractGetMethod_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.TonContractGetMethod_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

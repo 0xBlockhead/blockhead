@@ -12,12 +12,16 @@
 	import { Source } from '$/sources/Source.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'YouTube channels',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading YouTube channels...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,8 +51,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import YoutubeChannelView from '$/views/YoutubeChannelView.svelte'
 </script>
 
 
@@ -61,7 +65,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Constants_Internal,
 				],
@@ -69,23 +73,10 @@
 					title: true,
 					channelId: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.YoutubeChannel}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(youtubeChannels)}
 			{@const uniqueYoutubeChannels = [...new Map(youtubeChannels.values.map((youtubeChannel) => [youtubeChannel[EntityMetaKey.SelectorKey], youtubeChannel])).values()]}
 			<EntitiesList
@@ -97,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={youtubeChannels.values.length === uniqueYoutubeChannels.length && youtubeChannels.totalCount != null && youtubeChannels.totalCount >= uniqueYoutubeChannels.length ? youtubeChannels.totalCount : uniqueYoutubeChannels.length}
+				totalCount={youtubeChannels.totalCount}
 				getKey={(youtubeChannel) => youtubeChannel[EntityMetaKey.SelectorKey]}
 				items={uniqueYoutubeChannels}
 			>
@@ -110,19 +101,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: youtubeChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubeChannel> })}
-					<EntityView
-						entityType={EntityType.YoutubeChannel}
-						entitySelector={youtubeChannel.entitySelector}
-						layout={EntityLayout.Summary}
+					{@const youtubeChannelFields = { ...youtubeChannel[EntityMetaKey.Selector], ...youtubeChannel }}
+					<YoutubeChannelView
+						selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
+						prefetched={youtubeChannelFields}
+						layout={EntityLayout.Title}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const title0 = ({ ...youtubeChannel.entitySelector, ...youtubeChannel }).title}
-							{String((title0) ?? '')}
-							{@const channelId1 = ({ ...youtubeChannel.entitySelector, ...youtubeChannel }).channelId}
-							<TruncatedValue value={String(channelId1)} />
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

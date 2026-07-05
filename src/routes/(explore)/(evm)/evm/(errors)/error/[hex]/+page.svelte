@@ -36,6 +36,12 @@
 				hex: params.hex,
 			})
 		}
-		selection={select(EntityType.EvmError, data.selector)}
+		selection={
+			select(EntityType.EvmError, data.selector, {
+				fields: {
+					signatures: true,
+				},
+			})
+		}
 	/>
 </Page>

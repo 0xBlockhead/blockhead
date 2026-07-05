@@ -23,7 +23,6 @@ export const tonlibBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:TONLIB_JSON_RPC_URL',
-				origin: 'env:TONLIB_JSON_RPC_URL',
 				corsEnabled: false,
 			},
 		],

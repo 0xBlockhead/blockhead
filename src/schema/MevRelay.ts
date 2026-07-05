@@ -3,6 +3,7 @@
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum MevRelaySelector {
@@ -50,6 +51,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.MevRelay_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MevRelay_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

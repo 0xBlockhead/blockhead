@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum ZeroGConsensusNetworkSelector {
-	NetworkConsensusNetworkId = 'networkConsensusNetworkId',
+	NetworkConsensusNetworkId = 'NetworkConsensusNetworkId',
 }
 export default {
 	entityType: EntityType.ZeroGConsensusNetwork,
@@ -23,39 +23,28 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'consensusNetworkId',
-			label: 'consensus network ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'consensusNetworkId',
+				label: 'consensus network ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$daQuorums',
-			label: 'da quorums',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ZeroGDaQuorum,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$storageProofs',
-			label: 'storage proofs',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ZeroGStorageProof,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.ZeroGChainScan_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

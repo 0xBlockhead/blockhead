@@ -48,7 +48,6 @@ export const nitroBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:NITRO_NODE_RPC_URL',
-				origin: 'env:NITRO_NODE_RPC_URL',
 				corsEnabled: false,
 			},
 		],

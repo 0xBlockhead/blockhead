@@ -22,7 +22,7 @@
 		selection,
 		title = 'EVM topics',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM topics...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,27 +66,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Openchain_Rest,
 				],
-			}) : selection
+				fields: {
+					hex: true,
+				},
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmTopic}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmTopics)}
 			{@const uniqueEvmTopics = [...new Map(evmTopics.values.map((evmTopic) => [evmTopic[EntityMetaKey.SelectorKey], evmTopic])).values()]}
 			<EntitiesList
@@ -98,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmTopics.values.length === uniqueEvmTopics.length && evmTopics.totalCount != null && evmTopics.totalCount >= uniqueEvmTopics.length ? evmTopics.totalCount : uniqueEvmTopics.length}
+				totalCount={evmTopics.totalCount}
 				getKey={(evmTopic) => evmTopic[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmTopics}
 			>
@@ -111,14 +101,16 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmTopic }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTopic> })}
+					{@const evmTopicFields = { ...evmTopic[EntityMetaKey.Selector], ...evmTopic }}
+					{@const evmTopicHrefFields = { ...evmTopic, ...evmTopic[EntityMetaKey.Selector] }}
 					<EvmTopicView
+						selection={select(EntityType.EvmTopic, evmTopic[EntityMetaKey.Selector])}
+						prefetched={evmTopicFields}
 						href={
-							resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-								hex: String(({ ...evmTopic.entitySelector, ...evmTopic }).hex),
-							})
+							(evmTopicHrefFields.hex !== undefined ? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+								hex: String(evmTopicHrefFields.hex ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmTopic, evmTopic.entitySelector)}
-						prefetched={evmTopic}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

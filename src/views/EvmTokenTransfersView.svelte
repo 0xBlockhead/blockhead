@@ -12,12 +12,16 @@
 	import { schema } from '$/schema/index.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'Token transfers',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Token transfers...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,8 +51,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EvmTokenTransferView from '$/views/EvmTokenTransferView.svelte'
 </script>
 
 
@@ -67,32 +71,20 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					indexInLog: true,
 					standard: true,
 					amount: true,
 					tokenSymbol: true,
 					tokenId: true,
+					$log: true,
 				},
 				limit: 64,
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmTokenTransfer}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-			/>
-		{/snippet}
-
 		{#snippet children(evmTokenTransfers)}
 			{@const uniqueEvmTokenTransfers = [...new Map(evmTokenTransfers.values.map((evmTokenTransfer) => [evmTokenTransfer[EntityMetaKey.SelectorKey], evmTokenTransfer])).values()]}
 			<EntitiesList
@@ -104,7 +96,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={evmTokenTransfers.values.length === uniqueEvmTokenTransfers.length && evmTokenTransfers.totalCount != null && evmTokenTransfers.totalCount >= uniqueEvmTokenTransfers.length ? evmTokenTransfers.totalCount : uniqueEvmTokenTransfers.length}
+				totalCount={evmTokenTransfers.totalCount}
 				getKey={(evmTokenTransfer) => evmTokenTransfer[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmTokenTransfers}
 			>
@@ -112,51 +104,27 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No token transfers yet.</p>
+						<p data-text="muted">No Token transfers yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: evmTokenTransfer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTokenTransfer> })}
-					<EntityView
-						entityType={EntityType.EvmTokenTransfer}
-						entitySelector={evmTokenTransfer.entitySelector}
+					{@const evmTokenTransferFields = { ...evmTokenTransfer[EntityMetaKey.Selector], ...evmTokenTransfer }}
+					{@const evmTokenTransferHrefFields = { ...evmTokenTransfer, ...evmTokenTransfer[EntityMetaKey.Selector] }}
+					<EvmTokenTransferView
+						selection={select(EntityType.EvmTokenTransfer, evmTokenTransfer[EntityMetaKey.Selector])}
+						prefetched={evmTokenTransferFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/token-transfer/[indexInTransaction=nonNegativeInteger]/[indexInLog=nonNegativeInteger]', {
-								caip2: `${String(({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).$log.$transaction.$network.caip2.namespace)}:${String(({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).$log.$transaction.$network.caip2.reference)}`,
-								transactionId: String(({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).$log.$transaction.txHash),
-								indexInTransaction: String(({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).$log.indexInTransaction),
-								indexInLog: String(({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).indexInLog),
-							})
+							(evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2 !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2.namespace !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2 !== undefined && evmTokenTransferHrefFields.$log.$transaction.$network.caip2.reference !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.$transaction !== undefined && evmTokenTransferHrefFields.$log.$transaction.txHash !== undefined && evmTokenTransferHrefFields.$log !== undefined && evmTokenTransferHrefFields.$log.indexInTransaction !== undefined && evmTokenTransferHrefFields.indexInLog !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/token-transfer/[indexInTransaction=nonNegativeInteger]/[indexInLog=nonNegativeInteger]', {
+								caip2: `${String(evmTokenTransferHrefFields.$log.$transaction.$network.caip2.namespace ?? '')}:${String(evmTokenTransferHrefFields.$log.$transaction.$network.caip2.reference ?? '')}`,
+								transactionId: String(evmTokenTransferHrefFields.$log.$transaction.txHash ?? ''),
+								indexInTransaction: String(evmTokenTransferHrefFields.$log.indexInTransaction ?? ''),
+								indexInLog: String(evmTokenTransferHrefFields.indexInLog ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Summary}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const indexInLog0 = ({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).indexInLog}
-							Transfer #
-							<span>Transfer #</span>
-							{String((indexInLog0) ?? '')}
-							{@const standard1 = ({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).standard}
-							{String((standard1) ?? '')}
-							{@const amount2 = ({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).amount}
-							<NumberValue value={Number(amount2)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const tokenSymbolAfter0 = ({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).tokenSymbol}
-							{#if tokenSymbolAfter0 != null}
-								<span data-text="muted">
-									{String((tokenSymbolAfter0) ?? '')}
-								</span>
-							{/if}
-							{@const tokenIdAfter1 = ({ ...evmTokenTransfer.entitySelector, ...evmTokenTransfer }).tokenId}
-							{#if tokenIdAfter1 != null}
-								<span data-text="muted">
-									<NumberValue value={Number(tokenIdAfter1)} />
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

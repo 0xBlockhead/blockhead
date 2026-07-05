@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const CoinpaprikaOpenApiSource = {
+export default {
 	provider: SourceProvider.Coinpaprika,
 	source: Source.Coinpaprika_OpenApi,
-	label: 'Coinpaprika OpenApi',
+	label: 'Coinpaprika OpenAPI',
 } satisfies SourceDefinition
-
-export default CoinpaprikaOpenApiSource

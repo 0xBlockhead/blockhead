@@ -21,7 +21,7 @@
 		selection,
 		title = 'AT Protocol posts',
 		typeAnnotationParagraphs = ['A Bluesky feed post record addressed by an at-URI inside an actor repository. Text, author, reply edges, labels, languages, and engagement counts resolve through appview sources.'],
-		placeholderText = 'Loading AT Protocol posts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					text: true,
 					uri: true,
 					createdAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoPost}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(atprotoPosts)}
 			{@const uniqueAtprotoPosts = [...new Map(atprotoPosts.values.map((atprotoPost) => [atprotoPost[EntityMetaKey.SelectorKey], atprotoPost])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={atprotoPosts.values.length === uniqueAtprotoPosts.length && atprotoPosts.totalCount != null && atprotoPosts.totalCount >= uniqueAtprotoPosts.length ? atprotoPosts.totalCount : uniqueAtprotoPosts.length}
+				totalCount={atprotoPosts.totalCount}
 				getKey={(atprotoPost) => atprotoPost[EntityMetaKey.SelectorKey]}
 				items={uniqueAtprotoPosts}
 			>
@@ -112,14 +99,16 @@
 				{/snippet}
 
 				{#snippet Item({ item: atprotoPost }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AtprotoPost> })}
+					{@const atprotoPostFields = { ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }}
+					{@const atprotoPostHrefFields = { ...atprotoPost, ...atprotoPost[EntityMetaKey.Selector] }}
 					<AtprotoPostView
+						selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
+						prefetched={atprotoPostFields}
 						href={
-							resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-								uri: String(atprotoPost.entitySelector.uri),
-							})
+							(atprotoPostHrefFields.uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
+								uri: encodeURIComponent(String(atprotoPostHrefFields.uri ?? '')),
+							}) : undefined)
 						}
-						selection={select(EntityType.AtprotoPost, atprotoPost.entitySelector)}
-						prefetched={atprotoPost}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

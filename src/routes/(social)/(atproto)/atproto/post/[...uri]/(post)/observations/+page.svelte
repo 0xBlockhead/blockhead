@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,8 +41,12 @@
 		selection={
 			select(EntityType.AtprotoPost, {
 				uri: decodeURIComponent(params.uri),
-			})[EntityProxyField]<EntityType.AtprotoPost_Timestamp>('$$timestamps')
+			})[EntityProxyField]<EntityType.AtprotoPost_Timestamp>('$$timestamps', {
+				sources: [
+					Source.Atproto_Xrpc,
+				],
+			})
 		}
-		id='AtprotoPost_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

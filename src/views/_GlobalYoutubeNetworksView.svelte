@@ -20,7 +20,7 @@
 		selection,
 		title = 'YouTube networks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading YouTube networks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,19 +66,6 @@
 		resource={selection}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalYoutubeNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalYoutubeNetworks)}
 			{@const uniqueGlobalYoutubeNetworks = [...new Map(globalYoutubeNetworks.values.map((globalYoutubeNetwork) => [globalYoutubeNetwork[EntityMetaKey.SelectorKey], globalYoutubeNetwork])).values()]}
 			<EntitiesList
@@ -90,7 +77,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalYoutubeNetworks.values.length === uniqueGlobalYoutubeNetworks.length && globalYoutubeNetworks.totalCount != null && globalYoutubeNetworks.totalCount >= uniqueGlobalYoutubeNetworks.length ? globalYoutubeNetworks.totalCount : uniqueGlobalYoutubeNetworks.length}
+				totalCount={globalYoutubeNetworks.totalCount}
 				getKey={(globalYoutubeNetwork) => globalYoutubeNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalYoutubeNetworks}
 			>
@@ -103,9 +90,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: globalYoutubeNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalYoutubeNetwork> })}
+					{@const globalYoutubeNetworkFields = { ...globalYoutubeNetwork[EntityMetaKey.Selector], ...globalYoutubeNetwork }}
 					<GlobalYoutubeNetworkView
-						selection={select(EntityType._GlobalYoutubeNetwork, globalYoutubeNetwork.entitySelector)}
-						prefetched={globalYoutubeNetwork}
+						selection={select(EntityType._GlobalYoutubeNetwork, globalYoutubeNetwork[EntityMetaKey.Selector])}
+						prefetched={globalYoutubeNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

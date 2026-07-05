@@ -6,6 +6,7 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 import { EnsNameSelector } from '$/schema/EnsName.ts'
+import { EnsRecordSelector } from '$/schema/EnsRecord.ts'
 import { BlockheadEnsNameSearchSelector } from '$/schema/BlockheadEnsNameSearch.ts'
 import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
 
@@ -45,6 +46,18 @@ if (ensNameResolver == null)
 
 if (ensNamesOwnedResolver == null)
 	throw new Error('Ens-TheGraph spec missing EvmAccount $$ensNamesOwned resolver')
+
+const ensRecordResolver = ensTheGraphResolvers.resolvers.find((
+	resolver
+	): resolver is Extract<
+		typeof ensTheGraphResolvers.resolvers[number],
+		{ entityType: EntityType.EnsRecord }
+	> => (
+		resolver.entityType === EntityType.EnsRecord
+	))
+
+if (ensRecordResolver == null)
+	throw new Error('Ens-TheGraph spec missing EnsRecord resolver')
 
 const ensNameSearchResolver = ensTheGraphResolvers.resolvers.find((
 	resolver
@@ -95,7 +108,7 @@ const vitalikDomainWire = {
 	registration: null,
 	resolver: {
 		id: '0xresolver',
-		address: '0xresolver',
+		address: '0x0000000000000000000000000000000000000001',
 		addr: null,
 		contentHash: '0xcontent',
 		texts: ['url'],
@@ -121,6 +134,7 @@ describe('Ens-TheGraph entity resolver', () => {
 		expect(resolvedEntity).toMatchObject({
 			name: 'vitalik.eth',
 			normalizedName: 'vitalik.eth',
+			node: '0x1234567890123456789012345678901234567890',
 			labelName: 'vitalik',
 			$parent: {
 				[EntityMetaKey.Selector]: {
@@ -134,10 +148,51 @@ describe('Ens-TheGraph entity resolver', () => {
 					},
 				},
 			],
+			$resolverContract: {
+				[EntityMetaKey.Selector]: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: '1',
+						},
+					},
+					address: '0x0000000000000000000000000000000000000001',
+				},
+			},
+			$subgraphResolvedActor: {
+				[EntityMetaKey.Selector]: {
+					address: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+				},
+			},
+			$ownerActor: {
+				[EntityMetaKey.Selector]: {
+					address: '0x000000000000000000000000000000000000dead',
+				},
+			},
+			resolverTextKeys: ['url'],
+			resolverCoinTypes: ['60'],
+			$$records: [
+				{
+					[EntityMetaKey.Selector]: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'text:url',
+					},
+				},
+				{
+					[EntityMetaKey.Selector]: {
+						$name: {
+							name: 'vitalik.eth',
+						},
+						recordKey: 'coin:60',
+					},
+				},
+			],
 		})
 	})
 
-	it('ignores account-only subgraph fields that are not in the current schema', async () => {
+	it('omits invalid subgraph account references', async () => {
 		getName.mockResolvedValueOnce([{
 			...vitalikDomainWire,
 			resolvedAddress: {
@@ -154,6 +209,40 @@ describe('Ens-TheGraph entity resolver', () => {
 		expect(resolvedEntity).toMatchObject({
 			name: 'vitalik.eth',
 			normalizedName: 'vitalik.eth',
+		})
+	})
+})
+
+describe('Ens-TheGraph EnsRecord resolver', () => {
+	it('derives text and coin record display fields from record keys', () => {
+		expect(
+			ensRecordResolver.resolve[EnsRecordSelector.NameRecordKey](
+				{
+					$name: {
+						name: 'vitalik.eth',
+					},
+					recordKey: 'text:url',
+				},
+				resolverContext
+			)
+		).toEqual({
+			recordKey: 'text:url',
+			recordKind: 'text',
+		})
+		expect(
+			ensRecordResolver.resolve[EnsRecordSelector.NameRecordKey](
+				{
+					$name: {
+						name: 'vitalik.eth',
+					},
+					recordKey: 'coin:60',
+				},
+				resolverContext
+			)
+		).toEqual({
+			recordKey: 'coin:60',
+			recordKind: 'coin',
+			coinType: 60,
 		})
 	})
 })

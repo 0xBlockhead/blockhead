@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -42,20 +41,18 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterCastEmbed = $derived(selection({
 		fields: {
 			$icon: true,
 			title: true,
 			url: true,
 			$embeddedCast: true,
-			quotedPreviewText: true,
-			description: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).url) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
+	const titleFallback = $derived([String((prefetched.title) ?? ''), String((prefetched.url) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
 	const viewDomId = $derived('farcaster-cast-embed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -67,15 +64,15 @@
 
 <EntityView
 	entityType={EntityType.FarcasterCastEmbed}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]/embed/[indexInCast=nonNegativeInteger]', {
-			fid: String(({ ...selection.entitySelector, ...prefetched }).$cast.fid),
-			hash: String(({ ...selection.entitySelector, ...prefetched }).$cast.hash),
-			indexInCast: String(({ ...selection.entitySelector, ...prefetched }).indexInCast),
-		})
+		href ?? (pendingEntity.$cast !== undefined && pendingEntity.$cast.fid !== undefined && pendingEntity.$cast !== undefined && pendingEntity.$cast.hash !== undefined && pendingEntity.indexInCast !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]/embed/[indexInCast=nonNegativeInteger]', {
+			fid: String(pendingEntity.$cast.fid ?? ''),
+			hash: String(pendingEntity.$cast.hash ?? ''),
+			indexInCast: String(pendingEntity.indexInCast ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
@@ -103,128 +100,91 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const title0 = ({ ...selection.entitySelector, ...prefetched }).title}
-			{#if title0 !== undefined && title0 !== null}
-				{String((title0) ?? '')}
-			{/if}
-			{@const url1 = ({ ...selection.entitySelector, ...prefetched }).url}
-			{#if url1 !== undefined && url1 !== null}
-				<TruncatedValue value={String(url1)} />
-			{/if}
+		<ResourceBoundary resource={farcasterCastEmbed}>
+			{#snippet Pending()}
+				{@const title0 = prefetched.title}
+				{#if title0 !== undefined && title0 !== null}
+					{String((title0) ?? '')}
+				{/if}
+				{@const url1 = prefetched.url}
+				{#if url1 !== undefined && url1 !== null}
+					<TruncatedValue value={String((url1) ?? '')} />
+				{/if}
 
-			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
-			>
-				{#snippet children(farcasterCast)}
-					{#if farcasterCast != null}
-						<FarcasterCastView
-							selection={select(EntityType.FarcasterCast, farcasterCast.entitySelector)}
-							prefetched={farcasterCast}
-							href={
-									resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-										fid: String(farcasterCast.entitySelector.fid),
-										hash: String(farcasterCast.entitySelector.hash),
-									})
+				<ResourceBoundary
+					resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
+				>
+					{#snippet children(farcasterCast)}
+						{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
+							<FarcasterCastView
+								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
+								prefetched={farcasterCast}
+								href={
+									(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid !== undefined && ({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+										fid: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid ?? ''),
+										hash: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash ?? ''),
+									}) : undefined)
 								}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{:else}
-			<ResourceBoundary resource={farcasterCastEmbed}>
-				{#snippet Pending()}
-					{@const title0 = ({ ...selection.entitySelector, ...prefetched }).title}
-					{#if title0 !== undefined && title0 !== null}
-						{String((title0) ?? '')}
-					{/if}
-					{@const url1 = ({ ...selection.entitySelector, ...prefetched }).url}
-					{#if url1 !== undefined && url1 !== null}
-						<TruncatedValue value={String(url1)} />
-					{/if}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
-					>
-						{#snippet children(farcasterCast)}
-							{#if farcasterCast != null}
-								<FarcasterCastView
-									selection={select(EntityType.FarcasterCast, farcasterCast.entitySelector)}
-									prefetched={farcasterCast}
-									href={
-										resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-											fid: String(farcasterCast.entitySelector.fid),
-											hash: String(farcasterCast.entitySelector.hash),
-										})
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const title0 = resolvedEntity.title}
+				{#if title0 !== undefined && title0 !== null}
+					{String((title0) ?? '')}
+				{/if}
+				{@const url1 = resolvedEntity.url}
+				{#if url1 !== undefined && url1 !== null}
+					<TruncatedValue value={String((url1) ?? '')} />
+				{/if}
 
-				{#snippet children(entity)}
-					{@const title0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).title}
-					{#if title0 !== undefined && title0 !== null}
-						{String((title0) ?? '')}
-					{/if}
-					{@const url1 = ({ ...selection.entitySelector, ...prefetched, ...entity }).url}
-					{#if url1 !== undefined && url1 !== null}
-						<TruncatedValue value={String(url1)} />
-					{/if}
-
-					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
-					>
-						{#snippet children(farcasterCast)}
-							{#if farcasterCast != null}
-								<FarcasterCastView
-									selection={select(EntityType.FarcasterCast, farcasterCast.entitySelector)}
-									prefetched={farcasterCast}
-									href={
-										resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-											fid: String(farcasterCast.entitySelector.fid),
-											hash: String(farcasterCast.entitySelector.hash),
-										})
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+				<ResourceBoundary
+					resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
+				>
+					{#snippet children(farcasterCast)}
+						{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
+							<FarcasterCastView
+								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
+								prefetched={farcasterCast}
+								href={
+									(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid !== undefined && ({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+										fid: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid ?? ''),
+										hash: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash ?? ''),
+									}) : undefined)
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const indexInCast0 = ({ ...selection.entitySelector, ...prefetched }).indexInCast}
-			{#if indexInCast0 !== undefined && indexInCast0 !== null}
-				<NumberValue value={Number(indexInCast0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={farcasterCastEmbed}>
-				{#snippet Pending()}
-					{@const indexInCast0 = ({ ...selection.entitySelector, ...prefetched }).indexInCast}
-					{#if indexInCast0 !== undefined && indexInCast0 !== null}
-						<NumberValue value={Number(indexInCast0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={farcasterCastEmbed}>
+			{#snippet Pending()}
+				{@const indexInCast0 = selection.entitySelector.indexInCast ?? prefetched.indexInCast}
+				{#if indexInCast0 !== undefined && indexInCast0 !== null}
+					<NumberValue value={Number(indexInCast0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const indexInCast0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).indexInCast}
-					{#if indexInCast0 !== undefined && indexInCast0 !== null}
-						<NumberValue value={Number(indexInCast0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const indexInCast0 = resolvedEntity.indexInCast}
+				{#if indexInCast0 !== undefined && indexInCast0 !== null}
+					<NumberValue value={Number(indexInCast0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -235,10 +195,10 @@
 					<FarcasterCastView
 						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
 						href={
-							resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-								fid: String(selection.entitySelector.$cast.fid),
-								hash: String(selection.entitySelector.$cast.hash),
-							})
+							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+								fid: String(selection.entitySelector.$cast.fid ?? ''),
+								hash: String(selection.entitySelector.$cast.hash ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}
@@ -248,26 +208,81 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={farcasterCastEmbed}>
+			<div>
+				<dt>Index in cast</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									indexInCast: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const indexInCast = selection.entitySelector.indexInCast ?? prefetched.indexInCast}
+							{#if indexInCast !== undefined && indexInCast !== null}
+								<NumberValue value={Number(indexInCast)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const indexInCast = resolvedEntity.indexInCast}
+							{#if indexInCast !== undefined && indexInCast !== null}
+								<NumberValue value={Number(indexInCast)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							url: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const quotedPreviewText = prefetched.quotedPreviewText ?? selection.entitySelector.quotedPreviewText}
-					{#if quotedPreviewText !== undefined && quotedPreviewText !== null}
+					{@const url = prefetched.url}
+					{#if url !== undefined && url !== null}
 						<div>
-							<dt>Quoted preview text</dt>
+							<dt>URL</dt>
 							<dd>
-								<TruncatedValue value={String(quotedPreviewText)} />
+								<svelte:element
+									this={'a'}
+									href={String(url)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(url)} />
+								</svelte:element>
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const quotedPreviewText = entity.quotedPreviewText ?? selection.entitySelector.quotedPreviewText ?? prefetched.quotedPreviewText}
-					{#if quotedPreviewText !== undefined && quotedPreviewText !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const url = resolvedEntity.url}
+					{#if url !== undefined && url !== null}
 						<div>
-							<dt>Quoted preview text</dt>
+							<dt>URL</dt>
 							<dd>
-								<TruncatedValue value={String(quotedPreviewText)} />
+								<svelte:element
+									this={'a'}
+									href={String(url)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(url)} />
+								</svelte:element>
 							</dd>
 						</div>
 					{/if}
@@ -275,12 +290,84 @@
 			</ResourceBoundary>
 		</dl>
 
-		<ResourceBoundary resource={farcasterCastEmbed}>
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
+			>
+				{#snippet children(farcasterCast)}
+					{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>Embedded cast</dt>
+							<dd>
+								<FarcasterCastView
+									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
+									prefetched={farcasterCast}
+									href={
+										(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid !== undefined && ({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+											fid: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid ?? ''),
+											hash: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							quotedPreviewText: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const quotedPreviewText = prefetched.quotedPreviewText}
+					{#if quotedPreviewText !== undefined && quotedPreviewText !== null}
+						<div>
+							<dt>Quoted preview text</dt>
+							<dd>
+								<TruncatedValue value={String((quotedPreviewText) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const quotedPreviewText = resolvedEntity.quotedPreviewText}
+					{#if quotedPreviewText !== undefined && quotedPreviewText !== null}
+						<div>
+							<dt>Quoted preview text</dt>
+							<dd>
+								<TruncatedValue value={String((quotedPreviewText) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						description: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const description = entity.description ?? selection.entitySelector.description ?? prefetched.description}
-				{#if description === undefined || description === null || description === ''}
-					<p data-text="muted">No description available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const description = resolvedEntity.description}
+				{#if description !== undefined && description !== null && description !== ''}
 					<p data-text="long-text">{String((description) ?? '')}</p>
 				{/if}
 			{/snippet}

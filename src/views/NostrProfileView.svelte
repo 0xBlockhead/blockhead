@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -44,6 +43,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nostrProfile = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -55,17 +55,11 @@
 			website: true,
 			metadataUpdatedAt: true,
 			$icon: true,
-			...(open && {
-				$$notes: true,
-				$$articles: true,
-				$$reposts: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile')
+	const titleFallback = $derived([String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.pubkey ?? prefetched.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile')
 	const viewDomId = $derived('nostr-profile-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -79,7 +73,7 @@
 
 <EntityView
 	entityType={EntityType.NostrProfile}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -109,19 +103,16 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'}
-		{:else}
-			<ResourceBoundary resource={nostrProfile}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).displayName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'}
-				{/snippet}
+		<ResourceBoundary resource={nostrProfile}>
+			{#snippet Pending()}
+				{[String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.pubkey ?? prefetched.pubkey) ?? '')].filter(Boolean).join(' ') || 'Nostr profile'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.displayName) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -132,9 +123,60 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={nostrProfile}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+							Source.NostrBand_Rest,
+						],
+						fields: {
+							displayName: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const about = prefetched.about ?? selection.entitySelector.about}
+					{@const displayName = prefetched.displayName}
+					{#if displayName !== undefined && displayName !== null}
+						<div>
+							<dt>Display name</dt>
+							<dd>
+								{String((displayName) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const displayName = resolvedEntity.displayName}
+					{#if displayName !== undefined && displayName !== null}
+						<div>
+							<dt>Display name</dt>
+							<dd>
+								{String((displayName) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+							Source.NostrBand_Rest,
+						],
+						fields: {
+							about: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const about = prefetched.about}
 					{#if about !== undefined && about !== null}
 						<div>
 							<dt>About</dt>
@@ -146,7 +188,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const about = entity.about ?? selection.entitySelector.about ?? prefetched.about}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const about = resolvedEntity.about}
 					{#if about !== undefined && about !== null}
 						<div>
 							<dt>About</dt>
@@ -158,9 +201,21 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={nostrProfile}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+							Source.NostrBand_Rest,
+						],
+						fields: {
+							nip05: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const nip05 = prefetched.nip05 ?? selection.entitySelector.nip05}
+					{@const nip05 = prefetched.nip05}
 					{#if nip05 !== undefined && nip05 !== null}
 						<div>
 							<dt>NIP-05</dt>
@@ -172,7 +227,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const nip05 = entity.nip05 ?? selection.entitySelector.nip05 ?? prefetched.nip05}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const nip05 = resolvedEntity.nip05}
 					{#if nip05 !== undefined && nip05 !== null}
 						<div>
 							<dt>NIP-05</dt>
@@ -185,9 +241,53 @@
 			</ResourceBoundary>
 
 			{#if contentOpen}
-				<ResourceBoundary resource={nostrProfile}>
+				<div>
+					<dt>Pubkey</dt>
+					<dd>
+						<ResourceBoundary
+							resource={
+								selection({
+									fields: {
+										pubkey: true,
+									},
+								})
+							}
+						>
+							{#snippet Pending()}
+								{@const pubkey = selection.entitySelector.pubkey ?? prefetched.pubkey}
+								{#if pubkey !== undefined && pubkey !== null}
+									<TruncatedValue value={String((pubkey) ?? '')} />
+								{/if}
+							{/snippet}
+
+							{#snippet children(entity)}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{@const pubkey = resolvedEntity.pubkey}
+								{#if pubkey !== undefined && pubkey !== null}
+									<TruncatedValue value={String((pubkey) ?? '')} />
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+							fields: {
+								website: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const website = prefetched.website ?? selection.entitySelector.website}
+						{@const website = prefetched.website}
 						{#if website !== undefined && website !== null}
 							<div>
 								<dt>Website</dt>
@@ -206,7 +306,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const website = entity.website ?? selection.entitySelector.website ?? prefetched.website}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const website = resolvedEntity.website}
 						{#if website !== undefined && website !== null}
 							<div>
 								<dt>Website</dt>
@@ -227,9 +328,21 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={nostrProfile}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+							fields: {
+								metadataUpdatedAt: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const metadataUpdatedAt = prefetched.metadataUpdatedAt ?? selection.entitySelector.metadataUpdatedAt}
+						{@const metadataUpdatedAt = prefetched.metadataUpdatedAt}
 						{#if metadataUpdatedAt !== undefined && metadataUpdatedAt !== null}
 							<div>
 								<dt>Metadata updated</dt>
@@ -241,7 +354,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const metadataUpdatedAt = entity.metadataUpdatedAt ?? selection.entitySelector.metadataUpdatedAt ?? prefetched.metadataUpdatedAt}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const metadataUpdatedAt = resolvedEntity.metadataUpdatedAt}
 						{#if metadataUpdatedAt !== undefined && metadataUpdatedAt !== null}
 							<div>
 								<dt>Metadata updated</dt>
@@ -259,7 +373,14 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<NostrNotesView
-				selection={selection[EntityProxyField]<EntityType.NostrNote>('$$notes')}
+				selection={
+						selection[EntityProxyField]<EntityType.NostrNote>('$$notes', {
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				title='Notes'
 				href={resolve('/(social)/(nostr)/nostr/notes')}
 				emptyText='No notes in this source window.'
@@ -267,7 +388,14 @@
 			/>
 
 			<NostrArticlesView
-				selection={selection[EntityProxyField]<EntityType.NostrArticle>('$$articles')}
+				selection={
+						selection[EntityProxyField]<EntityType.NostrArticle>('$$articles', {
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				title='Articles'
 				href={resolve('/(social)/(nostr)/nostr/articles')}
 				emptyText='No articles in this source window.'
@@ -275,7 +403,14 @@
 			/>
 
 			<NostrRepostsView
-				selection={selection[EntityProxyField]<EntityType.NostrRepost>('$$reposts')}
+				selection={
+						selection[EntityProxyField]<EntityType.NostrRepost>('$$reposts', {
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				title='Reposts'
 				href={resolve('/(social)/(nostr)/nostr/reposts')}
 				emptyText='No reposts in this source window.'

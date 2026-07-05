@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Token mints',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Solana token mints...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					mintAddress: true,
 					supply: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaTokenMint}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(solanaTokenMints)}
 			{@const uniqueSolanaTokenMints = [...new Map(solanaTokenMints.values.map((solanaTokenMint) => [solanaTokenMint[EntityMetaKey.SelectorKey], solanaTokenMint])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaTokenMints.values.length === uniqueSolanaTokenMints.length && solanaTokenMints.totalCount != null && solanaTokenMints.totalCount >= uniqueSolanaTokenMints.length ? solanaTokenMints.totalCount : uniqueSolanaTokenMints.length}
+				totalCount={solanaTokenMints.totalCount}
 				getKey={(solanaTokenMint) => solanaTokenMint[EntityMetaKey.SelectorKey]}
 				items={uniqueSolanaTokenMints}
 			>
@@ -111,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: solanaTokenMint }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaTokenMint> })}
+					{@const solanaTokenMintFields = { ...solanaTokenMint[EntityMetaKey.Selector], ...solanaTokenMint }}
+					{@const solanaTokenMintHrefFields = { ...solanaTokenMint, ...solanaTokenMint[EntityMetaKey.Selector] }}
 					<SolanaTokenMintView
+						selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
+						prefetched={solanaTokenMintFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mint/[mintAddress]', {
-								networkSlug: String(({ ...solanaTokenMint.entitySelector, ...solanaTokenMint }).$network.slug),
-								mintAddress: String(({ ...solanaTokenMint.entitySelector, ...solanaTokenMint }).mintAddress),
-							})
+							(solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined && solanaTokenMintHrefFields.$network.caip2.namespace !== undefined && solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined && solanaTokenMintHrefFields.$network.caip2.reference !== undefined && solanaTokenMintHrefFields.mintAddress !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mint/[mintAddress]', {
+								networkSlug: String(networkByCaip2[String(String(solanaTokenMintHrefFields.$network.caip2.namespace) + ':' + String(solanaTokenMintHrefFields.$network.caip2.reference))].slug ?? ''),
+								mintAddress: String(solanaTokenMintHrefFields.mintAddress ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.SolanaTokenMint, solanaTokenMint.entitySelector)}
-						prefetched={solanaTokenMint}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

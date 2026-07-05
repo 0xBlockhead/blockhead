@@ -3,43 +3,53 @@ import { stringify } from 'devalue'
 import {
 	atprotoNetworkSeedActors,
 	atprotoNetworkSeedPosts,
-} from '$/constants/Social/Atproto.ts'
-import { EntityType } from '$/schema/EntityType.ts'
-import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { specificationRealms } from '$/constants/SpecificationProposal.ts'
+} from '../../src/constants/Social/Atproto.ts'
+import {
+	nostrNetworkSeedNotes,
+	nostrNetworkSeedProfiles,
+	nostrNetworkSeedRelays,
+} from '../../src/constants/Social/Nostr.ts'
+import { CoinId } from '../../src/constants/Coin.ts'
+import {
+	MarketAssetKind,
+	MarketKind,
+} from '../../src/constants/Market.ts'
+import { MarketVenueId } from '../../src/constants/MarketVenue.ts'
+import { specificationRealms } from '../../src/constants/SpecificationProposal.ts'
 import {
 	NetworkEnvironment,
 	networks,
-} from '$/constants/Network.ts'
-import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
-import {
-	CAST_HASH_32,
-	ERC4337_ACCOUNT_FACTORY_ADDRESS,
-	ERC4337_BUNDLER_ADDRESS,
-	ERC4337_PAYMASTER_ADDRESS,
-	ERC4337_SMART_ACCOUNT_ADDRESS,
-	NOSTR_PROBE_ARTICLE_IDENTIFIER,
-	NOSTR_PROBE_ARTICLE_PUBKEY,
-	NOSTR_PROBE_NOTE_EVENT_ID,
-	NOSTR_PROBE_PUBKEY,
-	NOSTR_PROBE_REACTION_EVENT_ID,
-	NOSTR_PROBE_RELAY_URL,
-	NOSTR_PROBE_REPOST_EVENT_ID,
-	SAMPLE_BLOB_TX_HASH,
-	SAMPLE_TX_HASH,
-	SAMPLE_USER_OPERATION_HASH,
-	USDC_ADDRESS,
-	VITALIK_ADDRESS,
-	YOUTUBE_PROBE_COMMENT_ID,
-	YOUTUBE_PROBE_PLAYLIST_ID,
-	YOUTUBE_PROBE_VIDEO_ID,
-	e2eNostrYouTubeOptionalDetailRoutePaths,
-	ethUsdCatalogMarket,
-	probeEntitySelectorByType,
-} from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
+} from '../../src/constants/Network.ts'
+import { swarmDocsLandingReference } from '../../src/sources/Swarm/Rest/constants.ts'
 
 
+const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
+const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const
+const SAMPLE_TX_HASH = '0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab' as const
+const SAMPLE_BLOB_TX_HASH = '0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca' as const
+const SAMPLE_ETHEREUM_BLOCK_18000000_TX_HASH = '0x6b2fe3575bc0e2b9220daf457d7bde7a118d8674b920a0c888bbf547d683d0b7' as const
+const SAMPLE_USER_OPERATION_HASH = '0xca87534346367dbf4ff6675627a3e43635db5a36bd8ef99ffcd20a63d1555ef5' as const
+const ERC4337_SMART_ACCOUNT_ADDRESS = '0x0000000000001d8a2e7bf6bc369525a2654aa298' as const
+const ERC4337_BUNDLER_ADDRESS = '0xf0ac778fb2e56bab4edd7f25c2ed2f333d165b8d' as const
+const ERC4337_PAYMASTER_ADDRESS = '0x6599bba2a055f3c769cba1a2d462a75429bd7bf7' as const
+const ERC4337_ACCOUNT_FACTORY_ADDRESS = '0xcad776fce9c3b3db6724aeb4c7fa2f5f3c088253' as const
+const SOLANA_PROBE_SIGNATURE = 'E2eSolanaSignature11111111111111111111111111111111111111111111111' as const
+const SOLANA_PROBE_PROGRAM_ID = '11111111111111111111111111111111' as const
+const SOLANA_PROBE_TOKEN_MINT_ADDRESS = 'So11111111111111111111111111111111111111112' as const
+const SOLANA_PROBE_VOTE_PUBKEY = 'E2eVotePubkey111111111111111111111111111111111111111' as const
+const CAST_HASH_32 = '0xe4f2e1c70d72388a98dba2a2511a9b480840e544' as const
+const NOSTR_PROBE_PUBKEY = nostrNetworkSeedProfiles[0].pubkey
+const NOSTR_PROBE_RELAY_URL = nostrNetworkSeedRelays[0].relayUrl
+const NOSTR_PROBE_REPOST_EVENT_ID = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const
+const NOSTR_PROBE_REACTION_EVENT_ID = 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' as const
+const NOSTR_PROBE_ARTICLE_PUBKEY = nostrNetworkSeedProfiles[0].pubkey
+const NOSTR_PROBE_ARTICLE_IDENTIFIER = 'blockhead-e2e-article' as const
+const YOUTUBE_PROBE_PLAYLIST_ID = 'UU_x5XG1OV2P6uZZ5FSM9Ttw' as const
+const YOUTUBE_PROBE_VIDEO_ID = 'jNQXAC9IVRw' as const
+const YOUTUBE_PROBE_COMMENT_ID = 'UgzuC3zzpRZkjc5Qzsd4AaABAg' as const
 const YOUTUBE_PROBE_CHANNEL_ID = 'UC_x5XG1OV2P6uZZ5FSM9Ttw' as const
+
+const NOSTR_PROBE_NOTE_EVENT_ID = nostrNetworkSeedNotes[0].eventId
 
 const RSS_PROBE_FEED_URL = 'https://hnrss.org/item?id=48592832' as const
 const RSS_PROBE_ITEM_GUID = 'https://news.ycombinator.com/item?id=48594706' as const
@@ -57,6 +67,36 @@ const REAL_URL_FIXTURES = [
 	'https://chainid.network/chains.json',
 	'https://explorer.bitcoinunlimited.info/',
 ] as const
+
+const ethUsdCatalogMarket = {
+	$base: {
+		kind: MarketAssetKind.Coin,
+		$coin: { coinId: CoinId.ETH },
+	},
+	$quote: {
+		kind: MarketAssetKind.Currency,
+		$currency: { iso4217: 'USD' },
+	},
+	$marketVenue: {
+		marketVenueId: MarketVenueId.Binance,
+	},
+	marketKind: MarketKind.Spot,
+} as const
+
+const bridgeRouteEthMainnetToOptimism = {
+	fromChainId: 1,
+	toChainId: 10,
+	fromToken: '0x0000000000000000000000000000000000000000',
+	toToken: '0x0000000000000000000000000000000000000000',
+	fromAmount: 1_000_000_000_000_000n,
+	fromAddress: VITALIK_ADDRESS,
+	slippage: 0.005,
+	toAddress: VITALIK_ADDRESS,
+} as const
+
+const e2eNostrYouTubeOptionalDetailRoutePaths = {
+	youtubePlaylist: `/youtube/playlist/${encodeURIComponent(YOUTUBE_PROBE_PLAYLIST_ID)}`,
+} as const
 
 const routeFixtureVariantMode = process.env.E2E_ROUTE_VARIANTS
 
@@ -133,6 +173,7 @@ const PROPOSAL_REF_BY_KIND_SLUG: Record<string, string> = {
 /** Default param values for `discoverPathnamesFromRoutes()` — aligned with smoke + resolver probes. */
 export const e2eRouteParamFixtures: Record<string, string> = {
 	networkId: '1',
+	networkStackId: 'Ethereum',
 	caip2Namespace: 'eip155',
 	caip2Reference: '1',
 	caip2: 'eip155:1',
@@ -142,6 +183,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	iso4217: 'USD',
 	ensName: 'vitalik.eth',
 	upgradeSlug: 'Homestead',
+	projectId: 'arbitrum',
 	blockNumber: '18000000',
 	height: '18000000',
 	transactionId: SAMPLE_TX_HASH,
@@ -150,13 +192,27 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	caipId: '25',
 	sessionId: 'e2e-probe-session',
 	sourceId: 'e2e-probe-source',
-	dashboardId: 'c0000000-0000-4000-8000-000000000003',
-	routeId: stringify(probeEntitySelectorByType[EntityType.BridgeRoute]),
+	dashboardId: 'e2e-probe-panel-tree',
+	routeId: stringify(bridgeRouteEthMainnetToOptimism),
 	stepIndex: '0',
+	indexInCast: '0',
+	index: '0',
+	fromChainId: '1',
+	toChainId: '10',
+	fromCoinInstanceSlug: 'native',
+	toCoinInstanceSlug: 'native',
+	toolKey: 'across',
+	fromToken: '0x0000000000000000000000000000000000000000',
+	toToken: '0x0000000000000000000000000000000000000000',
+	fromAmount: '1000000000000000',
+	fromAddress: VITALIK_ADDRESS,
+	slippage: '0.005',
+	toAddress: VITALIK_ADDRESS,
 	userId: '3',
 	accountId: '3',
 	fid: '3',
 	fname: 'dwr',
+	protocol: 'ethereum',
 	hex: '0xa9059cbb',
 	recordId: 'com.twitter',
 	specificationRealmSlug: 'ethereum',
@@ -173,13 +229,30 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	namespace: 'ipfs',
 	target: 'bafybeigdyrzt3sfp7vd2lvdwqcedebyb6utyghj6v7k5vcheck7l1vprfw',
 	test: 'test',
+	tokenAccountPubkey: 'E2eTokenAccount1111111111111111111111111111',
+	signature: SOLANA_PROBE_SIGNATURE,
+	programId: SOLANA_PROBE_PROGRAM_ID,
+	mintAddress: SOLANA_PROBE_TOKEN_MINT_ADDRESS,
+	votePubkey: SOLANA_PROBE_VOTE_PUBKEY,
 	marketKey: stringify(ethUsdCatalogMarket),
 	instanceOrigin: 'https://mastodon.social',
 	did: atprotoNetworkSeedActors[0].did,
 	uri: atprotoNetworkSeedPosts[0].uri,
+	epoch: '300000',
 	epochNumber: '300000',
 	slotNumber: '9500000',
 	timestampMs: '0',
+	eventIndex: '0',
+	extrinsicIndex: '0',
+	instructionKind: 'Instruction',
+	indexInTransaction: '0',
+	indexInInstruction: '0',
+	inputIndex: '0',
+	outputIndex: '0',
+	actionIndex: '0',
+	messageIndex: '0',
+	period: '0',
+	validatorIndex: '0',
 	sampleKey: 'Etherscan_Rest:gastracker:gasoracle',
 	observerKey: 'Voltaire_JsonRpc:txpool_status:ethereum.publicnode.com',
 	observer: 'ethereum.publicnode.com',
@@ -205,9 +278,16 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	guid: RSS_PROBE_ITEM_GUID,
 	blobIndex: '0',
 	logIndex: '0',
+	indexInLog: '0',
 	userOperationHash: SAMPLE_USER_OPERATION_HASH,
 	coinInstanceSlug: 'native',
 	marketVenueId: MarketVenueId.Binance,
+	marketVenue: MarketVenueId.Binance,
+	baseKind: 'coin',
+	base: CoinId.ETH,
+	quoteKind: 'currency',
+	quote: 'USD',
+	marketKind: MarketKind.Spot,
 	localAccountId: '13179',
 	localStatusId: '116539053870420123',
 	acct: 'Gargron@mastodon.social',
@@ -235,22 +315,6 @@ export const e2eRouteRestSegmentFixtures: Record<string, string> = {
  */
 export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 	...Object.values(e2eNostrYouTubeOptionalDetailRoutePaths),
-	`/nostr/note/${NOSTR_PROBE_NOTE_EVENT_ID}`,
-	`/nostr/note/${NOSTR_PROBE_NOTE_EVENT_ID}/replies`,
-	`/nostr/profile/${NOSTR_PROBE_PUBKEY}`,
-	`/nostr/profile/${NOSTR_PROBE_PUBKEY}/articles`,
-	`/nostr/profile/${NOSTR_PROBE_PUBKEY}/notes`,
-	`/nostr/profile/${NOSTR_PROBE_PUBKEY}/reposts`,
-	`/nostr/reaction/${NOSTR_PROBE_REACTION_EVENT_ID}`,
-	`/nostr/reaction/${NOSTR_PROBE_NOTE_EVENT_ID}`,
-	`/nostr/repost/${NOSTR_PROBE_REPOST_EVENT_ID}`,
-	`/nostr/repost/${NOSTR_PROBE_NOTE_EVENT_ID}`,
-	'/nostr/articles',
-	'/nostr/notes',
-	'/nostr/profiles',
-	`/nostr/note/${NOSTR_PROBE_NOTE_EVENT_ID}/reactions`,
-	'/nostr/relays',
-	'/nostr/reposts',
 	'/reddit/comment/t1_osbo75d',
 	'/reddit/comment/t1_osbo75d/replies',
 	'/reddit/link/t3_1u8x2f8',
@@ -261,6 +325,7 @@ export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 	'/reddit/subreddits',
 	`/youtube/comment/${encodeURIComponent(YOUTUBE_PROBE_VIDEO_ID)}/${encodeURIComponent(YOUTUBE_PROBE_COMMENT_ID)}`,
 	`/farcaster/cast/3/${CAST_HASH_32}`,
+	'/farcaster/open-cast',
 	'/network/eip155:1',
 	'/network/ethereum',
 ])
@@ -276,7 +341,7 @@ export const e2eRouteParamFixtureForContext = (
 		if (path.includes('youtube'))
 			return YOUTUBE_PROBE_CHANNEL_ID
 		if (path.includes('farcaster'))
-			return 'memes'
+			return 'ethereum'
 		if (path.includes('network/channels'))
 			return '852861482917888001'
 		return 'e2e-probe-state-channel'
@@ -306,8 +371,23 @@ export const e2eRouteParamFixtureForContext = (
 	if (paramKey === 'networkSlug' && path === 'network')
 		return 'bitcoin'
 
+	if (paramKey === 'networkSlug' && path.includes('polkadot'))
+		return 'polkadot'
+
+	if (paramKey === 'kind' && path.includes('network/asset'))
+		return 'Native'
+
+	if (paramKey === 'assetKey' && path.includes('network/asset'))
+		return 'native'
+
 	if (paramKey === 'transactionId' && path.includes('blob'))
 		return SAMPLE_BLOB_TX_HASH
+
+	if (paramKey === 'transactionId' && path.includes('network/tx'))
+		return SAMPLE_ETHEREUM_BLOCK_18000000_TX_HASH
+
+	if (paramKey === 'transactionId' && path.includes('network/block'))
+		return SAMPLE_ETHEREUM_BLOCK_18000000_TX_HASH
 
 	if (paramKey === 'address') {
 		if (path.split('/').includes('contract'))
@@ -401,7 +481,14 @@ export const e2eRouteParamFixtureVariantsForContext = (
 	if (paramKey === 'txId' && path.includes('network/transactions') && selectedParams.networkSlug === '0g')
 		return [ZERO_G_PROBE_TX_HASH]
 
-	if (paramKey === 'txId' && path.includes('network/transactions') && selectedParams.networkSlug)
+	if (
+		paramKey === 'txId'
+		&& (
+			path.includes('network/transactions')
+			|| path.includes('network/utxo/tx')
+		)
+		&& selectedParams.networkSlug
+	)
 		return [
 			UTXO_PROBE_TX_ID_BY_NETWORK_SLUG[selectedParams.networkSlug]
 			?? e2eRouteParamFixtureForContext(paramKey, staticSegments),

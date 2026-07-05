@@ -5,7 +5,8 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -36,15 +37,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const blockheadPanelTree = $derived(selection({
 		sources: [
 			Source.Local_Internal,
 		],
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || 'dashboard')
+	const titleFallback = $derived([String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'dashboard')
 	const viewDomId = $derived('blockhead-panel-tree-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
@@ -52,7 +53,7 @@
 
 <EntityView
 	entityType={EntityType.BlockheadPanelTree}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -61,43 +62,68 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const id0 = ({ ...selection.entitySelector, ...prefetched }).id}
-			{#if id0 !== undefined && id0 !== null}
-				<TruncatedValue value={String(id0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={blockheadPanelTree}>
-				{#snippet Pending()}
-					{@const id0 = ({ ...selection.entitySelector, ...prefetched }).id}
-					{#if id0 !== undefined && id0 !== null}
-						<TruncatedValue value={String(id0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={blockheadPanelTree}>
+			{#snippet Pending()}
+				{@const id0 = selection.entitySelector.id ?? prefetched.id}
+				{#if id0 !== undefined && id0 !== null}
+					<TruncatedValue value={String((id0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const id0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).id}
-					{#if id0 !== undefined && id0 !== null}
-						<TruncatedValue value={String(id0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const id0 = resolvedEntity.id}
+				{#if id0 !== undefined && id0 !== null}
+					<TruncatedValue value={String((id0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{['Dashboard'].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'dashboard'}
-		{:else}
-			<ResourceBoundary resource={blockheadPanelTree}>
-				{#snippet Pending()}
-					{['Dashboard'].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'dashboard'}
-				{/snippet}
+		<ResourceBoundary resource={blockheadPanelTree}>
+			{#snippet Pending()}
+				{['Dashboard'].filter(Boolean).join(' ') || [String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'dashboard'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{['Dashboard'].filter(Boolean).join(' ') || [String((entity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{['Dashboard'].filter(Boolean).join(' ') || [String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									id: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const id = selection.entitySelector.id ?? prefetched.id}
+							{#if id !== undefined && id !== null}
+								{String((id) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const id = resolvedEntity.id}
+							{#if id !== undefined && id !== null}
+								{String((id) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 </EntityView>

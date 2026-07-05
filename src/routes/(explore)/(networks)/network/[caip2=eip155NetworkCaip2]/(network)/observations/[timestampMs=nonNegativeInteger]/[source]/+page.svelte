@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.EvmNetwork_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					blockHeight: true,
 				},

@@ -40,7 +40,7 @@
 		selection={
 			select(EntityType.BeaconSlot, data.selector, {
 				fields: {
-					epoch: true,
+					$epoch: true,
 					proposerIndex: true,
 					root: true,
 					canonical: true,

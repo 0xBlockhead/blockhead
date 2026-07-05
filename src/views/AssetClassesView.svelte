@@ -21,7 +21,7 @@
 		selection,
 		title = 'Asset classes',
 		typeAnnotationParagraphs = ['A reusable asset classification used to group related asset instances and objects.'],
-		placeholderText = 'Loading Asset classes...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					label: true,
 					classKey: true,
 					classKind: true,
 					$assetInstance: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetClass}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(assetClasses)}
 			{@const uniqueAssetClasses = [...new Map(assetClasses.values.map((assetClass) => [assetClass[EntityMetaKey.SelectorKey], assetClass])).values()]}
 			<EntitiesList
@@ -100,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={assetClasses.values.length === uniqueAssetClasses.length && assetClasses.totalCount != null && assetClasses.totalCount >= uniqueAssetClasses.length ? assetClasses.totalCount : uniqueAssetClasses.length}
+				totalCount={assetClasses.totalCount}
 				getKey={(assetClass) => assetClass[EntityMetaKey.SelectorKey]}
 				items={uniqueAssetClasses}
 			>
@@ -108,23 +95,25 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No asset classes yet.</p>
+						<p data-text="muted">No Asset classes yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: assetClass }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetClass> })}
+					{@const assetClassFields = { ...assetClass[EntityMetaKey.Selector], ...assetClass }}
+					{@const assetClassHrefFields = { ...assetClass, ...assetClass[EntityMetaKey.Selector] }}
 					<AssetClassView
+						selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
+						prefetched={assetClassFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/class/[classKind]/[classKey]', {
-								caip2: `${String(({ ...assetClass.entitySelector, ...assetClass }).$assetInstance.$network.caip2.namespace)}:${String(({ ...assetClass.entitySelector, ...assetClass }).$assetInstance.$network.caip2.reference)}`,
-								kind: String(({ ...assetClass.entitySelector, ...assetClass }).$assetInstance.kind),
-								assetKey: String(({ ...assetClass.entitySelector, ...assetClass }).$assetInstance.assetKey),
-								classKind: String(({ ...assetClass.entitySelector, ...assetClass }).classKind),
-								classKey: String(({ ...assetClass.entitySelector, ...assetClass }).classKey),
-							})
+							(assetClassHrefFields.$assetInstance !== undefined && assetClassHrefFields.$assetInstance.$network !== undefined && assetClassHrefFields.$assetInstance.$network.caip2 !== undefined && assetClassHrefFields.$assetInstance.$network.caip2.namespace !== undefined && assetClassHrefFields.$assetInstance !== undefined && assetClassHrefFields.$assetInstance.$network !== undefined && assetClassHrefFields.$assetInstance.$network.caip2 !== undefined && assetClassHrefFields.$assetInstance.$network.caip2.reference !== undefined && assetClassHrefFields.$assetInstance !== undefined && assetClassHrefFields.$assetInstance.kind !== undefined && assetClassHrefFields.$assetInstance !== undefined && assetClassHrefFields.$assetInstance.assetKey !== undefined && assetClassHrefFields.classKind !== undefined && assetClassHrefFields.classKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/class/[classKind]/[classKey]', {
+								caip2: `${String(assetClassHrefFields.$assetInstance.$network.caip2.namespace ?? '')}:${String(assetClassHrefFields.$assetInstance.$network.caip2.reference ?? '')}`,
+								kind: String(assetClassHrefFields.$assetInstance.kind ?? ''),
+								assetKey: String(assetClassHrefFields.$assetInstance.assetKey ?? ''),
+								classKind: String(assetClassHrefFields.classKind ?? ''),
+								classKey: String(assetClassHrefFields.classKey ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.AssetClass, assetClass.entitySelector)}
-						prefetched={assetClass}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.EvmRollup_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					listingStage: true,
 					isArchived: true,

@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='ActivityPubActorsView-page'
+		id='activity-pub-actors'
 	/>
 </Page>

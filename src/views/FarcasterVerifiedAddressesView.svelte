@@ -21,7 +21,7 @@
 		selection,
 		title = 'Farcaster verified addresses',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Farcaster verified addresses...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					address: true,
 					protocol: true,
 					fid: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterVerifiedAddress}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(farcasterVerifiedAddresses)}
 			{@const uniqueFarcasterVerifiedAddresses = [...new Map(farcasterVerifiedAddresses.values.map((farcasterVerifiedAddress) => [farcasterVerifiedAddress[EntityMetaKey.SelectorKey], farcasterVerifiedAddress])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterVerifiedAddresses.values.length === uniqueFarcasterVerifiedAddresses.length && farcasterVerifiedAddresses.totalCount != null && farcasterVerifiedAddresses.totalCount >= uniqueFarcasterVerifiedAddresses.length ? farcasterVerifiedAddresses.totalCount : uniqueFarcasterVerifiedAddresses.length}
+				totalCount={farcasterVerifiedAddresses.totalCount}
 				getKey={(farcasterVerifiedAddress) => farcasterVerifiedAddress[EntityMetaKey.SelectorKey]}
 				items={uniqueFarcasterVerifiedAddresses}
 			>
@@ -112,16 +99,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: farcasterVerifiedAddress }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterVerifiedAddress> })}
+					{@const farcasterVerifiedAddressFields = { ...farcasterVerifiedAddress[EntityMetaKey.Selector], ...farcasterVerifiedAddress }}
+					{@const farcasterVerifiedAddressHrefFields = { ...farcasterVerifiedAddress, ...farcasterVerifiedAddress[EntityMetaKey.Selector] }}
 					<FarcasterVerifiedAddressView
+						selection={select(EntityType.FarcasterVerifiedAddress, farcasterVerifiedAddress[EntityMetaKey.Selector])}
+						prefetched={farcasterVerifiedAddressFields}
 						href={
-							resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/verified-address/[protocol]/[address]', {
-								userId: String(({ ...farcasterVerifiedAddress.entitySelector, ...farcasterVerifiedAddress }).fid),
-								protocol: String(({ ...farcasterVerifiedAddress.entitySelector, ...farcasterVerifiedAddress }).protocol),
-								address: String(({ ...farcasterVerifiedAddress.entitySelector, ...farcasterVerifiedAddress }).address),
-							})
+							(farcasterVerifiedAddressHrefFields.fid !== undefined && farcasterVerifiedAddressHrefFields.protocol !== undefined && farcasterVerifiedAddressHrefFields.address !== undefined ? resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/verified-address/[protocol]/[address]', {
+								userId: String(farcasterVerifiedAddressHrefFields.fid ?? ''),
+								protocol: String(farcasterVerifiedAddressHrefFields.protocol ?? ''),
+								address: String(farcasterVerifiedAddressHrefFields.address ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.FarcasterVerifiedAddress, farcasterVerifiedAddress.entitySelector)}
-						prefetched={farcasterVerifiedAddress}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

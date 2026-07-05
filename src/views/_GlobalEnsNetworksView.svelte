@@ -21,7 +21,7 @@
 		selection,
 		title = 'ENS',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ENS...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -67,19 +67,6 @@
 		resource={selection}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalEnsNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalEnsNetworks)}
 			{@const uniqueGlobalEnsNetworks = [...new Map(globalEnsNetworks.values.map((globalEnsNetwork) => [globalEnsNetwork[EntityMetaKey.SelectorKey], globalEnsNetwork])).values()]}
 			<EntitiesList
@@ -91,7 +78,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalEnsNetworks.values.length === uniqueGlobalEnsNetworks.length && globalEnsNetworks.totalCount != null && globalEnsNetworks.totalCount >= uniqueGlobalEnsNetworks.length ? globalEnsNetworks.totalCount : uniqueGlobalEnsNetworks.length}
+				totalCount={globalEnsNetworks.totalCount}
 				getKey={(globalEnsNetwork) => globalEnsNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalEnsNetworks}
 			>
@@ -104,10 +91,12 @@
 				{/snippet}
 
 				{#snippet Item({ item: globalEnsNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalEnsNetwork> })}
+					{@const globalEnsNetworkFields = { ...globalEnsNetwork[EntityMetaKey.Selector], ...globalEnsNetwork }}
+					{@const globalEnsNetworkHrefFields = { ...globalEnsNetwork, ...globalEnsNetwork[EntityMetaKey.Selector] }}
 					<GlobalEnsNetworkView
+						selection={select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector])}
+						prefetched={globalEnsNetworkFields}
 						href={resolve('/(explore)/(ens)/ens')}
-						selection={select(EntityType._GlobalEnsNetwork, globalEnsNetwork.entitySelector)}
-						prefetched={globalEnsNetwork}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='FarcasterFeedsView-page'
+		id='feeds'
 	/>
 </Page>

@@ -9,6 +9,7 @@ import type {
 	TronGridAccountTransactions,
 	TronGridTrc20Transfers,
 	TronNodeAccount,
+	TronNodeAccountResource,
 	TronNodeBlock,
 	TronNodeChainParameters,
 	TronNodeInfo,
@@ -137,6 +138,23 @@ export const getAccount = ({
 	tronGridPost<TronNodeAccount>({
 		restBaseUrl,
 		path: 'wallet/getaccount',
+		body: {
+			address,
+			visible: true,
+		},
+	})
+)
+
+export const getAccountResource = ({
+	restBaseUrl,
+	address,
+}: {
+	restBaseUrl: string
+	address: string
+}) => (
+	tronGridPost<TronNodeAccountResource>({
+		restBaseUrl,
+		path: 'wallet/getaccountresource',
 		body: {
 			address,
 			visible: true,

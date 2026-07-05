@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='BlockheadBridgeTransactionsView-page'
+		id='bridge-transactions'
 	/>
 </Page>

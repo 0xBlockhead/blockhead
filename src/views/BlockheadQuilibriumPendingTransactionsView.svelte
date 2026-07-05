@@ -1,0 +1,123 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'Blockhead Quilibrium pending transactions',
+		typeAnnotationParagraphs = [],
+		placeholderText,
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'BlockheadQuilibriumPendingTransactions-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.BlockheadQuilibriumPendingTransaction>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import BlockheadQuilibriumPendingTransactionView from '$/views/BlockheadQuilibriumPendingTransactionView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection({
+				fields: {
+					transactionAddress: true,
+					amount: true,
+					deliveryType: true,
+				},
+			})
+		}
+		{placeholderText}
+	>
+		{#snippet children(blockheadQuilibriumPendingTransactions)}
+			{@const uniqueBlockheadQuilibriumPendingTransactions = [...new Map(blockheadQuilibriumPendingTransactions.values.map((blockheadQuilibriumPendingTransaction) => [blockheadQuilibriumPendingTransaction[EntityMetaKey.SelectorKey], blockheadQuilibriumPendingTransaction])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadQuilibriumPendingTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={blockheadQuilibriumPendingTransactions.totalCount}
+				getKey={(blockheadQuilibriumPendingTransaction) => blockheadQuilibriumPendingTransaction[EntityMetaKey.SelectorKey]}
+				items={uniqueBlockheadQuilibriumPendingTransactions}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Blockhead quilibrium pending transactions yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: blockheadQuilibriumPendingTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadQuilibriumPendingTransaction> })}
+					{@const blockheadQuilibriumPendingTransactionFields = { ...blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector], ...blockheadQuilibriumPendingTransaction }}
+					<BlockheadQuilibriumPendingTransactionView
+						selection={select(EntityType.BlockheadQuilibriumPendingTransaction, blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector])}
+						prefetched={blockheadQuilibriumPendingTransactionFields}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.BlockheadQuilibriumPendingTransaction}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

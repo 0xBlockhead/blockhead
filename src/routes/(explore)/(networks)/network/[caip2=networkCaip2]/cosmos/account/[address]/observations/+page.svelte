@@ -47,6 +47,6 @@
 				address: decodeURIComponent(params.address),
 			})[EntityProxyField]<EntityType.CosmosAccount_Timestamp>('$$timestamps')
 		}
-		id='CosmosAccount_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

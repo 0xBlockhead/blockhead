@@ -20,7 +20,7 @@
 		selection,
 		title = 'RSS items',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading RSS items...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					title: true,
 					guid: true,
 					publishedAt: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.RssItem}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(rssItems)}
 			{@const uniqueRssItems = [...new Map(rssItems.values.map((rssItem) => [rssItem[EntityMetaKey.SelectorKey], rssItem])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={rssItems.values.length === uniqueRssItems.length && rssItems.totalCount != null && rssItems.totalCount >= uniqueRssItems.length ? rssItems.totalCount : uniqueRssItems.length}
+				totalCount={rssItems.totalCount}
 				getKey={(rssItem) => rssItem[EntityMetaKey.SelectorKey]}
 				items={uniqueRssItems}
 			>
@@ -111,9 +98,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: rssItem }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RssItem> })}
+					{@const rssItemFields = { ...rssItem[EntityMetaKey.Selector], ...rssItem }}
 					<RssItemView
-						selection={select(EntityType.RssItem, rssItem.entitySelector)}
-						prefetched={rssItem}
+						selection={select(EntityType.RssItem, rssItem[EntityMetaKey.Selector])}
+						prefetched={rssItemFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

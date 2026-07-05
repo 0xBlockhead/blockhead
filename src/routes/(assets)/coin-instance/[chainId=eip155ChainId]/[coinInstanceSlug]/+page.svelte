@@ -40,7 +40,6 @@
 		selection={
 			select(EntityType.EvmCoinInstance, data.selector, {
 				fields: {
-					$icon: true,
 					symbol: true,
 					name: true,
 					coinId: true,
@@ -49,6 +48,7 @@
 					representation: true,
 					iconUrl: true,
 					$canonicalInstance: true,
+					$icon: true,
 				},
 			})
 		}

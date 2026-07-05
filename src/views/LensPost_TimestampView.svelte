@@ -3,9 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,23 +42,15 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const lensPostTimestamp = $derived(selection({
 		sources: [
 			Source.Lens_Graphql,
 		],
-		fields: {
-			commentCount: true,
-			repostCount: true,
-			quoteCount: true,
-			bookmarkCount: true,
-			collectCount: true,
-			reactionCount: true,
-		},
 	}))
 	const titleFallback = $derived('Lens post observation')
 	const viewDomId = $derived('lens-post-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -67,72 +60,117 @@
 
 <EntityView
 	entityType={EntityType.LensPost_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.$post !== undefined && pendingEntity.$post.id !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(lens)/lens/post/[postId]/(post)/observations/[timestampMs=nonNegativeInteger]', {
+			postId: String(pendingEntity.$post.id ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<LensPostView
-				selection={select(EntityType.LensPost, selection.entitySelector.$post)}
-				layout={EntityLayout.Title}
-				open={false}
-			/>
-		{:else}
-			<ResourceBoundary resource={lensPostTimestamp}>
-				{#snippet Pending()}
-					<LensPostView
-						selection={select(EntityType.LensPost, selection.entitySelector.$post)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
+		<ResourceBoundary resource={lensPostTimestamp}>
+			{#snippet Pending()}
+				<LensPostView
+					selection={select(EntityType.LensPost, selection.entitySelector.$post)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<LensPostView
-						selection={select(EntityType.LensPost, selection.entitySelector.$post)}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<LensPostView
+					selection={select(EntityType.LensPost, selection.entitySelector.$post)}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={lensPostTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={lensPostTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPostTimestamp}>
+			<div>
+				<dt>Post</dt>
+				<dd>
+					<LensPostView
+						selection={select(EntityType.LensPost, selection.entitySelector.$post)}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							commentCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const commentCount = prefetched.commentCount ?? selection.entitySelector.commentCount}
+					{@const commentCount = prefetched.commentCount}
 					{#if commentCount !== undefined && commentCount !== null}
 						<div>
 							<dt>Comments</dt>
@@ -144,7 +182,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const commentCount = entity.commentCount ?? selection.entitySelector.commentCount ?? prefetched.commentCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const commentCount = resolvedEntity.commentCount}
 					{#if commentCount !== undefined && commentCount !== null}
 						<div>
 							<dt>Comments</dt>
@@ -158,9 +197,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPostTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							repostCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const repostCount = prefetched.repostCount ?? selection.entitySelector.repostCount}
+					{@const repostCount = prefetched.repostCount}
 					{#if repostCount !== undefined && repostCount !== null}
 						<div>
 							<dt>Reposts</dt>
@@ -172,7 +219,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const repostCount = entity.repostCount ?? selection.entitySelector.repostCount ?? prefetched.repostCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const repostCount = resolvedEntity.repostCount}
 					{#if repostCount !== undefined && repostCount !== null}
 						<div>
 							<dt>Reposts</dt>
@@ -186,9 +234,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPostTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							quoteCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const quoteCount = prefetched.quoteCount ?? selection.entitySelector.quoteCount}
+					{@const quoteCount = prefetched.quoteCount}
 					{#if quoteCount !== undefined && quoteCount !== null}
 						<div>
 							<dt>Quotes</dt>
@@ -200,7 +256,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const quoteCount = entity.quoteCount ?? selection.entitySelector.quoteCount ?? prefetched.quoteCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const quoteCount = resolvedEntity.quoteCount}
 					{#if quoteCount !== undefined && quoteCount !== null}
 						<div>
 							<dt>Quotes</dt>
@@ -214,9 +271,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPostTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							bookmarkCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const bookmarkCount = prefetched.bookmarkCount ?? selection.entitySelector.bookmarkCount}
+					{@const bookmarkCount = prefetched.bookmarkCount}
 					{#if bookmarkCount !== undefined && bookmarkCount !== null}
 						<div>
 							<dt>Bookmarks</dt>
@@ -228,7 +293,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const bookmarkCount = entity.bookmarkCount ?? selection.entitySelector.bookmarkCount ?? prefetched.bookmarkCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const bookmarkCount = resolvedEntity.bookmarkCount}
 					{#if bookmarkCount !== undefined && bookmarkCount !== null}
 						<div>
 							<dt>Bookmarks</dt>
@@ -242,9 +308,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPostTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							collectCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const collectCount = prefetched.collectCount ?? selection.entitySelector.collectCount}
+					{@const collectCount = prefetched.collectCount}
 					{#if collectCount !== undefined && collectCount !== null}
 						<div>
 							<dt>Collects</dt>
@@ -256,7 +330,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const collectCount = entity.collectCount ?? selection.entitySelector.collectCount ?? prefetched.collectCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const collectCount = resolvedEntity.collectCount}
 					{#if collectCount !== undefined && collectCount !== null}
 						<div>
 							<dt>Collects</dt>
@@ -270,9 +345,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={lensPostTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							reactionCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const reactionCount = prefetched.reactionCount ?? selection.entitySelector.reactionCount}
+					{@const reactionCount = prefetched.reactionCount}
 					{#if reactionCount !== undefined && reactionCount !== null}
 						<div>
 							<dt>Reactions</dt>
@@ -284,7 +367,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const reactionCount = entity.reactionCount ?? selection.entitySelector.reactionCount ?? prefetched.reactionCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const reactionCount = resolvedEntity.reactionCount}
 					{#if reactionCount !== undefined && reactionCount !== null}
 						<div>
 							<dt>Reactions</dt>

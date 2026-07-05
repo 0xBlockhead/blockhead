@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,16 +41,16 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const erc4337AccountFactoryTimestamp = $derived(selection({
 		fields: {
 			userOperationsCount: true,
 			smartAccountsCount: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 account factory timestamp')
+	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ERC-4337 account factory timestamp')
 	const viewDomId = $derived('erc4337account-factory-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -60,127 +60,231 @@
 
 <EntityView
 	entityType={EntityType.Erc4337AccountFactory_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$factory.$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$factory.$network.caip2.reference)}`,
-			address: String(({ ...selection.entitySelector, ...prefetched }).$factory.address),
-			timestampMs: String(({ ...selection.entitySelector, ...prefetched }).timestampMs),
-			source: String(({ ...selection.entitySelector, ...prefetched }).source),
-		})
+		href ?? (pendingEntity.$factory !== undefined && pendingEntity.$factory.$network !== undefined && pendingEntity.$factory.$network.caip2 !== undefined && pendingEntity.$factory.$network.caip2.namespace !== undefined && pendingEntity.$factory !== undefined && pendingEntity.$factory.$network !== undefined && pendingEntity.$factory.$network.caip2 !== undefined && pendingEntity.$factory.$network.caip2.reference !== undefined && pendingEntity.$factory !== undefined && pendingEntity.$factory.address !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+			caip2: `${String(pendingEntity.$factory.$network.caip2.namespace ?? '')}:${String(pendingEntity.$factory.$network.caip2.reference ?? '')}`,
+			address: String(pendingEntity.$factory.address ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={erc4337AccountFactoryTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={erc4337AccountFactoryTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const userOperationsCount0 = ({ ...selection.entitySelector, ...prefetched }).userOperationsCount}
-			{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
-				<NumberValue value={Number(userOperationsCount0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={erc4337AccountFactoryTimestamp}>
-				{#snippet Pending()}
-					{@const userOperationsCount0 = ({ ...selection.entitySelector, ...prefetched }).userOperationsCount}
-					{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
-						<NumberValue value={Number(userOperationsCount0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={erc4337AccountFactoryTimestamp}>
+			{#snippet Pending()}
+				{@const userOperationsCount0 = prefetched.userOperationsCount}
+				{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
+					<NumberValue value={Number(userOperationsCount0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const userOperationsCount0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).userOperationsCount}
-					{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
-						<NumberValue value={Number(userOperationsCount0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const userOperationsCount0 = resolvedEntity.userOperationsCount}
+				{#if userOperationsCount0 !== undefined && userOperationsCount0 !== null}
+					<NumberValue value={Number(userOperationsCount0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const source0 = prefetched.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-			{@const smartAccountsCount1 = prefetched.smartAccountsCount}
-			{#if smartAccountsCount1 !== undefined && smartAccountsCount1 !== null}
-				<span data-text="muted">
-					<NumberValue value={Number(smartAccountsCount1)} />
+		<ResourceBoundary resource={erc4337AccountFactoryTimestamp}>
+			{#snippet Pending()}
+				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{#if source0 !== undefined && source0 !== null}
+					<span data-text="muted">
+						{String((source0) ?? '')}
+					</span>
+				{/if}
+				{@const smartAccountsCount1 = prefetched.smartAccountsCount}
+				{#if smartAccountsCount1 !== undefined && smartAccountsCount1 !== null}
+					<span data-text="muted">
+						<NumberValue value={Number(smartAccountsCount1)} />
 
-					<span> smart accounts</span>
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={erc4337AccountFactoryTimestamp}>
+						<span> smart accounts</span>
+					</span>
+				{/if}
+			{/snippet}
+
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const source0 = resolvedEntity.source}
+				{#if source0 !== undefined && source0 !== null}
+					<span data-text="muted">
+						{String((source0) ?? '')}
+					</span>
+				{/if}
+				{@const smartAccountsCount1 = resolvedEntity.smartAccountsCount}
+				{#if smartAccountsCount1 !== undefined && smartAccountsCount1 !== null}
+					<span data-text="muted">
+						<NumberValue value={Number(smartAccountsCount1)} />
+
+						<span> smart accounts</span>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							userOperationsCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const source0 = prefetched.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-					{@const smartAccountsCount1 = prefetched.smartAccountsCount}
-					{#if smartAccountsCount1 !== undefined && smartAccountsCount1 !== null}
-						<span data-text="muted">
-							<NumberValue value={Number(smartAccountsCount1)} />
-
-							<span> smart accounts</span>
-						</span>
+					{@const userOperationsCount = prefetched.userOperationsCount}
+					{#if userOperationsCount !== undefined && userOperationsCount !== null}
+						<div>
+							<dt>User operations</dt>
+							<dd>
+								<NumberValue value={Number(userOperationsCount)} />
+							</dd>
+						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const source0 = entity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-					{@const smartAccountsCount1 = entity.smartAccountsCount}
-					{#if smartAccountsCount1 !== undefined && smartAccountsCount1 !== null}
-						<span data-text="muted">
-							<NumberValue value={Number(smartAccountsCount1)} />
-
-							<span> smart accounts</span>
-						</span>
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const userOperationsCount = resolvedEntity.userOperationsCount}
+					{#if userOperationsCount !== undefined && userOperationsCount !== null}
+						<div>
+							<dt>User operations</dt>
+							<dd>
+								<NumberValue value={Number(userOperationsCount)} />
+							</dd>
+						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		{/if}
-	{/snippet}
 
-	{#snippet Content({ open: contentOpen })}
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							smartAccountsCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const smartAccountsCount = prefetched.smartAccountsCount}
+					{#if smartAccountsCount !== undefined && smartAccountsCount !== null}
+						<div>
+							<dt>Smart accounts</dt>
+							<dd>
+								<NumberValue value={Number(smartAccountsCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const smartAccountsCount = resolvedEntity.smartAccountsCount}
+					{#if smartAccountsCount !== undefined && smartAccountsCount !== null}
+						<div>
+							<dt>Smart accounts</dt>
+							<dd>
+								<NumberValue value={Number(smartAccountsCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
 		<dl data-column-item="center">
 			<div>
 				<dt>Factory</dt>
@@ -188,10 +292,10 @@
 					<Erc4337AccountFactoryView
 						selection={select(EntityType.Erc4337AccountFactory, selection.entitySelector.$factory)}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$factory.caip2.namespace)}:${String(selection.entitySelector.$factory.caip2.reference)}`,
-								address: String(selection.entitySelector.$factory.address),
-							})
+							(selection.entitySelector.$factory.$network !== undefined && selection.entitySelector.$factory.$network.caip2 !== undefined && selection.entitySelector.$factory.$network.caip2.namespace !== undefined && selection.entitySelector.$factory.$network !== undefined && selection.entitySelector.$factory.$network.caip2 !== undefined && selection.entitySelector.$factory.$network.caip2.reference !== undefined && selection.entitySelector.$factory.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]', {
+								caip2: `${String(selection.entitySelector.$factory.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$factory.$network.caip2.reference ?? '')}`,
+								address: String(selection.entitySelector.$factory.address ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}

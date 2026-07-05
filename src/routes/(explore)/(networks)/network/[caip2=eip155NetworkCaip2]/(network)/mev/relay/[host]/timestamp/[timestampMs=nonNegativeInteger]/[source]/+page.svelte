@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.MevRelay_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					reachable: true,
 					statusCode: true,

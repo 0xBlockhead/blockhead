@@ -21,7 +21,7 @@
 		selection,
 		title = 'Asset format support observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Asset format support observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					formatId: true,
 					confidence: true,
+					$assetInstance: true,
+					timestampMs: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AssetFormatSupport_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(assetFormatSupportTimestamps)}
 			{@const uniqueAssetFormatSupportTimestamps = [...new Map(assetFormatSupportTimestamps.values.map((assetFormatSupportTimestamp) => [assetFormatSupportTimestamp[EntityMetaKey.SelectorKey], assetFormatSupportTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={assetFormatSupportTimestamps.values.length === uniqueAssetFormatSupportTimestamps.length && assetFormatSupportTimestamps.totalCount != null && assetFormatSupportTimestamps.totalCount >= uniqueAssetFormatSupportTimestamps.length ? assetFormatSupportTimestamps.totalCount : uniqueAssetFormatSupportTimestamps.length}
+				totalCount={assetFormatSupportTimestamps.totalCount}
 				getKey={(assetFormatSupportTimestamp) => assetFormatSupportTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueAssetFormatSupportTimestamps}
 			>
@@ -106,24 +96,26 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No asset format support observations yet.</p>
+						<p data-text="muted">No Asset format support observations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: assetFormatSupportTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetFormatSupport_Timestamp> })}
+					{@const assetFormatSupportTimestampFields = { ...assetFormatSupportTimestamp[EntityMetaKey.Selector], ...assetFormatSupportTimestamp }}
+					{@const assetFormatSupportTimestampHrefFields = { ...assetFormatSupportTimestamp, ...assetFormatSupportTimestamp[EntityMetaKey.Selector] }}
 					<AssetFormatSupport_TimestampView
+						selection={select(EntityType.AssetFormatSupport_Timestamp, assetFormatSupportTimestamp[EntityMetaKey.Selector])}
+						prefetched={assetFormatSupportTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/formats/[formatId]/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...assetFormatSupportTimestamp.entitySelector, ...assetFormatSupportTimestamp }).$assetInstance.$network.caip2.namespace)}:${String(({ ...assetFormatSupportTimestamp.entitySelector, ...assetFormatSupportTimestamp }).$assetInstance.$network.caip2.reference)}`,
-								kind: String(({ ...assetFormatSupportTimestamp.entitySelector, ...assetFormatSupportTimestamp }).$assetInstance.kind),
-								assetKey: String(({ ...assetFormatSupportTimestamp.entitySelector, ...assetFormatSupportTimestamp }).$assetInstance.assetKey),
-								formatId: String(({ ...assetFormatSupportTimestamp.entitySelector, ...assetFormatSupportTimestamp }).formatId),
-								timestampMs: String(({ ...assetFormatSupportTimestamp.entitySelector, ...assetFormatSupportTimestamp }).timestampMs),
-								source: String(({ ...assetFormatSupportTimestamp.entitySelector, ...assetFormatSupportTimestamp }).source),
-							})
+							(assetFormatSupportTimestampHrefFields.$assetInstance !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2 !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2.namespace !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2 !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2.reference !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.kind !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.assetKey !== undefined && assetFormatSupportTimestampHrefFields.formatId !== undefined && assetFormatSupportTimestampHrefFields.timestampMs !== undefined && assetFormatSupportTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/formats/[formatId]/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2.namespace ?? '')}:${String(assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2.reference ?? '')}`,
+								kind: String(assetFormatSupportTimestampHrefFields.$assetInstance.kind ?? ''),
+								assetKey: String(assetFormatSupportTimestampHrefFields.$assetInstance.assetKey ?? ''),
+								formatId: String(assetFormatSupportTimestampHrefFields.formatId ?? ''),
+								timestampMs: String(assetFormatSupportTimestampHrefFields.timestampMs ?? ''),
+								source: String(assetFormatSupportTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.AssetFormatSupport_Timestamp, assetFormatSupportTimestamp.entitySelector)}
-						prefetched={assetFormatSupportTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

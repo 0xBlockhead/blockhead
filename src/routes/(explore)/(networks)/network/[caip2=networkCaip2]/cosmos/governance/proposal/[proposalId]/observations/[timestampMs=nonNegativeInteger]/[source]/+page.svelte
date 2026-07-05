@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.CosmosGovernanceProposal_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					status: true,
 					submitTimeMs: true,

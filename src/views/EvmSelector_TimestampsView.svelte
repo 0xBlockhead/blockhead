@@ -22,7 +22,7 @@
 		selection,
 		title = 'EVM selector observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM selector observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,32 +66,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Openchain_Rest,
 				],
 				fields: {
-					signatures: true,
 					timestampMs: true,
 					source: true,
+					$selector: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmSelector_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmSelectorTimestamps)}
 			{@const uniqueEvmSelectorTimestamps = [...new Map(evmSelectorTimestamps.values.map((evmSelectorTimestamp) => [evmSelectorTimestamp[EntityMetaKey.SelectorKey], evmSelectorTimestamp])).values()]}
 			<EntitiesList
@@ -103,7 +90,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmSelectorTimestamps.values.length === uniqueEvmSelectorTimestamps.length && evmSelectorTimestamps.totalCount != null && evmSelectorTimestamps.totalCount >= uniqueEvmSelectorTimestamps.length ? evmSelectorTimestamps.totalCount : uniqueEvmSelectorTimestamps.length}
+				totalCount={evmSelectorTimestamps.totalCount}
 				getKey={(evmSelectorTimestamp) => evmSelectorTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmSelectorTimestamps}
 			>
@@ -116,16 +103,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmSelectorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmSelector_Timestamp> })}
+					{@const evmSelectorTimestampFields = { ...evmSelectorTimestamp[EntityMetaKey.Selector], ...evmSelectorTimestamp }}
+					{@const evmSelectorTimestampHrefFields = { ...evmSelectorTimestamp, ...evmSelectorTimestamp[EntityMetaKey.Selector] }}
 					<EvmSelector_TimestampView
+						selection={select(EntityType.EvmSelector_Timestamp, evmSelectorTimestamp[EntityMetaKey.Selector])}
+						prefetched={evmSelectorTimestampFields}
 						href={
-							resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								hex: String(evmSelectorTimestamp.entitySelector.$selector.hex),
-								timestampMs: String(evmSelectorTimestamp.entitySelector.timestampMs),
-								source: String(evmSelectorTimestamp.entitySelector.source),
-							})
+							(evmSelectorTimestampHrefFields.$selector !== undefined && evmSelectorTimestampHrefFields.$selector.hex !== undefined && evmSelectorTimestampHrefFields.timestampMs !== undefined && evmSelectorTimestampHrefFields.source !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								hex: String(evmSelectorTimestampHrefFields.$selector.hex ?? ''),
+								timestampMs: String(evmSelectorTimestampHrefFields.timestampMs ?? ''),
+								source: String(evmSelectorTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmSelector_Timestamp, evmSelectorTimestamp.entitySelector)}
-						prefetched={evmSelectorTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -21,7 +21,7 @@
 		selection,
 		title = 'ERC-4337 account factory observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ERC-4337 account factory observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +65,18 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					timestampMs: true,
 					userOperationsCount: true,
 					source: true,
 					smartAccountsCount: true,
+					$factory: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Erc4337AccountFactory_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(erc4337AccountFactoryTimestamps)}
 			{@const uniqueErc4337AccountFactoryTimestamps = [...new Map(erc4337AccountFactoryTimestamps.values.map((erc4337AccountFactoryTimestamp) => [erc4337AccountFactoryTimestamp[EntityMetaKey.SelectorKey], erc4337AccountFactoryTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +88,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={erc4337AccountFactoryTimestamps.values.length === uniqueErc4337AccountFactoryTimestamps.length && erc4337AccountFactoryTimestamps.totalCount != null && erc4337AccountFactoryTimestamps.totalCount >= uniqueErc4337AccountFactoryTimestamps.length ? erc4337AccountFactoryTimestamps.totalCount : uniqueErc4337AccountFactoryTimestamps.length}
+				totalCount={erc4337AccountFactoryTimestamps.totalCount}
 				getKey={(erc4337AccountFactoryTimestamp) => erc4337AccountFactoryTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueErc4337AccountFactoryTimestamps}
 			>
@@ -113,17 +101,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: erc4337AccountFactoryTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4337AccountFactory_Timestamp> })}
+					{@const erc4337AccountFactoryTimestampFields = { ...erc4337AccountFactoryTimestamp[EntityMetaKey.Selector], ...erc4337AccountFactoryTimestamp }}
+					{@const erc4337AccountFactoryTimestampHrefFields = { ...erc4337AccountFactoryTimestamp, ...erc4337AccountFactoryTimestamp[EntityMetaKey.Selector] }}
 					<Erc4337AccountFactory_TimestampView
+						selection={select(EntityType.Erc4337AccountFactory_Timestamp, erc4337AccountFactoryTimestamp[EntityMetaKey.Selector])}
+						prefetched={erc4337AccountFactoryTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...erc4337AccountFactoryTimestamp.entitySelector, ...erc4337AccountFactoryTimestamp }).$factory.$network.caip2.namespace)}:${String(({ ...erc4337AccountFactoryTimestamp.entitySelector, ...erc4337AccountFactoryTimestamp }).$factory.$network.caip2.reference)}`,
-								address: String(({ ...erc4337AccountFactoryTimestamp.entitySelector, ...erc4337AccountFactoryTimestamp }).$factory.address),
-								timestampMs: String(({ ...erc4337AccountFactoryTimestamp.entitySelector, ...erc4337AccountFactoryTimestamp }).timestampMs),
-								source: String(({ ...erc4337AccountFactoryTimestamp.entitySelector, ...erc4337AccountFactoryTimestamp }).source),
-							})
+							(erc4337AccountFactoryTimestampHrefFields.$factory !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory.$network !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory.$network.caip2 !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory.$network.caip2.namespace !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory.$network !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory.$network.caip2 !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory.$network.caip2.reference !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory !== undefined && erc4337AccountFactoryTimestampHrefFields.$factory.address !== undefined && erc4337AccountFactoryTimestampHrefFields.timestampMs !== undefined && erc4337AccountFactoryTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(erc4337AccountFactoryTimestampHrefFields.$factory.$network.caip2.namespace ?? '')}:${String(erc4337AccountFactoryTimestampHrefFields.$factory.$network.caip2.reference ?? '')}`,
+								address: String(erc4337AccountFactoryTimestampHrefFields.$factory.address ?? ''),
+								timestampMs: String(erc4337AccountFactoryTimestampHrefFields.timestampMs ?? ''),
+								source: String(erc4337AccountFactoryTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Erc4337AccountFactory_Timestamp, erc4337AccountFactoryTimestamp.entitySelector)}
-						prefetched={erc4337AccountFactoryTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

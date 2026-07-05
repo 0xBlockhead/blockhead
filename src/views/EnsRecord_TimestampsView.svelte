@@ -21,7 +21,7 @@
 		selection,
 		title = 'ENS record observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ENS record observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$record: true,
 					timestampMs: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EnsRecord_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(ensRecordTimestamps)}
 			{@const uniqueEnsRecordTimestamps = [...new Map(ensRecordTimestamps.values.map((ensRecordTimestamp) => [ensRecordTimestamp[EntityMetaKey.SelectorKey], ensRecordTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ensRecordTimestamps.values.length === uniqueEnsRecordTimestamps.length && ensRecordTimestamps.totalCount != null && ensRecordTimestamps.totalCount >= uniqueEnsRecordTimestamps.length ? ensRecordTimestamps.totalCount : uniqueEnsRecordTimestamps.length}
+				totalCount={ensRecordTimestamps.totalCount}
 				getKey={(ensRecordTimestamp) => ensRecordTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueEnsRecordTimestamps}
 			>
@@ -111,17 +99,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: ensRecordTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsRecord_Timestamp> })}
+					{@const ensRecordTimestampFields = { ...ensRecordTimestamp[EntityMetaKey.Selector], ...ensRecordTimestamp }}
+					{@const ensRecordTimestampHrefFields = { ...ensRecordTimestamp, ...ensRecordTimestamp[EntityMetaKey.Selector] }}
 					<EnsRecord_TimestampView
+						selection={select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp[EntityMetaKey.Selector])}
+						prefetched={ensRecordTimestampFields}
 						href={
-							resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/record/[recordId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								ensName: String(ensRecordTimestamp.entitySelector.$record.$name.name),
-								recordId: String(ensRecordTimestamp.entitySelector.$record.recordKey),
-								timestampMs: String(ensRecordTimestamp.entitySelector.timestampMs),
-								source: String(ensRecordTimestamp.entitySelector.source),
-							})
+							(ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.$name !== undefined && ensRecordTimestampHrefFields.$record.$name.name !== undefined && ensRecordTimestampHrefFields.$record !== undefined && ensRecordTimestampHrefFields.$record.recordKey !== undefined && ensRecordTimestampHrefFields.timestampMs !== undefined && ensRecordTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/record/[recordId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								ensName: String(ensRecordTimestampHrefFields.$record.$name.name ?? ''),
+								recordId: String(ensRecordTimestampHrefFields.$record.recordKey ?? ''),
+								timestampMs: String(ensRecordTimestampHrefFields.timestampMs ?? ''),
+								source: String(ensRecordTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EnsRecord_Timestamp, ensRecordTimestamp.entitySelector)}
-						prefetched={ensRecordTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

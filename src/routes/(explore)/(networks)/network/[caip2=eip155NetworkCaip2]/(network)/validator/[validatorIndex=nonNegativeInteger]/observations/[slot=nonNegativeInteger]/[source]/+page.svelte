@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.BeaconValidator_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					status: true,
 					balanceGwei: true,

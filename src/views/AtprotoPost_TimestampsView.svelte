@@ -12,12 +12,16 @@
 	import { schema } from '$/schema/index.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'AT Protocol post observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading AT Protocol post observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,9 +51,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/components/NumberValue.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import AtprotoPost_TimestampView from '$/views/AtprotoPost_TimestampView.svelte'
 </script>
 
 
@@ -62,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					timestampMs: true,
 					likeCount: true,
 					replyCount: true,
+					$post: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.AtprotoPost_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(atprotoPostTimestamps)}
 			{@const uniqueAtprotoPostTimestamps = [...new Map(atprotoPostTimestamps.values.map((atprotoPostTimestamp) => [atprotoPostTimestamp[EntityMetaKey.SelectorKey], atprotoPostTimestamp])).values()]}
 			<EntitiesList
@@ -96,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={atprotoPostTimestamps.values.length === uniqueAtprotoPostTimestamps.length && atprotoPostTimestamps.totalCount != null && atprotoPostTimestamps.totalCount >= uniqueAtprotoPostTimestamps.length ? atprotoPostTimestamps.totalCount : uniqueAtprotoPostTimestamps.length}
+				totalCount={atprotoPostTimestamps.totalCount}
 				getKey={(atprotoPostTimestamp) => atprotoPostTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueAtprotoPostTimestamps}
 			>
@@ -109,44 +100,20 @@
 				{/snippet}
 
 				{#snippet Item({ item: atprotoPostTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AtprotoPost_Timestamp> })}
-					<EntityView
-						entityType={EntityType.AtprotoPost_Timestamp}
-						entitySelector={atprotoPostTimestamp.entitySelector}
+					{@const atprotoPostTimestampFields = { ...atprotoPostTimestamp[EntityMetaKey.Selector], ...atprotoPostTimestamp }}
+					{@const atprotoPostTimestampHrefFields = { ...atprotoPostTimestamp, ...atprotoPostTimestamp[EntityMetaKey.Selector] }}
+					<AtprotoPost_TimestampView
+						selection={select(EntityType.AtprotoPost_Timestamp, atprotoPostTimestamp[EntityMetaKey.Selector])}
+						prefetched={atprotoPostTimestampFields}
 						href={
-							resolve('/(social)/(atproto)/atproto/post/[...uri]/(post)/observations/[timestampMs=nonNegativeInteger]', {
-								uri: String(({ ...atprotoPostTimestamp.entitySelector, ...atprotoPostTimestamp }).$post.uri),
-								timestampMs: String(({ ...atprotoPostTimestamp.entitySelector, ...atprotoPostTimestamp }).timestampMs),
-							})
+							(atprotoPostTimestampHrefFields.$post !== undefined && atprotoPostTimestampHrefFields.$post.uri !== undefined && atprotoPostTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]/(post)/observations/[timestampMs=nonNegativeInteger]', {
+								uri: String(atprotoPostTimestampHrefFields.$post.uri ?? ''),
+								timestampMs: String(atprotoPostTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Summary}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const timestampMs0 = ({ ...atprotoPostTimestamp.entitySelector, ...atprotoPostTimestamp }).timestampMs}
-							<Timestamp timestamp={Number(timestampMs0)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const likeCountAfter0 = ({ ...atprotoPostTimestamp.entitySelector, ...atprotoPostTimestamp }).likeCount}
-							{#if likeCountAfter0 != null}
-								<span data-text="muted">
-									<NumberValue value={Number(likeCountAfter0)} />
-
-									<span> likes</span>
-									 likes
-								</span>
-							{/if}
-							{@const replyCountAfter1 = ({ ...atprotoPostTimestamp.entitySelector, ...atprotoPostTimestamp }).replyCount}
-							{#if replyCountAfter1 != null}
-								<span data-text="muted">
-									<NumberValue value={Number(replyCountAfter1)} />
-
-									<span> replies</span>
-									 replies
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

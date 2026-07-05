@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM blocks',
 		typeAnnotationParagraphs = ['A block in an EVM-compatible execution chain.'],
-		placeholderText = 'Loading EVM blocks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					blockNumber: true,
 					hash: true,
+					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmBlock}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmBlocks)}
 			{@const uniqueEvmBlocks = [...new Map(evmBlocks.values.map((evmBlock) => [evmBlock[EntityMetaKey.SelectorKey], evmBlock])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmBlocks.values.length === uniqueEvmBlocks.length && evmBlocks.totalCount != null && evmBlocks.totalCount >= uniqueEvmBlocks.length ? evmBlocks.totalCount : uniqueEvmBlocks.length}
+				totalCount={evmBlocks.totalCount}
 				getKey={(evmBlock) => evmBlock[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmBlocks}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmBlock> })}
+					{@const evmBlockFields = { ...evmBlock[EntityMetaKey.Selector], ...evmBlock }}
+					{@const evmBlockHrefFields = { ...evmBlock, ...evmBlock[EntityMetaKey.Selector] }}
 					<EvmBlockView
+						selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
+						prefetched={evmBlockFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-								caip2: `${String(({ ...evmBlock.entitySelector, ...evmBlock }).$network.caip2.namespace)}:${String(({ ...evmBlock.entitySelector, ...evmBlock }).$network.caip2.reference)}`,
-								blockNumber: String(({ ...evmBlock.entitySelector, ...evmBlock }).blockNumber),
-							})
+							(evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.caip2 !== undefined && evmBlockHrefFields.$network.caip2.namespace !== undefined && evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.caip2 !== undefined && evmBlockHrefFields.$network.caip2.reference !== undefined && evmBlockHrefFields.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+								caip2: `${String(evmBlockHrefFields.$network.caip2.namespace ?? '')}:${String(evmBlockHrefFields.$network.caip2.reference ?? '')}`,
+								blockNumber: String(evmBlockHrefFields.blockNumber ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmBlock, evmBlock.entitySelector)}
-						prefetched={evmBlock}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum HederaContractState_TimestampSelector {
-	ContractSlotTimestampMsSource = '$contract+slot+timestampMs+source',
+	ContractSlotTimestampMsSource = 'ContractSlotTimestampMsSource',
 }
 export default {
 	entityType: EntityType.HederaContractState_Timestamp,
@@ -25,42 +24,42 @@ export default {
 	],
 	fields: [
 		{
-			name: '$contract',
-			label: 'contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.HederaContract,
-			cardinality: EntityFieldCardinality.One,
+				name: '$contract',
+				label: 'contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.HederaContract,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'slot',
-			label: 'slot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'slot',
+				label: 'slot',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'value',
-			label: 'Value',
-			description: 'The source-domain value.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'value',
+				label: 'Value',
+				description: 'The source-domain value.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	],
 } as const satisfies EntityDefinition

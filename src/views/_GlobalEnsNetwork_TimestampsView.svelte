@@ -21,7 +21,7 @@
 		selection,
 		title = 'ENS hub observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading ENS hub observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$hub: true,
 					timestampMs: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._GlobalEnsNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globalEnsNetworkTimestamps)}
 			{@const uniqueGlobalEnsNetworkTimestamps = [...new Map(globalEnsNetworkTimestamps.values.map((globalEnsNetworkTimestamp) => [globalEnsNetworkTimestamp[EntityMetaKey.SelectorKey], globalEnsNetworkTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globalEnsNetworkTimestamps.values.length === uniqueGlobalEnsNetworkTimestamps.length && globalEnsNetworkTimestamps.totalCount != null && globalEnsNetworkTimestamps.totalCount >= uniqueGlobalEnsNetworkTimestamps.length ? globalEnsNetworkTimestamps.totalCount : uniqueGlobalEnsNetworkTimestamps.length}
+				totalCount={globalEnsNetworkTimestamps.totalCount}
 				getKey={(globalEnsNetworkTimestamp) => globalEnsNetworkTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobalEnsNetworkTimestamps}
 			>
@@ -111,15 +99,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: globalEnsNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalEnsNetwork_Timestamp> })}
+					{@const globalEnsNetworkTimestampFields = { ...globalEnsNetworkTimestamp[EntityMetaKey.Selector], ...globalEnsNetworkTimestamp }}
+					{@const globalEnsNetworkTimestampHrefFields = { ...globalEnsNetworkTimestamp, ...globalEnsNetworkTimestamp[EntityMetaKey.Selector] }}
 					<GlobalEnsNetwork_TimestampView
+						selection={select(EntityType._GlobalEnsNetwork_Timestamp, globalEnsNetworkTimestamp[EntityMetaKey.Selector])}
+						prefetched={globalEnsNetworkTimestampFields}
 						href={
-							resolve('/(explore)/(ens)/ens/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								timestampMs: String(globalEnsNetworkTimestamp.entitySelector.timestampMs),
-								source: String(globalEnsNetworkTimestamp.entitySelector.source),
-							})
+							(globalEnsNetworkTimestampHrefFields.timestampMs !== undefined && globalEnsNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ens)/ens/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								timestampMs: String(globalEnsNetworkTimestampHrefFields.timestampMs ?? ''),
+								source: String(globalEnsNetworkTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType._GlobalEnsNetwork_Timestamp, globalEnsNetworkTimestamp.entitySelector)}
-						prefetched={globalEnsNetworkTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

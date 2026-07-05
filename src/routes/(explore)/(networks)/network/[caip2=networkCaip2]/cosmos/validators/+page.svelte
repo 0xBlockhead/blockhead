@@ -45,6 +45,6 @@
 				},
 			})[EntityProxyField]<EntityType.CosmosValidator>('$$validators')
 		}
-		id='CosmosValidatorsView-page'
+		id='validators'
 	/>
 </Page>

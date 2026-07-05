@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -42,21 +42,16 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const activityPubNoteTimestamp = $derived(selection({
 		sources: [
 			Source.Mastodon_Rest,
 			Source.Fedi_Rest,
 		],
-		fields: {
-			favouriteCount: true,
-			reblogCount: true,
-			replyCount: true,
-		},
 	}))
 	const titleFallback = $derived('ActivityPub note observation')
 	const viewDomId = $derived('activity-pub-note-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -66,90 +61,136 @@
 
 <EntityView
 	entityType={EntityType.ActivityPubNote_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.$note !== undefined && pendingEntity.$note.instanceOrigin !== undefined && pendingEntity.$note !== undefined && pendingEntity.$note.localStatusId !== undefined && pendingEntity.timestampMs !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/(note)/observations/[timestampMs=nonNegativeInteger]', {
+			instanceOrigin: String(pendingEntity.$note.instanceOrigin ?? ''),
+			localStatusId: String(pendingEntity.$note.localStatusId ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<ActivityPubNoteView
-				selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
-				href={
-						resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
-							instanceOrigin: String(selection.entitySelector.$note.instanceOrigin),
-							localStatusId: String(selection.entitySelector.$note.localStatusId),
-						})
+		<ResourceBoundary resource={activityPubNoteTimestamp}>
+			{#snippet Pending()}
+				<ActivityPubNoteView
+					selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
+					href={
+						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
+							instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
+							localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
+						}) : undefined)
 					}
-				layout={EntityLayout.Title}
-				open={false}
-			/>
-		{:else}
-			<ResourceBoundary resource={activityPubNoteTimestamp}>
-				{#snippet Pending()}
-					<ActivityPubNoteView
-						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
-						href={
-							resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
-								instanceOrigin: String(selection.entitySelector.$note.instanceOrigin),
-								localStatusId: String(selection.entitySelector.$note.localStatusId),
-							})
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<ActivityPubNoteView
-						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
-						href={
-							resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
-								instanceOrigin: String(selection.entitySelector.$note.instanceOrigin),
-								localStatusId: String(selection.entitySelector.$note.localStatusId),
-							})
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<ActivityPubNoteView
+					selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
+					href={
+						(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
+							instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
+							localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Title}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={activityPubNoteTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={activityPubNoteTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={activityPubNoteTimestamp}>
+			<div>
+				<dt>Note</dt>
+				<dd>
+					<ActivityPubNoteView
+						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
+						href={
+							(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
+								instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),
+								localStatusId: String(selection.entitySelector.$note.localStatusId ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							favouriteCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const favouriteCount = prefetched.favouriteCount ?? selection.entitySelector.favouriteCount}
+					{@const favouriteCount = prefetched.favouriteCount}
 					{#if favouriteCount !== undefined && favouriteCount !== null}
 						<div>
 							<dt>Favourites</dt>
@@ -161,7 +202,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const favouriteCount = entity.favouriteCount ?? selection.entitySelector.favouriteCount ?? prefetched.favouriteCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const favouriteCount = resolvedEntity.favouriteCount}
 					{#if favouriteCount !== undefined && favouriteCount !== null}
 						<div>
 							<dt>Favourites</dt>
@@ -175,9 +217,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={activityPubNoteTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							reblogCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const reblogCount = prefetched.reblogCount ?? selection.entitySelector.reblogCount}
+					{@const reblogCount = prefetched.reblogCount}
 					{#if reblogCount !== undefined && reblogCount !== null}
 						<div>
 							<dt>Reblogs</dt>
@@ -189,7 +239,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const reblogCount = entity.reblogCount ?? selection.entitySelector.reblogCount ?? prefetched.reblogCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const reblogCount = resolvedEntity.reblogCount}
 					{#if reblogCount !== undefined && reblogCount !== null}
 						<div>
 							<dt>Reblogs</dt>
@@ -203,9 +254,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={activityPubNoteTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							replyCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const replyCount = prefetched.replyCount ?? selection.entitySelector.replyCount}
+					{@const replyCount = prefetched.replyCount}
 					{#if replyCount !== undefined && replyCount !== null}
 						<div>
 							<dt>Replies</dt>
@@ -217,7 +276,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const replyCount = entity.replyCount ?? selection.entitySelector.replyCount ?? prefetched.replyCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const replyCount = resolvedEntity.replyCount}
 					{#if replyCount !== undefined && replyCount !== null}
 						<div>
 							<dt>Replies</dt>

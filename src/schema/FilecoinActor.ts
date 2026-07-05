@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum FilecoinActorSelector {
-	NetworkAddress = 'networkAddress',
+	NetworkAddress = 'NetworkAddress',
 }
 export default {
 	entityType: EntityType.FilecoinActor,
@@ -23,40 +23,51 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'address',
-			label: 'Address',
-			description: 'The address or account identifier used by the source protocol.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'address',
+				label: 'Address',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'actorCodeCid',
-			label: 'actor code CID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'actorCodeCid',
+				label: 'Actor code CID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 		{
-			name: 'nonce',
-			label: 'nonce',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'nonce',
+				label: 'Nonce',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 		{
-			name: 'balanceAttoFil',
-			label: 'balance atto fil',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'balanceAttoFil',
+				label: 'Balance attoFIL',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

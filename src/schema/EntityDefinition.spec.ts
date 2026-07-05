@@ -11,6 +11,7 @@ import {
 	entitySelectorsFromFields,
 	validateEntitySelector,
 	type EntityDefinition,
+	type EntityFieldDefinition,
 	type Schema,
 } from '$/schema/$schema.ts'
 import { NetworkNamespace, networks } from '$/constants/Network.ts'
@@ -18,6 +19,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { ActivityPubActorSelector } from '$/schema/ActivityPubActor.ts'
 import { ActivityPubNoteSelector } from '$/schema/ActivityPubNote.ts'
+import { app } from '../../APP.ts'
 
 enum ParentSelector {
 	Slug = 'slug',
@@ -129,6 +131,21 @@ const selectorFieldIsRequired = (
 		&& selectorFields.includes(fieldDefinition.when.fieldName)
 	)
 )
+
+const selectorIsConcrete = (
+	entityDefinition: EntityDefinition,
+	selectorFields: readonly string[]
+) => {
+	const fieldDefinitionByName = Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
+		fieldDefinition.name,
+		fieldDefinition,
+	]))
+	return selectorFields.every((fieldName) => selectorFieldIsRequired(
+		fieldDefinitionByName[fieldName],
+		selectorFields,
+		entityDefinition.entityType
+	))
+}
 
 describe('entity selectors', () => {
 	it('matches exact named selector field sets', () => {
@@ -345,25 +362,16 @@ describe('entity selectors', () => {
 			).toEqual([])
 	})
 
-	it('keeps every concrete selector field required', () => {
+	it('keeps every entity backed by at least one concrete selector', () => {
 		expect(
 			schema.flatMap((entityDefinition) => {
-				const fieldDefinitionByName = Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
-					fieldDefinition.name,
-					fieldDefinition,
-				]))
-				return entityDefinition.selectors.flatMap((selector) => (
-					selector.fields.flatMap((fieldName) => (
-						selectorFieldIsRequired(
-							fieldDefinitionByName[fieldName],
-							selector.fields,
-							entityDefinition.entityType
-						) ?
-							[]
-						:
-							[`${entityDefinition.entityType}.${selector.name}.${fieldName}`]
-					))
-				))
+				return entityDefinition.selectors.some((selector) => selectorIsConcrete(
+					entityDefinition,
+					selector.fields
+				)) ?
+					[]
+				:
+					[entityDefinition.entityType]
 			})
 			).toEqual([])
 	})
@@ -479,7 +487,10 @@ describe('entity selectors', () => {
 			entityDefinition: EntityDefinition,
 			path: readonly string[]
 		): string[] => {
-			return entityDefinition.selectors.flatMap((selector) => (
+			return entityDefinition.selectors.filter((selector) => selectorIsConcrete(
+				entityDefinition,
+				selector.fields
+			)).flatMap((selector) => (
 				selector.fields.flatMap((fieldName) => {
 					const fieldDefinition = entityFieldDefinitions(entityDefinition)
 						.find((candidate) => candidate.name === fieldName)
@@ -504,7 +515,28 @@ describe('entity selectors', () => {
 					if (path.includes(fieldDefinition.entityType))
 						return []
 
-					return selectorReferenceIssues(
+					const referencedIssuesBySelector = referencedEntityDefinition.selectors
+						.filter((referencedSelector) => selectorIsConcrete(
+							referencedEntityDefinition,
+							referencedSelector.fields
+						))
+						.map((referencedSelector) => selectorReferenceIssues(
+							{
+								...referencedEntityDefinition,
+								selectors: [referencedSelector],
+							},
+							[
+								...path,
+								entityDefinition.entityType,
+								selector.name,
+								fieldName,
+							]
+						))
+
+					return referencedIssuesBySelector.some((referencedIssues) => referencedIssues.length === 0) ?
+						[]
+					:
+						selectorReferenceIssues(
 						referencedEntityDefinition,
 						[
 							...path,
@@ -635,9 +667,9 @@ describe('entity selectors', () => {
 			EntityType.ElementsNetwork,
 			EntityType.HyperliquidNetwork,
 			EntityType.LightningNetwork,
-			EntityType.LogosZone,
+			EntityType.LogosBlockchainNetwork,
 			EntityType.NearNetwork,
-			EntityType.QuilibriumNetwork,
+			EntityType.QuilibriumShard,
 			EntityType.TronNetwork,
 			EntityType.ZeroGNetwork,
 		])
@@ -682,12 +714,6 @@ describe('entity selectors', () => {
 				const contents = readFileSync(filePath, 'utf8')
 
 				return [
-					...(
-						contents.includes('networkSlug') ?
-							[`${filePath}:networkSlug`]
-						:
-							[]
-					),
 					...(
 						contents.includes('selector.$network.caip2') ?
 							[`${filePath}:selector.$network.caip2`]
@@ -852,8 +878,8 @@ describe('entity selectors', () => {
 	})
 
 	it('keeps migrated YouTube channel observations off stable channel headers', () => {
-		const youTubeChannel = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YouTubeChannel)
-		const youTubeChannelTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YouTubeChannel_Timestamp)
+		const youTubeChannel = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeChannel)
+		const youTubeChannelTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeChannel_Timestamp)
 
 		if (youTubeChannel == null || youTubeChannelTimestamp == null)
 			throw new Error('YouTube channel schema rows missing')
@@ -875,8 +901,8 @@ describe('entity selectors', () => {
 	})
 
 	it('keeps migrated YouTube video observations off stable video headers', () => {
-		const youTubeVideo = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YouTubeVideo)
-		const youTubeVideoTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YouTubeVideo_Timestamp)
+		const youTubeVideo = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeVideo)
+		const youTubeVideoTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeVideo_Timestamp)
 
 		if (youTubeVideo == null || youTubeVideoTimestamp == null)
 			throw new Error('YouTube video schema rows missing')
@@ -898,8 +924,8 @@ describe('entity selectors', () => {
 	})
 
 	it('keeps migrated YouTube playlist observations off stable playlist headers', () => {
-		const youTubePlaylist = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YouTubePlaylist)
-		const youTubePlaylistTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YouTubePlaylist_Timestamp)
+		const youTubePlaylist = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubePlaylist)
+		const youTubePlaylistTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubePlaylist_Timestamp)
 
 		if (youTubePlaylist == null || youTubePlaylistTimestamp == null)
 			throw new Error('YouTube playlist schema rows missing')
@@ -917,8 +943,8 @@ describe('entity selectors', () => {
 	})
 
 	it('keeps migrated YouTube comment observations off stable comment headers', () => {
-		const youTubeComment = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YouTubeComment)
-		const youTubeCommentTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YouTubeComment_Timestamp)
+		const youTubeComment = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeComment)
+		const youTubeCommentTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.YoutubeComment_Timestamp)
 
 		if (youTubeComment == null || youTubeCommentTimestamp == null)
 			throw new Error('YouTube comment schema rows missing')

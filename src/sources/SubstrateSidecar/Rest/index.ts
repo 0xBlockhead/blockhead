@@ -1,8 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 
 export default {
 	provider: SourceProvider.SubstrateSidecar,
 	source: Source.SubstrateSidecar_Rest,
-	label: 'Substrate API Sidecar REST',
-} as const
+	label: 'Substrate Sidecar REST',
+} satisfies SourceDefinition

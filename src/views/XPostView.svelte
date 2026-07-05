@@ -3,10 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -41,6 +41,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const xPost = $derived(selection({
 		sources: [
 			Source.X_Rest,
@@ -54,15 +55,11 @@
 			$replyToPost: true,
 			$quotedPost: true,
 			$$media: true,
-			...(open && {
-				$$timestamps: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).text) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || 'X post')
+	const titleFallback = $derived([String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'X post')
 	const viewDomId = $derived('xpost-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -73,7 +70,7 @@
 
 <EntityView
 	entityType={EntityType.XPost}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -82,75 +79,58 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).text) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'X post'}
-		{:else}
-			<ResourceBoundary resource={xPost}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).text) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).id) ?? '')].filter(Boolean).join(' ') || title || 'X post'}
-				{/snippet}
+		<ResourceBoundary resource={xPost}>
+			{#snippet Pending()}
+				{[String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || title || 'X post'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.text) ?? ''), String((entity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.text) ?? ''), String((resolvedEntity.id) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const id0 = ({ ...selection.entitySelector, ...prefetched }).id}
-			{#if id0 !== undefined && id0 !== null}
-				<TruncatedValue value={String(id0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={xPost}>
-				{#snippet Pending()}
-					{@const id0 = ({ ...selection.entitySelector, ...prefetched }).id}
-					{#if id0 !== undefined && id0 !== null}
-						<TruncatedValue value={String(id0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={xPost}>
+			{#snippet Pending()}
+				{@const id0 = selection.entitySelector.id ?? prefetched.id}
+				{#if id0 !== undefined && id0 !== null}
+					<TruncatedValue value={String((id0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const id0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).id}
-					{#if id0 !== undefined && id0 !== null}
-						<TruncatedValue value={String(id0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const id0 = resolvedEntity.id}
+				{#if id0 !== undefined && id0 !== null}
+					<TruncatedValue value={String((id0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const createdAt0 = prefetched.createdAt}
-			{#if createdAt0 !== undefined && createdAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(createdAt0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={xPost}>
-				{#snippet Pending()}
-					{@const createdAt0 = prefetched.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={xPost}>
+			{#snippet Pending()}
+				{@const createdAt0 = prefetched.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const createdAt0 = entity.createdAt}
-					{#if createdAt0 !== undefined && createdAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(createdAt0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const createdAt0 = resolvedEntity.createdAt}
+				{#if createdAt0 !== undefined && createdAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(createdAt0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -159,12 +139,12 @@
 				resource={selection[EntityProxyField]<EntityType.XUser, false>('$author')}
 			>
 				{#snippet children(xUser)}
-					{#if xUser != null}
+					{#if xUser != null && xUser[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<XUserView
-									selection={select(EntityType.XUser, xUser.entitySelector)}
+									selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector])}
 									prefetched={xUser}
 									layout={EntityLayout.Title}
 									open={false}
@@ -177,9 +157,54 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={xPost}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							createdAt: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const postUrl = prefetched.postUrl ?? selection.entitySelector.postUrl}
+					{@const createdAt = prefetched.createdAt}
+					{#if createdAt !== undefined && createdAt !== null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={Number(createdAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const createdAt = resolvedEntity.createdAt}
+					{#if createdAt !== undefined && createdAt !== null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp timestamp={Number(createdAt)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							postUrl: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const postUrl = prefetched.postUrl}
 					{#if postUrl !== undefined && postUrl !== null}
 						<div>
 							<dt>Post URL</dt>
@@ -198,7 +223,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const postUrl = entity.postUrl ?? selection.entitySelector.postUrl ?? prefetched.postUrl}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const postUrl = resolvedEntity.postUrl}
 					{#if postUrl !== undefined && postUrl !== null}
 						<div>
 							<dt>Post URL</dt>
@@ -223,12 +249,12 @@
 				resource={selection[EntityProxyField]<EntityType.XPost, false>('$replyToPost')}
 			>
 				{#snippet children(xPost)}
-					{#if xPost != null}
+					{#if xPost != null && xPost[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Reply to post</dt>
 							<dd>
 								<XPostView
-									selection={select(EntityType.XPost, xPost.entitySelector)}
+									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
 									prefetched={xPost}
 									layout={EntityLayout.Title}
 									open={false}
@@ -245,12 +271,12 @@
 				resource={selection[EntityProxyField]<EntityType.XPost, false>('$quotedPost')}
 			>
 				{#snippet children(xPost)}
-					{#if xPost != null}
+					{#if xPost != null && xPost[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Quoted post</dt>
 							<dd>
 								<XPostView
-									selection={select(EntityType.XPost, xPost.entitySelector)}
+									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
 									prefetched={xPost}
 									layout={EntityLayout.Title}
 									open={false}
@@ -262,12 +288,19 @@
 			</ResourceBoundary>
 		</dl>
 
-		<ResourceBoundary resource={xPost}>
+		<ResourceBoundary
+			resource={
+				selection({
+					fields: {
+						text: true,
+					},
+				})
+			}
+		>
 			{#snippet children(entity)}
-				{@const text = entity.text ?? selection.entitySelector.text ?? prefetched.text}
-				{#if text === undefined || text === null || text === ''}
-					<p data-text="muted">No text available.</p>
-				{:else}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const text = resolvedEntity.text}
+				{#if text !== undefined && text !== null && text !== ''}
 					<p data-text="long-text">{String((text) ?? '')}</p>
 				{/if}
 			{/snippet}

@@ -47,6 +47,6 @@
 				txHash: decodeURIComponent(params.txHash),
 			})[EntityProxyField]<EntityType.CosmosMessage>('$$messages')
 		}
-		id='CosmosMessagesView-page'
+		id='messages'
 	/>
 </Page>

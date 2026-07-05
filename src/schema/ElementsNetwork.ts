@@ -1,17 +1,18 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum ElementsNetworkSelector {
-	Network = 'network',
+	Network = 'Network',
 }
 export default {
 	entityType: EntityType.ElementsNetwork,
-	label: 'elements network',
-	labelPlural: 'elements networks',
+	label: 'Elements network',
+	labelPlural: 'Elements networks',
+	description: 'Elements/Liquid-specific view over a canonical Network row, including federation metadata, settlement network, native asset, and registry assets.',
 	selectors: [
 		{
 			name: ElementsNetworkSelector.Network,
@@ -22,53 +23,71 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$settlementNetwork',
-			label: 'settlement network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoNetwork,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$settlementNetwork',
+				label: 'Settlement network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.UtxoNetwork,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: 'federationName',
-			label: 'federation name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'federationName',
+				label: 'Federation',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: 'blockTimeSeconds',
-			label: 'block time seconds',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'blockTimeSeconds',
+				label: 'Block time seconds',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: '$nativeAsset',
-			label: 'native asset',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ElementsAsset,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$nativeAsset',
+				label: 'Native asset',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.ElementsAsset,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Esplora_Rest,
+				],
 		},
 		{
-			name: 'confidentialTransactionsDefault',
-			label: 'confidential transactions default',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'confidentialTransactionsDefault',
+				label: 'Confidential transactions by default',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
-			name: '$$assets',
-			label: 'assets',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ElementsAsset,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$assets',
+				label: 'Assets',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.ElementsAsset,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Esplora_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

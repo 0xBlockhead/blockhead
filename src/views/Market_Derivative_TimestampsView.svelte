@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Derivative observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Market derivative observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,30 +66,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					feedKey: true,
 					markPrice: true,
 					indexPrice: true,
 					fundingRate: true,
+					$market: true,
+					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Market_Derivative_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(marketDerivativeTimestamps)}
 			{@const uniqueMarketDerivativeTimestamps = [...new Map(marketDerivativeTimestamps.values.map((marketDerivativeTimestamp) => [marketDerivativeTimestamp[EntityMetaKey.SelectorKey], marketDerivativeTimestamp])).values()]}
 			<EntitiesList
@@ -100,7 +90,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={marketDerivativeTimestamps.values.length === uniqueMarketDerivativeTimestamps.length && marketDerivativeTimestamps.totalCount != null && marketDerivativeTimestamps.totalCount >= uniqueMarketDerivativeTimestamps.length ? marketDerivativeTimestamps.totalCount : uniqueMarketDerivativeTimestamps.length}
+				totalCount={marketDerivativeTimestamps.totalCount}
 				getKey={(marketDerivativeTimestamp) => marketDerivativeTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueMarketDerivativeTimestamps}
 			>
@@ -108,26 +98,28 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No market derivative observations yet.</p>
+						<p data-text="muted">No Market derivative observations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: marketDerivativeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Market_Derivative_Timestamp> })}
+					{@const marketDerivativeTimestampFields = { ...marketDerivativeTimestamp[EntityMetaKey.Selector], ...marketDerivativeTimestamp }}
+					{@const marketDerivativeTimestampHrefFields = { ...marketDerivativeTimestamp, ...marketDerivativeTimestamp[EntityMetaKey.Selector] }}
 					<Market_Derivative_TimestampView
+						selection={select(EntityType.Market_Derivative_Timestamp, marketDerivativeTimestamp[EntityMetaKey.Selector])}
+						prefetched={marketDerivativeTimestampFields}
 						href={
-							resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs=nonNegativeInteger]/[feedKey]', {
-								marketVenue: entity.$market.$marketVenue.marketVenueId,
-								baseKind: marketAssetRouteLabelByKind[entity.$market.$base.kind],
-								base: entity.$market.$base.kind === MarketAssetKind.Coin ? entity.$market.$base.$coin.coinId : entity.$market.$base.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$market.$base.$coinInstance.type] : entity.$market.$base.$currency.iso4217,
-								quoteKind: marketAssetRouteLabelByKind[entity.$market.$quote.kind],
-								quote: entity.$market.$quote.kind === MarketAssetKind.Coin ? entity.$market.$quote.$coin.coinId : entity.$market.$quote.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$market.$quote.$coinInstance.type] : entity.$market.$quote.$currency.iso4217,
-								marketKind: entity.$market.marketKind,
-								timestampMs: String(({ ...marketDerivativeTimestamp.entitySelector, ...marketDerivativeTimestamp }).timestampMs),
-								feedKey: String(({ ...marketDerivativeTimestamp.entitySelector, ...marketDerivativeTimestamp }).feedKey),
-							})
+							(marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$marketVenue !== undefined && marketDerivativeTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$base !== undefined && marketDerivativeTimestampHrefFields.$market.$base.kind !== undefined && (marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$base !== undefined && marketDerivativeTimestampHrefFields.$market.$base.kind !== undefined && (marketDerivativeTimestampHrefFields.$market.$base.kind === 'Coin' ? marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$base !== undefined && marketDerivativeTimestampHrefFields.$market.$base.$coin !== undefined && marketDerivativeTimestampHrefFields.$market.$base.$coin.coinId !== undefined : marketDerivativeTimestampHrefFields.$market.$base.kind === 'CoinInstance' ? marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$base !== undefined && marketDerivativeTimestampHrefFields.$market.$base.$coinInstance !== undefined && marketDerivativeTimestampHrefFields.$market.$base.$coinInstance.type !== undefined : marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$base !== undefined && marketDerivativeTimestampHrefFields.$market.$base.$currency !== undefined && marketDerivativeTimestampHrefFields.$market.$base.$currency.iso4217 !== undefined)) && marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$quote !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.kind !== undefined && (marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$quote !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.kind !== undefined && (marketDerivativeTimestampHrefFields.$market.$quote.kind === 'Coin' ? marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$quote !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.$coin !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.$coin.coinId !== undefined : marketDerivativeTimestampHrefFields.$market.$quote.kind === 'CoinInstance' ? marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$quote !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.$coinInstance !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.$coinInstance.type !== undefined : marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.$quote !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.$currency !== undefined && marketDerivativeTimestampHrefFields.$market.$quote.$currency.iso4217 !== undefined)) && marketDerivativeTimestampHrefFields.$market !== undefined && marketDerivativeTimestampHrefFields.$market.marketKind !== undefined && marketDerivativeTimestampHrefFields.timestampMs !== undefined && marketDerivativeTimestampHrefFields.feedKey !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/derivatives/[timestampMs=nonNegativeInteger]/[feedKey]', {
+								marketVenue: String(marketDerivativeTimestampHrefFields.$market.$marketVenue.marketVenueId ?? ''),
+								baseKind: String(marketAssetRouteLabelByKind[String(marketDerivativeTimestampHrefFields.$market.$base.kind)] ?? ''),
+								base: String((marketDerivativeTimestampHrefFields.$market.$base.kind === 'Coin' ? marketDerivativeTimestampHrefFields.$market.$base.$coin.coinId : marketDerivativeTimestampHrefFields.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketDerivativeTimestampHrefFields.$market.$base.$coinInstance.type)] : marketDerivativeTimestampHrefFields.$market.$base.$currency.iso4217)),
+								quoteKind: String(marketAssetRouteLabelByKind[String(marketDerivativeTimestampHrefFields.$market.$quote.kind)] ?? ''),
+								quote: String((marketDerivativeTimestampHrefFields.$market.$quote.kind === 'Coin' ? marketDerivativeTimestampHrefFields.$market.$quote.$coin.coinId : marketDerivativeTimestampHrefFields.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketDerivativeTimestampHrefFields.$market.$quote.$coinInstance.type)] : marketDerivativeTimestampHrefFields.$market.$quote.$currency.iso4217)),
+								marketKind: String(marketDerivativeTimestampHrefFields.$market.marketKind ?? ''),
+								timestampMs: String(marketDerivativeTimestampHrefFields.timestampMs ?? ''),
+								feedKey: String(marketDerivativeTimestampHrefFields.feedKey ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Market_Derivative_Timestamp, marketDerivativeTimestamp.entitySelector)}
-						prefetched={marketDerivativeTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -21,7 +21,7 @@
 		selection,
 		title = 'Ethereum execution upgrades',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Ethereum execution upgrades...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
-					name: true,
 					upgradeId: true,
+					name: true,
+					$network: true,
+					slug: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EthereumExecutionUpgrade}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(ethereumExecutionUpgrades)}
 			{@const uniqueEthereumExecutionUpgrades = [...new Map(ethereumExecutionUpgrades.values.map((ethereumExecutionUpgrade) => [ethereumExecutionUpgrade[EntityMetaKey.SelectorKey], ethereumExecutionUpgrade])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ethereumExecutionUpgrades.values.length === uniqueEthereumExecutionUpgrades.length && ethereumExecutionUpgrades.totalCount != null && ethereumExecutionUpgrades.totalCount >= uniqueEthereumExecutionUpgrades.length ? ethereumExecutionUpgrades.totalCount : uniqueEthereumExecutionUpgrades.length}
+				totalCount={ethereumExecutionUpgrades.totalCount}
 				getKey={(ethereumExecutionUpgrade) => ethereumExecutionUpgrade[EntityMetaKey.SelectorKey]}
 				items={uniqueEthereumExecutionUpgrades}
 			>
@@ -111,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: ethereumExecutionUpgrade }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EthereumExecutionUpgrade> })}
+					{@const ethereumExecutionUpgradeFields = { ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }}
+					{@const ethereumExecutionUpgradeHrefFields = { ...ethereumExecutionUpgrade, ...ethereumExecutionUpgrade[EntityMetaKey.Selector] }}
 					<EthereumExecutionUpgradeView
+						selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector])}
+						prefetched={ethereumExecutionUpgradeFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {
-								caip2: `${String(({ ...ethereumExecutionUpgrade.entitySelector, ...ethereumExecutionUpgrade }).$network.caip2.namespace)}:${String(({ ...ethereumExecutionUpgrade.entitySelector, ...ethereumExecutionUpgrade }).$network.caip2.reference)}`,
-								upgradeSlug: String(({ ...ethereumExecutionUpgrade.entitySelector, ...ethereumExecutionUpgrade }).slug),
-							})
+							(ethereumExecutionUpgradeHrefFields.$network !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2 !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2.namespace !== undefined && ethereumExecutionUpgradeHrefFields.$network !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2 !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2.reference !== undefined && ethereumExecutionUpgradeHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {
+								caip2: `${String(ethereumExecutionUpgradeHrefFields.$network.caip2.namespace ?? '')}:${String(ethereumExecutionUpgradeHrefFields.$network.caip2.reference ?? '')}`,
+								upgradeSlug: String(ethereumExecutionUpgradeHrefFields.slug ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade.entitySelector)}
-						prefetched={ethereumExecutionUpgrade}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

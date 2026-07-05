@@ -7,6 +7,7 @@ import { type } from 'arktype'
 
 export enum EthereumConsensusUpgradeSelector {
 	EvmNetworkUpgradeId = 'EvmNetworkUpgradeId',
+	EvmNetworkSlug = 'EvmNetworkSlug',
 }
 export default {
 	entityType: EntityType.EthereumConsensusUpgrade,
@@ -18,6 +19,13 @@ export default {
 			fields: [
 				'$network',
 				'upgradeId',
+			],
+		},
+		{
+			name: EthereumConsensusUpgradeSelector.EvmNetworkSlug,
+			fields: [
+				'$network',
+				'slug',
 			],
 		},
 	],

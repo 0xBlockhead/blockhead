@@ -21,7 +21,7 @@
 		selection,
 		title = 'Lens account observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Lens account observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$account: true,
 					timestampMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.LensAccount_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(lensAccountTimestamps)}
 			{@const uniqueLensAccountTimestamps = [...new Map(lensAccountTimestamps.values.map((lensAccountTimestamp) => [lensAccountTimestamp[EntityMetaKey.SelectorKey], lensAccountTimestamp])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={lensAccountTimestamps.values.length === uniqueLensAccountTimestamps.length && lensAccountTimestamps.totalCount != null && lensAccountTimestamps.totalCount >= uniqueLensAccountTimestamps.length ? lensAccountTimestamps.totalCount : uniqueLensAccountTimestamps.length}
+				totalCount={lensAccountTimestamps.totalCount}
 				getKey={(lensAccountTimestamp) => lensAccountTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueLensAccountTimestamps}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: lensAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensAccount_Timestamp> })}
+					{@const lensAccountTimestampFields = { ...lensAccountTimestamp[EntityMetaKey.Selector], ...lensAccountTimestamp }}
+					{@const lensAccountTimestampHrefFields = { ...lensAccountTimestamp, ...lensAccountTimestamp[EntityMetaKey.Selector] }}
 					<LensAccount_TimestampView
+						selection={select(EntityType.LensAccount_Timestamp, lensAccountTimestamp[EntityMetaKey.Selector])}
+						prefetched={lensAccountTimestampFields}
 						href={
-							resolve('/(social)/(lens)/lens/account/[address=evmAddress]/(account)/observations/[timestampMs=nonNegativeInteger]', {
-								address: String(lensAccountTimestamp.entitySelector.$account.address),
-								timestampMs: String(lensAccountTimestamp.entitySelector.timestampMs),
-							})
+							(lensAccountTimestampHrefFields.$account !== undefined && lensAccountTimestampHrefFields.$account.address !== undefined && lensAccountTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(lens)/lens/account/[address=evmAddress]/(account)/observations/[timestampMs=nonNegativeInteger]', {
+								address: String(lensAccountTimestampHrefFields.$account.address ?? ''),
+								timestampMs: String(lensAccountTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.LensAccount_Timestamp, lensAccountTimestamp.entitySelector)}
-						prefetched={lensAccountTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -1,0 +1,115 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'Hedera token association observations',
+		typeAnnotationParagraphs = [],
+		placeholderText,
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'HederaTokenAssociation_Timestamps-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.HederaTokenAssociation_Timestamp>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import HederaTokenAssociation_TimestampView from '$/views/HederaTokenAssociation_TimestampView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={selection}
+		{placeholderText}
+	>
+		{#snippet children(hederaTokenAssociationTimestamps)}
+			{@const uniqueHederaTokenAssociationTimestamps = [...new Map(hederaTokenAssociationTimestamps.values.map((hederaTokenAssociationTimestamp) => [hederaTokenAssociationTimestamp[EntityMetaKey.SelectorKey], hederaTokenAssociationTimestamp])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaTokenAssociation_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={hederaTokenAssociationTimestamps.totalCount}
+				getKey={(hederaTokenAssociationTimestamp) => hederaTokenAssociationTimestamp[EntityMetaKey.SelectorKey]}
+				items={uniqueHederaTokenAssociationTimestamps}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Hedera token association observations yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: hederaTokenAssociationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaTokenAssociation_Timestamp> })}
+					{@const hederaTokenAssociationTimestampFields = { ...hederaTokenAssociationTimestamp[EntityMetaKey.Selector], ...hederaTokenAssociationTimestamp }}
+					<HederaTokenAssociation_TimestampView
+						selection={select(EntityType.HederaTokenAssociation_Timestamp, hederaTokenAssociationTimestamp[EntityMetaKey.Selector])}
+						prefetched={hederaTokenAssociationTimestampFields}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.HederaTokenAssociation_Timestamp}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

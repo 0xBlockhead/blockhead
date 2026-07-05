@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.RssItem_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					title: true,
 					link: true,

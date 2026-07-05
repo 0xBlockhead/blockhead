@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum NetworkStackSelector {
-	NetworkStackId = 'networkStackId',
+	NetworkStackId = 'NetworkStackId',
 }
 export default {
 	entityType: EntityType.NetworkStack,
@@ -23,19 +22,19 @@ export default {
 	],
 	fields: [
 		{
-			name: 'networkStackId',
-			label: 'network stack ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'networkStackId',
+				label: 'Network stack ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'label',
-			label: 'Label',
-			description: 'A human-readable name for the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'label',
+				label: 'Label',
+				description: 'A human-readable name for the subject.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

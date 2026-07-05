@@ -45,6 +45,6 @@
 				},
 			})[EntityProxyField]<EntityType.CosmosNetwork_Timestamp>('$$timestamps')
 		}
-		id='CosmosNetwork_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

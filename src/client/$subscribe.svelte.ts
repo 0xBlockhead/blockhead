@@ -479,8 +479,8 @@ const fieldDataFromRows = <
 			fieldName,
 			values,
 			entities: values,
-			...((count || countRows.length > 0) && {
-				totalCount: countRows[0]?.[EntityMetaKey.Value] ?? values.length,
+			...(countRows.length > 0 && {
+				totalCount: countRows[0][EntityMetaKey.Value],
 			}),
 		}
 

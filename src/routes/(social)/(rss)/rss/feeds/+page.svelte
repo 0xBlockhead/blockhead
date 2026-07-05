@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,12 @@
 		selection={
 			select(EntityType.RssNetwork, {
 				scope: 'RssNetwork',
-			})[EntityProxyField]<EntityType.RssFeed>('$$rssFeeds')
+			})[EntityProxyField]<EntityType.RssFeed>('$$rssFeeds', {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})
 		}
-		id='RssFeedsView-page'
+		id='rss-feeds'
 	/>
 </Page>

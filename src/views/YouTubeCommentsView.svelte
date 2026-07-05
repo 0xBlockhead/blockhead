@@ -11,12 +11,16 @@
 	import { schema } from '$/schema/index.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'YouTube comments',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading YouTube comments...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -46,9 +50,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp from '$/components/Timestamp.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import YoutubeCommentView from '$/views/YoutubeCommentView.svelte'
 </script>
 
 
@@ -61,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					authorDisplayName: true,
 					text: true,
 					publishedAtMs: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.YoutubeComment}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(youtubeComments)}
 			{@const uniqueYoutubeComments = [...new Map(youtubeComments.values.map((youtubeComment) => [youtubeComment[EntityMetaKey.SelectorKey], youtubeComment])).values()]}
 			<EntitiesList
@@ -95,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={youtubeComments.values.length === uniqueYoutubeComments.length && youtubeComments.totalCount != null && youtubeComments.totalCount >= uniqueYoutubeComments.length ? youtubeComments.totalCount : uniqueYoutubeComments.length}
+				totalCount={youtubeComments.totalCount}
 				getKey={(youtubeComment) => youtubeComment[EntityMetaKey.SelectorKey]}
 				items={uniqueYoutubeComments}
 			>
@@ -108,28 +98,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: youtubeComment }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubeComment> })}
-					<EntityView
-						entityType={EntityType.YoutubeComment}
-						entitySelector={youtubeComment.entitySelector}
+					{@const youtubeCommentFields = { ...youtubeComment[EntityMetaKey.Selector], ...youtubeComment }}
+					<YoutubeCommentView
+						selection={select(EntityType.YoutubeComment, youtubeComment[EntityMetaKey.Selector])}
+						prefetched={youtubeCommentFields}
 						layout={EntityLayout.Summary}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const authorDisplayName0 = ({ ...youtubeComment.entitySelector, ...youtubeComment }).authorDisplayName}
-							{String((authorDisplayName0) ?? '')}
-							{@const text1 = ({ ...youtubeComment.entitySelector, ...youtubeComment }).text}
-							<TruncatedValue value={String(text1)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const publishedAtMsAfter0 = ({ ...youtubeComment.entitySelector, ...youtubeComment }).publishedAtMs}
-							{#if publishedAtMsAfter0 != null}
-								<span data-text="muted">
-									<Timestamp timestamp={Number(publishedAtMsAfter0)} />
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

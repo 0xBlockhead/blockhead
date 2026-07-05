@@ -17,6 +17,7 @@ import { TronBlockSelector } from '$/schema/TronBlock.ts'
 import { TronTransactionSelector } from '$/schema/TronTransaction.ts'
 import { TronAccountSelector } from '$/schema/TronAccount.ts'
 import { TronAccount_TimestampSelector } from '$/schema/TronAccount_Timestamp.ts'
+import { TronTransactionReceiptSelector } from '$/schema/TronTransactionReceipt.ts'
 
 type NetworkId = { caip2: {
 	namespace: string
@@ -66,6 +67,16 @@ const transactionFields = (
 		contractType: contract?.type,
 		result: info?.receipt?.result ?? transaction.ret?.[0]?.contractRet,
 		feeSun: bigintFromNumberOrString(info?.fee ?? transaction.ret?.[0]?.fee),
+		...(transaction.txID != null && {
+			$receipt: {
+				[EntityMetaKey.Selector]: {
+					$transaction: {
+						$network: network,
+						transactionId: transaction.txID,
+					},
+				},
+			},
+		}),
 		...(value?.owner_address != null && {
 			$owner: {
 				[EntityMetaKey.Selector]: {
@@ -100,6 +111,14 @@ const transactionFields = (
 		}),
 	}
 }
+
+const receiptFields = (info: TronNodeTransactionInfo) => ({
+	feeSun: bigintFromNumberOrString(info.fee),
+	result: info.receipt?.result,
+	energyUsageTotal: bigintFromNumberOrString(info.receipt?.energy_usage_total),
+	netUsage: bigintFromNumberOrString(info.receipt?.net_usage),
+	contractResultHex: info.contractResult ?? [],
+})
 
 const blockFields = (
 	network: NetworkId,
@@ -223,6 +242,7 @@ export default {
 				contractType: (transaction) => transaction.contractType,
 				result: (transaction) => transaction.result,
 				feeSun: (transaction) => transaction.feeSun,
+				$receipt: (transaction) => transaction.$receipt,
 				$owner: (transaction) => transaction.$owner,
 				$to: (transaction) => transaction.$to,
 				$contract: (transaction) => transaction.$contract,
@@ -297,6 +317,28 @@ export default {
 				balanceSun: (account) => account.balanceSun,
 				createdTimestampMs: (account) => account.createdTimestampMs,
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
+			},
+		}),
+
+		defineResolver(Source.TronFullNode_Rest, {
+			entityType: EntityType.TronTransactionReceipt,
+			resolve: {
+				[TronTransactionReceiptSelector.Transaction]: async ({ $transaction }) => {
+					assertTronMainnet($transaction.$network)
+					const { getTransactionInfoById } = await import('$/sources/TronFullNode/Rest/queries.ts')
+					return receiptFields(await getTransactionInfoById({
+						restBaseUrl: await tronFullNodeRestBaseUrl(),
+						transactionId: $transaction.transactionId,
+					}))
+				}
+			},
+		})({
+			fields: {
+				feeSun: (receipt) => receipt.feeSun,
+				result: (receipt) => receipt.result,
+				energyUsageTotal: (receipt) => receipt.energyUsageTotal,
+				netUsage: (receipt) => receipt.netUsage,
+				contractResultHex: (receipt) => receipt.contractResultHex,
 			},
 		}),
 	],

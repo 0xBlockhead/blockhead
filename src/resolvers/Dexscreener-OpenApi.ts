@@ -11,6 +11,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { LiquidityPoolSelector } from '$/schema/LiquidityPool.ts'
+import { LiquidityPool_BlockSelector } from '$/schema/LiquidityPool_Block.ts'
 import { LiquidityPool_TimestampSelector } from '$/schema/LiquidityPool_Timestamp.ts'
 
 export default {
@@ -212,6 +213,19 @@ export default {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: {
 				[LiquidityPool_TimestampSelector.LiquidityPoolTimestampMsFeedKey]: async ({ $liquidityPool }) => ({
+					[EntityMetaKey.Selector]: $liquidityPool,
+				}),
+			},
+		})({
+			fields: {
+				$parentLiquidityPool: (snapshot) => snapshot,
+			},
+		}),
+
+		defineResolver(Source.Dexscreener_OpenApi, {
+			entityType: EntityType.LiquidityPool_Block,
+			resolve: {
+				[LiquidityPool_BlockSelector.LiquidityPoolBlockNumber]: async ({ $liquidityPool }) => ({
 					[EntityMetaKey.Selector]: $liquidityPool,
 				}),
 			},

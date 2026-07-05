@@ -1,13 +1,13 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum NearTransactionSelector {
-	NetworkHash = 'networkHash',
-	NetworkHashSignerAccountId = 'networkHashSignerAccountId',
+	NetworkHash = 'NetworkHash',
+	NetworkHashSignerAccountId = 'NetworkHashSignerAccountId',
 }
 export default {
 	entityType: EntityType.NearTransaction,
@@ -32,61 +32,77 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'hash',
-			label: 'Hash',
-			description: 'The hash that identifies this object in its protocol.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'hash',
+				label: 'Hash',
+				description: 'The hash that identifies this object in its protocol.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'signerAccountId',
-			label: 'signer account ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'signerAccountId',
+				label: 'Signer account ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$signer',
-			label: 'signer',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.NearAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$signer',
+				label: 'Signer',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.NearAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+					Source.NearBlocks_Rest,
+				],
 		},
 		{
-			name: '$receiver',
-			label: 'receiver',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.NearAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$receiver',
+				label: 'Receiver',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.NearAccount,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 		},
 		{
-			name: 'nonce',
-			label: 'nonce',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'nonce',
+				label: 'Nonce',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 		},
 		{
-			name: '$$actions',
-			label: 'actions',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NearAction,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$actions',
+				label: 'Actions',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NearAction,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 		},
 		{
-			name: '$$executionOutcomes',
-			label: 'execution outcomes',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NearExecutionOutcome,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$executionOutcomes',
+				label: 'Execution outcomes',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.NearExecutionOutcome,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.NearRpc_JsonRpc,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

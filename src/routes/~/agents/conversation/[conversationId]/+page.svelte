@@ -45,6 +45,7 @@
 					createdAt: true,
 					defaultConnectionId: true,
 					defaultModelId: true,
+					$profile: true,
 					systemPrompt: true,
 				},
 			})

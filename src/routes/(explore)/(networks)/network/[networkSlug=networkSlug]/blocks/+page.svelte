@@ -3,9 +3,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityType } from '$/schema/EntityType.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
+	import { EntityType } from '$/schema/EntityType.ts'
 
 
 	// Context
@@ -21,6 +20,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
 </script>
 
 
@@ -31,12 +31,19 @@
 
 <Page>
 	<UtxoBlocksView
-		selection={select(EntityType.UtxoNetwork, {
-			$network: { slug: params.networkSlug },
-		})[EntityProxyField]<EntityType.UtxoBlock>('$$blocks')({ limit: 16 })}
-		href={resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/blocks', {
-			networkSlug: params.networkSlug,
-		})}
+		href={
+			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/blocks', {
+				networkSlug: params.networkSlug,
+			})
+		}
+		title='Blocks'
+		selection={
+			select(EntityType.UtxoNetwork, {
+				$network: {
+					slug: params.networkSlug,
+				},
+			})[EntityProxyField]<EntityType.UtxoBlock>('$$blocks')
+		}
 		id='blocks'
 	/>
 </Page>

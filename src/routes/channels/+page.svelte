@@ -31,6 +31,6 @@
 				scope: '$$blockheadStateChannels',
 			})[EntityProxyField]<EntityType.BlockheadStateChannel>('$$blockheadStateChannels')
 		}
-		id='BlockheadStateChannelsView-page'
+		id='blockhead-state-channels'
 	/>
 </Page>

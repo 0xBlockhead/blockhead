@@ -2,23 +2,13 @@ import { readdir } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import * as routeParamFixtures from './_routeParamFixtures.ts'
+
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..')
 
 const routesDir = join(repoRoot, 'src', 'routes')
 
-let routeParamFixtures:
-	| typeof import('./_routeParamFixtures.ts')
-	| undefined
-
-const loadRouteParamFixtures = async () => {
-	routeParamFixtures ??= await import('./_routeParamFixtures.ts')
-	return routeParamFixtures
-}
-
 const getRouteParamFixtures = () => {
-	if (routeParamFixtures === undefined)
-		throw new Error('Route param fixtures were read before route discovery initialized them')
-
 	return routeParamFixtures
 }
 
@@ -99,6 +89,8 @@ const dynamicFixture = (
 
 	if (matcherKey === 'eip155Caip2Namespace') return 'eip155'
 	if (matcherKey === 'eip155Caip2Reference') return '1'
+	if (matcherKey === 'eip155NetworkCaip2') return 'eip155:1'
+	if (matcherKey === 'networkCaip2') return 'bip122:000000000019d6689c085ae165831e93'
 
 	const contextual = getRouteParamFixtures().e2eRouteParamFixtureForContext(paramKey, staticSegments)
 	return (
@@ -133,6 +125,12 @@ const expandMixedSegment = (
 	:
 		matcherKey === 'eip155Caip2Reference' ?
 					['1']
+	:
+		matcherKey === 'eip155NetworkCaip2' ?
+					['eip155:1']
+	:
+		matcherKey === 'networkCaip2' ?
+					['bip122:000000000019d6689c085ae165831e93']
 				:
 					getRouteParamFixtures().e2eRouteParamFixtureVariantsForContext(
 						paramKey,
@@ -173,6 +171,10 @@ const pageFileToPathname = (absPath: string) => {
 	const rel = relative(routesDir, absPath).replaceAll('\\', '/')
 	const dir = rel.replace(/(\/+)?\+page\.svelte$/, '')
 	const segments = dir === '' ? [] : dir.split('/').filter(Boolean)
+	const routeStaticSegments = segments.filter((segment) => (
+		!isRouteGroup(segment)
+		&& !segment.includes('[')
+	))
 	let contexts: {
 		urlSegments: string[]
 		staticSegments: string[]
@@ -210,11 +212,29 @@ const pageFileToPathname = (absPath: string) => {
 			const paramKey = bracketSegmentToParamKey(segment)
 			const matcherKey = bracketSegmentToMatcherKey(segment)
 			contexts = contexts.flatMap((context) => (
+				paramKey === 'networkSlug' && routeStaticSegments.includes('polkadot') ?
+					['polkadot']
+			:
+				paramKey === 'networkSlug' && routeStaticSegments.includes('solana') ?
+					['solana']
+			:
+				paramKey === 'networkSlug' && routeStaticSegments.includes('cash-token') ?
+					['bitcoin-cash']
+			:
+				paramKey === 'txId' && routeStaticSegments.includes('cash-token') ?
+					['9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a']
+			:
 				matcherKey === 'eip155Caip2Namespace' ?
 					['eip155']
 	:
 		matcherKey === 'eip155Caip2Reference' ?
 					['1']
+	:
+		matcherKey === 'eip155NetworkCaip2' ?
+					['eip155:1']
+	:
+		matcherKey === 'networkCaip2' ?
+					['bip122:000000000019d6689c085ae165831e93']
 				:
 					getRouteParamFixtures().e2eRouteParamFixtureVariantsForContext(
 						paramKey,
@@ -273,8 +293,6 @@ const walkFiles = async function* (dir: string): AsyncGenerator<string> {
 }
 
 export const discoverPathnamesFromRoutes = async () => {
-	await loadRouteParamFixtures()
-
 	const seen = new Set<string>()
 	const out: string[] = []
 

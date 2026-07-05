@@ -4,9 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -42,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmNetworkActorCoinBalance = $derived(selection({
 		sources: [
 			Source.Allium_Rest,
@@ -50,27 +51,25 @@
 			$coinInstance: true,
 			symbol: true,
 			decimals: true,
-			...(open && {
-				$$timestamps: true,
-				$$blocks: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? '')].filter(Boolean).join(' ') || 'balance')
+	const titleFallback = $derived([String((prefetched.symbol) ?? '')].filter(Boolean).join(' ') || 'balance')
 	const viewDomId = $derived('evm-network-actor-coin-balance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EvmNetworkActorCoinBalance_TimestampsView from '$/views/EvmNetworkActorCoinBalance_TimestampsView.svelte'
+	import EvmNetworkActorCoinBalance_EvmBlocksView from '$/views/EvmNetworkActorCoinBalance_EvmBlocksView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
-	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.EvmNetworkActorCoinBalance}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -79,76 +78,59 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? '')].filter(Boolean).join(' ') || title || 'balance'}
-		{:else}
-			<ResourceBoundary resource={evmNetworkActorCoinBalance}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? '')].filter(Boolean).join(' ') || title || 'balance'}
-				{/snippet}
+		<ResourceBoundary resource={evmNetworkActorCoinBalance}>
+			{#snippet Pending()}
+				{[String((prefetched.symbol) ?? '')].filter(Boolean).join(' ') || title || 'balance'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<EvmAccountView
-				selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
-				href={
-						resolve('/(explore)/account/[address=evmAddress]', {
-							address: String(selection.entitySelector.$actor.address),
-						})
+		<ResourceBoundary resource={evmNetworkActorCoinBalance}>
+			{#snippet Pending()}
+				<EvmAccountView
+					selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
+					href={
+						(selection.entitySelector.$actor.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+							address: String(selection.entitySelector.$actor.address ?? ''),
+						}) : undefined)
 					}
-				layout={EntityLayout.Value}
-				open={false}
-			/>
-		{:else}
-			<ResourceBoundary resource={evmNetworkActorCoinBalance}>
-				{#snippet Pending()}
-					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
-						href={
-							resolve('/(explore)/account/[address=evmAddress]', {
-								address: String(selection.entitySelector.$actor.address),
-							})
-						}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
 
-				{#snippet children(entity)}
-					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
-						href={
-							resolve('/(explore)/account/[address=evmAddress]', {
-								address: String(selection.entitySelector.$actor.address),
-							})
-						}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				<EvmAccountView
+					selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
+					href={
+						(selection.entitySelector.$actor.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+							address: String(selection.entitySelector.$actor.address ?? ''),
+						}) : undefined)
+					}
+					layout={EntityLayout.Value}
+					open={false}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Network</dt>
+				<dt>Actor</dt>
 				<dd>
-					<EvmNetworkView
-						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
+					<EvmAccountView
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$actor.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+								address: String(selection.entitySelector.$actor.address ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}
@@ -158,37 +140,136 @@
 			</div>
 
 			<div>
-				<dt>Contract</dt>
+				<dt>Network</dt>
 				<dd>
-					<EvmContractView
-						selection={select(EntityType.EvmContract, selection.entitySelector.$contract)}
-						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-								caip2: `${String(selection.entitySelector.$contract.$network.caip2.namespace)}:${String(selection.entitySelector.$contract.$network.caip2.reference)}`,
-								address: String(selection.entitySelector.$contract.address),
-							})
-						}
-						layout={EntityLayout.Title}
-						open={false}
-					/>
+					<ResourceBoundary
+						resource={selection[EntityProxyField]<EntityType.EvmNetwork, false>('$network')}
+					>
+						{#snippet children(evmNetwork)}
+							{#if evmNetwork[EntityMetaKey.Selector] != null}
+								<EvmNetworkView
+									selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
+									prefetched={evmNetwork}
+									href={
+										(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2 !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.namespace !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2 !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+											caip2: `${String(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.namespace ?? '')}:${String(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.reference ?? '')}`,
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$contract')}
+			>
+				{#snippet children(evmContract)}
+					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>Contract</dt>
+							<dd>
+								<EvmContractView
+									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+									prefetched={evmContract}
+									href={
+										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
+											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<div>
+				<dt>Coin</dt>
+				<dd>
+					<ResourceBoundary
+						resource={selection[EntityProxyField]<EntityType.EvmCoinInstance, false>('$coinInstance')}
+					>
+						{#snippet children(evmCoinInstance)}
+							{#if evmCoinInstance[EntityMetaKey.Selector] != null}
+								<EvmCoinInstanceView
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									prefetched={evmCoinInstance}
+									href={
+										(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2 !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? true : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+											chainId: String(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference ?? ''),
+											coinInstanceSlug: String((({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? 'native' : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address)),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 		</dl>
 
 		<dl data-column-item="center">
 			<div>
+				<dt>Symbol</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									symbol: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const symbol = prefetched.symbol}
+							{#if symbol !== undefined && symbol !== null}
+								{String((symbol) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const symbol = resolvedEntity.symbol}
+							{#if symbol !== undefined && symbol !== null}
+								{String((symbol) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Decimals</dt>
 				<dd>
-					<ResourceBoundary resource={evmNetworkActorCoinBalance}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									decimals: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const decimals = prefetched.decimals ?? selection.entitySelector.decimals}
+							{@const decimals = prefetched.decimals}
 							{#if decimals !== undefined && decimals !== null}
 								<NumberValue value={Number(decimals)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const decimals = entity.decimals ?? selection.entitySelector.decimals ?? prefetched.decimals}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const decimals = resolvedEntity.decimals}
 							{#if decimals !== undefined && decimals !== null}
 								<NumberValue value={Number(decimals)} />
 							{/if}
@@ -197,5 +278,23 @@
 				</dd>
 			</div>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<EvmNetworkActorCoinBalance_TimestampsView
+				selection={selection[EntityProxyField]<EntityType.EvmNetworkActorCoinBalance_Timestamp>('$$timestamps')}
+				title='Observations'
+				emptyText='No balance observations yet.'
+				id='EvmNetworkActorCoinBalance_TimestampsView-$$timestamps'
+			/>
+
+			<EvmNetworkActorCoinBalance_EvmBlocksView
+				selection={selection[EntityProxyField]<EntityType.EvmNetworkActorCoinBalance_EvmBlock>('$$blocks')}
+				title='Blocks'
+				emptyText='No balance blocks yet.'
+				id='EvmNetworkActorCoinBalance_EvmBlocksView-$$blocks'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

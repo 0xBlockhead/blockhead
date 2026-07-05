@@ -4,10 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -42,25 +42,19 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const youtubePlaylist = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
-			Source.Piped_Rest,
 		],
 		fields: {
 			title: true,
 			publishedAtMs: true,
-			description: true,
-			...(open && {
-				$$videos: true,
-				$channel: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist')
+	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.playlistId ?? prefetched.playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist')
 	const viewDomId = $derived('youtube-playlist-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -71,7 +65,7 @@
 
 <EntityView
 	entityType={EntityType.YoutubePlaylist}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -80,58 +74,55 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist'}
-		{:else}
-			<ResourceBoundary resource={youtubePlaylist}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist'}
-				{/snippet}
+		<ResourceBoundary resource={youtubePlaylist}>
+			{#snippet Pending()}
+				{[String((prefetched.title) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.playlistId ?? prefetched.playlistId) ?? '')].filter(Boolean).join(' ') || 'YouTube playlist'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.title) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const publishedAtMs0 = prefetched.publishedAtMs}
-			{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(publishedAtMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={youtubePlaylist}>
-				{#snippet Pending()}
-					{@const publishedAtMs0 = prefetched.publishedAtMs}
-					{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(publishedAtMs0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={youtubePlaylist}>
+			{#snippet Pending()}
+				{@const publishedAtMs0 = prefetched.publishedAtMs}
+				{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(publishedAtMs0)} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const publishedAtMs0 = entity.publishedAtMs}
-					{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(publishedAtMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const publishedAtMs0 = resolvedEntity.publishedAtMs}
+				{#if publishedAtMs0 !== undefined && publishedAtMs0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(publishedAtMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			{#if contentOpen}
-				<ResourceBoundary resource={youtubePlaylist}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								description: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const description = prefetched.description ?? selection.entitySelector.description}
+						{@const description = prefetched.description}
 						{#if description !== undefined && description !== null}
 							<div>
 								<dt>Description</dt>
@@ -143,7 +134,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const description = entity.description ?? selection.entitySelector.description ?? prefetched.description}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const description = resolvedEntity.description}
 						{#if description !== undefined && description !== null}
 							<div>
 								<dt>Description</dt>
@@ -156,17 +148,84 @@
 				</ResourceBoundary>
 			{/if}
 
+			<div>
+				<dt>Playlist ID</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									playlistId: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const playlistId = selection.entitySelector.playlistId ?? prefetched.playlistId}
+							{#if playlistId !== undefined && playlistId !== null}
+								<TruncatedValue value={String((playlistId) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const playlistId = resolvedEntity.playlistId}
+							{#if playlistId !== undefined && playlistId !== null}
+								<TruncatedValue value={String((playlistId) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								publishedAtMs: true,
+							},
+						})
+					}
+				>
+					{#snippet Pending()}
+						{@const publishedAtMs = prefetched.publishedAtMs}
+						{#if publishedAtMs !== undefined && publishedAtMs !== null}
+							<div>
+								<dt>Published</dt>
+								<dd>
+									<Timestamp timestamp={Number(publishedAtMs)} />
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+
+					{#snippet children(entity)}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const publishedAtMs = resolvedEntity.publishedAtMs}
+						{#if publishedAtMs !== undefined && publishedAtMs !== null}
+							<div>
+								<dt>Published</dt>
+								<dd>
+									<Timestamp timestamp={Number(publishedAtMs)} />
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={selection[EntityProxyField]<EntityType.YoutubeChannel, false>('$channel')}
 				>
 					{#snippet children(youtubeChannel)}
-						{#if youtubeChannel != null}
+						{#if youtubeChannel != null && youtubeChannel[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Channel</dt>
 								<dd>
 									<YoutubeChannelView
-										selection={select(EntityType.YoutubeChannel, youtubeChannel.entitySelector)}
+										selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
 										prefetched={youtubeChannel}
 										layout={EntityLayout.Title}
 										open={false}
@@ -183,7 +242,15 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<YoutubeVideosView
-				selection={selection[EntityProxyField]<EntityType.YoutubeVideo>('$$videos')}
+				selection={
+						selection[EntityProxyField]<EntityType.YoutubeVideo>('$$videos', {
+							sources: [
+								Source.Constants_Internal,
+								Source.Youtube_Rest,
+								Source.Piped_Rest,
+							],
+						})
+					}
 				title='Videos'
 				href={resolve('/(social)/(youtube)/youtube/videos')}
 				id='YoutubeVideosView-$$videos'

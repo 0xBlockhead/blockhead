@@ -6,7 +6,8 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -41,110 +42,94 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const evmTopicTimestamp = $derived(selection({
 		sources: [
 			Source.Openchain_Rest,
 		],
 		fields: {
 			signatures: true,
-			...(open && {
-				filteredSignatureCount: true,
-				verifiedCandidateCount: true,
-				reachable: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).signatures) ?? '')].filter(Boolean).join(' ') || 'EVM topic observation')
+	const titleFallback = $derived('EVM topic observation')
 	const viewDomId = $derived('evm-topic-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmTopicView from '$/views/EvmTopicView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.EvmTopic_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	{href}
+	href={
+		href ?? (pendingEntity.$topic !== undefined && pendingEntity.$topic.hex !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+			hex: String(pendingEntity.$topic.hex ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+		}) : undefined)
+	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).signatures) ?? '')].filter(Boolean).join(' ') || title || 'EVM topic observation'}
-		{:else}
-			<ResourceBoundary resource={evmTopicTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).signatures) ?? '')].filter(Boolean).join(' ') || title || 'EVM topic observation'}
-				{/snippet}
+		<ResourceBoundary resource={evmTopicTimestamp}>
+			{#snippet Pending()}
+				{(prefetched.signatures ?? []).map((signature) => String(signature ?? "")).filter(Boolean).join(", ") || title || "EVM topic observation"}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.signatures) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{entity.signatures.values.map((signature) => String(signature ?? "")).filter(Boolean).join(", ") || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<Timestamp timestamp={Number(timestampMs0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmTopicTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={evmTopicTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<Timestamp timestamp={Number(timestampMs0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<Timestamp timestamp={Number(timestampMs0)} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const source0 = prefetched.source}
-			{#if source0 !== undefined && source0 !== null}
-				<span data-text="muted">
-					{String((source0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={evmTopicTimestamp}>
-				{#snippet Pending()}
-					{@const source0 = prefetched.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={evmTopicTimestamp}>
+			{#snippet Pending()}
+				{@const source0 = selection.entitySelector.source ?? prefetched.source}
+				{#if source0 !== undefined && source0 !== null}
+					<span data-text="muted">
+						{String((source0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const source0 = entity.source}
-					{#if source0 !== undefined && source0 !== null}
-						<span data-text="muted">
-							{String((source0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const source0 = resolvedEntity.source}
+				{#if source0 !== undefined && source0 !== null}
+					<span data-text="muted">
+						{String((source0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -155,22 +140,117 @@
 					<EvmTopicView
 						selection={select(EntityType.EvmTopic, selection.entitySelector.$topic)}
 						href={
-							resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-								hex: String(selection.entitySelector.$topic.hex),
-							})
+							(selection.entitySelector.$topic.hex !== undefined ? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+								hex: String(selection.entitySelector.$topic.hex ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}
 					/>
 				</dd>
 			</div>
+
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							signatures: true,
+						},
+					})
+				}
+			>
+				{#snippet children(entity)}
+					<div>
+						<dt>Signatures</dt>
+						<dd>
+							{#if entity.signatures.values.length}
+								<ul>
+									{#each entity.signatures.values as signature (signature)}
+										<li><code>{signature}</code></li>
+									{/each}
+								</ul>
+							{:else}
+								<p data-text="muted">No catalog signatures matched this log topic hash.</p>
+							{/if}
+						</dd>
+					</div>
+				{/snippet}
+			</ResourceBoundary>
+
 			{#if contentOpen}
-				<ResourceBoundary resource={evmTopicTimestamp}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								filteredSignatureCount: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const filteredSignatureCount = prefetched.filteredSignatureCount ?? selection.entitySelector.filteredSignatureCount}
+						{@const filteredSignatureCount = prefetched.filteredSignatureCount}
 						{#if filteredSignatureCount !== undefined && filteredSignatureCount !== null}
 							<div>
 								<dt>Filtered signature count</dt>
@@ -182,7 +262,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const filteredSignatureCount = entity.filteredSignatureCount ?? selection.entitySelector.filteredSignatureCount ?? prefetched.filteredSignatureCount}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const filteredSignatureCount = resolvedEntity.filteredSignatureCount}
 						{#if filteredSignatureCount !== undefined && filteredSignatureCount !== null}
 							<div>
 								<dt>Filtered signature count</dt>
@@ -196,9 +277,17 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmTopicTimestamp}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								verifiedCandidateCount: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const verifiedCandidateCount = prefetched.verifiedCandidateCount ?? selection.entitySelector.verifiedCandidateCount}
+						{@const verifiedCandidateCount = prefetched.verifiedCandidateCount}
 						{#if verifiedCandidateCount !== undefined && verifiedCandidateCount !== null}
 							<div>
 								<dt>Verified candidate count</dt>
@@ -210,7 +299,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const verifiedCandidateCount = entity.verifiedCandidateCount ?? selection.entitySelector.verifiedCandidateCount ?? prefetched.verifiedCandidateCount}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const verifiedCandidateCount = resolvedEntity.verifiedCandidateCount}
 						{#if verifiedCandidateCount !== undefined && verifiedCandidateCount !== null}
 							<div>
 								<dt>Verified candidate count</dt>
@@ -224,26 +314,35 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={evmTopicTimestamp}>
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								reachable: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const reachable = prefetched.reachable ?? selection.entitySelector.reachable}
+						{@const reachable = prefetched.reachable}
 						{#if reachable !== undefined && reachable !== null}
 							<div>
 								<dt>Reachable</dt>
 								<dd>
-									{String((reachable) ?? '')}
+									{reachable ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const reachable = entity.reachable ?? selection.entitySelector.reachable ?? prefetched.reachable}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const reachable = resolvedEntity.reachable}
 						{#if reachable !== undefined && reachable !== null}
 							<div>
 								<dt>Reachable</dt>
 								<dd>
-									{String((reachable) ?? '')}
+									{reachable ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}

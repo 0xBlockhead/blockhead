@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'Programs',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Solana programs...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					programId: true,
 					name: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SolanaProgram}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(solanaPrograms)}
 			{@const uniqueSolanaPrograms = [...new Map(solanaPrograms.values.map((solanaProgram) => [solanaProgram[EntityMetaKey.SelectorKey], solanaProgram])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={solanaPrograms.values.length === uniqueSolanaPrograms.length && solanaPrograms.totalCount != null && solanaPrograms.totalCount >= uniqueSolanaPrograms.length ? solanaPrograms.totalCount : uniqueSolanaPrograms.length}
+				totalCount={solanaPrograms.totalCount}
 				getKey={(solanaProgram) => solanaProgram[EntityMetaKey.SelectorKey]}
 				items={uniqueSolanaPrograms}
 			>
@@ -112,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: solanaProgram }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaProgram> })}
+					{@const solanaProgramFields = { ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }}
+					{@const solanaProgramHrefFields = { ...solanaProgram, ...solanaProgram[EntityMetaKey.Selector] }}
 					<SolanaProgramView
+						selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
+						prefetched={solanaProgramFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/program/[programId]', {
-								networkSlug: String(({ ...solanaProgram.entitySelector, ...solanaProgram }).$network.slug),
-								programId: String(({ ...solanaProgram.entitySelector, ...solanaProgram }).programId),
-							})
+							(solanaProgramHrefFields.$network !== undefined && solanaProgramHrefFields.$network.caip2 !== undefined && solanaProgramHrefFields.$network.caip2.namespace !== undefined && solanaProgramHrefFields.$network !== undefined && solanaProgramHrefFields.$network.caip2 !== undefined && solanaProgramHrefFields.$network.caip2.reference !== undefined && solanaProgramHrefFields.programId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/program/[programId]', {
+								networkSlug: String(networkByCaip2[String(String(solanaProgramHrefFields.$network.caip2.namespace) + ':' + String(solanaProgramHrefFields.$network.caip2.reference))].slug ?? ''),
+								programId: String(solanaProgramHrefFields.programId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.SolanaProgram, solanaProgram.entitySelector)}
-						prefetched={solanaProgram}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

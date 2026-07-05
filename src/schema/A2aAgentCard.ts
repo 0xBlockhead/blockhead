@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { UrlString } from '$/schema/UrlString.ts'
+import { type } from 'arktype'
+
 export enum A2aAgentCardSelector {
-	AgentCardUrl = 'agentCardUrl',
+	AgentCardUrl = 'AgentCardUrl',
 }
 export default {
 	entityType: EntityType.A2aAgentCard,
@@ -22,25 +22,25 @@ export default {
 	],
 	fields: [
 		{
-			name: 'agentCardUrl',
-			label: 'agent card URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'agentCardUrl',
+				label: 'agent card URL',
+				type: EntityFieldType.Primitive,
+				primitiveType: (UrlString),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$snapshots',
-			label: 'snapshots',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.A2aAgentCard_Snapshot,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$snapshots',
+				label: 'snapshots',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.A2aAgentCard_Snapshot,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$documents',
-			label: 'documents',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.AiDocument,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$documents',
+				label: 'documents',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.AiDocument,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

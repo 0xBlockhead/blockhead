@@ -6,12 +6,12 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { proposalCategoryById, specificationRealmById } from '$/constants/SpecificationProposal.ts'
-	import { defaultSpecificationProposalSources, specificationProposalSourceSelectionByKey } from '$/sources/$sourceSelections.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -39,32 +39,90 @@
 		>
 	> = $props()
 
-	const selectedViewSources = $derived(specificationProposalSourceSelectionByKey[[String(selection.entitySelector.realm), String(selection.entitySelector.category)].join(':')] ?? defaultSpecificationProposalSources)
+	const selectedViewSources = $derived({
+		'Bitcoin:Bip': [
+			Source.BitcoinBips_Github,
+		],
+		'BitcoinCash:Chip': [
+			Source.BitcoinCashChips_Gitlab,
+		],
+		'ChainAgnostic:Caip': [
+			Source.Caips_Github,
+		],
+		'Cosmos:Adr': [
+			Source.CosmosAdrs_Github,
+		],
+		'Dogecoin:Dip': [
+			Source.DogecoinDips_Github,
+		],
+		'Ens:Ensip': [
+			Source.Ensips_Github,
+		],
+		'Ethereum:Eip': [
+			Source.EthereumEips_Github,
+		],
+		'Ethereum:Erc': [
+			Source.EthereumEips_Github,
+		],
+		'Filecoin:Fip': [
+			Source.FilecoinFips_Github,
+		],
+		'Hyperliquid:Hip': [
+			Source.HyperliquidDocs_Rest,
+		],
+		'Litecoin:Lip': [
+			Source.LitecoinLips_Github,
+		],
+		'Near:Nep': [
+			Source.NearNeps_Github,
+		],
+		'Polkadot:Rfc': [
+			Source.PolkadotRfcs_Github,
+		],
+		'Quilibrium:ProtocolDocument': [
+			Source.QuilibriumDocs_Rest,
+		],
+		'Solana:Simd': [
+			Source.SolanaSimds_Github,
+		],
+		'Zcash:Zip': [
+			Source.ZcashZips_Github,
+		],
+	}[[String(selection.entitySelector.realm), String(selection.entitySelector.category)].join(':')] ?? [
+		Source.BitcoinBips_Github,
+		Source.BitcoinCashChips_Gitlab,
+		Source.Caips_Github,
+		Source.CosmosAdrs_Github,
+		Source.DogecoinDips_Github,
+		Source.Ensips_Github,
+		Source.EthereumEips_Github,
+		Source.FilecoinFips_Github,
+		Source.HyperliquidDocs_Rest,
+		Source.LitecoinLips_Github,
+		Source.NearNeps_Github,
+		Source.PolkadotRfcs_Github,
+		Source.QuilibriumDocs_Rest,
+		Source.SolanaSimds_Github,
+		Source.ZcashZips_Github,
+	])
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const specificationProposal = $derived(selection({
 		sources: selectedViewSources,
 		fields: {
 			documentTitle: true,
 			documentStatus: true,
-			...(open && {
-				realmLabel: true,
-				categoryLabel: true,
-				categoryLabelPlural: true,
-				documentCategory: true,
-				documentBody: true,
-			}),
 		},
 	}))
 	const titleFallback = $derived([[
-			[String((proposalCategoryById[String(({ ...selection.entitySelector, ...prefetched }).category)]?.label ?? (String((({ ...selection.entitySelector, ...prefetched }).category) ?? ''))) ?? '') + '-', String((({ ...selection.entitySelector, ...prefetched }).number) ?? '')].filter(Boolean).join(''),
-			String((({ ...selection.entitySelector, ...prefetched }).documentTitle) ?? ''),
+			[(String((proposalCategoryById[String(selection.entitySelector.category ?? prefetched.category)]?.label ?? (String((selection.entitySelector.category ?? prefetched.category) ?? ''))) ?? '') ? String((proposalCategoryById[String(selection.entitySelector.category ?? prefetched.category)]?.label ?? (String((selection.entitySelector.category ?? prefetched.category) ?? ''))) ?? '') + '-' : ''), String((selection.entitySelector.number ?? prefetched.number) ?? '')].filter(Boolean).join(''),
+			String((prefetched.documentTitle) ?? ''),
 		].filter(Boolean).join(': ')].filter(Boolean).join(' ') || [[
-			[String((proposalCategoryById[String(selection.entitySelector.category)]?.label ?? (String((selection.entitySelector.category) ?? ''))) ?? '')].filter(Boolean).join(''),
-			String((selection.entitySelector.number) ?? ''),
+			[String((proposalCategoryById[String(selection.entitySelector.category ?? prefetched.category)]?.label ?? (String((selection.entitySelector.category ?? prefetched.category) ?? ''))) ?? '')].filter(Boolean).join(''),
+			String((selection.entitySelector.number ?? prefetched.number) ?? ''),
 		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal')
 	const viewDomId = $derived('specification-proposal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
@@ -72,15 +130,15 @@
 
 <EntityView
 	entityType={EntityType.SpecificationProposal}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]', {
-			specificationRealmSlug: String(specificationRealmById[String(({ ...selection.entitySelector, ...prefetched }).realm)].slug),
-			proposalKindSlug: String(proposalCategoryById[String(({ ...selection.entitySelector, ...prefetched }).category)].slug),
-			proposalRef: `${String(String(proposalCategoryById[String(({ ...selection.entitySelector, ...prefetched }).category)].slug))}-${String(({ ...selection.entitySelector, ...prefetched }).number)}`,
-		})
+		href ?? (pendingEntity.realm !== undefined && pendingEntity.category !== undefined && pendingEntity.category !== undefined && pendingEntity.number !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]', {
+			specificationRealmSlug: String(specificationRealmById[String(pendingEntity.realm)].slug ?? ''),
+			proposalKindSlug: String(proposalCategoryById[String(pendingEntity.category)].slug ?? ''),
+			proposalRef: `${String(String(proposalCategoryById[String(pendingEntity.category)].slug ?? '') ?? '')}-${String(pendingEntity.number ?? '')}`,
+		}) : undefined)
 	}
 	{layout}
 	bind:open
@@ -130,9 +188,17 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={specificationProposal}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							documentCategory: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const documentCategory = prefetched.documentCategory ?? selection.entitySelector.documentCategory}
+					{@const documentCategory = prefetched.documentCategory}
 					{#if documentCategory !== undefined && documentCategory !== null}
 						<div>
 							<dt>Category</dt>
@@ -144,7 +210,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const documentCategory = entity.documentCategory ?? selection.entitySelector.documentCategory ?? prefetched.documentCategory}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const documentCategory = resolvedEntity.documentCategory}
 					{#if documentCategory !== undefined && documentCategory !== null}
 						<div>
 							<dt>Category</dt>
@@ -156,9 +223,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={specificationProposal}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							documentStatus: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const documentStatus = prefetched.documentStatus ?? selection.entitySelector.documentStatus}
+					{@const documentStatus = prefetched.documentStatus}
 					{#if documentStatus !== undefined && documentStatus !== null}
 						<div>
 							<dt>Status</dt>
@@ -170,7 +245,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const documentStatus = entity.documentStatus ?? selection.entitySelector.documentStatus ?? prefetched.documentStatus}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const documentStatus = resolvedEntity.documentStatus}
 					{#if documentStatus !== undefined && documentStatus !== null}
 						<div>
 							<dt>Status</dt>
@@ -188,14 +264,22 @@
 				<div>
 					<dt>Realm</dt>
 					<dd>
-						<ResourceBoundary resource={specificationProposal}>
+						<ResourceBoundary
+							resource={
+								selection({
+									fields: {
+										realm: true,
+									},
+								})
+							}
+						>
 							{#snippet Pending()}
-								{@const realm = prefetched.realm ?? selection.entitySelector.realm}
+								{@const realm = selection.entitySelector.realm ?? prefetched.realm}
 								{#if realm !== undefined && realm !== null}
 									<a
 										href={
 											resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-												specificationRealmSlug: String(specificationRealmById[String(({ value: realm, ...selection.entitySelector, ...prefetched }).value)].slug),
+												specificationRealmSlug: String(specificationRealmById[String(({ value: realm, ...pendingEntity }).value)].slug ?? ''),
 											})
 										}
 									>
@@ -205,12 +289,13 @@
 							{/snippet}
 
 							{#snippet children(entity)}
-								{@const realm = entity.realm ?? selection.entitySelector.realm ?? prefetched.realm}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{@const realm = resolvedEntity.realm}
 								{#if realm !== undefined && realm !== null}
 									<a
 										href={
 											resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-												specificationRealmSlug: String(specificationRealmById[String(({ value: realm, ...selection.entitySelector, ...prefetched, ...entity }).value)].slug),
+												specificationRealmSlug: String(specificationRealmById[String(({ value: realm, ...resolvedEntity }).value)].slug ?? ''),
 											})
 										}
 									>
@@ -227,15 +312,23 @@
 				<div>
 					<dt>Kind</dt>
 					<dd>
-						<ResourceBoundary resource={specificationProposal}>
+						<ResourceBoundary
+							resource={
+								selection({
+									fields: {
+										category: true,
+									},
+								})
+							}
+						>
 							{#snippet Pending()}
-								{@const category = prefetched.category ?? selection.entitySelector.category}
+								{@const category = selection.entitySelector.category ?? prefetched.category}
 								{#if category !== undefined && category !== null}
 									<a
 										href={
 											resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
-												specificationRealmSlug: String(specificationRealmById[String(({ value: category, ...selection.entitySelector, ...prefetched }).realm)].slug),
-												proposalKindSlug: String(proposalCategoryById[String(({ value: category, ...selection.entitySelector, ...prefetched }).category)].slug),
+												specificationRealmSlug: String(specificationRealmById[String(({ value: category, ...pendingEntity }).realm)].slug ?? ''),
+												proposalKindSlug: String(proposalCategoryById[String(({ value: category, ...pendingEntity }).category)].slug ?? ''),
 											})
 										}
 									>
@@ -245,13 +338,14 @@
 							{/snippet}
 
 							{#snippet children(entity)}
-								{@const category = entity.category ?? selection.entitySelector.category ?? prefetched.category}
+								{@const resolvedEntity = { ...pendingEntity, ...entity }}
+								{@const category = resolvedEntity.category}
 								{#if category !== undefined && category !== null}
 									<a
 										href={
 											resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]', {
-												specificationRealmSlug: String(specificationRealmById[String(({ value: category, ...selection.entitySelector, ...prefetched, ...entity }).realm)].slug),
-												proposalKindSlug: String(proposalCategoryById[String(({ value: category, ...selection.entitySelector, ...prefetched, ...entity }).category)].slug),
+												specificationRealmSlug: String(specificationRealmById[String(({ value: category, ...resolvedEntity }).realm)].slug ?? ''),
+												proposalKindSlug: String(proposalCategoryById[String(({ value: category, ...resolvedEntity }).category)].slug ?? ''),
 											})
 										}
 									>
@@ -270,13 +364,22 @@
 			data-scroll-marker-label='Document body'
 		>
 			<h3>Document body</h3>
-			<ResourceBoundary resource={specificationProposal}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							documentBody: true,
+						},
+					})
+				}
+			>
 				{#snippet children(entity)}
-					{@const documentBody = entity.documentBody ?? selection.entitySelector.documentBody ?? prefetched.documentBody}
-					{#if documentBody === undefined || documentBody === null || documentBody === ''}
-						<p data-text="muted">No proposal body available.</p>
-					{:else}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const documentBody = resolvedEntity.documentBody}
+					{#if documentBody !== undefined && documentBody !== null && documentBody !== ''}
 						<Markdown content={String(documentBody)} />
+					{:else}
+						<p data-text="muted">No proposal body available.</p>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

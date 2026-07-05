@@ -23,7 +23,6 @@ export const logosBlockchainNodeBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:LOGOS_BLOCKCHAIN_NODE_URL',
-				origin: 'env:LOGOS_BLOCKCHAIN_NODE_URL',
 				corsEnabled: false,
 			},
 		],

@@ -47,6 +47,6 @@
 				operatorAddress: decodeURIComponent(params.operatorAddress),
 			})[EntityProxyField]<EntityType.CosmosValidator_Timestamp>('$$timestamps')
 		}
-		id='CosmosValidator_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

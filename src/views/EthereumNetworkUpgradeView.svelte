@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -43,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const ethereumNetworkUpgrade = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -52,17 +52,11 @@
 			activationBlock: true,
 			activationEpoch: true,
 			activationTimestampMs: true,
-			...(open && {
-				$networkExecutionUpgrade: true,
-				$networkConsensusUpgrade: true,
-				$$proposals: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade')
+	const titleFallback = $derived([String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade')
 	const viewDomId = $derived('ethereum-network-upgrade-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -74,56 +68,58 @@
 
 <EntityView
 	entityType={EntityType.EthereumNetworkUpgrade}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.reference)}`,
-			upgradeSlug: String(({ ...selection.entitySelector, ...prefetched }).slug),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			upgradeSlug: String(pendingEntity.slug ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade'}
-		{:else}
-			<ResourceBoundary resource={ethereumNetworkUpgrade}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade'}
-				{/snippet}
+		<ResourceBoundary resource={ethereumNetworkUpgrade}>
+			{#snippet Pending()}
+				{[String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade'}
-		{:else}
-			<ResourceBoundary resource={ethereumNetworkUpgrade}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.upgradeId) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade'}
-				{/snippet}
+		<ResourceBoundary resource={ethereumNetworkUpgrade}>
+			{#snippet Pending()}
+				{[String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || title || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || [String((entity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.upgradeId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={ethereumNetworkUpgrade}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							activationBlock: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activationBlock = prefetched.activationBlock ?? selection.entitySelector.activationBlock}
+					{@const activationBlock = prefetched.activationBlock}
 					{#if activationBlock !== undefined && activationBlock !== null}
 						<div>
 							<dt>Activation block</dt>
@@ -135,7 +131,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activationBlock = entity.activationBlock ?? selection.entitySelector.activationBlock ?? prefetched.activationBlock}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationBlock = resolvedEntity.activationBlock}
 					{#if activationBlock !== undefined && activationBlock !== null}
 						<div>
 							<dt>Activation block</dt>
@@ -147,9 +144,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={ethereumNetworkUpgrade}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							activationEpoch: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activationEpoch = prefetched.activationEpoch ?? selection.entitySelector.activationEpoch}
+					{@const activationEpoch = prefetched.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -161,7 +166,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activationEpoch = entity.activationEpoch ?? selection.entitySelector.activationEpoch ?? prefetched.activationEpoch}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationEpoch = resolvedEntity.activationEpoch}
 					{#if activationEpoch !== undefined && activationEpoch !== null}
 						<div>
 							<dt>Activation epoch</dt>
@@ -173,9 +179,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={ethereumNetworkUpgrade}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							activationTimestampMs: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const activationTimestampMs = prefetched.activationTimestampMs ?? selection.entitySelector.activationTimestampMs}
+					{@const activationTimestampMs = prefetched.activationTimestampMs}
 					{#if activationTimestampMs !== undefined && activationTimestampMs !== null}
 						<div>
 							<dt>Activation time</dt>
@@ -187,7 +201,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const activationTimestampMs = entity.activationTimestampMs ?? selection.entitySelector.activationTimestampMs ?? prefetched.activationTimestampMs}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const activationTimestampMs = resolvedEntity.activationTimestampMs}
 					{#if activationTimestampMs !== undefined && activationTimestampMs !== null}
 						<div>
 							<dt>Activation time</dt>
@@ -204,21 +219,29 @@
 					<dt>Execution layer</dt>
 					<dd>
 						<ResourceBoundary
-							resource={selection[EntityProxyField]<EntityType.EthereumExecutionUpgrade, false>('$networkExecutionUpgrade')}
+							resource={
+								selection[EntityProxyField]<EntityType.EthereumExecutionUpgrade, false>('$networkExecutionUpgrade', {
+									sources: [
+										Source.Constants_Internal,
+									],
+								})
+							}
 						>
 							{#snippet children(ethereumExecutionUpgrade)}
-								<EthereumExecutionUpgradeView
-									selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade.entitySelector)}
-									prefetched={ethereumExecutionUpgrade}
-									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {
-											caip2: `${String(ethereumExecutionUpgrade.entitySelector.$network.caip2.namespace)}:${String(ethereumExecutionUpgrade.entitySelector.$network.caip2.reference)}`,
-											upgradeSlug: String(ethereumExecutionUpgrade.entitySelector.slug),
-										})
-									}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
+								{#if ethereumExecutionUpgrade[EntityMetaKey.Selector] != null}
+									<EthereumExecutionUpgradeView
+										selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector])}
+										prefetched={ethereumExecutionUpgrade}
+										href={
+											(({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2 !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2.namespace !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2 !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2.reference !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {
+												caip2: `${String(({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2.namespace ?? '')}:${String(({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2.reference ?? '')}`,
+												upgradeSlug: String(({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).slug ?? ''),
+											}) : undefined)
+										}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -227,21 +250,27 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.EthereumConsensusUpgrade, false>('$networkConsensusUpgrade')}
+					resource={
+						selection[EntityProxyField]<EntityType.EthereumConsensusUpgrade, false>('$networkConsensusUpgrade', {
+							sources: [
+								Source.Constants_Internal,
+							],
+						})
+					}
 				>
 					{#snippet children(ethereumConsensusUpgrade)}
-						{#if ethereumConsensusUpgrade != null}
+						{#if ethereumConsensusUpgrade != null && ethereumConsensusUpgrade[EntityMetaKey.Selector] != null}
 							<div>
 								<dt>Consensus layer</dt>
 								<dd>
 									<EthereumConsensusUpgradeView
-										selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade.entitySelector)}
+										selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector])}
 										prefetched={ethereumConsensusUpgrade}
 										href={
-											resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {
-												caip2: `${String(ethereumConsensusUpgrade.entitySelector.$network.caip2.namespace)}:${String(ethereumConsensusUpgrade.entitySelector.$network.caip2.reference)}`,
-												upgradeSlug: String(ethereumConsensusUpgrade.entitySelector.slug),
-											})
+											(({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2 !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2.namespace !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2 !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2.reference !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {
+												caip2: `${String(({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2.namespace ?? '')}:${String(({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2.reference ?? '')}`,
+												upgradeSlug: String(({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).slug ?? ''),
+											}) : undefined)
 										}
 										layout={EntityLayout.Title}
 										open={false}

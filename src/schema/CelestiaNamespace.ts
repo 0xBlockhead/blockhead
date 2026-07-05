@@ -1,12 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum CelestiaNamespaceSelector {
-	NetworkNamespaceId = '$network+namespaceId',
+	NetworkNamespaceId = 'NetworkNamespaceId',
 }
 export default {
 	entityType: EntityType.CelestiaNamespace,
@@ -23,47 +22,47 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CelestiaNetwork,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.CelestiaNetwork,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'namespaceId',
-			label: 'namespace ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'namespaceId',
+				label: 'namespace ID',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'namespaceVersion',
-			label: 'namespace version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'namespaceVersion',
+				label: 'namespace version',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'label',
-			label: 'Label',
-			description: 'A human-readable name for the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'label',
+				label: 'Label',
+				description: 'A human-readable name for the subject.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$blobs',
-			label: 'blobs',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.CelestiaBlob,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$blobs',
+				label: 'blobs',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CelestiaBlob,
+				cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.CelestiaNamespace_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$timestamps',
+				label: 'timestamps',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.CelestiaNamespace_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

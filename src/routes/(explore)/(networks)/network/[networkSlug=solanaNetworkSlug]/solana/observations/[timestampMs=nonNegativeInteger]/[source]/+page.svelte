@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.SolanaNetwork_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					absoluteSlot: true,
 					blockHeight: true,

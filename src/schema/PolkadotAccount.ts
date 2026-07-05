@@ -42,5 +42,12 @@ export default {
 				entityType: EntityType.PolkadotAccount_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
 		},
+		{
+				name: '$$assetBalanceTimestamps',
+				label: 'Asset balance observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotAssetBalance_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+		},
 	],
 } as const satisfies EntityDefinition

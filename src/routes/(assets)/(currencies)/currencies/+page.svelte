@@ -31,6 +31,6 @@
 				scope: '$$currencies',
 			})[EntityProxyField]<EntityType.Currency>('$$currencies')
 		}
-		id='CurrenciesView-page'
+		id='currencies'
 	/>
 </Page>

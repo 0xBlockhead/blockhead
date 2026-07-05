@@ -20,7 +20,7 @@
 		selection,
 		title = 'Agent conversations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Agent conversations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					name: true,
 					updatedAt: true,
 					id: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadAgentConversation}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadAgentConversations)}
 			{@const uniqueBlockheadAgentConversations = [...new Map(blockheadAgentConversations.values.map((blockheadAgentConversation) => [blockheadAgentConversation[EntityMetaKey.SelectorKey], blockheadAgentConversation])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadAgentConversations.values.length === uniqueBlockheadAgentConversations.length && blockheadAgentConversations.totalCount != null && blockheadAgentConversations.totalCount >= uniqueBlockheadAgentConversations.length ? blockheadAgentConversations.totalCount : uniqueBlockheadAgentConversations.length}
+				totalCount={blockheadAgentConversations.totalCount}
 				getKey={(blockheadAgentConversation) => blockheadAgentConversation[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadAgentConversations}
 			>
@@ -106,14 +93,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No agent conversations yet.</p>
+						<p data-text="muted">No Agent conversations yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: blockheadAgentConversation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAgentConversation> })}
+					{@const blockheadAgentConversationFields = { ...blockheadAgentConversation[EntityMetaKey.Selector], ...blockheadAgentConversation }}
 					<BlockheadAgentConversationView
-						selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation.entitySelector)}
-						prefetched={blockheadAgentConversation}
+						selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
+						prefetched={blockheadAgentConversationFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

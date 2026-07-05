@@ -1,6 +1,7 @@
 import { getJson } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
 import { lightningLndOrigins } from '$/sources/LightningLnd/index.ts'
+import { lightningLndBindings } from '$/sources/LightningLnd/bindings.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
 	LndGetInfoResponse,
@@ -10,6 +11,7 @@ import type {
 } from '$/sources/LightningLnd/Rest/types.ts'
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
+const restBaseUrl = lightningLndBindings[1].endpoints[0].locator
 
 const lndHeaders = (macaroonHex: string) => ({
 	'Grpc-Metadata-macaroon': macaroonHex,
@@ -19,7 +21,7 @@ export const getInfo = (
 	publicEnv: SourcePublicEnv
 ) => (
 	getJson<LndGetInfoResponse>(
-		`${base(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_REST_BASE_URL'))}/v1/getinfo`,
+		`${base(restBaseUrl)}/v1/getinfo`,
 		{
 			origins: lightningLndOrigins,
 			init: {
@@ -33,7 +35,7 @@ export const listChannels = (
 	publicEnv: SourcePublicEnv
 ) => (
 	getJson<LndListChannelsResponse>(
-		`${base(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_REST_BASE_URL'))}/v1/channels`,
+		`${base(restBaseUrl)}/v1/channels`,
 		{
 			origins: lightningLndOrigins,
 			init: {
@@ -51,7 +53,7 @@ export const listInvoices = ({
 	numMaxInvoices?: number
 }) => (
 	getJson<LndListInvoicesResponse>(
-		`${base(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_REST_BASE_URL'))}/v1/invoices${numMaxInvoices == null ? '' : `?num_max_invoices=${numMaxInvoices}`}`,
+		`${base(restBaseUrl)}/v1/invoices${numMaxInvoices == null ? '' : `?num_max_invoices=${numMaxInvoices}`}`,
 		{
 			origins: lightningLndOrigins,
 			init: {
@@ -69,7 +71,7 @@ export const listPayments = ({
 	maxPayments?: number
 }) => (
 	getJson<LndListPaymentsResponse>(
-		`${base(requiredPublicEnvString(publicEnv, 'PUBLIC_LND_REST_BASE_URL'))}/v1/payments${maxPayments == null ? '' : `?max_payments=${maxPayments}`}`,
+		`${base(restBaseUrl)}/v1/payments${maxPayments == null ? '' : `?max_payments=${maxPayments}`}`,
 		{
 			origins: lightningLndOrigins,
 			init: {

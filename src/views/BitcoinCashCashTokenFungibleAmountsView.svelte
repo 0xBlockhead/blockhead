@@ -22,7 +22,7 @@
 		selection,
 		title = 'Bitcoin Cash CashToken fungible amounts',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Bitcoin Cash CashToken fungible amounts...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,28 +66,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					amount: true,
 					$category: true,
+					$output: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BitcoinCashCashTokenFungibleAmount}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(bitcoinCashCashTokenFungibleAmounts)}
 			{@const uniqueBitcoinCashCashTokenFungibleAmounts = [...new Map(bitcoinCashCashTokenFungibleAmounts.values.map((bitcoinCashCashTokenFungibleAmount) => [bitcoinCashCashTokenFungibleAmount[EntityMetaKey.SelectorKey], bitcoinCashCashTokenFungibleAmount])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={bitcoinCashCashTokenFungibleAmounts.values.length === uniqueBitcoinCashCashTokenFungibleAmounts.length && bitcoinCashCashTokenFungibleAmounts.totalCount != null && bitcoinCashCashTokenFungibleAmounts.totalCount >= uniqueBitcoinCashCashTokenFungibleAmounts.length ? bitcoinCashCashTokenFungibleAmounts.totalCount : uniqueBitcoinCashCashTokenFungibleAmounts.length}
+				totalCount={bitcoinCashCashTokenFungibleAmounts.totalCount}
 				getKey={(bitcoinCashCashTokenFungibleAmount) => bitcoinCashCashTokenFungibleAmount[EntityMetaKey.SelectorKey]}
 				items={uniqueBitcoinCashCashTokenFungibleAmounts}
 			>
@@ -112,16 +100,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: bitcoinCashCashTokenFungibleAmount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitcoinCashCashTokenFungibleAmount> })}
+					{@const bitcoinCashCashTokenFungibleAmountFields = { ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }}
+					{@const bitcoinCashCashTokenFungibleAmountHrefFields = { ...bitcoinCashCashTokenFungibleAmount, ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector] }}
 					<BitcoinCashCashTokenFungibleAmountView
+						selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector])}
+						prefetched={bitcoinCashCashTokenFungibleAmountFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-								networkSlug: String(networkByCaip2[String(({ ...bitcoinCashCashTokenFungibleAmount.entitySelector, ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network.caip2)].slug),
-								txId: String(({ ...bitcoinCashCashTokenFungibleAmount.entitySelector, ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.txId),
-								outputIndex: String(({ ...bitcoinCashCashTokenFungibleAmount.entitySelector, ...bitcoinCashCashTokenFungibleAmount }).$output.indexInTransaction),
-							})
+							(bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2.namespace !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2.reference !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output !== undefined && bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
+								networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.$network.caip2.reference))].slug ?? ''),
+								txId: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.$transaction.txId ?? ''),
+								outputIndex: String(bitcoinCashCashTokenFungibleAmountHrefFields.$output.indexInTransaction ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount.entitySelector)}
-						prefetched={bitcoinCashCashTokenFungibleAmount}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

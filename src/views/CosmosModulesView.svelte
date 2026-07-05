@@ -21,7 +21,7 @@
 		selection,
 		title = 'Modules',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Cosmos modules...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					moduleName: true,
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.CosmosModule}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(cosmosModules)}
 			{@const uniqueCosmosModules = [...new Map(cosmosModules.values.map((cosmosModule) => [cosmosModule[EntityMetaKey.SelectorKey], cosmosModule])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={cosmosModules.values.length === uniqueCosmosModules.length && cosmosModules.totalCount != null && cosmosModules.totalCount >= uniqueCosmosModules.length ? cosmosModules.totalCount : uniqueCosmosModules.length}
+				totalCount={cosmosModules.totalCount}
 				getKey={(cosmosModule) => cosmosModule[EntityMetaKey.SelectorKey]}
 				items={uniqueCosmosModules}
 			>
@@ -111,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: cosmosModule }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosModule> })}
+					{@const cosmosModuleFields = { ...cosmosModule[EntityMetaKey.Selector], ...cosmosModule }}
+					{@const cosmosModuleHrefFields = { ...cosmosModule, ...cosmosModule[EntityMetaKey.Selector] }}
 					<CosmosModuleView
+						selection={select(EntityType.CosmosModule, cosmosModule[EntityMetaKey.Selector])}
+						prefetched={cosmosModuleFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/module/[moduleName]', {
-								caip2: `${String(({ ...cosmosModule.entitySelector, ...cosmosModule }).$network.caip2.namespace)}:${String(({ ...cosmosModule.entitySelector, ...cosmosModule }).$network.caip2.reference)}`,
-								moduleName: String(({ ...cosmosModule.entitySelector, ...cosmosModule }).moduleName),
-							})
+							(cosmosModuleHrefFields.$network !== undefined && cosmosModuleHrefFields.$network.caip2 !== undefined && cosmosModuleHrefFields.$network.caip2.namespace !== undefined && cosmosModuleHrefFields.$network !== undefined && cosmosModuleHrefFields.$network.caip2 !== undefined && cosmosModuleHrefFields.$network.caip2.reference !== undefined && cosmosModuleHrefFields.moduleName !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/module/[moduleName]', {
+								caip2: `${String(cosmosModuleHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosModuleHrefFields.$network.caip2.reference ?? '')}`,
+								moduleName: String(cosmosModuleHrefFields.moduleName ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.CosmosModule, cosmosModule.entitySelector)}
-						prefetched={cosmosModule}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,13 @@
 		selection={
 			select(EntityType.RssNetwork, {
 				scope: 'RssNetwork',
-			})[EntityProxyField]<EntityType.RssItem>('$$sourceWindowItems')
+			})[EntityProxyField]<EntityType.RssItem>('$$sourceWindowItems', {
+				sources: [
+					Source.Rss_Rest,
+					Source.Rss2Json_Rest,
+				],
+			})
 		}
-		id='RssItemsView-page'
+		id='source-window-items'
 	/>
 </Page>

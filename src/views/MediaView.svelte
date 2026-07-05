@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -39,17 +39,11 @@
 		>
 	> = $props()
 
-	const media = $derived(selection({
-		fields: {
-			type: true,
-			transport: true,
-			hash: true,
-		},
-	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).url) ?? '')].filter(Boolean).join(' ') || 'Media')
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
+	const media = $derived(selection({}))
+	const titleFallback = $derived([String((selection.entitySelector.url ?? prefetched.url) ?? '')].filter(Boolean).join(' ') || 'Media')
 	const viewDomId = $derived('media-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 </script>
@@ -57,13 +51,13 @@
 
 <EntityView
 	entityType={EntityType.Media}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/media/[url]', {
-			url: String(({ ...selection.entitySelector, ...prefetched }).url),
-		})
+		href ?? (pendingEntity.url !== undefined ? resolve('/(explore)/media/[url]', {
+			url: String(pendingEntity.url ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
@@ -119,49 +113,36 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const url0 = ({ ...selection.entitySelector, ...prefetched }).url}
-			{#if url0 !== undefined && url0 !== null}
-				<svelte:element
-					this={'a'}
-					href={String(url0)}
-					target="_blank"
-					rel="noreferrer noopener"
-				>
-					<TruncatedValue value={String(url0)} />
-				</svelte:element>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={media}>
-				{#snippet Pending()}
-					{@const url0 = ({ ...selection.entitySelector, ...prefetched }).url}
-					{#if url0 !== undefined && url0 !== null}
-						<svelte:element
-							this={'a'}
-							href={String(url0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(url0)} />
-						</svelte:element>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={media}>
+			{#snippet Pending()}
+				{@const url0 = selection.entitySelector.url ?? prefetched.url}
+				{#if url0 !== undefined && url0 !== null}
+					<svelte:element
+						this={'a'}
+						href={String(url0)}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={String(url0)} />
+					</svelte:element>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const url0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).url}
-					{#if url0 !== undefined && url0 !== null}
-						<svelte:element
-							this={'a'}
-							href={String(url0)}
-							target="_blank"
-							rel="noreferrer noopener"
-						>
-							<TruncatedValue value={String(url0)} />
-						</svelte:element>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const url0 = resolvedEntity.url}
+				{#if url0 !== undefined && url0 !== null}
+					<svelte:element
+						this={'a'}
+						href={String(url0)}
+						target="_blank"
+						rel="noreferrer noopener"
+					>
+						<TruncatedValue value={String(url0)} />
+					</svelte:element>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
@@ -211,18 +192,71 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
+				<dt>URL</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									url: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const url = selection.entitySelector.url ?? prefetched.url}
+							{#if url !== undefined && url !== null}
+								<svelte:element
+									this={'a'}
+									href={String(url)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(url)} />
+								</svelte:element>
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const url = resolvedEntity.url}
+							{#if url !== undefined && url !== null}
+								<svelte:element
+									this={'a'}
+									href={String(url)}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue value={String(url)} />
+								</svelte:element>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Type</dt>
 				<dd>
-					<ResourceBoundary resource={media}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									type: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const type = prefetched.type ?? selection.entitySelector.type}
+							{@const type = prefetched.type}
 							{#if type !== undefined && type !== null}
 								{String((type) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const type = entity.type ?? selection.entitySelector.type ?? prefetched.type}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const type = resolvedEntity.type}
 							{#if type !== undefined && type !== null}
 								{String((type) ?? '')}
 							{/if}
@@ -234,16 +268,25 @@
 			<div>
 				<dt>Transport</dt>
 				<dd>
-					<ResourceBoundary resource={media}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									transport: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const transport = prefetched.transport ?? selection.entitySelector.transport}
+							{@const transport = prefetched.transport}
 							{#if transport !== undefined && transport !== null}
 								{String((transport) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const transport = entity.transport ?? selection.entitySelector.transport ?? prefetched.transport}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const transport = resolvedEntity.transport}
 							{#if transport !== undefined && transport !== null}
 								{String((transport) ?? '')}
 							{/if}
@@ -252,26 +295,35 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={media}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							hash: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const hash = prefetched.hash ?? selection.entitySelector.hash}
+					{@const hash = prefetched.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
-								<TruncatedValue value={String(hash)} />
+								<TruncatedValue value={String((hash) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const hash = entity.hash ?? selection.entitySelector.hash ?? prefetched.hash}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const hash = resolvedEntity.hash}
 					{#if hash !== undefined && hash !== null}
 						<div>
 							<dt>Hash</dt>
 							<dd>
-								<TruncatedValue value={String(hash)} />
+								<TruncatedValue value={String((hash) ?? '')} />
 							</dd>
 						</div>
 					{/if}
@@ -280,37 +332,31 @@
 		</dl>
 
 		<section data-column="gap-2">
-			<ResourceBoundary resource={media}>
-				{#snippet Pending()}
-					{@const url = prefetched.url ?? selection.entitySelector.url}
-					{#if url !== undefined && url !== null}
-						<img
-							src={String(url)}
-							alt=""
-							loading="lazy"
-							decoding="async"
-							referrerpolicy="no-referrer"
-						/>
-					{/if}
-				{/snippet}
-
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							type: true,
+						},
+					})
+				}
+			>
 				{#snippet children(entity)}
-					{@const url = entity.url ?? selection.entitySelector.url ?? prefetched.url}
-					{@const type = String(entity.type ?? '')}
-					{#if url !== undefined && url !== null && type === 'Video'}
+					{@const url = selection.entitySelector.url}
+					{#if entity.type === 'Video'}
 						<!-- svelte-ignore a11y_media_has_caption -->
 						<video
 							src={String(url)}
 							controls
 							preload="metadata"
 						></video>
-					{:else if url !== undefined && url !== null && type === 'Audio'}
+					{:else if entity.type === 'Audio'}
 						<audio
 							src={String(url)}
 							controls
 							preload="metadata"
 						></audio>
-					{:else if url !== undefined && url !== null}
+					{:else}
 						<img
 							src={String(url)}
 							alt=""

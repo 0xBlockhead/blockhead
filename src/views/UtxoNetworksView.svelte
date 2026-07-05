@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -21,7 +22,7 @@
 		selection,
 		title = 'UTXO networks',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading UTXO networks...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,27 +66,14 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$network: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.UtxoNetwork}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(utxoNetworks)}
 			{@const uniqueUtxoNetworks = [...new Map(utxoNetworks.values.map((utxoNetwork) => [utxoNetwork[EntityMetaKey.SelectorKey], utxoNetwork])).values()]}
 			<EntitiesList
@@ -97,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={utxoNetworks.values.length === uniqueUtxoNetworks.length && utxoNetworks.totalCount != null && utxoNetworks.totalCount >= uniqueUtxoNetworks.length ? utxoNetworks.totalCount : uniqueUtxoNetworks.length}
+				totalCount={utxoNetworks.totalCount}
 				getKey={(utxoNetwork) => utxoNetwork[EntityMetaKey.SelectorKey]}
 				items={uniqueUtxoNetworks}
 			>
@@ -110,15 +98,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: utxoNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UtxoNetwork> })}
+					{@const utxoNetworkFields = { ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }}
+					{@const utxoNetworkHrefFields = { ...utxoNetwork, ...utxoNetwork[EntityMetaKey.Selector] }}
 					<UtxoNetworkView
+						selection={select(EntityType.UtxoNetwork, utxoNetwork[EntityMetaKey.Selector])}
+						prefetched={utxoNetworkFields}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-								networkSlug: String(({ ...utxoNetwork.entitySelector, ...utxoNetwork }).$network.slug),
-							})
+							(utxoNetworkHrefFields.$network !== undefined && utxoNetworkHrefFields.$network.caip2 !== undefined && utxoNetworkHrefFields.$network.caip2.namespace !== undefined && utxoNetworkHrefFields.$network !== undefined && utxoNetworkHrefFields.$network.caip2 !== undefined && utxoNetworkHrefFields.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+								networkSlug: String(networkByCaip2[String(String(utxoNetworkHrefFields.$network.caip2.namespace) + ':' + String(utxoNetworkHrefFields.$network.caip2.reference))].slug ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.UtxoNetwork, utxoNetwork.entitySelector)}
-						prefetched={utxoNetwork}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

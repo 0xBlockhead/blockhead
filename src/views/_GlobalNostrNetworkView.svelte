@@ -4,10 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
@@ -39,6 +39,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalNostrNetwork = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -49,20 +50,11 @@
 			homeUrl: true,
 			docsUrl: true,
 			topology: true,
-			...(open && {
-				$$sourceWindowProfiles: true,
-				$$sourceWindowNotes: true,
-				$$sourceWindowRelays: true,
-				$$sourceWindowReposts: true,
-				$$sourceWindowReactions: true,
-				$$sourceWindowArticles: true,
-			}),
 		},
 	}))
 	const titleFallback = $derived(['Nostr'].filter(Boolean).join(' ') || 'Nostr')
 	const viewDomId = $derived('-global-nostr-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NostrProfilesView from '$/views/NostrProfilesView.svelte'
@@ -71,12 +63,13 @@
 	import NostrArticlesView from '$/views/NostrArticlesView.svelte'
 	import NostrRepostsView from '$/views/NostrRepostsView.svelte'
 	import NostrReactionsView from '$/views/NostrReactionsView.svelte'
+	import GlobalNostrNetwork_TimestampsView from '$/views/_GlobalNostrNetwork_TimestampsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType._GlobalNostrNetwork}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -85,19 +78,16 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{['Nostr'].filter(Boolean).join(' ') || title || 'Nostr'}
-		{:else}
-			<ResourceBoundary resource={globalNostrNetwork}>
-				{#snippet Pending()}
-					{['Nostr'].filter(Boolean).join(' ') || title || 'Nostr'}
-				{/snippet}
+		<ResourceBoundary resource={globalNostrNetwork}>
+			{#snippet Pending()}
+				{['Nostr'].filter(Boolean).join(' ') || title || 'Nostr'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{['Nostr'].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{['Nostr'].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -108,9 +98,20 @@
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={globalNostrNetwork}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+						],
+						fields: {
+							registryLabel: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const registryLabel = prefetched.registryLabel ?? selection.entitySelector.registryLabel}
+					{@const registryLabel = prefetched.registryLabel}
 					{#if registryLabel !== undefined && registryLabel !== null}
 						<div>
 							<dt>Registry</dt>
@@ -122,7 +123,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const registryLabel = entity.registryLabel ?? selection.entitySelector.registryLabel ?? prefetched.registryLabel}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const registryLabel = resolvedEntity.registryLabel}
 					{#if registryLabel !== undefined && registryLabel !== null}
 						<div>
 							<dt>Registry</dt>
@@ -134,9 +136,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={globalNostrNetwork}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Constants_Internal,
+						],
+						fields: {
+							protocolName: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const protocolName = prefetched.protocolName ?? selection.entitySelector.protocolName}
+					{@const protocolName = prefetched.protocolName}
 					{#if protocolName !== undefined && protocolName !== null}
 						<div>
 							<dt>Protocol</dt>
@@ -148,7 +161,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const protocolName = entity.protocolName ?? selection.entitySelector.protocolName ?? prefetched.protocolName}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const protocolName = resolvedEntity.protocolName}
 					{#if protocolName !== undefined && protocolName !== null}
 						<div>
 							<dt>Protocol</dt>
@@ -161,9 +175,20 @@
 			</ResourceBoundary>
 
 			{#if contentOpen}
-				<ResourceBoundary resource={globalNostrNetwork}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.Constants_Internal,
+							],
+							fields: {
+								homeUrl: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const homeUrl = prefetched.homeUrl ?? selection.entitySelector.homeUrl}
+						{@const homeUrl = prefetched.homeUrl}
 						{#if homeUrl !== undefined && homeUrl !== null}
 							<div>
 								<dt>Home</dt>
@@ -182,7 +207,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const homeUrl = entity.homeUrl ?? selection.entitySelector.homeUrl ?? prefetched.homeUrl}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const homeUrl = resolvedEntity.homeUrl}
 						{#if homeUrl !== undefined && homeUrl !== null}
 							<div>
 								<dt>Home</dt>
@@ -203,9 +229,20 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={globalNostrNetwork}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.Constants_Internal,
+							],
+							fields: {
+								docsUrl: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const docsUrl = prefetched.docsUrl ?? selection.entitySelector.docsUrl}
+						{@const docsUrl = prefetched.docsUrl}
 						{#if docsUrl !== undefined && docsUrl !== null}
 							<div>
 								<dt>NIPs</dt>
@@ -224,7 +261,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const docsUrl = entity.docsUrl ?? selection.entitySelector.docsUrl ?? prefetched.docsUrl}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const docsUrl = resolvedEntity.docsUrl}
 						{#if docsUrl !== undefined && docsUrl !== null}
 							<div>
 								<dt>NIPs</dt>
@@ -245,9 +283,20 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary resource={globalNostrNetwork}>
+				<ResourceBoundary
+					resource={
+						selection({
+							sources: [
+								Source.Constants_Internal,
+							],
+							fields: {
+								topology: true,
+							},
+						})
+					}
+				>
 					{#snippet Pending()}
-						{@const topology = prefetched.topology ?? selection.entitySelector.topology}
+						{@const topology = prefetched.topology}
 						{#if topology !== undefined && topology !== null}
 							<div>
 								<dt>Topology</dt>
@@ -259,7 +308,8 @@
 					{/snippet}
 
 					{#snippet children(entity)}
-						{@const topology = entity.topology ?? selection.entitySelector.topology ?? prefetched.topology}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const topology = resolvedEntity.topology}
 						{#if topology !== undefined && topology !== null}
 							<div>
 								<dt>Topology</dt>
@@ -277,7 +327,13 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<NostrProfilesView
-				selection={selection[EntityProxyField]<EntityType.NostrProfile>('$$sourceWindowProfiles')}
+				selection={
+						selection[EntityProxyField]<EntityType.NostrProfile>('$$sourceWindowProfiles', {
+							sources: [
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				title='Profiles'
 				href={resolve('/(social)/(nostr)/nostr/profiles')}
 				emptyText='No Nostr profiles in this source window.'
@@ -285,7 +341,14 @@
 			/>
 
 			<NostrNotesView
-				selection={selection[EntityProxyField]<EntityType.NostrNote>('$$sourceWindowNotes')}
+				selection={
+						selection[EntityProxyField]<EntityType.NostrNote>('$$sourceWindowNotes', {
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				title='Notes'
 				href={resolve('/(social)/(nostr)/nostr/notes')}
 				emptyText='No Nostr notes in this source window.'
@@ -293,7 +356,14 @@
 			/>
 
 			<NostrRelaysView
-				selection={selection[EntityProxyField]<EntityType.NostrRelay>('$$sourceWindowRelays')}
+				selection={
+						selection[EntityProxyField]<EntityType.NostrRelay>('$$sourceWindowRelays', {
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				title='Relays'
 				href={resolve('/(social)/(nostr)/nostr/relays')}
 				emptyText='No Nostr relays in this source window.'
@@ -301,7 +371,14 @@
 			/>
 
 			<NostrArticlesView
-				selection={selection[EntityProxyField]<EntityType.NostrArticle>('$$sourceWindowArticles')}
+				selection={
+						selection[EntityProxyField]<EntityType.NostrArticle>('$$sourceWindowArticles', {
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				title='Articles'
 				href={resolve('/(social)/(nostr)/nostr/articles')}
 				emptyText='No Nostr articles in this source window.'
@@ -309,7 +386,14 @@
 			/>
 
 			<NostrRepostsView
-				selection={selection[EntityProxyField]<EntityType.NostrRepost>('$$sourceWindowReposts')}
+				selection={
+						selection[EntityProxyField]<EntityType.NostrRepost>('$$sourceWindowReposts', {
+							sources: [
+								Source.Constants_Internal,
+								Source.NostrBand_Rest,
+							],
+						})
+					}
 				title='Reposts'
 				href={resolve('/(social)/(nostr)/nostr/reposts')}
 				emptyText='No Nostr reposts in this source window.'
@@ -322,6 +406,13 @@
 				href={resolve('/(social)/(nostr)/nostr/reactions')}
 				emptyText='No Nostr reactions in this source window.'
 				id='NostrReactionsView-$$sourceWindowReactions'
+			/>
+
+			<GlobalNostrNetwork_TimestampsView
+				selection={selection[EntityProxyField]<EntityType._GlobalNostrNetwork_Timestamp>('$$timestamps')}
+				title='Observations'
+				emptyText='No Nostr network observations.'
+				id='_GlobalNostrNetwork_TimestampsView-$$timestamps'
 			/>
 		{/if}
 	{/snippet}

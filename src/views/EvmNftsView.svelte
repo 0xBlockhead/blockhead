@@ -21,8 +21,8 @@
 	let {
 		selection,
 		title = 'ERC-8004 Registrations',
-		typeAnnotationParagraphs = ['A non-fungible token on an EVM contract, including ERC-8004 agent registration metadata when available.'],
-		placeholderText = 'Loading EVM NFTs...',
+		typeAnnotationParagraphs = ['A non-fungible token on an EVM contract, with ERC-8004 agent registration fields shown when the resolver supplies registry evidence.'],
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,31 +66,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Eip8004Scan_Rest,
 				],
 				fields: {
 					name: true,
 					tokenId: true,
+					$contract: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNft}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmNfts)}
 			{@const uniqueEvmNfts = [...new Map(evmNfts.values.map((evmNft) => [evmNft[EntityMetaKey.SelectorKey], evmNft])).values()]}
 			<EntitiesList
@@ -102,7 +90,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNfts.values.length === uniqueEvmNfts.length && evmNfts.totalCount != null && evmNfts.totalCount >= uniqueEvmNfts.length ? evmNfts.totalCount : uniqueEvmNfts.length}
+				totalCount={evmNfts.totalCount}
 				getKey={(evmNft) => evmNft[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmNfts}
 			>
@@ -115,16 +103,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmNft }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNft> })}
+					{@const evmNftFields = { ...evmNft[EntityMetaKey.Selector], ...evmNft }}
+					{@const evmNftHrefFields = { ...evmNft, ...evmNft[EntityMetaKey.Selector] }}
 					<EvmNftView
+						selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector])}
+						prefetched={evmNftFields}
 						href={
-							resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {
-								chainId: String(({ ...evmNft.entitySelector, ...evmNft }).$contract.$network.caip2.reference),
-								contractAddress: String(({ ...evmNft.entitySelector, ...evmNft }).$contract.address),
-								tokenId: String(({ ...evmNft.entitySelector, ...evmNft }).tokenId),
-							})
+							(evmNftHrefFields.$contract !== undefined && evmNftHrefFields.$contract.$network !== undefined && evmNftHrefFields.$contract.$network.caip2 !== undefined && evmNftHrefFields.$contract.$network.caip2.reference !== undefined && evmNftHrefFields.$contract !== undefined && evmNftHrefFields.$contract.address !== undefined && evmNftHrefFields.tokenId !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {
+								chainId: String(evmNftHrefFields.$contract.$network.caip2.reference ?? ''),
+								contractAddress: String(evmNftHrefFields.$contract.address ?? ''),
+								tokenId: String(evmNftHrefFields.tokenId ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmNft, evmNft.entitySelector)}
-						prefetched={evmNft}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

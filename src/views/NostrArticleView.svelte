@@ -3,10 +3,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
@@ -42,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const nostrArticle = $derived(selection({
 		sources: [
 			Source.NostrBand_Rest,
@@ -51,16 +52,11 @@
 			summary: true,
 			imageUrl: true,
 			publishedAt: true,
-			...(open && {
-				content: true,
-				$author: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article')
+	const titleFallback = $derived([String((prefetched.title) ?? ''), String((selection.entitySelector.identifier ?? prefetched.identifier) ?? '')].filter(Boolean).join(' ') || 'Nostr article')
 	const viewDomId = $derived('nostr-article-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -71,7 +67,7 @@
 
 <EntityView
 	entityType={EntityType.NostrArticle}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -80,96 +76,72 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).identifier) ?? '')].filter(Boolean).join(' ') || title || 'Nostr article'}
-		{:else}
-			<ResourceBoundary resource={nostrArticle}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).title) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).identifier) ?? '')].filter(Boolean).join(' ') || title || 'Nostr article'}
-				{/snippet}
+		<ResourceBoundary resource={nostrArticle}>
+			{#snippet Pending()}
+				{[String((prefetched.title) ?? ''), String((selection.entitySelector.identifier ?? prefetched.identifier) ?? '')].filter(Boolean).join(' ') || title || 'Nostr article'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.title) ?? ''), String((entity.identifier) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.title) ?? ''), String((resolvedEntity.identifier) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const identifier0 = ({ ...selection.entitySelector, ...prefetched }).identifier}
-			{#if identifier0 !== undefined && identifier0 !== null}
-				<TruncatedValue value={String(identifier0)} />
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nostrArticle}>
-				{#snippet Pending()}
-					{@const identifier0 = ({ ...selection.entitySelector, ...prefetched }).identifier}
-					{#if identifier0 !== undefined && identifier0 !== null}
-						<TruncatedValue value={String(identifier0)} />
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={nostrArticle}>
+			{#snippet Pending()}
+				{@const identifier0 = selection.entitySelector.identifier ?? prefetched.identifier}
+				{#if identifier0 !== undefined && identifier0 !== null}
+					<TruncatedValue value={String((identifier0) ?? '')} />
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const identifier0 = ({ ...selection.entitySelector, ...prefetched, ...entity }).identifier}
-					{#if identifier0 !== undefined && identifier0 !== null}
-						<TruncatedValue value={String(identifier0)} />
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const identifier0 = resolvedEntity.identifier}
+				{#if identifier0 !== undefined && identifier0 !== null}
+					<TruncatedValue value={String((identifier0) ?? '')} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const publishedAt0 = prefetched.publishedAt}
-			{#if publishedAt0 !== undefined && publishedAt0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(publishedAt0)} />
-				</span>
-			{/if}
-			{@const kind1 = prefetched.kind}
-			{#if kind1 !== undefined && kind1 !== null}
-				<span data-text="muted">
-					<span>kind </span>
-					{String((kind1) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={nostrArticle}>
-				{#snippet Pending()}
-					{@const publishedAt0 = prefetched.publishedAt}
-					{#if publishedAt0 !== undefined && publishedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(publishedAt0)} />
-						</span>
-					{/if}
-					{@const kind1 = prefetched.kind}
-					{#if kind1 !== undefined && kind1 !== null}
-						<span data-text="muted">
-							<span>kind </span>
-							{String((kind1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={nostrArticle}>
+			{#snippet Pending()}
+				{@const publishedAt0 = prefetched.publishedAt}
+				{#if publishedAt0 !== undefined && publishedAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(publishedAt0)} />
+					</span>
+				{/if}
+				{@const kind1 = selection.entitySelector.kind ?? prefetched.kind}
+				{#if kind1 !== undefined && kind1 !== null}
+					<span data-text="muted">
+						<span>kind </span>
+						{String((kind1) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const publishedAt0 = entity.publishedAt}
-					{#if publishedAt0 !== undefined && publishedAt0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(publishedAt0)} />
-						</span>
-					{/if}
-					{@const kind1 = entity.kind}
-					{#if kind1 !== undefined && kind1 !== null}
-						<span data-text="muted">
-							<span>kind </span>
-							{String((kind1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const publishedAt0 = resolvedEntity.publishedAt}
+				{#if publishedAt0 !== undefined && publishedAt0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(publishedAt0)} />
+					</span>
+				{/if}
+				{@const kind1 = resolvedEntity.kind}
+				{#if kind1 !== undefined && kind1 !== null}
+					<span data-text="muted">
+						<span>kind </span>
+						{String((kind1) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -181,74 +153,166 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Author pubkey</dt>
+				<dt>Identifier</dt>
 				<dd>
-					<ResourceBoundary resource={nostrArticle}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									identifier: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const pubkey = prefetched.pubkey ?? selection.entitySelector.pubkey}
-							{#if pubkey !== undefined && pubkey !== null}
-								<TruncatedValue value={String(pubkey)} />
+							{@const identifier = selection.entitySelector.identifier ?? prefetched.identifier}
+							{#if identifier !== undefined && identifier !== null}
+								{String((identifier) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const pubkey = entity.pubkey ?? selection.entitySelector.pubkey ?? prefetched.pubkey}
-							{#if pubkey !== undefined && pubkey !== null}
-								<TruncatedValue value={String(pubkey)} />
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const identifier = resolvedEntity.identifier}
+							{#if identifier !== undefined && identifier !== null}
+								{String((identifier) ?? '')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
-		</dl>
 
-		<dl data-column-item="center">
-			<ResourceBoundary resource={nostrArticle}>
+			<div>
+				<dt>Author pubkey</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									pubkey: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const pubkey = selection.entitySelector.pubkey ?? prefetched.pubkey}
+							{#if pubkey !== undefined && pubkey !== null}
+								<TruncatedValue value={String((pubkey) ?? '')} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const pubkey = resolvedEntity.pubkey}
+							{#if pubkey !== undefined && pubkey !== null}
+								<TruncatedValue value={String((pubkey) ?? '')} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Kind</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									kind: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const kind = selection.entitySelector.kind ?? prefetched.kind}
+							{#if kind !== undefined && kind !== null}
+								<span>kind </span>
+								{String((kind) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const kind = resolvedEntity.kind}
+							{#if kind !== undefined && kind !== null}
+								<span>kind </span>
+								{String((kind) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.NostrBand_Rest,
+						],
+						fields: {
+							publishedAt: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const summary = prefetched.summary ?? selection.entitySelector.summary}
-					{#if summary !== undefined && summary !== null}
+					{@const publishedAt = prefetched.publishedAt}
+					{#if publishedAt !== undefined && publishedAt !== null}
 						<div>
-							<dt>Summary</dt>
+							<dt>Published</dt>
 							<dd>
-								{String((summary) ?? '')}
+								<Timestamp timestamp={Number(publishedAt)} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const summary = entity.summary ?? selection.entitySelector.summary ?? prefetched.summary}
-					{#if summary !== undefined && summary !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const publishedAt = resolvedEntity.publishedAt}
+					{#if publishedAt !== undefined && publishedAt !== null}
 						<div>
-							<dt>Summary</dt>
+							<dt>Published</dt>
 							<dd>
-								{String((summary) ?? '')}
+								<Timestamp timestamp={Number(publishedAt)} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
 
-			<ResourceBoundary resource={nostrArticle}>
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							summary: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const imageUrl = prefetched.imageUrl ?? selection.entitySelector.imageUrl}
-					{#if imageUrl !== undefined && imageUrl !== null}
+					{@const summary = prefetched.summary}
+					{#if summary !== undefined && summary !== null}
 						<div>
-							<dt>Image URL</dt>
+							<dt>Summary</dt>
 							<dd>
-								<TruncatedValue value={String(imageUrl)} />
+								{String((summary) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const imageUrl = entity.imageUrl ?? selection.entitySelector.imageUrl ?? prefetched.imageUrl}
-					{#if imageUrl !== undefined && imageUrl !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const summary = resolvedEntity.summary}
+					{#if summary !== undefined && summary !== null}
 						<div>
-							<dt>Image URL</dt>
+							<dt>Summary</dt>
 							<dd>
-								<TruncatedValue value={String(imageUrl)} />
+								{String((summary) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -256,15 +320,59 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.NostrProfile, false>('$author')}
+				resource={
+					selection({
+						sources: [
+							Source.NostrBand_Rest,
+						],
+						fields: {
+							imageUrl: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const imageUrl = prefetched.imageUrl}
+					{#if imageUrl !== undefined && imageUrl !== null}
+						<div>
+							<dt>Image URL</dt>
+							<dd>
+								<TruncatedValue value={String((imageUrl) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const imageUrl = resolvedEntity.imageUrl}
+					{#if imageUrl !== undefined && imageUrl !== null}
+						<div>
+							<dt>Image URL</dt>
+							<dd>
+								<TruncatedValue value={String((imageUrl) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection[EntityProxyField]<EntityType.NostrProfile, false>('$author', {
+						sources: [
+							Source.NostrBand_Rest,
+						],
+					})
+				}
 			>
 				{#snippet children(nostrProfile)}
-					{#if nostrProfile != null}
+					{#if nostrProfile != null && nostrProfile[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<NostrProfileView
-									selection={select(EntityType.NostrProfile, nostrProfile.entitySelector)}
+									selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 									prefetched={nostrProfile}
 									layout={EntityLayout.Title}
 									open={false}
@@ -281,13 +389,25 @@
 			data-scroll-marker-label='Article body'
 		>
 			<h3>Article body</h3>
-			<ResourceBoundary resource={nostrArticle}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.NostrBand_Rest,
+						],
+						fields: {
+							content: true,
+						},
+					})
+				}
+			>
 				{#snippet children(entity)}
-					{@const content = entity.content ?? selection.entitySelector.content ?? prefetched.content}
-					{#if content === undefined || content === null || content === ''}
-						<p data-text="muted">No article body yet.</p>
-					{:else}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const content = resolvedEntity.content}
+					{#if content !== undefined && content !== null && content !== ''}
 						<Markdown content={String(content)} />
+					{:else}
+						<p data-text="muted">No article body yet.</p>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

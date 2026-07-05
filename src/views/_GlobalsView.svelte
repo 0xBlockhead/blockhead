@@ -20,7 +20,7 @@
 		selection,
 		title = 'Globals',
 		typeAnnotationParagraphs = ['Root catalog and navigation scope for top-level networks, assets, markets, proposals, and local Blockhead state.'],
-		placeholderText = 'Loading Globals...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,19 +66,6 @@
 		resource={selection}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType._Global}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(globals)}
 			{@const uniqueGlobals = [...new Map(globals.values.map((global) => [global[EntityMetaKey.SelectorKey], global])).values()]}
 			<EntitiesList
@@ -90,7 +77,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={globals.values.length === uniqueGlobals.length && globals.totalCount != null && globals.totalCount >= uniqueGlobals.length ? globals.totalCount : uniqueGlobals.length}
+				totalCount={globals.totalCount}
 				getKey={(global) => global[EntityMetaKey.SelectorKey]}
 				items={uniqueGlobals}
 			>
@@ -98,14 +85,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No globals yet.</p>
+						<p data-text="muted">No Globals yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: global }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._Global> })}
+					{@const globalFields = { ...global[EntityMetaKey.Selector], ...global }}
 					<GlobalView
-						selection={select(EntityType._Global, global.entitySelector)}
-						prefetched={global}
+						selection={select(EntityType._Global, global[EntityMetaKey.Selector])}
+						prefetched={globalFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

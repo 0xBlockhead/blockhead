@@ -47,8 +47,6 @@
 			select(EntityType.Market_Timestamp, data.selector, {
 				fields: {
 					price: true,
-					marketCap: true,
-					volume24h: true,
 					transport: true,
 					providerAssetId: true,
 					caip19: true,

@@ -33,7 +33,7 @@ export default {
 				name: 'protocol',
 				label: 'Protocol',
 				type: EntityFieldType.Primitive,
-				primitiveType: type('string'),
+				primitiveType: (type('"ethereum" | "solana"')),
 				cardinality: EntityFieldCardinality.One,
 		},
 		{

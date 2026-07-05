@@ -1,0 +1,124 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'A2A agent card snapshots',
+		typeAnnotationParagraphs = [],
+		placeholderText,
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'A2aAgentCard_Snapshots-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.A2aAgentCard_Snapshot>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import A2aAgentCard_SnapshotView from '$/views/A2aAgentCard_SnapshotView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection({
+				fields: {
+					name: true,
+					version: true,
+					contentHash: true,
+					protocolVersion: true,
+				},
+			})
+		}
+		{placeholderText}
+	>
+		{#snippet children(a2aAgentCardSnapshots)}
+			{@const uniqueA2aAgentCardSnapshots = [...new Map(a2aAgentCardSnapshots.values.map((a2aAgentCardSnapshot) => [a2aAgentCardSnapshot[EntityMetaKey.SelectorKey], a2aAgentCardSnapshot])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aAgentCard_Snapshot}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={a2aAgentCardSnapshots.totalCount}
+				getKey={(a2aAgentCardSnapshot) => a2aAgentCardSnapshot[EntityMetaKey.SelectorKey]}
+				items={uniqueA2aAgentCardSnapshots}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No A2A agent card snapshots yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: a2aAgentCardSnapshot }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aAgentCard_Snapshot> })}
+					{@const a2aAgentCardSnapshotFields = { ...a2aAgentCardSnapshot[EntityMetaKey.Selector], ...a2aAgentCardSnapshot }}
+					<A2aAgentCard_SnapshotView
+						selection={select(EntityType.A2aAgentCard_Snapshot, a2aAgentCardSnapshot[EntityMetaKey.Selector])}
+						prefetched={a2aAgentCardSnapshotFields}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.A2aAgentCard_Snapshot}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

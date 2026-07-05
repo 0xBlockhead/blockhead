@@ -80,6 +80,15 @@ export type TronNodeAccount = {
 	latest_opration_time?: number
 }
 
+export type TronNodeAccountResource = {
+	freeNetUsed?: number
+	freeNetLimit?: number
+	NetUsed?: number
+	NetLimit?: number
+	EnergyUsed?: number
+	EnergyLimit?: number
+}
+
 export type TronGridAccountTransactions = {
 	data: TronNodeTransaction[]
 }

@@ -47,6 +47,6 @@
 				blockNumber: BigInt(params.blockNumber),
 			})[EntityProxyField]<EntityType.EvmTransaction>('$$transactions')
 		}
-		id='EvmTransactionsView-page'
+		id='transactions'
 	/>
 </Page>

@@ -40,6 +40,7 @@
 		}
 		selection={
 			select(EntityType.Coin_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					marketCap: true,
 					marketCapUsd: true,

@@ -20,7 +20,7 @@
 		selection,
 		title = 'Blockhead Farcaster account connections',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Blockhead Farcaster account connections...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,30 +64,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					$icon: true,
 					displayName: true,
 					username: true,
 					fid: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(blockheadFarcasterAccountConnections)}
 			{@const uniqueBlockheadFarcasterAccountConnections = [...new Map(blockheadFarcasterAccountConnections.values.map((blockheadFarcasterAccountConnection) => [blockheadFarcasterAccountConnection[EntityMetaKey.SelectorKey], blockheadFarcasterAccountConnection])).values()]}
 			<EntitiesList
@@ -99,7 +86,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={blockheadFarcasterAccountConnections.values.length === uniqueBlockheadFarcasterAccountConnections.length && blockheadFarcasterAccountConnections.totalCount != null && blockheadFarcasterAccountConnections.totalCount >= uniqueBlockheadFarcasterAccountConnections.length ? blockheadFarcasterAccountConnections.totalCount : uniqueBlockheadFarcasterAccountConnections.length}
+				totalCount={blockheadFarcasterAccountConnections.totalCount}
 				getKey={(blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.SelectorKey]}
 				items={uniqueBlockheadFarcasterAccountConnections}
 			>
@@ -112,9 +99,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: blockheadFarcasterAccountConnection }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadFarcasterAccountConnection> })}
+					{@const blockheadFarcasterAccountConnectionFields = { ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector], ...blockheadFarcasterAccountConnection }}
 					<BlockheadFarcasterAccountConnectionView
-						selection={select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection.entitySelector)}
-						prefetched={blockheadFarcasterAccountConnection}
+						selection={select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection[EntityMetaKey.Selector])}
+						prefetched={blockheadFarcasterAccountConnectionFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

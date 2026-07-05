@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM protocols',
 		typeAnnotationParagraphs = ['Catalog surface for EVM signature, topic, and error registries.'],
-		placeholderText = 'Loading EVM protocols...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 					registryLabel: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmProtocol}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmProtocols)}
 			{@const uniqueEvmProtocols = [...new Map(evmProtocols.values.map((evmProtocol) => [evmProtocol[EntityMetaKey.SelectorKey], evmProtocol])).values()]}
 			<EntitiesList
@@ -98,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmProtocols.values.length === uniqueEvmProtocols.length && evmProtocols.totalCount != null && evmProtocols.totalCount >= uniqueEvmProtocols.length ? evmProtocols.totalCount : uniqueEvmProtocols.length}
+				totalCount={evmProtocols.totalCount}
 				getKey={(evmProtocol) => evmProtocol[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmProtocols}
 			>
@@ -111,10 +98,12 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmProtocol }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmProtocol> })}
+					{@const evmProtocolFields = { ...evmProtocol[EntityMetaKey.Selector], ...evmProtocol }}
+					{@const evmProtocolHrefFields = { ...evmProtocol, ...evmProtocol[EntityMetaKey.Selector] }}
 					<EvmProtocolView
+						selection={select(EntityType.EvmProtocol, evmProtocol[EntityMetaKey.Selector])}
+						prefetched={evmProtocolFields}
 						href={resolve('/(explore)/(evm)/evm')}
-						selection={select(EntityType.EvmProtocol, evmProtocol.entitySelector)}
-						prefetched={evmProtocol}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

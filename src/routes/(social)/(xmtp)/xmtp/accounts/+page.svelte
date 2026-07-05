@@ -31,6 +31,6 @@
 				scope: '$$actors',
 			})[EntityProxyField]<EntityType.EvmAccount>('$$actors')
 		}
-		id='EvmAccountsView-page'
+		id='actors'
 	/>
 </Page>

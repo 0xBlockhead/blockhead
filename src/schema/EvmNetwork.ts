@@ -213,6 +213,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EthereumNetworkUpgrade,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: '$$executionUpgrades',
@@ -220,6 +223,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EthereumExecutionUpgrade,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: '$$consensusUpgrades',
@@ -227,6 +233,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EthereumConsensusUpgrade,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: 'consensusProtocol',
@@ -262,6 +271,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmNetwork_Timestamp,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+				],
 		},
 		{
 				name: '$$blocks',
@@ -269,6 +281,10 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmBlock,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$transactions',
@@ -276,6 +292,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmTransaction,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$contracts',
@@ -283,6 +302,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmContract,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$precompiles',
@@ -290,6 +312,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmContract,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: '$$blobs',
@@ -297,6 +322,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmBlob,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+				],
 		},
 		{
 				name: '$$gasFeeBlocks',
@@ -304,6 +332,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmNetwork_GasFee_Block,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+				],
 		},
 		{
 				name: '$$gasEstimateTimestamps',
@@ -311,6 +342,10 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
+				defaultSources: [
+					Source.Blockscout_Rest,
+					Source.Etherscan_Rest,
+				],
 		},
 		{
 				name: '$$txpoolTimestamps',
@@ -318,6 +353,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmNetwork_Txpool_Timestamp,
 				cardinality: EntityFieldCardinality.ZeroOrMany,
+				defaultSources: [
+					Source.Voltaire_JsonRpc,
+				],
 		},
 		{
 				name: '$$erc20TokenTransfers',
@@ -325,6 +363,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmTokenTransfer,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$nftTokenTransfers',
@@ -332,6 +373,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmTokenTransfer,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$erc4337SmartAccounts',
@@ -339,6 +383,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.Erc4337SmartAccount,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$erc4337Bundlers',
@@ -346,6 +393,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.Erc4337Bundler,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$erc4337Paymasters',
@@ -353,6 +403,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.Erc4337Paymaster,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$erc4337AccountFactories',
@@ -360,6 +413,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.Erc4337AccountFactory,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$userOperations',
@@ -367,6 +423,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmUserOperation,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Blockscout_Rest,
+				],
 		},
 		{
 				name: '$$beaconFinalityTimestamps',
@@ -374,6 +433,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EthereumBeaconFinality_Timestamp,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$beaconEpochs',
@@ -381,6 +443,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.BeaconEpoch,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$beaconSlots',
@@ -388,6 +453,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.BeaconSlot,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$beaconCommittees',
@@ -395,6 +463,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.BeaconCommittee,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$beaconSyncCommittees',
@@ -402,6 +473,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.BeaconSyncCommittee,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$beaconAttestations',
@@ -409,6 +483,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.BeaconAttestation,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$beaconWithdrawals',
@@ -416,6 +493,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.BeaconWithdrawal,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$beaconSlashings',
@@ -423,6 +503,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.BeaconSlashing,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$beaconValidators',
@@ -430,6 +513,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.BeaconValidator,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Beacon_Rest,
+				],
 		},
 		{
 				name: '$$mevRelays',
@@ -437,6 +523,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.MevRelay,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Constants_Internal,
+				],
 		},
 		{
 				name: '$$mevBuilders',
@@ -444,6 +533,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.MevBuilder,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MevRelay_Rest,
+				],
 		},
 		{
 				name: '$$mevProposerPayloadDelivered',
@@ -452,6 +544,9 @@ export default {
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.MevRelay_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

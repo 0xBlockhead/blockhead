@@ -43,6 +43,6 @@
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 			})[EntityProxyField]<EntityType.Network_Timestamp>('$$timestamps')
 		}
-		id='Network_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

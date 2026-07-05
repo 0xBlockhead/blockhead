@@ -38,6 +38,6 @@
 				limit: 120,
 			})
 		}
-		id='CoinsView-page'
+		id='coins'
 	/>
 </Page>

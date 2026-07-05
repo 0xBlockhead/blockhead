@@ -6,10 +6,11 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -41,124 +42,100 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const polkadotNetworkTimestamp = $derived(selection({
 		fields: {
 			runtimeSpecName: true,
 			finalizedBlockNumber: true,
 			isSyncing: true,
 			peerCount: true,
-			runtimeSpecVersion: true,
-			transactionVersion: true,
-			stateVersion: true,
-			finalizedBlockHash: true,
-			finalizedExtrinsicCount: true,
-			shouldHavePeers: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).runtimeSpecName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).source) ?? '')].filter(Boolean).join(' ') || 'Polkadot network timestamp')
+	const titleFallback = $derived([String((prefetched.runtimeSpecName) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'Polkadot network timestamp')
 	const viewDomId = $derived('polkadot-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.PolkadotNetwork_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/observation/[timestampMs=nonNegativeInteger]/[source]', {
-			networkSlug: String(({ ...selection.entitySelector, ...prefetched }).$network.slug),
-			timestampMs: String(({ ...selection.entitySelector, ...prefetched }).timestampMs),
-			source: String(({ ...selection.entitySelector, ...prefetched }).source),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/observation/[timestampMs=nonNegativeInteger]/[source]', {
+			networkSlug: String(networkByCaip2[String(String(pendingEntity.$network.caip2.namespace) + ':' + String(pendingEntity.$network.caip2.reference))].slug ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).runtimeSpecName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot network timestamp'}
-		{:else}
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).runtimeSpecName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot network timestamp'}
-				{/snippet}
+		<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			{#snippet Pending()}
+				{[String((prefetched.runtimeSpecName) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot network timestamp'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.runtimeSpecName) ?? ''), String((entity.source) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.runtimeSpecName) ?? ''), String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).finalizedBlockNumber) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).runtimeSpecName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot network timestamp'}
-		{:else}
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).finalizedBlockNumber) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).runtimeSpecName) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot network timestamp'}
-				{/snippet}
+		<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			{#snippet Pending()}
+				{[String((prefetched.finalizedBlockNumber) ?? '')].filter(Boolean).join(' ') || [String((prefetched.runtimeSpecName) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || title || 'Polkadot network timestamp'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.finalizedBlockNumber) ?? '')].filter(Boolean).join(' ') || [String((entity.runtimeSpecName) ?? ''), String((entity.source) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.finalizedBlockNumber) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.runtimeSpecName) ?? ''), String((resolvedEntity.source) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const isSyncing0 = prefetched.isSyncing}
-			{#if isSyncing0 !== undefined && isSyncing0 !== null}
-				<span data-text="muted">
-					{String((isSyncing0) ?? '')}
-				</span>
-			{/if}
-			{@const peerCount1 = prefetched.peerCount}
-			{#if peerCount1 !== undefined && peerCount1 !== null}
-				<span data-text="muted">
-					{String((peerCount1) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
-				{#snippet Pending()}
-					{@const isSyncing0 = prefetched.isSyncing}
-					{#if isSyncing0 !== undefined && isSyncing0 !== null}
-						<span data-text="muted">
-							{String((isSyncing0) ?? '')}
-						</span>
-					{/if}
-					{@const peerCount1 = prefetched.peerCount}
-					{#if peerCount1 !== undefined && peerCount1 !== null}
-						<span data-text="muted">
-							{String((peerCount1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			{#snippet Pending()}
+				{@const isSyncing0 = prefetched.isSyncing}
+				{#if isSyncing0 !== undefined && isSyncing0 !== null}
+					<span data-text="muted">
+						{isSyncing0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+				{@const peerCount1 = prefetched.peerCount}
+				{#if peerCount1 !== undefined && peerCount1 !== null}
+					<span data-text="muted">
+						{String((peerCount1) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const isSyncing0 = entity.isSyncing}
-					{#if isSyncing0 !== undefined && isSyncing0 !== null}
-						<span data-text="muted">
-							{String((isSyncing0) ?? '')}
-						</span>
-					{/if}
-					{@const peerCount1 = entity.peerCount}
-					{#if peerCount1 !== undefined && peerCount1 !== null}
-						<span data-text="muted">
-							{String((peerCount1) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const isSyncing0 = resolvedEntity.isSyncing}
+				{#if isSyncing0 !== undefined && isSyncing0 !== null}
+					<span data-text="muted">
+						{isSyncing0 ? 'Yes' : 'No'}
+					</span>
+				{/if}
+				{@const peerCount1 = resolvedEntity.peerCount}
+				{#if peerCount1 !== undefined && peerCount1 !== null}
+					<span data-text="muted">
+						{String((peerCount1) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -166,27 +143,109 @@
 			<div>
 				<dt>Timestamp</dt>
 				<dd>
-					<ResourceBoundary resource={polkadotNetworkTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const timestampMs = prefetched.timestampMs ?? selection.entitySelector.timestampMs}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
-								{String((timestampMs) ?? '')}
+								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const timestampMs = entity.timestampMs ?? selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
-								{String((timestampMs) ?? '')}
+								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			<div>
+				<dt>Source</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const source = selection.entitySelector.source ?? prefetched.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
+							{#if source !== undefined && source !== null}
+								{String((source) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							runtimeSpecName: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const runtimeSpecVersion = prefetched.runtimeSpecVersion ?? selection.entitySelector.runtimeSpecVersion}
+					{@const runtimeSpecName = prefetched.runtimeSpecName}
+					{#if runtimeSpecName !== undefined && runtimeSpecName !== null}
+						<div>
+							<dt>Runtime spec name</dt>
+							<dd>
+								{String((runtimeSpecName) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const runtimeSpecName = resolvedEntity.runtimeSpecName}
+					{#if runtimeSpecName !== undefined && runtimeSpecName !== null}
+						<div>
+							<dt>Runtime spec name</dt>
+							<dd>
+								{String((runtimeSpecName) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							runtimeSpecVersion: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const runtimeSpecVersion = prefetched.runtimeSpecVersion}
 					{#if runtimeSpecVersion !== undefined && runtimeSpecVersion !== null}
 						<div>
 							<dt>Runtime spec version</dt>
@@ -198,7 +257,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const runtimeSpecVersion = entity.runtimeSpecVersion ?? selection.entitySelector.runtimeSpecVersion ?? prefetched.runtimeSpecVersion}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const runtimeSpecVersion = resolvedEntity.runtimeSpecVersion}
 					{#if runtimeSpecVersion !== undefined && runtimeSpecVersion !== null}
 						<div>
 							<dt>Runtime spec version</dt>
@@ -210,9 +270,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							transactionVersion: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const transactionVersion = prefetched.transactionVersion ?? selection.entitySelector.transactionVersion}
+					{@const transactionVersion = prefetched.transactionVersion}
 					{#if transactionVersion !== undefined && transactionVersion !== null}
 						<div>
 							<dt>Transaction version</dt>
@@ -224,7 +292,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const transactionVersion = entity.transactionVersion ?? selection.entitySelector.transactionVersion ?? prefetched.transactionVersion}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionVersion = resolvedEntity.transactionVersion}
 					{#if transactionVersion !== undefined && transactionVersion !== null}
 						<div>
 							<dt>Transaction version</dt>
@@ -236,9 +305,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							stateVersion: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const stateVersion = prefetched.stateVersion ?? selection.entitySelector.stateVersion}
+					{@const stateVersion = prefetched.stateVersion}
 					{#if stateVersion !== undefined && stateVersion !== null}
 						<div>
 							<dt>State version</dt>
@@ -250,7 +327,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const stateVersion = entity.stateVersion ?? selection.entitySelector.stateVersion ?? prefetched.stateVersion}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const stateVersion = resolvedEntity.stateVersion}
 					{#if stateVersion !== undefined && stateVersion !== null}
 						<div>
 							<dt>State version</dt>
@@ -264,35 +342,87 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							finalizedBlockNumber: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const finalizedBlockHash = prefetched.finalizedBlockHash ?? selection.entitySelector.finalizedBlockHash}
-					{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
+					{@const finalizedBlockNumber = prefetched.finalizedBlockNumber}
+					{#if finalizedBlockNumber !== undefined && finalizedBlockNumber !== null}
 						<div>
-							<dt>Finalized block hash</dt>
+							<dt>Finalized block number</dt>
 							<dd>
-								{String((finalizedBlockHash) ?? '')}
+								{String((finalizedBlockNumber) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const finalizedBlockHash = entity.finalizedBlockHash ?? selection.entitySelector.finalizedBlockHash ?? prefetched.finalizedBlockHash}
-					{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const finalizedBlockNumber = resolvedEntity.finalizedBlockNumber}
+					{#if finalizedBlockNumber !== undefined && finalizedBlockNumber !== null}
 						<div>
-							<dt>Finalized block hash</dt>
+							<dt>Finalized block number</dt>
 							<dd>
-								{String((finalizedBlockHash) ?? '')}
+								{String((finalizedBlockNumber) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							finalizedBlockHash: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const finalizedExtrinsicCount = prefetched.finalizedExtrinsicCount ?? selection.entitySelector.finalizedExtrinsicCount}
+					{@const finalizedBlockHash = prefetched.finalizedBlockHash}
+					{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
+						<div>
+							<dt>Finalized block hash</dt>
+							<dd>
+								<TruncatedValue value={String((finalizedBlockHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const finalizedBlockHash = resolvedEntity.finalizedBlockHash}
+					{#if finalizedBlockHash !== undefined && finalizedBlockHash !== null}
+						<div>
+							<dt>Finalized block hash</dt>
+							<dd>
+								<TruncatedValue value={String((finalizedBlockHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							finalizedExtrinsicCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const finalizedExtrinsicCount = prefetched.finalizedExtrinsicCount}
 					{#if finalizedExtrinsicCount !== undefined && finalizedExtrinsicCount !== null}
 						<div>
 							<dt>Finalized extrinsics</dt>
@@ -304,7 +434,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const finalizedExtrinsicCount = entity.finalizedExtrinsicCount ?? selection.entitySelector.finalizedExtrinsicCount ?? prefetched.finalizedExtrinsicCount}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const finalizedExtrinsicCount = resolvedEntity.finalizedExtrinsicCount}
 					{#if finalizedExtrinsicCount !== undefined && finalizedExtrinsicCount !== null}
 						<div>
 							<dt>Finalized extrinsics</dt>
@@ -316,26 +447,105 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={polkadotNetworkTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							peerCount: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const shouldHavePeers = prefetched.shouldHavePeers ?? selection.entitySelector.shouldHavePeers}
-					{#if shouldHavePeers !== undefined && shouldHavePeers !== null}
+					{@const peerCount = prefetched.peerCount}
+					{#if peerCount !== undefined && peerCount !== null}
 						<div>
-							<dt>Should have peers</dt>
+							<dt>Peers</dt>
 							<dd>
-								{String((shouldHavePeers) ?? '')}
+								{String((peerCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const shouldHavePeers = entity.shouldHavePeers ?? selection.entitySelector.shouldHavePeers ?? prefetched.shouldHavePeers}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const peerCount = resolvedEntity.peerCount}
+					{#if peerCount !== undefined && peerCount !== null}
+						<div>
+							<dt>Peers</dt>
+							<dd>
+								{String((peerCount) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							isSyncing: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const isSyncing = prefetched.isSyncing}
+					{#if isSyncing !== undefined && isSyncing !== null}
+						<div>
+							<dt>Syncing</dt>
+							<dd>
+								{isSyncing ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const isSyncing = resolvedEntity.isSyncing}
+					{#if isSyncing !== undefined && isSyncing !== null}
+						<div>
+							<dt>Syncing</dt>
+							<dd>
+								{isSyncing ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							shouldHavePeers: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const shouldHavePeers = prefetched.shouldHavePeers}
 					{#if shouldHavePeers !== undefined && shouldHavePeers !== null}
 						<div>
 							<dt>Should have peers</dt>
 							<dd>
-								{String((shouldHavePeers) ?? '')}
+								{shouldHavePeers ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const shouldHavePeers = resolvedEntity.shouldHavePeers}
+					{#if shouldHavePeers !== undefined && shouldHavePeers !== null}
+						<div>
+							<dt>Should have peers</dt>
+							<dd>
+								{shouldHavePeers ? 'Yes' : 'No'}
 							</dd>
 						</div>
 					{/if}
@@ -348,10 +558,10 @@
 					<NetworkView
 						selection={select(EntityType.Network, selection.entitySelector.$network)}
 						href={
-							(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-							}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-								networkSlug: String(selection.entitySelector.$network.slug),
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
 						layout={EntityLayout.Title}

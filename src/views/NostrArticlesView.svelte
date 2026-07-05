@@ -11,12 +11,16 @@
 	import { schema } from '$/schema/index.ts'
 
 
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
 	// State
 	let {
 		selection,
 		title = 'Nostr articles',
 		typeAnnotationParagraphs = ['A Nostr long-form article is a replaceable kind-30023 event addressed by author public key and identifier.'],
-		placeholderText = 'Loading Nostr articles...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -46,8 +50,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NostrArticleView from '$/views/NostrArticleView.svelte'
 </script>
 
 
@@ -60,29 +64,16 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					identifier: true,
 					pubkey: true,
 					kind: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.NostrArticle}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(nostrArticles)}
 			{@const uniqueNostrArticles = [...new Map(nostrArticles.values.map((nostrArticle) => [nostrArticle[EntityMetaKey.SelectorKey], nostrArticle])).values()]}
 			<EntitiesList
@@ -94,7 +85,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={nostrArticles.values.length === uniqueNostrArticles.length && nostrArticles.totalCount != null && nostrArticles.totalCount >= uniqueNostrArticles.length ? nostrArticles.totalCount : uniqueNostrArticles.length}
+				totalCount={nostrArticles.totalCount}
 				getKey={(nostrArticle) => nostrArticle[EntityMetaKey.SelectorKey]}
 				items={uniqueNostrArticles}
 			>
@@ -107,30 +98,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: nostrArticle }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrArticle> })}
-					<EntityView
-						entityType={EntityType.NostrArticle}
-						entitySelector={nostrArticle.entitySelector}
-						layout={EntityLayout.Summary}
+					{@const nostrArticleFields = { ...nostrArticle[EntityMetaKey.Selector], ...nostrArticle }}
+					<NostrArticleView
+						selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
+						prefetched={nostrArticleFields}
+						layout={EntityLayout.Title}
 						open={false}
-					>
-						{#snippet Title()}
-							{@const identifier0 = ({ ...nostrArticle.entitySelector, ...nostrArticle }).identifier}
-							{String((identifier0) ?? '')}
-							{@const pubkey1 = ({ ...nostrArticle.entitySelector, ...nostrArticle }).pubkey}
-							<TruncatedValue value={String(pubkey1)} />
-						{/snippet}
-
-						{#snippet HeadingAfter()}
-							{@const kindAfter0 = ({ ...nostrArticle.entitySelector, ...nostrArticle }).kind}
-							{#if kindAfter0 != null}
-								<span data-text="muted">
-									kind
-									<span>kind </span>
-									{String((kindAfter0) ?? '')}
-								</span>
-							{/if}
-						{/snippet}
-					</EntityView>
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/snippet}

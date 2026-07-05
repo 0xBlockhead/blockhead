@@ -20,7 +20,7 @@
 		selection,
 		title = 'Swarm protocols',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Swarm protocols...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,28 +64,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					protocolName: true,
 					topology: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.SwarmProtocol}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(swarmProtocols)}
 			{@const uniqueSwarmProtocols = [...new Map(swarmProtocols.values.map((swarmProtocol) => [swarmProtocol[EntityMetaKey.SelectorKey], swarmProtocol])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={swarmProtocols.values.length === uniqueSwarmProtocols.length && swarmProtocols.totalCount != null && swarmProtocols.totalCount >= uniqueSwarmProtocols.length ? swarmProtocols.totalCount : uniqueSwarmProtocols.length}
+				totalCount={swarmProtocols.totalCount}
 				getKey={(swarmProtocol) => swarmProtocol[EntityMetaKey.SelectorKey]}
 				items={uniqueSwarmProtocols}
 			>
@@ -110,9 +97,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: swarmProtocol }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SwarmProtocol> })}
+					{@const swarmProtocolFields = { ...swarmProtocol[EntityMetaKey.Selector], ...swarmProtocol }}
 					<SwarmProtocolView
-						selection={select(EntityType.SwarmProtocol, swarmProtocol.entitySelector)}
-						prefetched={swarmProtocol}
+						selection={select(EntityType.SwarmProtocol, swarmProtocol[EntityMetaKey.Selector])}
+						prefetched={swarmProtocolFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

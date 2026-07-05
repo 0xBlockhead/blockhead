@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum TronContract_TimestampSelector {
-	ContractTimestampMsSource = '$contract+timestampMs+source',
+	ContractTimestampMsSource = 'ContractTimestampMsSource',
 }
 export default {
 	entityType: EntityType.TronContract_Timestamp,
@@ -24,55 +24,67 @@ export default {
 	],
 	fields: [
 		{
-			name: '$contract',
-			label: 'contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TronContract,
-			cardinality: EntityFieldCardinality.One,
+				name: '$contract',
+				label: 'Contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.TronContract,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'source',
+				label: 'Source',
+				description: 'The source that produced this observation.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'compiler',
-			label: 'compiler',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'compiler',
+				label: 'Compiler',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.TronScan_Rest,
+				],
 		},
 		{
-			name: 'verifyStatus',
-			label: 'verify status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'verifyStatus',
+				label: 'Verify status',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.TronScan_Rest,
+				],
 		},
 		{
-			name: 'isProxy',
-			label: 'is proxy',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("boolean"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'isProxy',
+				label: 'Proxy',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('boolean'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.TronScan_Rest,
+				],
 		},
 		{
-			name: '$implementation',
-			label: 'implementation',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TronContract,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$implementation',
+				label: 'Implementation',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.TronContract,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.TronScan_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

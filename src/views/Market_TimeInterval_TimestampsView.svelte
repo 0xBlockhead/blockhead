@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType } from '$/constants/Market.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -22,7 +23,7 @@
 		selection,
 		title = 'OHLC',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading OHLC candles...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -78,7 +79,7 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Coingecko_Rest,
 					Source.Coingecko_OpenApi,
@@ -89,26 +90,14 @@
 					timeInterval: true,
 					close: true,
 					timestampMs: true,
+					$market: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.Market_TimeInterval_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-			/>
-		{/snippet}
-
 		{#snippet children(marketTimeIntervalTimestamps)}
-			{@const uniqueMarketTimeIntervalTimestamps = [...new Map(marketTimeIntervalTimestamps.values.filter((marketTimeIntervalTimestamp) => (timeInterval == null || (marketTimeIntervalTimestamp.entitySelector.timeInterval.unit === timeInterval.unit && marketTimeIntervalTimestamp.entitySelector.timeInterval.value === timeInterval.value))).map((marketTimeIntervalTimestamp) => [marketTimeIntervalTimestamp[EntityMetaKey.SelectorKey], marketTimeIntervalTimestamp])).values()]}
+			{@const uniqueMarketTimeIntervalTimestamps = [...new Map(marketTimeIntervalTimestamps.values.filter((marketTimeIntervalTimestamp) => (timeInterval == null || (marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.unit === timeInterval.unit && marketTimeIntervalTimestamp[EntityMetaKey.Selector].timeInterval.value === timeInterval.value))).map((marketTimeIntervalTimestamp) => [marketTimeIntervalTimestamp[EntityMetaKey.SelectorKey], marketTimeIntervalTimestamp])).values()]}
 			<EntitiesList
 				{...EntitiesListProps}
 				entityType={EntityType.Market_TimeInterval_Timestamp}
@@ -118,7 +107,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={marketTimeIntervalTimestamps.values.length === uniqueMarketTimeIntervalTimestamps.length && marketTimeIntervalTimestamps.totalCount != null && marketTimeIntervalTimestamps.totalCount >= uniqueMarketTimeIntervalTimestamps.length ? marketTimeIntervalTimestamps.totalCount : uniqueMarketTimeIntervalTimestamps.length}
+				totalCount={marketTimeIntervalTimestamps.totalCount}
 				getKey={(marketTimeIntervalTimestamp) => marketTimeIntervalTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueMarketTimeIntervalTimestamps}
 			>
@@ -131,22 +120,24 @@
 				{/snippet}
 
 				{#snippet Item({ item: marketTimeIntervalTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Market_TimeInterval_Timestamp> })}
+					{@const marketTimeIntervalTimestampFields = { ...marketTimeIntervalTimestamp[EntityMetaKey.Selector], ...marketTimeIntervalTimestamp }}
+					{@const marketTimeIntervalTimestampHrefFields = { ...marketTimeIntervalTimestamp, ...marketTimeIntervalTimestamp[EntityMetaKey.Selector] }}
 					<Market_TimeInterval_TimestampView
+						selection={select(EntityType.Market_TimeInterval_Timestamp, marketTimeIntervalTimestamp[EntityMetaKey.Selector])}
+						prefetched={marketTimeIntervalTimestampFields}
 						href={
-							resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]', {
-								marketVenue: entity.$market.$marketVenue.marketVenueId,
-								baseKind: marketAssetRouteLabelByKind[entity.$market.$base.kind],
-								base: entity.$market.$base.kind === MarketAssetKind.Coin ? entity.$market.$base.$coin.coinId : entity.$market.$base.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$market.$base.$coinInstance.type] : entity.$market.$base.$currency.iso4217,
-								quoteKind: marketAssetRouteLabelByKind[entity.$market.$quote.kind],
-								quote: entity.$market.$quote.kind === MarketAssetKind.Coin ? entity.$market.$quote.$coin.coinId : entity.$market.$quote.kind === MarketAssetKind.CoinInstance ? marketCoinInstanceRouteLabelByType[entity.$market.$quote.$coinInstance.type] : entity.$market.$quote.$currency.iso4217,
-								marketKind: entity.$market.marketKind,
-								timeIntervalUnit: String(({ ...marketTimeIntervalTimestamp.entitySelector, ...marketTimeIntervalTimestamp }).timeInterval.unit),
-								timeIntervalValue: String(({ ...marketTimeIntervalTimestamp.entitySelector, ...marketTimeIntervalTimestamp }).timeInterval.value),
-								timestampMs: String(({ ...marketTimeIntervalTimestamp.entitySelector, ...marketTimeIntervalTimestamp }).timestampMs),
-							})
+							(marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$marketVenue !== undefined && marketTimeIntervalTimestampHrefFields.$market.$marketVenue.marketVenueId !== undefined && marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.kind !== undefined && (marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.kind !== undefined && (marketTimeIntervalTimestampHrefFields.$market.$base.kind === 'Coin' ? marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.$coin !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.$coin.coinId !== undefined : marketTimeIntervalTimestampHrefFields.$market.$base.kind === 'CoinInstance' ? marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.$coinInstance !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.$coinInstance.type !== undefined : marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.$currency !== undefined && marketTimeIntervalTimestampHrefFields.$market.$base.$currency.iso4217 !== undefined)) && marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.kind !== undefined && (marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.kind !== undefined && (marketTimeIntervalTimestampHrefFields.$market.$quote.kind === 'Coin' ? marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.$coin !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.$coin.coinId !== undefined : marketTimeIntervalTimestampHrefFields.$market.$quote.kind === 'CoinInstance' ? marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.$coinInstance !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.$coinInstance.type !== undefined : marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.$currency !== undefined && marketTimeIntervalTimestampHrefFields.$market.$quote.$currency.iso4217 !== undefined)) && marketTimeIntervalTimestampHrefFields.$market !== undefined && marketTimeIntervalTimestampHrefFields.$market.marketKind !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval.unit !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval !== undefined && marketTimeIntervalTimestampHrefFields.timeInterval.value !== undefined && marketTimeIntervalTimestampHrefFields.timestampMs !== undefined ? resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]/candles/[timeIntervalUnit]/[timeIntervalValue]/[timestampMs]', {
+								marketVenue: String(marketTimeIntervalTimestampHrefFields.$market.$marketVenue.marketVenueId ?? ''),
+								baseKind: String(marketAssetRouteLabelByKind[String(marketTimeIntervalTimestampHrefFields.$market.$base.kind)] ?? ''),
+								base: String((marketTimeIntervalTimestampHrefFields.$market.$base.kind === 'Coin' ? marketTimeIntervalTimestampHrefFields.$market.$base.$coin.coinId : marketTimeIntervalTimestampHrefFields.$market.$base.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketTimeIntervalTimestampHrefFields.$market.$base.$coinInstance.type)] : marketTimeIntervalTimestampHrefFields.$market.$base.$currency.iso4217)),
+								quoteKind: String(marketAssetRouteLabelByKind[String(marketTimeIntervalTimestampHrefFields.$market.$quote.kind)] ?? ''),
+								quote: String((marketTimeIntervalTimestampHrefFields.$market.$quote.kind === 'Coin' ? marketTimeIntervalTimestampHrefFields.$market.$quote.$coin.coinId : marketTimeIntervalTimestampHrefFields.$market.$quote.kind === 'CoinInstance' ? marketCoinInstanceRouteLabelByType[String(marketTimeIntervalTimestampHrefFields.$market.$quote.$coinInstance.type)] : marketTimeIntervalTimestampHrefFields.$market.$quote.$currency.iso4217)),
+								marketKind: String(marketTimeIntervalTimestampHrefFields.$market.marketKind ?? ''),
+								timeIntervalUnit: String(marketTimeIntervalTimestampHrefFields.timeInterval.unit ?? ''),
+								timeIntervalValue: String(marketTimeIntervalTimestampHrefFields.timeInterval.value ?? ''),
+								timestampMs: String(marketTimeIntervalTimestampHrefFields.timestampMs ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.Market_TimeInterval_Timestamp, marketTimeIntervalTimestamp.entitySelector)}
-						prefetched={marketTimeIntervalTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

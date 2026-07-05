@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM network observations',
 		typeAnnotationParagraphs = ['A point-in-time observation of an EVM-compatible network.'],
-		placeholderText = 'Loading EVM network observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,29 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					blockHeight: true,
 					timestampMs: true,
 					$network: true,
+					source: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetwork_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmNetworkTimestamps)}
 			{@const uniqueEvmNetworkTimestamps = [...new Map(evmNetworkTimestamps.values.map((evmNetworkTimestamp) => [evmNetworkTimestamp[EntityMetaKey.SelectorKey], evmNetworkTimestamp])).values()]}
 			<EntitiesList
@@ -99,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkTimestamps.values.length === uniqueEvmNetworkTimestamps.length && evmNetworkTimestamps.totalCount != null && evmNetworkTimestamps.totalCount >= uniqueEvmNetworkTimestamps.length ? evmNetworkTimestamps.totalCount : uniqueEvmNetworkTimestamps.length}
+				totalCount={evmNetworkTimestamps.totalCount}
 				getKey={(evmNetworkTimestamp) => evmNetworkTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmNetworkTimestamps}
 			>
@@ -112,17 +100,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetwork_Timestamp> })}
+					{@const evmNetworkTimestampFields = { ...evmNetworkTimestamp[EntityMetaKey.Selector], ...evmNetworkTimestamp }}
+					{@const evmNetworkTimestampHrefFields = { ...evmNetworkTimestamp, ...evmNetworkTimestamp[EntityMetaKey.Selector] }}
 					<EvmNetwork_TimestampView
+						selection={select(EntityType.EvmNetwork_Timestamp, evmNetworkTimestamp[EntityMetaKey.Selector])}
+						prefetched={evmNetworkTimestampFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(({ ...evmNetworkTimestamp.entitySelector, ...evmNetworkTimestamp }).caip2.namespace)}:${String(({ ...evmNetworkTimestamp.entitySelector, ...evmNetworkTimestamp }).caip2.reference)}`,
-								timestampMs: String(({ ...evmNetworkTimestamp.entitySelector, ...evmNetworkTimestamp }).timestampMs),
-								source: String(({ ...evmNetworkTimestamp.entitySelector, ...evmNetworkTimestamp }).source),
-							})
+							(evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTimestampHrefFields.$network.caip2.namespace !== undefined && evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTimestampHrefFields.$network.caip2.reference !== undefined && evmNetworkTimestampHrefFields.timestampMs !== undefined && evmNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								caip2: `${String(evmNetworkTimestampHrefFields.$network.caip2.namespace ?? '')}:${String(evmNetworkTimestampHrefFields.$network.caip2.reference ?? '')}`,
+								timestampMs: String(evmNetworkTimestampHrefFields.timestampMs ?? ''),
+								source: String(evmNetworkTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmNetwork_Timestamp, evmNetworkTimestamp.entitySelector)}
-						prefetched={evmNetworkTimestamp}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

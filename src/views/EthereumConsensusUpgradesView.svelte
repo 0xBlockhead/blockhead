@@ -21,7 +21,7 @@
 		selection,
 		title = 'Ethereum consensus upgrades',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Ethereum consensus upgrades...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
-					name: true,
 					upgradeId: true,
+					name: true,
+					$network: true,
+					slug: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EthereumConsensusUpgrade}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(ethereumConsensusUpgrades)}
 			{@const uniqueEthereumConsensusUpgrades = [...new Map(ethereumConsensusUpgrades.values.map((ethereumConsensusUpgrade) => [ethereumConsensusUpgrade[EntityMetaKey.SelectorKey], ethereumConsensusUpgrade])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={ethereumConsensusUpgrades.values.length === uniqueEthereumConsensusUpgrades.length && ethereumConsensusUpgrades.totalCount != null && ethereumConsensusUpgrades.totalCount >= uniqueEthereumConsensusUpgrades.length ? ethereumConsensusUpgrades.totalCount : uniqueEthereumConsensusUpgrades.length}
+				totalCount={ethereumConsensusUpgrades.totalCount}
 				getKey={(ethereumConsensusUpgrade) => ethereumConsensusUpgrade[EntityMetaKey.SelectorKey]}
 				items={uniqueEthereumConsensusUpgrades}
 			>
@@ -111,15 +100,17 @@
 				{/snippet}
 
 				{#snippet Item({ item: ethereumConsensusUpgrade }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EthereumConsensusUpgrade> })}
+					{@const ethereumConsensusUpgradeFields = { ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }}
+					{@const ethereumConsensusUpgradeHrefFields = { ...ethereumConsensusUpgrade, ...ethereumConsensusUpgrade[EntityMetaKey.Selector] }}
 					<EthereumConsensusUpgradeView
+						selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector])}
+						prefetched={ethereumConsensusUpgradeFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {
-								caip2: `${String(({ ...ethereumConsensusUpgrade.entitySelector, ...ethereumConsensusUpgrade }).$network.caip2.namespace)}:${String(({ ...ethereumConsensusUpgrade.entitySelector, ...ethereumConsensusUpgrade }).$network.caip2.reference)}`,
-								upgradeSlug: String(({ ...ethereumConsensusUpgrade.entitySelector, ...ethereumConsensusUpgrade }).slug),
-							})
+							(ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2 !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2.namespace !== undefined && ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2 !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2.reference !== undefined && ethereumConsensusUpgradeHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {
+								caip2: `${String(ethereumConsensusUpgradeHrefFields.$network.caip2.namespace ?? '')}:${String(ethereumConsensusUpgradeHrefFields.$network.caip2.reference ?? '')}`,
+								upgradeSlug: String(ethereumConsensusUpgradeHrefFields.slug ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade.entitySelector)}
-						prefetched={ethereumConsensusUpgrade}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

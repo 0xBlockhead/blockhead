@@ -47,6 +47,6 @@
 				proposalId: decodeURIComponent(params.proposalId),
 			})[EntityProxyField]<EntityType.CosmosGovernanceProposal_Timestamp>('$$timestamps')
 		}
-		id='CosmosGovernanceProposal_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

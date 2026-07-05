@@ -23,7 +23,6 @@ export const quilibriumNodeMetricsBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:QUILIBRIUM_NODE_PROMETHEUS_URL',
-				origin: 'env:QUILIBRIUM_NODE_PROMETHEUS_URL',
 				corsEnabled: false,
 			},
 		],

@@ -1,9 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
 export default {
 	provider: SourceProvider.Rss2Json,
 	source: Source.Rss2Json_Rest,
-	label: 'RSS2JSON API',
+	label: 'rss2json REST',
 } satisfies SourceDefinition

@@ -42,6 +42,7 @@
 					$icon: true,
 					name: true,
 					namespace: true,
+					$networkStack: true,
 					environment: true,
 				},
 			})

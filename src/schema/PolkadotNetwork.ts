@@ -49,6 +49,27 @@ export default {
 				cardinality: EntityFieldCardinality.Many,
 		},
 		{
+				name: '$$assets',
+				label: 'Assets',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotAsset,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
+				name: '$$assetBalanceTimestamps',
+				label: 'Asset balance observations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotAssetBalance_Timestamp,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
+				name: '$$referendums',
+				label: 'Referendums',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.PolkadotReferendum,
+				cardinality: EntityFieldCardinality.Many,
+		},
+		{
 				name: '$$validators',
 				label: 'Validators',
 				type: EntityFieldType.EntitiesReference,

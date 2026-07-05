@@ -39,9 +39,9 @@
 		selection={
 			select(EntityType.EvmAccount, data.selector, {
 				fields: {
+					$avatar: true,
 					avatarUrl: true,
 					$primaryName: true,
-					$avatar: true,
 				},
 			})
 		}

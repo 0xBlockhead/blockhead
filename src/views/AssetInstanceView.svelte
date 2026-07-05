@@ -4,9 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -44,43 +44,26 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const assetInstance = $derived(selection({
-		sources: open ? [
+		sources: [
 			Source.Constants_Internal,
-			Source.Chainlist_Rest,
-			Source.EthereumLists_Rest,
-			Source.Coingecko_Rest,
-			Source.Lifi_Rest,
-		] : [
-			Source.Constants_Internal,
-			Source.Chainlist_Rest,
-			Source.EthereumLists_Rest,
 		],
 		fields: {
-			$icon: true,
 			symbol: true,
 			name: true,
-			...(open && {
-				coinId: true,
-				decimals: true,
-				caip19: true,
-				representation: true,
-				iconUrl: true,
-				$contract: true,
-				$canonicalInstance: true,
-				$$outboundBridgeCapabilities: true,
-				$$inboundBridgeCapabilities: true,
-				$$marketsWithInstanceAsBase: true,
-				$$marketsWithInstanceAsQuote: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || 'Asset instance')
+	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Asset instance')
 	const viewDomId = $derived('asset-instance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
-	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TokenMetadataDocumentsView from '$/views/TokenMetadataDocumentsView.svelte'
+	import TokenProgramExtension_TimestampsView from '$/views/TokenProgramExtension_TimestampsView.svelte'
+	import RegulatedAssetProfilesView from '$/views/RegulatedAssetProfilesView.svelte'
+	import TransferRestrictionsView from '$/views/TransferRestrictionsView.svelte'
+	import NftCollectionsView from '$/views/NftCollectionsView.svelte'
+	import PayoutsView from '$/views/PayoutsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
 </script>
@@ -88,126 +71,44 @@
 
 <EntityView
 	entityType={EntityType.AssetInstance}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$network.caip2.reference)}`,
-			kind: String(({ ...selection.entitySelector, ...prefetched }).kind),
-			assetKey: String(({ ...selection.entitySelector, ...prefetched }).assetKey),
-		})
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.kind !== undefined && pendingEntity.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
+			kind: String(pendingEntity.kind ?? ''),
+			assetKey: String(pendingEntity.assetKey ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
-
-	{#snippet Icon()}
+	{#snippet Title()}
 		<ResourceBoundary resource={assetInstance}>
 			{#snippet Pending()}
-				<IconComponent />
+				{[String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'Asset instance'}
 			{/snippet}
 
 			{#snippet children(entity)}
-				{@const reference = entity.$icon}
-				{#if reference?.[EntityMetaKey.Selector] !== undefined}
-					<MediaView
-						selection={select(EntityType.Media, reference[EntityMetaKey.Selector])}
-						prefetched={reference}
-						layout={EntityLayout.Value}
-						open={false}
-					/>
-				{/if}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.symbol) ?? ''), String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'Asset instance'}
-		{:else}
-			<ResourceBoundary resource={assetInstance}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'Asset instance'}
-				{/snippet}
-
-				{#snippet children(entity)}
-					{[String((entity.symbol) ?? ''), String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'Asset instance'}
-		{:else}
-			<ResourceBoundary resource={assetInstance}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).symbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || 'Asset instance'}
-				{/snippet}
+		<ResourceBoundary resource={assetInstance}>
+			{#snippet Pending()}
+				{[String((prefetched.symbol) ?? '')].filter(Boolean).join(' ') || [String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'Asset instance'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.symbol) ?? '')].filter(Boolean).join(' ') || [String((entity.symbol) ?? ''), String((entity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-
-	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			<span data-text="muted">
-				<NetworkView
-					selection={select(EntityType.Network, selection.entitySelector.$network)}
-					href={
-						(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-						}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-							networkSlug: String(selection.entitySelector.$network.slug),
-						}) : undefined)
-					}
-					layout={EntityLayout.Title}
-					open={false}
-				/>
-			</span>
-		{:else}
-			<ResourceBoundary resource={assetInstance}>
-				{#snippet Pending()}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-
-				{#snippet children(entity)}
-					<span data-text="muted">
-						<NetworkView
-							selection={select(EntityType.Network, selection.entitySelector.$network)}
-							href={
-								(selection.entitySelector.$network?.caip2 != null && selection.entitySelector.$network?.caip2?.namespace != null && selection.entitySelector.$network?.caip2?.reference != null ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-									caip2: `${String(selection.entitySelector.$network.caip2.namespace)}:${String(selection.entitySelector.$network.caip2.reference)}`,
-								}) : selection.entitySelector.$network?.slug != null ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-									networkSlug: String(selection.entitySelector.$network.slug),
-								}) : undefined)
-							}
-							layout={EntityLayout.Title}
-							open={false}
-						/>
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.symbol) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.symbol) ?? ''), String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -221,16 +122,25 @@
 			<div>
 				<dt>Kind</dt>
 				<dd>
-					<ResourceBoundary resource={assetInstance}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									kind: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const kind = prefetched.kind ?? selection.entitySelector.kind}
+							{@const kind = selection.entitySelector.kind ?? prefetched.kind}
 							{#if kind !== undefined && kind !== null}
 								{String((kind) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const kind = entity.kind ?? selection.entitySelector.kind ?? prefetched.kind}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const kind = resolvedEntity.kind}
 							{#if kind !== undefined && kind !== null}
 								{String((kind) ?? '')}
 							{/if}
@@ -242,16 +152,25 @@
 			<div>
 				<dt>Asset key</dt>
 				<dd>
-					<ResourceBoundary resource={assetInstance}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									assetKey: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const assetKey = prefetched.assetKey ?? selection.entitySelector.assetKey}
+							{@const assetKey = selection.entitySelector.assetKey ?? prefetched.assetKey}
 							{#if assetKey !== undefined && assetKey !== null}
 								{String((assetKey) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const assetKey = entity.assetKey ?? selection.entitySelector.assetKey ?? prefetched.assetKey}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const assetKey = resolvedEntity.assetKey}
 							{#if assetKey !== undefined && assetKey !== null}
 								{String((assetKey) ?? '')}
 							{/if}
@@ -260,9 +179,17 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={assetInstance}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							coinId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const coinId = prefetched.coinId ?? selection.entitySelector.coinId}
+					{@const coinId = prefetched.coinId}
 					{#if coinId !== undefined && coinId !== null}
 						<div>
 							<dt>Coin ID</dt>
@@ -274,7 +201,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const coinId = entity.coinId ?? selection.entitySelector.coinId ?? prefetched.coinId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const coinId = resolvedEntity.coinId}
 					{#if coinId !== undefined && coinId !== null}
 						<div>
 							<dt>Coin ID</dt>
@@ -285,12 +213,80 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<div>
+				<dt>Name</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									name: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const name = prefetched.name}
+							{#if name !== undefined && name !== null}
+								{String((name) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const name = resolvedEntity.name}
+							{#if name !== undefined && name !== null}
+								{String((name) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={assetInstance}>
+			<div>
+				<dt>Symbol</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									symbol: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const symbol = prefetched.symbol}
+							{#if symbol !== undefined && symbol !== null}
+								{String((symbol) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const symbol = resolvedEntity.symbol}
+							{#if symbol !== undefined && symbol !== null}
+								{String((symbol) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							decimals: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const decimals = prefetched.decimals ?? selection.entitySelector.decimals}
+					{@const decimals = prefetched.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -302,7 +298,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const decimals = entity.decimals ?? selection.entitySelector.decimals ?? prefetched.decimals}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const decimals = resolvedEntity.decimals}
 					{#if decimals !== undefined && decimals !== null}
 						<div>
 							<dt>Decimals</dt>
@@ -313,6 +310,95 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+
+			<div>
+				<dt>Network</dt>
+				<dd>
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						href={
+							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				</dd>
+			</div>
+
+			<ResourceBoundary
+				resource={selection[EntityProxyField]<EntityType.Media, false>('$icon')}
+			>
+				{#snippet children(media)}
+					{#if media != null && media[EntityMetaKey.Selector] != null}
+						<div>
+							<dt>Icon</dt>
+							<dd>
+								<MediaView
+									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
+									prefetched={media}
+									href={
+										(({ ...media[EntityMetaKey.Selector], ...media }).url !== undefined ? resolve('/(explore)/media/[url]', {
+											url: String(({ ...media[EntityMetaKey.Selector], ...media }).url ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: detailsOpen })}
+		{#if detailsOpen}
+			<TokenMetadataDocumentsView
+				selection={selection[EntityProxyField]<EntityType.TokenMetadataDocument>('$$metadata')}
+				title='Metadata'
+				emptyText='No token metadata documents.'
+				id='TokenMetadataDocumentsView-$$metadata'
+			/>
+
+			<TokenProgramExtension_TimestampsView
+				selection={selection[EntityProxyField]<EntityType.TokenProgramExtension_Timestamp>('$$tokenProgramExtensions')}
+				title='Token program extensions'
+				emptyText='No token program extension observations.'
+				id='TokenProgramExtension_TimestampsView-$$tokenProgramExtensions'
+			/>
+
+			<RegulatedAssetProfilesView
+				selection={selection[EntityProxyField]<EntityType.RegulatedAssetProfile>('$$regulatedProfiles')}
+				title='Regulated profiles'
+				emptyText='No regulated asset profiles.'
+				id='RegulatedAssetProfilesView-$$regulatedProfiles'
+			/>
+
+			<TransferRestrictionsView
+				selection={selection[EntityProxyField]<EntityType.TransferRestriction>('$$transferRestrictions')}
+				title='Transfer restrictions'
+				emptyText='No transfer restrictions.'
+				id='TransferRestrictionsView-$$transferRestrictions'
+			/>
+
+			<NftCollectionsView
+				selection={selection[EntityProxyField]<EntityType.NftCollection>('$$nftCollections')}
+				title='NFT collections'
+				emptyText='No NFT collections.'
+				id='NftCollectionsView-$$nftCollections'
+			/>
+
+			<PayoutsView
+				selection={selection[EntityProxyField]<EntityType.Payout>('$$payouts')}
+				title='Payouts'
+				emptyText='No payouts.'
+				id='PayoutsView-$$payouts'
+			/>
+		{/if}
 	{/snippet}
 </EntityView>

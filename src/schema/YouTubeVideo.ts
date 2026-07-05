@@ -17,7 +17,7 @@ export enum YoutubeVideoSelector {
 export default {
 	entityType: EntityType.YoutubeVideo,
 	label: 'YouTube video',
-	labelPlural: 'YouTube videos',
+	labelPlural: 'YouTube Videos',
 	selectors: [
 		{
 			name: YoutubeVideoSelector.VideoId,

@@ -21,7 +21,7 @@
 		selection,
 		title = 'EVM network bridges',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM network bridges...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -65,28 +65,17 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					url: true,
 					relationshipType: true,
+					$fromNetwork: true,
+					$toNetwork: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmNetworkBridge}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmNetworkBridges)}
 			{@const uniqueEvmNetworkBridges = [...new Map(evmNetworkBridges.values.map((evmNetworkBridge) => [evmNetworkBridge[EntityMetaKey.SelectorKey], evmNetworkBridge])).values()]}
 			<EntitiesList
@@ -98,7 +87,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmNetworkBridges.values.length === uniqueEvmNetworkBridges.length && evmNetworkBridges.totalCount != null && evmNetworkBridges.totalCount >= uniqueEvmNetworkBridges.length ? evmNetworkBridges.totalCount : uniqueEvmNetworkBridges.length}
+				totalCount={evmNetworkBridges.totalCount}
 				getKey={(evmNetworkBridge) => evmNetworkBridge[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmNetworkBridges}
 			>
@@ -111,17 +100,19 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmNetworkBridge }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetworkBridge> })}
+					{@const evmNetworkBridgeFields = { ...evmNetworkBridge[EntityMetaKey.Selector], ...evmNetworkBridge }}
+					{@const evmNetworkBridgeHrefFields = { ...evmNetworkBridge, ...evmNetworkBridge[EntityMetaKey.Selector] }}
 					<EvmNetworkBridgeView
+						selection={select(EntityType.EvmNetworkBridge, evmNetworkBridge[EntityMetaKey.Selector])}
+						prefetched={evmNetworkBridgeFields}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/bridges/[toCaip2=eip155NetworkCaip2]/[url]', {
-								caip2: `${String(({ ...evmNetworkBridge.entitySelector, ...evmNetworkBridge }).$fromNetwork.caip2.namespace)}:${String(({ ...evmNetworkBridge.entitySelector, ...evmNetworkBridge }).$fromNetwork.caip2.reference)}`,
-								toCaip2: `${String(({ ...evmNetworkBridge.entitySelector, ...evmNetworkBridge }).$toNetwork.caip2.namespace)}:${String(({ ...evmNetworkBridge.entitySelector, ...evmNetworkBridge }).$toNetwork.caip2.reference)}`,
-								url: String(({ ...evmNetworkBridge.entitySelector, ...evmNetworkBridge }).url),
-							})
+							(evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2.namespace !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2.reference !== undefined && evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2.namespace !== undefined && evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2.reference !== undefined && evmNetworkBridgeHrefFields.url !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/bridges/[toCaip2=eip155NetworkCaip2]/[url]', {
+								caip2: `${String(evmNetworkBridgeHrefFields.$fromNetwork.caip2.namespace ?? '')}:${String(evmNetworkBridgeHrefFields.$fromNetwork.caip2.reference ?? '')}`,
+								toCaip2: `${String(evmNetworkBridgeHrefFields.$toNetwork.caip2.namespace ?? '')}:${String(evmNetworkBridgeHrefFields.$toNetwork.caip2.reference ?? '')}`,
+								url: String(evmNetworkBridgeHrefFields.url ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmNetworkBridge, evmNetworkBridge.entitySelector)}
-						prefetched={evmNetworkBridge}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Title}
 						open={false}
 					/>
 				{/snippet}

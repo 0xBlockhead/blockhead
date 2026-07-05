@@ -27,7 +27,7 @@ describe('error helpers', () => {
 		}
 		const error = normalizeBoundaryError(cause)
 
-		expect(error.message).toBe('{\n  "message": "wire failure"\n}')
+		expect(error.message).toBe('wire failure')
 		expect(error.cause).toBe(cause)
 	})
 })

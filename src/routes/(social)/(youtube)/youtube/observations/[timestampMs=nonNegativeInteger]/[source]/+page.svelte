@@ -39,6 +39,7 @@
 		}
 		selection={
 			select(EntityType._GlobalYoutubeNetwork_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					sourceWindowChannelCount: true,
 					sourceWindowVideoCount: true,

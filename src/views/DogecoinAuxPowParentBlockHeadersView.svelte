@@ -1,0 +1,122 @@
+<!-- Generated from APP.ts. Do not edit by hand. -->
+
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { select } from '$/routes/+layout.svelte'
+
+
+	// State
+	let {
+		selection,
+		title = 'Dogecoin aux pow parent block headers',
+		typeAnnotationParagraphs = [],
+		placeholderText,
+		emptyText = undefined,
+		open = $bindable(true),
+		collapsible = true,
+		showTypeAnnotation = true,
+		id = 'DogecoinAuxPowParentBlockHeaders-list',
+		...EntitiesListProps
+	}: WithRest<
+		{
+			selection: EntityProxyEntitiesResource<typeof schema, EntityType.DogecoinAuxPowParentBlockHeader>
+			title?: string
+			typeAnnotationParagraphs?: string[]
+			placeholderText?: string
+			emptyText?: string
+			open?: boolean
+			collapsible?: boolean
+			showTypeAnnotation?: boolean
+			id?: string
+		},
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+			| 'CollapsibleProps'
+		>
+	> = $props()
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import DogecoinAuxPowParentBlockHeaderView from '$/views/DogecoinAuxPowParentBlockHeaderView.svelte'
+</script>
+
+
+{#snippet TypeAnnotationParagraphs()}
+	{#each typeAnnotationParagraphs as paragraph (paragraph)}
+		<p>{paragraph}</p>
+	{/each}
+{/snippet}
+
+{#if open}
+	<ResourceBoundary
+		resource={
+			selection({
+				fields: {
+					$auxPow: true,
+					merkleRoot: true,
+				},
+			})
+		}
+		{placeholderText}
+	>
+		{#snippet children(dogecoinAuxPowParentBlockHeaders)}
+			{@const uniqueDogecoinAuxPowParentBlockHeaders = [...new Map(dogecoinAuxPowParentBlockHeaders.values.map((dogecoinAuxPowParentBlockHeader) => [dogecoinAuxPowParentBlockHeader[EntityMetaKey.SelectorKey], dogecoinAuxPowParentBlockHeader])).values()]}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.DogecoinAuxPowParentBlockHeader}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				totalCount={dogecoinAuxPowParentBlockHeaders.totalCount}
+				getKey={(dogecoinAuxPowParentBlockHeader) => dogecoinAuxPowParentBlockHeader[EntityMetaKey.SelectorKey]}
+				items={uniqueDogecoinAuxPowParentBlockHeaders}
+			>
+				{#snippet Empty()}
+					{#if emptyText != null}
+						<p data-text="muted">{emptyText}</p>
+					{:else}
+						<p data-text="muted">No Dogecoin aux pow parent block headers yet.</p>
+					{/if}
+				{/snippet}
+
+				{#snippet Item({ item: dogecoinAuxPowParentBlockHeader }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DogecoinAuxPowParentBlockHeader> })}
+					{@const dogecoinAuxPowParentBlockHeaderFields = { ...dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector], ...dogecoinAuxPowParentBlockHeader }}
+					<DogecoinAuxPowParentBlockHeaderView
+						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
+						prefetched={dogecoinAuxPowParentBlockHeaderFields}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/snippet}
+	</ResourceBoundary>
+{:else}
+	<EntitiesList
+		{...EntitiesListProps}
+		entityType={EntityType.DogecoinAuxPowParentBlockHeader}
+		{id}
+		{title}
+		bind:open
+		{collapsible}
+		{showTypeAnnotation}
+		TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+	/>
+{/if}

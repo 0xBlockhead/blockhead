@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='EvmSelectorsView-page'
+		id='evm-selectors'
 	/>
 </Page>

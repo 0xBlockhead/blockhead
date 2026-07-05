@@ -20,7 +20,7 @@
 		selection,
 		title = 'Farcaster feeds',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Farcaster feeds...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -64,28 +64,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					label: true,
 					variant: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.FarcasterFeed}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(farcasterFeeds)}
 			{@const uniqueFarcasterFeeds = [...new Map(farcasterFeeds.values.map((farcasterFeed) => [farcasterFeed[EntityMetaKey.SelectorKey], farcasterFeed])).values()]}
 			<EntitiesList
@@ -97,7 +84,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={farcasterFeeds.values.length === uniqueFarcasterFeeds.length && farcasterFeeds.totalCount != null && farcasterFeeds.totalCount >= uniqueFarcasterFeeds.length ? farcasterFeeds.totalCount : uniqueFarcasterFeeds.length}
+				totalCount={farcasterFeeds.totalCount}
 				getKey={(farcasterFeed) => farcasterFeed[EntityMetaKey.SelectorKey]}
 				items={uniqueFarcasterFeeds}
 			>
@@ -110,9 +97,10 @@
 				{/snippet}
 
 				{#snippet Item({ item: farcasterFeed }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterFeed> })}
+					{@const farcasterFeedFields = { ...farcasterFeed[EntityMetaKey.Selector], ...farcasterFeed }}
 					<FarcasterFeedView
-						selection={select(EntityType.FarcasterFeed, farcasterFeed.entitySelector)}
-						prefetched={farcasterFeed}
+						selection={select(EntityType.FarcasterFeed, farcasterFeed[EntityMetaKey.Selector])}
+						prefetched={farcasterFeedFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

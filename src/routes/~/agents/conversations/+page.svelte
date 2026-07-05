@@ -36,6 +36,6 @@
 				],
 			})
 		}
-		id='BlockheadAgentConversationsView-page'
+		id='blockhead-agent-conversations'
 	/>
 </Page>

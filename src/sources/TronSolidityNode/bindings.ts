@@ -16,9 +16,7 @@ import {
 
 const tronSolidityNodeOrigin = 'http://127.0.0.1:8091' as const
 
-export const tronSolidityNodePublicEnv = arktype({
-	PUBLIC_TRON_SOLIDITY_NODE_REST_BASE_URL: 'string',
-})
+export const tronSolidityNodePublicEnv = arktype({})
 
 export const tronSolidityNodeBindings = [
 	{
@@ -44,10 +42,7 @@ export const tronSolidityNodeBindings = [
 		delivery: SourceDelivery.HttpProxy,
 		credentials: [
 			{
-				scope: SourceCredentialScope.PublicConfig,
-				keys: [
-					'PUBLIC_TRON_SOLIDITY_NODE_REST_BASE_URL',
-				],
+				scope: SourceCredentialScope.None,
 			},
 		],
 		artifacts: [

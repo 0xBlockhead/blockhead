@@ -1,13 +1,11 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { type } from 'arktype'
+
 export enum EvmContractSourceBundleSelector {
-	EvmContract = 'evmContract',
-	Contract = '$contract',
+	EvmContract = 'EvmContract',
 }
 export default {
 	entityType: EntityType.EvmContractSourceBundle,
@@ -23,18 +21,18 @@ export default {
 	],
 	fields: [
 		{
-			name: '$contract',
-			label: 'contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.One,
+				name: '$contract',
+				label: 'Contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmContract,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'files',
-			label: 'files',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("unknown"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'files',
+				label: 'Files',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('unknown'),
+				cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

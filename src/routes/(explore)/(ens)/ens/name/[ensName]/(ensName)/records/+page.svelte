@@ -48,6 +48,6 @@
 				],
 			})
 		}
-		id='EnsRecordsView-page'
+		id='records'
 	/>
 </Page>

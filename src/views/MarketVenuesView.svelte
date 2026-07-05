@@ -20,7 +20,7 @@
 		selection,
 		title = 'Market venues',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading Market venues...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -74,28 +74,15 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				fields: {
 					label: true,
 					marketVenueId: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.MarketVenue}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-			/>
-		{/snippet}
-
 		{#snippet children(marketVenues)}
 			{@const uniqueMarketVenues = [...new Map(marketVenues.values.map((marketVenue) => [marketVenue[EntityMetaKey.SelectorKey], marketVenue])).values()]}
 			<EntitiesList
@@ -107,7 +94,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
-				totalCount={marketVenues.values.length === uniqueMarketVenues.length && marketVenues.totalCount != null && marketVenues.totalCount >= uniqueMarketVenues.length ? marketVenues.totalCount : uniqueMarketVenues.length}
+				totalCount={marketVenues.totalCount}
 				getKey={(marketVenue) => marketVenue[EntityMetaKey.SelectorKey]}
 				items={uniqueMarketVenues}
 			>
@@ -115,14 +102,15 @@
 					{#if emptyText != null}
 						<p data-text="muted">{emptyText}</p>
 					{:else}
-						<p data-text="muted">No market venues yet.</p>
+						<p data-text="muted">No Market venues yet.</p>
 					{/if}
 				{/snippet}
 
 				{#snippet Item({ item: marketVenue }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MarketVenue> })}
+					{@const marketVenueFields = { ...marketVenue[EntityMetaKey.Selector], ...marketVenue }}
 					<MarketVenueView
-						selection={select(EntityType.MarketVenue, marketVenue.entitySelector)}
-						prefetched={marketVenue}
+						selection={select(EntityType.MarketVenue, marketVenue[EntityMetaKey.Selector])}
+						prefetched={marketVenueFields}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

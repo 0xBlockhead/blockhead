@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -44,6 +43,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const specificationRealm = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -52,16 +52,11 @@
 			label: true,
 			labelPlural: true,
 			slug: true,
-			...(open && {
-				$$proposalKinds: true,
-				$$proposals: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm')
+	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.realm ?? prefetched.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm')
 	const viewDomId = $derived('specification-realm-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import SpecificationProposalKindsView from '$/views/SpecificationProposalKindsView.svelte'
@@ -70,54 +65,117 @@
 
 <EntityView
 	entityType={EntityType.SpecificationRealm}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-			specificationRealmSlug: String(specificationRealmById[String(({ ...selection.entitySelector, ...prefetched }).realm)].slug),
-		})
+		href ?? (pendingEntity.realm !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+			specificationRealmSlug: String(specificationRealmById[String(pendingEntity.realm)].slug ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
-		{:else}
-			<ResourceBoundary resource={specificationRealm}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
-				{/snippet}
+		<ResourceBoundary resource={specificationRealm}>
+			{#snippet Pending()}
+				{[String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.realm ?? prefetched.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).realm) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
-		{:else}
-			<ResourceBoundary resource={specificationRealm}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).realm) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).label) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.realm) ?? '')].filter(Boolean).join(' ') || 'Specification realm'}
-				{/snippet}
+		<ResourceBoundary resource={specificationRealm}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.realm ?? prefetched.realm) ?? '')].filter(Boolean).join(' ') || [String((prefetched.label) ?? '')].filter(Boolean).join(' ') || title || 'Specification realm'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.realm) ?? '')].filter(Boolean).join(' ') || [String((entity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.realm) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.label) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			A realm gathers related specification families so you browse documents by steward and topic—not by vote totals.
 		</p>
+	{/snippet}
+
+	{#snippet Content({ open: contentOpen })}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							labelPlural: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const labelPlural = prefetched.labelPlural}
+					{#if labelPlural !== undefined && labelPlural !== null}
+						<div>
+							<dt>Label plural</dt>
+							<dd>
+								{String((labelPlural) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const labelPlural = resolvedEntity.labelPlural}
+					{#if labelPlural !== undefined && labelPlural !== null}
+						<div>
+							<dt>Label plural</dt>
+							<dd>
+								{String((labelPlural) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<div>
+				<dt>Slug</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									slug: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const slug = prefetched.slug}
+							{#if slug !== undefined && slug !== null}
+								{String((slug) ?? '')}
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const slug = resolvedEntity.slug}
+							{#if slug !== undefined && slug !== null}
+								{String((slug) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: detailsOpen })}

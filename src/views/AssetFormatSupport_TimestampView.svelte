@@ -6,7 +6,7 @@
 	import { resolve } from '$app/paths'
 	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -41,128 +41,146 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const assetFormatSupportTimestamp = $derived(selection({
 		fields: {
 			confidence: true,
-			evidenceKind: true,
-			ledgerCoordinateKind: true,
-			ledgerCoordinateValue: true,
-			interfaceId: true,
-			programId: true,
-			moduleId: true,
-			contractAddress: true,
-			tokenProgram: true,
-			notes: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).formatId) ?? '')].filter(Boolean).join(' ') || 'asset format support timestamp')
+	const titleFallback = $derived([String((selection.entitySelector.formatId ?? prefetched.formatId) ?? '')].filter(Boolean).join(' ') || 'asset format support timestamp')
 	const viewDomId = $derived('asset-format-support-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.AssetFormatSupport_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/formats/[formatId]/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(({ ...selection.entitySelector, ...prefetched }).$assetInstance.$network.caip2.namespace)}:${String(({ ...selection.entitySelector, ...prefetched }).$assetInstance.$network.caip2.reference)}`,
-			kind: String(({ ...selection.entitySelector, ...prefetched }).$assetInstance.kind),
-			assetKey: String(({ ...selection.entitySelector, ...prefetched }).$assetInstance.assetKey),
-			formatId: String(({ ...selection.entitySelector, ...prefetched }).formatId),
-			timestampMs: String(({ ...selection.entitySelector, ...prefetched }).timestampMs),
-			source: String(({ ...selection.entitySelector, ...prefetched }).source),
-		})
+		href ?? (pendingEntity.$assetInstance !== undefined && pendingEntity.$assetInstance.$network !== undefined && pendingEntity.$assetInstance.$network.caip2 !== undefined && pendingEntity.$assetInstance.$network.caip2.namespace !== undefined && pendingEntity.$assetInstance !== undefined && pendingEntity.$assetInstance.$network !== undefined && pendingEntity.$assetInstance.$network.caip2 !== undefined && pendingEntity.$assetInstance.$network.caip2.reference !== undefined && pendingEntity.$assetInstance !== undefined && pendingEntity.$assetInstance.kind !== undefined && pendingEntity.$assetInstance !== undefined && pendingEntity.$assetInstance.assetKey !== undefined && pendingEntity.formatId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/formats/[formatId]/[timestampMs=nonNegativeInteger]/[source]', {
+			caip2: `${String(pendingEntity.$assetInstance.$network.caip2.namespace ?? '')}:${String(pendingEntity.$assetInstance.$network.caip2.reference ?? '')}`,
+			kind: String(pendingEntity.$assetInstance.kind ?? ''),
+			assetKey: String(pendingEntity.$assetInstance.assetKey ?? ''),
+			formatId: String(pendingEntity.formatId ?? ''),
+			timestampMs: String(pendingEntity.timestampMs ?? ''),
+			source: String(pendingEntity.source ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
-		{:else}
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
-				{/snippet}
+		<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.formatId ?? prefetched.formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.formatId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.formatId) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).formatId) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
-		{:else}
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).formatId) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
-				{/snippet}
+		<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.formatId ?? prefetched.formatId) ?? '')].filter(Boolean).join(' ') || title || 'asset format support timestamp'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.formatId) ?? '')].filter(Boolean).join(' ') || [String((entity.formatId) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.formatId) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const confidence0 = prefetched.confidence}
-			{#if confidence0 !== undefined && confidence0 !== null}
-				<span data-text="muted">
-					{String((confidence0) ?? '')}
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
-				{#snippet Pending()}
-					{@const confidence0 = prefetched.confidence}
-					{#if confidence0 !== undefined && confidence0 !== null}
-						<span data-text="muted">
-							{String((confidence0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			{#snippet Pending()}
+				{@const confidence0 = prefetched.confidence}
+				{#if confidence0 !== undefined && confidence0 !== null}
+					<span data-text="muted">
+						{String((confidence0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const confidence0 = entity.confidence}
-					{#if confidence0 !== undefined && confidence0 !== null}
-						<span data-text="muted">
-							{String((confidence0) ?? '')}
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const confidence0 = resolvedEntity.confidence}
+				{#if confidence0 !== undefined && confidence0 !== null}
+					<span data-text="muted">
+						{String((confidence0) ?? '')}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Timestamp</dt>
+				<dt>Format ID</dt>
 				<dd>
-					<ResourceBoundary resource={assetFormatSupportTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									formatId: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const timestampMs = prefetched.timestampMs ?? selection.entitySelector.timestampMs}
-							{#if timestampMs !== undefined && timestampMs !== null}
-								{String((timestampMs) ?? '')}
+							{@const formatId = selection.entitySelector.formatId ?? prefetched.formatId}
+							{#if formatId !== undefined && formatId !== null}
+								{String((formatId) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const timestampMs = entity.timestampMs ?? selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const formatId = resolvedEntity.formatId}
+							{#if formatId !== undefined && formatId !== null}
+								{String((formatId) ?? '')}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
 							{#if timestampMs !== undefined && timestampMs !== null}
-								{String((timestampMs) ?? '')}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -172,16 +190,25 @@
 			<div>
 				<dt>Source</dt>
 				<dd>
-					<ResourceBoundary resource={assetFormatSupportTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									source: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const source = prefetched.source ?? selection.entitySelector.source}
+							{@const source = selection.entitySelector.source ?? prefetched.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const source = entity.source ?? selection.entitySelector.source ?? prefetched.source}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const source = resolvedEntity.source}
 							{#if source !== undefined && source !== null}
 								{String((source) ?? '')}
 							{/if}
@@ -190,9 +217,52 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							confidence: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const evidenceKind = prefetched.evidenceKind ?? selection.entitySelector.evidenceKind}
+					{@const confidence = prefetched.confidence}
+					{#if confidence !== undefined && confidence !== null}
+						<div>
+							<dt>Confidence</dt>
+							<dd>
+								{String((confidence) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const confidence = resolvedEntity.confidence}
+					{#if confidence !== undefined && confidence !== null}
+						<div>
+							<dt>Confidence</dt>
+							<dd>
+								{String((confidence) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							evidenceKind: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const evidenceKind = prefetched.evidenceKind}
 					{#if evidenceKind !== undefined && evidenceKind !== null}
 						<div>
 							<dt>Evidence kind</dt>
@@ -204,7 +274,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const evidenceKind = entity.evidenceKind ?? selection.entitySelector.evidenceKind ?? prefetched.evidenceKind}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const evidenceKind = resolvedEntity.evidenceKind}
 					{#if evidenceKind !== undefined && evidenceKind !== null}
 						<div>
 							<dt>Evidence kind</dt>
@@ -216,9 +287,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							ledgerCoordinateKind: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateKind = prefetched.ledgerCoordinateKind ?? selection.entitySelector.ledgerCoordinateKind}
+					{@const ledgerCoordinateKind = prefetched.ledgerCoordinateKind}
 					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
 						<div>
 							<dt>Ledger coordinate kind</dt>
@@ -230,7 +309,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const ledgerCoordinateKind = entity.ledgerCoordinateKind ?? selection.entitySelector.ledgerCoordinateKind ?? prefetched.ledgerCoordinateKind}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const ledgerCoordinateKind = resolvedEntity.ledgerCoordinateKind}
 					{#if ledgerCoordinateKind !== undefined && ledgerCoordinateKind !== null}
 						<div>
 							<dt>Ledger coordinate kind</dt>
@@ -242,9 +322,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							ledgerCoordinateValue: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const ledgerCoordinateValue = prefetched.ledgerCoordinateValue ?? selection.entitySelector.ledgerCoordinateValue}
+					{@const ledgerCoordinateValue = prefetched.ledgerCoordinateValue}
 					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
 						<div>
 							<dt>Ledger coordinate value</dt>
@@ -256,7 +344,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const ledgerCoordinateValue = entity.ledgerCoordinateValue ?? selection.entitySelector.ledgerCoordinateValue ?? prefetched.ledgerCoordinateValue}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const ledgerCoordinateValue = resolvedEntity.ledgerCoordinateValue}
 					{#if ledgerCoordinateValue !== undefined && ledgerCoordinateValue !== null}
 						<div>
 							<dt>Ledger coordinate value</dt>
@@ -270,9 +359,17 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							interfaceId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const interfaceId = prefetched.interfaceId ?? selection.entitySelector.interfaceId}
+					{@const interfaceId = prefetched.interfaceId}
 					{#if interfaceId !== undefined && interfaceId !== null}
 						<div>
 							<dt>Interface ID</dt>
@@ -284,7 +381,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const interfaceId = entity.interfaceId ?? selection.entitySelector.interfaceId ?? prefetched.interfaceId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const interfaceId = resolvedEntity.interfaceId}
 					{#if interfaceId !== undefined && interfaceId !== null}
 						<div>
 							<dt>Interface ID</dt>
@@ -296,9 +394,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							programId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const programId = prefetched.programId ?? selection.entitySelector.programId}
+					{@const programId = prefetched.programId}
 					{#if programId !== undefined && programId !== null}
 						<div>
 							<dt>Program ID</dt>
@@ -310,7 +416,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const programId = entity.programId ?? selection.entitySelector.programId ?? prefetched.programId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const programId = resolvedEntity.programId}
 					{#if programId !== undefined && programId !== null}
 						<div>
 							<dt>Program ID</dt>
@@ -322,9 +429,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							moduleId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const moduleId = prefetched.moduleId ?? selection.entitySelector.moduleId}
+					{@const moduleId = prefetched.moduleId}
 					{#if moduleId !== undefined && moduleId !== null}
 						<div>
 							<dt>Module ID</dt>
@@ -336,7 +451,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const moduleId = entity.moduleId ?? selection.entitySelector.moduleId ?? prefetched.moduleId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const moduleId = resolvedEntity.moduleId}
 					{#if moduleId !== undefined && moduleId !== null}
 						<div>
 							<dt>Module ID</dt>
@@ -348,35 +464,52 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							contractAddress: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const contractAddress = prefetched.contractAddress ?? selection.entitySelector.contractAddress}
+					{@const contractAddress = prefetched.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>Contract address</dt>
 							<dd>
-								{String((contractAddress) ?? '')}
+								<TruncatedValue value={String((contractAddress) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const contractAddress = entity.contractAddress ?? selection.entitySelector.contractAddress ?? prefetched.contractAddress}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const contractAddress = resolvedEntity.contractAddress}
 					{#if contractAddress !== undefined && contractAddress !== null}
 						<div>
 							<dt>Contract address</dt>
 							<dd>
-								{String((contractAddress) ?? '')}
+								<TruncatedValue value={String((contractAddress) ?? '')} />
 							</dd>
 						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							tokenProgram: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const tokenProgram = prefetched.tokenProgram ?? selection.entitySelector.tokenProgram}
+					{@const tokenProgram = prefetched.tokenProgram}
 					{#if tokenProgram !== undefined && tokenProgram !== null}
 						<div>
 							<dt>Token program</dt>
@@ -388,7 +521,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const tokenProgram = entity.tokenProgram ?? selection.entitySelector.tokenProgram ?? prefetched.tokenProgram}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const tokenProgram = resolvedEntity.tokenProgram}
 					{#if tokenProgram !== undefined && tokenProgram !== null}
 						<div>
 							<dt>Token program</dt>
@@ -400,9 +534,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={assetFormatSupportTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							notes: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const notes = prefetched.notes ?? selection.entitySelector.notes}
+					{@const notes = prefetched.notes}
 					{#if notes !== undefined && notes !== null}
 						<div>
 							<dt>Notes</dt>
@@ -414,7 +556,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const notes = entity.notes ?? selection.entitySelector.notes ?? prefetched.notes}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const notes = resolvedEntity.notes}
 					{#if notes !== undefined && notes !== null}
 						<div>
 							<dt>Notes</dt>
@@ -432,11 +575,11 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
-								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace)}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference)}`,
-								kind: String(selection.entitySelector.$assetInstance.kind),
-								assetKey: String(selection.entitySelector.$assetInstance.assetKey),
-							})
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
+								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
+								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}

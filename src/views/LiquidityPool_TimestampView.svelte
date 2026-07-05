@@ -4,10 +4,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
@@ -43,6 +43,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const liquidityPoolTimestamp = $derived(selection({
 		sources: [
 			Source.Dexscreener_OpenApi,
@@ -52,27 +53,11 @@
 			quoteTokenSymbol: true,
 			priceUsd: true,
 			liquidityUsd: true,
-			transport: true,
-			baseTokenDecimals: true,
-			quoteTokenDecimals: true,
-			pairCreatedAtMs: true,
-			dexId: true,
-			dexscreenerPairUrl: true,
-			priceNative: true,
-			volumeUsd24h: true,
-			priceChangePercent24h: true,
-			transactionBuys24h: true,
-			transactionSells24h: true,
-			marketCapUsd: true,
-			fdvUsd: true,
-			dexscreenerLabels: true,
-			$parentLiquidityPool: true,
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).baseTokenSymbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')
+	const titleFallback = $derived([String((prefetched.baseTokenSymbol) ?? ''), String((prefetched.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || 'liquidity pool timestamp')
 	const viewDomId = $derived('liquidity-pool-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -83,7 +68,7 @@
 
 <EntityView
 	entityType={EntityType.LiquidityPool_Timestamp}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	{href}
@@ -92,66 +77,52 @@
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).baseTokenSymbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
-		{:else}
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).baseTokenSymbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
-				{/snippet}
+		<ResourceBoundary resource={liquidityPoolTimestamp}>
+			{#snippet Pending()}
+				{[String((prefetched.baseTokenSymbol) ?? ''), String((prefetched.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.baseTokenSymbol) ?? ''), String((entity.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.baseTokenSymbol) ?? ''), String((resolvedEntity.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).priceUsd) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).liquidityUsd) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).baseTokenSymbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
-		{:else}
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).priceUsd) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).liquidityUsd) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).baseTokenSymbol) ?? ''), String((({ ...selection.entitySelector, ...prefetched }).quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
-				{/snippet}
+		<ResourceBoundary resource={liquidityPoolTimestamp}>
+			{#snippet Pending()}
+				{[String((prefetched.priceUsd) ?? ''), String((prefetched.liquidityUsd) ?? '')].filter(Boolean).join(' ') || [String((prefetched.baseTokenSymbol) ?? ''), String((prefetched.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || title || 'liquidity pool timestamp'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.priceUsd) ?? ''), String((entity.liquidityUsd) ?? '')].filter(Boolean).join(' ') || [String((entity.baseTokenSymbol) ?? ''), String((entity.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.priceUsd) ?? ''), String((resolvedEntity.liquidityUsd) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.baseTokenSymbol) ?? ''), String((resolvedEntity.quoteTokenSymbol) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{@const timestampMs0 = prefetched.timestampMs}
-			{#if timestampMs0 !== undefined && timestampMs0 !== null}
-				<span data-text="muted">
-					<Timestamp timestamp={Number(timestampMs0)} />
-				</span>
-			{/if}
-		{:else}
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
-				{#snippet Pending()}
-					{@const timestampMs0 = prefetched.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
+		<ResourceBoundary resource={liquidityPoolTimestamp}>
+			{#snippet Pending()}
+				{@const timestampMs0 = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{@const timestampMs0 = entity.timestampMs}
-					{#if timestampMs0 !== undefined && timestampMs0 !== null}
-						<span data-text="muted">
-							<Timestamp timestamp={Number(timestampMs0)} />
-						</span>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{@const timestampMs0 = resolvedEntity.timestampMs}
+				{#if timestampMs0 !== undefined && timestampMs0 !== null}
+					<span data-text="muted">
+						<Timestamp timestamp={Number(timestampMs0)} />
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ open: contentOpen })}
@@ -162,10 +133,10 @@
 					<LiquidityPoolView
 						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
 						href={
-							resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference),
-								poolId: String(selection.entitySelector.$liquidityPool.id),
-							})
+							(selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined && selection.entitySelector.$liquidityPool.id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
+								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
+								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
+							}) : undefined)
 						}
 						layout={EntityLayout.Title}
 						open={false}
@@ -174,18 +145,57 @@
 			</div>
 
 			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									timestampMs: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const timestampMs = selection.entitySelector.timestampMs ?? prefetched.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const timestampMs = resolvedEntity.timestampMs}
+							{#if timestampMs !== undefined && timestampMs !== null}
+								<Timestamp timestamp={Number(timestampMs)} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
 				<dt>Feed key</dt>
 				<dd>
-					<ResourceBoundary resource={liquidityPoolTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									feedKey: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const feedKey = prefetched.feedKey ?? selection.entitySelector.feedKey}
+							{@const feedKey = selection.entitySelector.feedKey ?? prefetched.feedKey}
 							{#if feedKey !== undefined && feedKey !== null}
 								{String((feedKey) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const feedKey = entity.feedKey ?? selection.entitySelector.feedKey ?? prefetched.feedKey}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const feedKey = resolvedEntity.feedKey}
 							{#if feedKey !== undefined && feedKey !== null}
 								{String((feedKey) ?? '')}
 							{/if}
@@ -194,9 +204,20 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							transport: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const transport = prefetched.transport ?? selection.entitySelector.transport}
+					{@const transport = prefetched.transport}
 					{#if transport !== undefined && transport !== null}
 						<div>
 							<dt>Transport</dt>
@@ -208,7 +229,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const transport = entity.transport ?? selection.entitySelector.transport ?? prefetched.transport}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transport = resolvedEntity.transport}
 					{#if transport !== undefined && transport !== null}
 						<div>
 							<dt>Transport</dt>
@@ -222,9 +244,93 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							baseTokenSymbol: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const baseTokenDecimals = prefetched.baseTokenDecimals ?? selection.entitySelector.baseTokenDecimals}
+					{@const baseTokenSymbol = prefetched.baseTokenSymbol}
+					{#if baseTokenSymbol !== undefined && baseTokenSymbol !== null}
+						<div>
+							<dt>Base token symbol</dt>
+							<dd>
+								{String((baseTokenSymbol) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const baseTokenSymbol = resolvedEntity.baseTokenSymbol}
+					{#if baseTokenSymbol !== undefined && baseTokenSymbol !== null}
+						<div>
+							<dt>Base token symbol</dt>
+							<dd>
+								{String((baseTokenSymbol) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							quoteTokenSymbol: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const quoteTokenSymbol = prefetched.quoteTokenSymbol}
+					{#if quoteTokenSymbol !== undefined && quoteTokenSymbol !== null}
+						<div>
+							<dt>Quote token symbol</dt>
+							<dd>
+								{String((quoteTokenSymbol) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const quoteTokenSymbol = resolvedEntity.quoteTokenSymbol}
+					{#if quoteTokenSymbol !== undefined && quoteTokenSymbol !== null}
+						<div>
+							<dt>Quote token symbol</dt>
+							<dd>
+								{String((quoteTokenSymbol) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							baseTokenDecimals: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const baseTokenDecimals = prefetched.baseTokenDecimals}
 					{#if baseTokenDecimals !== undefined && baseTokenDecimals !== null}
 						<div>
 							<dt>Base token decimals</dt>
@@ -236,7 +342,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const baseTokenDecimals = entity.baseTokenDecimals ?? selection.entitySelector.baseTokenDecimals ?? prefetched.baseTokenDecimals}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const baseTokenDecimals = resolvedEntity.baseTokenDecimals}
 					{#if baseTokenDecimals !== undefined && baseTokenDecimals !== null}
 						<div>
 							<dt>Base token decimals</dt>
@@ -248,9 +355,17 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							quoteTokenDecimals: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const quoteTokenDecimals = prefetched.quoteTokenDecimals ?? selection.entitySelector.quoteTokenDecimals}
+					{@const quoteTokenDecimals = prefetched.quoteTokenDecimals}
 					{#if quoteTokenDecimals !== undefined && quoteTokenDecimals !== null}
 						<div>
 							<dt>Quote token decimals</dt>
@@ -262,7 +377,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const quoteTokenDecimals = entity.quoteTokenDecimals ?? selection.entitySelector.quoteTokenDecimals ?? prefetched.quoteTokenDecimals}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const quoteTokenDecimals = resolvedEntity.quoteTokenDecimals}
 					{#if quoteTokenDecimals !== undefined && quoteTokenDecimals !== null}
 						<div>
 							<dt>Quote token decimals</dt>
@@ -274,9 +390,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							pairCreatedAtMs: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const pairCreatedAtMs = prefetched.pairCreatedAtMs ?? selection.entitySelector.pairCreatedAtMs}
+					{@const pairCreatedAtMs = prefetched.pairCreatedAtMs}
 					{#if pairCreatedAtMs !== undefined && pairCreatedAtMs !== null}
 						<div>
 							<dt>Pair created</dt>
@@ -288,7 +415,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const pairCreatedAtMs = entity.pairCreatedAtMs ?? selection.entitySelector.pairCreatedAtMs ?? prefetched.pairCreatedAtMs}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const pairCreatedAtMs = resolvedEntity.pairCreatedAtMs}
 					{#if pairCreatedAtMs !== undefined && pairCreatedAtMs !== null}
 						<div>
 							<dt>Pair created</dt>
@@ -300,9 +428,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							dexId: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const dexId = prefetched.dexId ?? selection.entitySelector.dexId}
+					{@const dexId = prefetched.dexId}
 					{#if dexId !== undefined && dexId !== null}
 						<div>
 							<dt>DEX</dt>
@@ -314,7 +453,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const dexId = entity.dexId ?? selection.entitySelector.dexId ?? prefetched.dexId}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const dexId = resolvedEntity.dexId}
 					{#if dexId !== undefined && dexId !== null}
 						<div>
 							<dt>DEX</dt>
@@ -326,9 +466,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							dexscreenerPairUrl: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const dexscreenerPairUrl = prefetched.dexscreenerPairUrl ?? selection.entitySelector.dexscreenerPairUrl}
+					{@const dexscreenerPairUrl = prefetched.dexscreenerPairUrl}
 					{#if dexscreenerPairUrl !== undefined && dexscreenerPairUrl !== null}
 						<div>
 							<dt>Dexscreener</dt>
@@ -347,7 +498,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const dexscreenerPairUrl = entity.dexscreenerPairUrl ?? selection.entitySelector.dexscreenerPairUrl ?? prefetched.dexscreenerPairUrl}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const dexscreenerPairUrl = resolvedEntity.dexscreenerPairUrl}
 					{#if dexscreenerPairUrl !== undefined && dexscreenerPairUrl !== null}
 						<div>
 							<dt>Dexscreener</dt>
@@ -368,9 +520,58 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							priceUsd: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const priceNative = prefetched.priceNative ?? selection.entitySelector.priceNative}
+					{@const priceUsd = prefetched.priceUsd}
+					{#if priceUsd !== undefined && priceUsd !== null}
+						<div>
+							<dt>Price USD</dt>
+							<dd>
+								{String((priceUsd) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const priceUsd = resolvedEntity.priceUsd}
+					{#if priceUsd !== undefined && priceUsd !== null}
+						<div>
+							<dt>Price USD</dt>
+							<dd>
+								{String((priceUsd) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							priceNative: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const priceNative = prefetched.priceNative}
 					{#if priceNative !== undefined && priceNative !== null}
 						<div>
 							<dt>Price native</dt>
@@ -382,7 +583,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const priceNative = entity.priceNative ?? selection.entitySelector.priceNative ?? prefetched.priceNative}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const priceNative = resolvedEntity.priceNative}
 					{#if priceNative !== undefined && priceNative !== null}
 						<div>
 							<dt>Price native</dt>
@@ -394,9 +596,58 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							liquidityUsd: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const volumeUsd24h = prefetched.volumeUsd24h ?? selection.entitySelector.volumeUsd24h}
+					{@const liquidityUsd = prefetched.liquidityUsd}
+					{#if liquidityUsd !== undefined && liquidityUsd !== null}
+						<div>
+							<dt>Liquidity USD</dt>
+							<dd>
+								<NumberValue value={Number(liquidityUsd)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const liquidityUsd = resolvedEntity.liquidityUsd}
+					{#if liquidityUsd !== undefined && liquidityUsd !== null}
+						<div>
+							<dt>Liquidity USD</dt>
+							<dd>
+								<NumberValue value={Number(liquidityUsd)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							volumeUsd24h: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const volumeUsd24h = prefetched.volumeUsd24h}
 					{#if volumeUsd24h !== undefined && volumeUsd24h !== null}
 						<div>
 							<dt>Volume USD 24h</dt>
@@ -408,7 +659,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const volumeUsd24h = entity.volumeUsd24h ?? selection.entitySelector.volumeUsd24h ?? prefetched.volumeUsd24h}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const volumeUsd24h = resolvedEntity.volumeUsd24h}
 					{#if volumeUsd24h !== undefined && volumeUsd24h !== null}
 						<div>
 							<dt>Volume USD 24h</dt>
@@ -420,9 +672,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							priceChangePercent24h: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const priceChangePercent24h = prefetched.priceChangePercent24h ?? selection.entitySelector.priceChangePercent24h}
+					{@const priceChangePercent24h = prefetched.priceChangePercent24h}
 					{#if priceChangePercent24h !== undefined && priceChangePercent24h !== null}
 						<div>
 							<dt>Price change 24h</dt>
@@ -434,7 +697,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const priceChangePercent24h = entity.priceChangePercent24h ?? selection.entitySelector.priceChangePercent24h ?? prefetched.priceChangePercent24h}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const priceChangePercent24h = resolvedEntity.priceChangePercent24h}
 					{#if priceChangePercent24h !== undefined && priceChangePercent24h !== null}
 						<div>
 							<dt>Price change 24h</dt>
@@ -446,9 +710,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							transactionBuys24h: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const transactionBuys24h = prefetched.transactionBuys24h ?? selection.entitySelector.transactionBuys24h}
+					{@const transactionBuys24h = prefetched.transactionBuys24h}
 					{#if transactionBuys24h !== undefined && transactionBuys24h !== null}
 						<div>
 							<dt>Buys 24h</dt>
@@ -460,7 +735,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const transactionBuys24h = entity.transactionBuys24h ?? selection.entitySelector.transactionBuys24h ?? prefetched.transactionBuys24h}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionBuys24h = resolvedEntity.transactionBuys24h}
 					{#if transactionBuys24h !== undefined && transactionBuys24h !== null}
 						<div>
 							<dt>Buys 24h</dt>
@@ -472,9 +748,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							transactionSells24h: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const transactionSells24h = prefetched.transactionSells24h ?? selection.entitySelector.transactionSells24h}
+					{@const transactionSells24h = prefetched.transactionSells24h}
 					{#if transactionSells24h !== undefined && transactionSells24h !== null}
 						<div>
 							<dt>Sells 24h</dt>
@@ -486,7 +773,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const transactionSells24h = entity.transactionSells24h ?? selection.entitySelector.transactionSells24h ?? prefetched.transactionSells24h}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const transactionSells24h = resolvedEntity.transactionSells24h}
 					{#if transactionSells24h !== undefined && transactionSells24h !== null}
 						<div>
 							<dt>Sells 24h</dt>
@@ -498,9 +786,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							marketCapUsd: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const marketCapUsd = prefetched.marketCapUsd ?? selection.entitySelector.marketCapUsd}
+					{@const marketCapUsd = prefetched.marketCapUsd}
 					{#if marketCapUsd !== undefined && marketCapUsd !== null}
 						<div>
 							<dt>Market cap USD</dt>
@@ -512,7 +811,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const marketCapUsd = entity.marketCapUsd ?? selection.entitySelector.marketCapUsd ?? prefetched.marketCapUsd}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const marketCapUsd = resolvedEntity.marketCapUsd}
 					{#if marketCapUsd !== undefined && marketCapUsd !== null}
 						<div>
 							<dt>Market cap USD</dt>
@@ -524,9 +824,20 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary resource={liquidityPoolTimestamp}>
+			<ResourceBoundary
+				resource={
+					selection({
+						sources: [
+							Source.Dexscreener_OpenApi,
+						],
+						fields: {
+							fdvUsd: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const fdvUsd = prefetched.fdvUsd ?? selection.entitySelector.fdvUsd}
+					{@const fdvUsd = prefetched.fdvUsd}
 					{#if fdvUsd !== undefined && fdvUsd !== null}
 						<div>
 							<dt>FDV USD</dt>
@@ -538,7 +849,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const fdvUsd = entity.fdvUsd ?? selection.entitySelector.fdvUsd ?? prefetched.fdvUsd}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const fdvUsd = resolvedEntity.fdvUsd}
 					{#if fdvUsd !== undefined && fdvUsd !== null}
 						<div>
 							<dt>FDV USD</dt>
@@ -555,18 +867,30 @@
 			<div>
 				<dt>Dexscreener labels</dt>
 				<dd>
-					<ResourceBoundary resource={liquidityPoolTimestamp}>
+					<ResourceBoundary
+						resource={
+							selection({
+								sources: [
+									Source.Dexscreener_OpenApi,
+								],
+								fields: {
+									dexscreenerLabels: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const dexscreenerLabels = prefetched.dexscreenerLabels ?? selection.entitySelector.dexscreenerLabels}
+							{@const dexscreenerLabels = prefetched.dexscreenerLabels}
 							{#if dexscreenerLabels !== undefined && dexscreenerLabels !== null}
-								{String((dexscreenerLabels) ?? '')}
+								{(dexscreenerLabels?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const dexscreenerLabels = entity.dexscreenerLabels ?? selection.entitySelector.dexscreenerLabels ?? prefetched.dexscreenerLabels}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const dexscreenerLabels = resolvedEntity.dexscreenerLabels}
 							{#if dexscreenerLabels !== undefined && dexscreenerLabels !== null}
-								{String((dexscreenerLabels) ?? '')}
+								{(dexscreenerLabels?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -577,21 +901,29 @@
 				<dt>Parent liquidity pool</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.LiquidityPool, false>('$parentLiquidityPool')}
+						resource={
+							selection[EntityProxyField]<EntityType.LiquidityPool, false>('$parentLiquidityPool', {
+								sources: [
+									Source.Dexscreener_OpenApi,
+								],
+							})
+						}
 					>
 						{#snippet children(liquidityPool)}
-							<LiquidityPoolView
-								selection={select(EntityType.LiquidityPool, liquidityPool.entitySelector)}
-								prefetched={liquidityPool}
-								href={
-									resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-										chainId: String(liquidityPool.entitySelector.$network.caip2.reference),
-										poolId: String(liquidityPool.entitySelector.id),
-									})
-								}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
+							{#if liquidityPool[EntityMetaKey.Selector] != null}
+								<LiquidityPoolView
+									selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
+									prefetched={liquidityPool}
+									href={
+										(({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).$network !== undefined && ({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).$network.caip2 !== undefined && ({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).$network.caip2.reference !== undefined && ({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
+											chainId: String(({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).$network.caip2.reference ?? ''),
+											poolId: String(({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).id ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>

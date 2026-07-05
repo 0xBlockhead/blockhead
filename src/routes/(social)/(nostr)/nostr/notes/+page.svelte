@@ -4,6 +4,7 @@
 	// Types/constants
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -29,8 +30,13 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			})[EntityProxyField]<EntityType.NostrNote>('$$sourceWindowNotes')
+			})[EntityProxyField]<EntityType.NostrNote>('$$sourceWindowNotes', {
+				sources: [
+					Source.Constants_Internal,
+					Source.NostrBand_Rest,
+				],
+			})
 		}
-		id='NostrNotesView-page'
+		id='source-window-notes'
 	/>
 </Page>

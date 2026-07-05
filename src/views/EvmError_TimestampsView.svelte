@@ -22,7 +22,7 @@
 		selection,
 		title = 'EVM error observations',
 		typeAnnotationParagraphs = [],
-		placeholderText = 'Loading EVM error observations...',
+		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
 		collapsible = true,
@@ -66,32 +66,19 @@
 {#if open}
 	<ResourceBoundary
 		resource={
-			selection.sources == null ? selection({
+			selection({
 				sources: [
 					Source.Openchain_Rest,
 				],
 				fields: {
-					signatures: true,
 					timestampMs: true,
 					source: true,
+					$error: true,
 				},
-			}) : selection
+			})
 		}
 		{placeholderText}
 	>
-		{#snippet Pending()}
-			<EntitiesList
-				{...EntitiesListProps}
-				entityType={EntityType.EvmError_Timestamp}
-				{id}
-				{title}
-				bind:open
-				{collapsible}
-				{showTypeAnnotation}
-				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-			/>
-		{/snippet}
-
 		{#snippet children(evmErrorTimestamps)}
 			{@const uniqueEvmErrorTimestamps = [...new Map(evmErrorTimestamps.values.map((evmErrorTimestamp) => [evmErrorTimestamp[EntityMetaKey.SelectorKey], evmErrorTimestamp])).values()]}
 			<EntitiesList
@@ -103,7 +90,7 @@
 				{collapsible}
 				{showTypeAnnotation}
 				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
-				totalCount={evmErrorTimestamps.values.length === uniqueEvmErrorTimestamps.length && evmErrorTimestamps.totalCount != null && evmErrorTimestamps.totalCount >= uniqueEvmErrorTimestamps.length ? evmErrorTimestamps.totalCount : uniqueEvmErrorTimestamps.length}
+				totalCount={evmErrorTimestamps.totalCount}
 				getKey={(evmErrorTimestamp) => evmErrorTimestamp[EntityMetaKey.SelectorKey]}
 				items={uniqueEvmErrorTimestamps}
 			>
@@ -116,16 +103,18 @@
 				{/snippet}
 
 				{#snippet Item({ item: evmErrorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmError_Timestamp> })}
+					{@const evmErrorTimestampFields = { ...evmErrorTimestamp[EntityMetaKey.Selector], ...evmErrorTimestamp }}
+					{@const evmErrorTimestampHrefFields = { ...evmErrorTimestamp, ...evmErrorTimestamp[EntityMetaKey.Selector] }}
 					<EvmError_TimestampView
+						selection={select(EntityType.EvmError_Timestamp, evmErrorTimestamp[EntityMetaKey.Selector])}
+						prefetched={evmErrorTimestampFields}
 						href={
-							resolve('/(explore)/(evm)/evm/(errors)/error/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								hex: String(evmErrorTimestamp.entitySelector.$error.hex),
-								timestampMs: String(evmErrorTimestamp.entitySelector.timestampMs),
-								source: String(evmErrorTimestamp.entitySelector.source),
-							})
+							(evmErrorTimestampHrefFields.$error !== undefined && evmErrorTimestampHrefFields.$error.hex !== undefined && evmErrorTimestampHrefFields.timestampMs !== undefined && evmErrorTimestampHrefFields.source !== undefined ? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+								hex: String(evmErrorTimestampHrefFields.$error.hex ?? ''),
+								timestampMs: String(evmErrorTimestampHrefFields.timestampMs ?? ''),
+								source: String(evmErrorTimestampHrefFields.source ?? ''),
+							}) : undefined)
 						}
-						selection={select(EntityType.EvmError_Timestamp, evmErrorTimestamp.entitySelector)}
-						prefetched={evmErrorTimestamp}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

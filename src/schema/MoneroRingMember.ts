@@ -1,13 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum MoneroRingMemberSelector {
-	MoneroRingMemberIndex = 'moneroRingMemberIndex',
-	RingMemberIndex = '$ring+memberIndex',
+	MoneroRingMemberIndex = 'MoneroRingMemberIndex',
 }
 export default {
 	entityType: EntityType.MoneroRingMember,
@@ -24,25 +23,28 @@ export default {
 	],
 	fields: [
 		{
-			name: '$ring',
-			label: 'ring',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.MoneroRing,
-			cardinality: EntityFieldCardinality.One,
+				name: '$ring',
+				label: 'Ring',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.MoneroRing,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'memberIndex',
-			label: 'member index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'memberIndex',
+				label: 'Member index',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'globalOutputIndex',
-			label: 'global output index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'globalOutputIndex',
+				label: 'Global output index',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.MoneroDaemonRpc_JsonRpc,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

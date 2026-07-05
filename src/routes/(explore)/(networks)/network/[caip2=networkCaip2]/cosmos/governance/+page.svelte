@@ -45,6 +45,6 @@
 				},
 			})[EntityProxyField]<EntityType.CosmosGovernanceProposal>('$$governanceProposals')
 		}
-		id='CosmosGovernanceProposalsView-page'
+		id='governance-proposals'
 	/>
 </Page>

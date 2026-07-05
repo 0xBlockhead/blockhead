@@ -47,6 +47,6 @@
 				],
 			})
 		}
-		id='LensPostsView-page'
+		id='comments'
 	/>
 </Page>

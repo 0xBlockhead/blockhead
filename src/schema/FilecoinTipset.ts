@@ -1,12 +1,12 @@
-import { type } from 'arktype'
-import {
-	EntityFieldCardinality,
-	EntityFieldType,
-	type EntityDefinition,
-} from '$/schema/$schema.ts'
+// Generated from APP.ts. Do not edit by hand.
+
+import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
+import { type } from 'arktype'
+
 export enum FilecoinTipsetSelector {
-	NetworkHeightTipsetKey = 'networkHeightTipsetKey',
+	NetworkHeightTipsetKey = 'NetworkHeightTipsetKey',
 }
 export default {
 	entityType: EntityType.FilecoinTipset,
@@ -24,55 +24,70 @@ export default {
 	],
 	fields: [
 		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
+				name: '$network',
+				label: 'Network',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.Network,
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'height',
-			label: 'Height',
-			description: 'The block or ledger height in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'height',
+				label: 'Height',
+				description: 'The block height.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'tipsetKey',
-			label: 'tipset key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("string"),
-			cardinality: EntityFieldCardinality.One,
+				name: 'tipsetKey',
+				label: 'Tipset key',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('string'),
+				cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$parent',
-			label: 'parent',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.FilecoinTipset,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: '$parent',
+				label: 'Parent',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.FilecoinTipset,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 		{
-			name: 'parentWeight',
-			label: 'parent weight',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("bigint"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'parentWeight',
+				label: 'Parent weight',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('bigint'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+				],
 		},
 		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type("number"),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+				name: 'timestampMs',
+				label: 'Timestamp',
+				description: 'The observation time in Unix milliseconds.',
+				type: EntityFieldType.Primitive,
+				primitiveType: type('number'),
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 		{
-			name: '$$blocks',
-			label: 'blocks',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.FilecoinBlock,
-			cardinality: EntityFieldCardinality.Many,
+				name: '$$blocks',
+				label: 'Blocks',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.FilecoinBlock,
+				cardinality: EntityFieldCardinality.Many,
+				defaultSources: [
+					Source.Lotus_JsonRpc,
+					Source.Filfox_Rest,
+				],
 		},
 	],
 } as const satisfies EntityDefinition

@@ -3,8 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import type { Sort } from '$/components/RefinableList.svelte'
-	import RefinableList from '$/components/RefinableList.svelte'
+	import RefinableList, { type Sort } from '$/components/RefinableList.svelte'
 
 
 	// Context

@@ -41,6 +41,7 @@
 		}
 		selection={
 			select(EntityType.UtxoAddress_Timestamp, data.selector, {
+				sources: [data.selector.source],
 				fields: {
 					balanceSats: true,
 					transactionCount: true,

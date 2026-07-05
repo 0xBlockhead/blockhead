@@ -23,7 +23,6 @@ export const fedimintClientBindings = [
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'env:FEDIMINT_CLIENT_RPC_URL',
-				origin: 'env:FEDIMINT_CLIENT_RPC_URL',
 				corsEnabled: false,
 			},
 		],

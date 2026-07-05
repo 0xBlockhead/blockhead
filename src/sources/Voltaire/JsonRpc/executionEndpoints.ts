@@ -50,19 +50,19 @@ export const executionEndpoints = [
 	// Public HTTP first so simulation/fork works in browser without a local node
 	{
 		chainId: ChainId.Ethereum,
-		url: 'https://eth.drpc.org',
-		serviceProvider: ExecutionRpcProvider.Unknown,
-		transportType: TransportType.Http,
-		tevmForkTransportCompatible: true,
-		executionClient: ExecutionClientId.Unknown,
-	},
-	{
-		chainId: ChainId.Ethereum,
 		url: 'https://ethereum.publicnode.com',
 		serviceProvider: ExecutionRpcProvider.PublicNode,
 		transportType: TransportType.Http,
 		tevmForkTransportCompatible: true,
 		executionClient: ExecutionClientId.Geth,
+	},
+	{
+		chainId: ChainId.Ethereum,
+		url: 'https://eth.drpc.org',
+		serviceProvider: ExecutionRpcProvider.Unknown,
+		transportType: TransportType.Http,
+		tevmForkTransportCompatible: true,
+		executionClient: ExecutionClientId.Unknown,
 	},
 	{
 		chainId: ChainId.Ethereum,

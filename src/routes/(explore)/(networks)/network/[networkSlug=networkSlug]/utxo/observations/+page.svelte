@@ -44,6 +44,6 @@
 				},
 			})[EntityProxyField]<EntityType.UtxoNetwork_Timestamp>('$$timestamps')
 		}
-		id='UtxoNetwork_TimestampsView-page'
+		id='timestamps'
 	/>
 </Page>

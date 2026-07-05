@@ -1,11 +1,11 @@
+// Generated from APP.ts. Do not edit by hand.
+
+import type { SourceDefinition } from '$/sources/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
-import type { SourceDefinition } from '$/sources/index.ts'
 
-const AtprotoBskyXrpcSource = {
+export default {
 	provider: SourceProvider.AtprotoBsky,
 	source: Source.Atproto_Xrpc,
-	label: 'AT Protocol (public appview, XRPC)',
+	label: 'AT Protocol public XRPC',
 } satisfies SourceDefinition
-
-export default AtprotoBskyXrpcSource

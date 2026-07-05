@@ -4,10 +4,9 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -43,6 +42,7 @@
 		>
 	> = $props()
 
+	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const currency = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
@@ -50,19 +50,11 @@
 		fields: {
 			name: true,
 			symbol: true,
-			...(open && {
-				minorUnitExponent: true,
-				catalogSortWeight: true,
-				$$timestamps: true,
-				$$marketsWithCurrencyAsBase: true,
-				$$marketsWithCurrencyAsQuote: true,
-			}),
 		},
 	}))
-	const titleFallback = $derived([String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency')
+	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.iso4217 ?? prefetched.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency')
 	const viewDomId = $derived('currency-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
 	// Components
-	import EntityView from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -74,48 +66,42 @@
 
 <EntityView
 	entityType={EntityType.Currency}
-	entitySelector={selection.entitySelector}
+	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
-			iso4217: String(({ ...selection.entitySelector, ...prefetched }).iso4217),
-		})
+		href ?? (pendingEntity.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
+			iso4217: String(pendingEntity.iso4217 ?? ''),
+		}) : undefined)
 	}
 	{layout}
 	bind:open
 	{...EntityViewProps}
 >
 	{#snippet Title()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
-		{:else}
-			<ResourceBoundary resource={currency}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
-				{/snippet}
+		<ResourceBoundary resource={currency}>
+			{#snippet Pending()}
+				{[String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.iso4217 ?? prefetched.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || title || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
-		{#if layout === EntityLayout.Summary || layout === EntityLayout.SummaryInline}
-			{[String((({ ...selection.entitySelector, ...prefetched }).iso4217) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
-		{:else}
-			<ResourceBoundary resource={currency}>
-				{#snippet Pending()}
-					{[String((({ ...selection.entitySelector, ...prefetched }).iso4217) ?? '')].filter(Boolean).join(' ') || [String((({ ...selection.entitySelector, ...prefetched }).name) ?? '')].filter(Boolean).join(' ') || title || [String((selection.entitySelector.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency'}
-				{/snippet}
+		<ResourceBoundary resource={currency}>
+			{#snippet Pending()}
+				{[String((selection.entitySelector.iso4217 ?? prefetched.iso4217) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || title || 'currency'}
+			{/snippet}
 
-				{#snippet children(entity)}
-					{[String((entity.iso4217) ?? '')].filter(Boolean).join(' ') || [String((entity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(entity)}
+				{@const resolvedEntity = { ...pendingEntity, ...entity }}
+				{[String((resolvedEntity.iso4217) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.name) ?? '')].filter(Boolean).join(' ') || titleFallback}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -141,19 +127,15 @@
 								},
 								limit: 1,
 								orderBy: [
-									[({ fieldRow }) => fieldRow.entitySelector.timestampMs ?? fieldRow.timestampMs, 'desc'],
+									[({ fieldRow }) => fieldRow[EntityMetaKey.Value][EntityMetaKey.Selector].timestampMs ?? Number.NEGATIVE_INFINITY, 'desc'],
 								],
-							}).first()
+							})
 						}
-						placeholderText='Loading latest catalog snapshot...'
 					>
-						{#snippet Pending()}
-							<span data-text="muted">-</span>
-						{/snippet}
-
-						{#snippet children(currencyTimestamp)}
+						{#snippet children(currencyTimestamps)}
+							{@const currencyTimestamp = currencyTimestamps.values[0]}
 							{#if currencyTimestamp != null}
-								{@const currencyTimestampSelector = currencyTimestamp.entitySelector}
+								{@const currencyTimestampSelector = currencyTimestamp[EntityMetaKey.Selector]}
 								<Currency_TimestampView
 									selection={
 										select(EntityType.Currency_Timestamp, currencyTimestampSelector, {
@@ -163,17 +145,15 @@
 										})
 									}
 									href={
-										resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-											iso4217: String(({ ...currencyTimestampSelector, ...currencyTimestamp }).$currency.iso4217),
-											timestampMs: String(({ ...currencyTimestampSelector, ...currencyTimestamp }).timestampMs),
-										})
+										(({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).$currency !== undefined && ({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).$currency.iso4217 !== undefined && ({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).timestampMs !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
+											iso4217: String(({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).$currency.iso4217 ?? ''),
+											timestampMs: String(({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).timestampMs ?? ''),
+										}) : undefined)
 									}
 									prefetched={{ ...currencyTimestampSelector, ...currencyTimestamp }}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							{:else}
-								<span data-text="muted">-</span>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -182,47 +162,67 @@
 		</dl>
 
 		<dl data-column-item="center">
-			<ResourceBoundary resource={currency}>
-				{#snippet Pending()}
-					{@const symbol = prefetched.symbol ?? selection.entitySelector.symbol}
-					{#if symbol !== undefined && symbol !== null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>
-								{String((symbol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+			{#if !contentOpen}
+				<ResourceBoundary
+					resource={
+						selection({
+							fields: {
+								symbol: true,
+							},
+						})
+					}
+				>
+					{#snippet Pending()}
+						{@const symbol = prefetched.symbol}
+						{#if symbol !== undefined && symbol !== null}
+							<div>
+								<dt>Symbol</dt>
+								<dd>
+									{String((symbol) ?? '')}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
 
-				{#snippet children(entity)}
-					{@const symbol = entity.symbol ?? selection.entitySelector.symbol ?? prefetched.symbol}
-					{#if symbol !== undefined && symbol !== null}
-						<div>
-							<dt>Symbol</dt>
-							<dd>
-								{String((symbol) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+					{#snippet children(entity)}
+						{@const resolvedEntity = { ...pendingEntity, ...entity }}
+						{@const symbol = resolvedEntity.symbol}
+						{#if symbol !== undefined && symbol !== null}
+							<div>
+								<dt>Symbol</dt>
+								<dd>
+									{String((symbol) ?? '')}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 		</dl>
 
 		<dl data-column-item="center">
 			<div>
 				<dt>Minor unit exponent</dt>
 				<dd>
-					<ResourceBoundary resource={currency}>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									minorUnitExponent: true,
+								},
+							})
+						}
+					>
 						{#snippet Pending()}
-							{@const minorUnitExponent = prefetched.minorUnitExponent ?? selection.entitySelector.minorUnitExponent}
+							{@const minorUnitExponent = prefetched.minorUnitExponent}
 							{#if minorUnitExponent !== undefined && minorUnitExponent !== null}
 								{String((minorUnitExponent) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
-							{@const minorUnitExponent = entity.minorUnitExponent ?? selection.entitySelector.minorUnitExponent ?? prefetched.minorUnitExponent}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const minorUnitExponent = resolvedEntity.minorUnitExponent}
 							{#if minorUnitExponent !== undefined && minorUnitExponent !== null}
 								{String((minorUnitExponent) ?? '')}
 							{/if}
@@ -231,9 +231,17 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={currency}>
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							catalogSortWeight: true,
+						},
+					})
+				}
+			>
 				{#snippet Pending()}
-					{@const catalogSortWeight = prefetched.catalogSortWeight ?? selection.entitySelector.catalogSortWeight}
+					{@const catalogSortWeight = prefetched.catalogSortWeight}
 					{#if catalogSortWeight !== undefined && catalogSortWeight !== null}
 						<div>
 							<dt>Catalog sort weight</dt>
@@ -245,7 +253,8 @@
 				{/snippet}
 
 				{#snippet children(entity)}
-					{@const catalogSortWeight = entity.catalogSortWeight ?? selection.entitySelector.catalogSortWeight ?? prefetched.catalogSortWeight}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const catalogSortWeight = resolvedEntity.catalogSortWeight}
 					{#if catalogSortWeight !== undefined && catalogSortWeight !== null}
 						<div>
 							<dt>Catalog sort weight</dt>

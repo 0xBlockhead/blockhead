@@ -63,6 +63,13 @@ export default {
 				cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+				name: '$profile',
+				label: 'profile',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.BlockheadAgentProfile,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 				name: 'createdAt',
 				label: 'Created',
 				type: EntityFieldType.Primitive,
