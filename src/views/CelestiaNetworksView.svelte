@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CelestiaNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(celestiaNetworks)}
 			{@const uniqueCelestiaNetworks = [...new Map(celestiaNetworks.values.map((celestiaNetwork) => [celestiaNetwork[EntityMetaKey.SelectorKey], celestiaNetwork])).values()]}
 			<EntitiesList

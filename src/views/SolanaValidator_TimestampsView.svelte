@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SolanaValidator_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(solanaValidatorTimestamps)}
 			{@const uniqueSolanaValidatorTimestamps = [...new Map(solanaValidatorTimestamps.values.map((solanaValidatorTimestamp) => [solanaValidatorTimestamp[EntityMetaKey.SelectorKey], solanaValidatorTimestamp])).values()]}
 			<EntitiesList

@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiModelVersion}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiModelVersions)}
 			{@const uniqueAiModelVersions = [...new Map(aiModelVersions.values.map((aiModelVersion) => [aiModelVersion[EntityMetaKey.SelectorKey], aiModelVersion])).values()]}
 			<EntitiesList

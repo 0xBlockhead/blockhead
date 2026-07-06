@@ -146,7 +146,7 @@ export default {
 			}
 		    })({
 					fields: {
-				$$sourceWindowItems: (snapshot) => snapshot,
+				$$observedItems: (snapshot) => snapshot,
 			},
 				}),
 

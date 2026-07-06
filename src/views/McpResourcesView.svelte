@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.McpResource}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(mcpResources)}
 			{@const uniqueMcpResources = [...new Map(mcpResources.values.map((mcpResource) => [mcpResource[EntityMetaKey.SelectorKey], mcpResource])).values()]}
 			<EntitiesList

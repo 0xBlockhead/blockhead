@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.KaspaNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(kaspaNetworks)}
 			{@const uniqueKaspaNetworks = [...new Map(kaspaNetworks.values.map((kaspaNetwork) => [kaspaNetwork[EntityMetaKey.SelectorKey], kaspaNetwork])).values()]}
 			<EntitiesList

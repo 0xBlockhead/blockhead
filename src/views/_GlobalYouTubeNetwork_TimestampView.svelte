@@ -173,18 +173,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowChannelCount: true,
+							observedChannelCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowChannelCount = prefetched.sourceWindowChannelCount}
-					{#if sourceWindowChannelCount !== undefined && sourceWindowChannelCount !== null}
+					{@const observedChannelCount = prefetched.observedChannelCount}
+					{#if observedChannelCount !== undefined && observedChannelCount !== null}
 						<div>
-							<dt>Source-window channels</dt>
+							<dt>Observed channels</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowChannelCount)} />
+								<NumberValue value={Number(observedChannelCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -192,12 +192,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowChannelCount = resolvedEntity.sourceWindowChannelCount}
-					{#if sourceWindowChannelCount !== undefined && sourceWindowChannelCount !== null}
+					{@const observedChannelCount = resolvedEntity.observedChannelCount}
+					{#if observedChannelCount !== undefined && observedChannelCount !== null}
 						<div>
-							<dt>Source-window channels</dt>
+							<dt>Observed channels</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowChannelCount)} />
+								<NumberValue value={Number(observedChannelCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -208,18 +208,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowVideoCount: true,
+							observedVideoCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowVideoCount = prefetched.sourceWindowVideoCount}
-					{#if sourceWindowVideoCount !== undefined && sourceWindowVideoCount !== null}
+					{@const observedVideoCount = prefetched.observedVideoCount}
+					{#if observedVideoCount !== undefined && observedVideoCount !== null}
 						<div>
-							<dt>Source-window videos</dt>
+							<dt>Observed videos</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowVideoCount)} />
+								<NumberValue value={Number(observedVideoCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -227,12 +227,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowVideoCount = resolvedEntity.sourceWindowVideoCount}
-					{#if sourceWindowVideoCount !== undefined && sourceWindowVideoCount !== null}
+					{@const observedVideoCount = resolvedEntity.observedVideoCount}
+					{#if observedVideoCount !== undefined && observedVideoCount !== null}
 						<div>
-							<dt>Source-window videos</dt>
+							<dt>Observed videos</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowVideoCount)} />
+								<NumberValue value={Number(observedVideoCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -243,18 +243,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowPlaylistCount: true,
+							observedPlaylistCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowPlaylistCount = prefetched.sourceWindowPlaylistCount}
-					{#if sourceWindowPlaylistCount !== undefined && sourceWindowPlaylistCount !== null}
+					{@const observedPlaylistCount = prefetched.observedPlaylistCount}
+					{#if observedPlaylistCount !== undefined && observedPlaylistCount !== null}
 						<div>
-							<dt>Source-window playlists</dt>
+							<dt>Observed playlists</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowPlaylistCount)} />
+								<NumberValue value={Number(observedPlaylistCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -262,12 +262,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowPlaylistCount = resolvedEntity.sourceWindowPlaylistCount}
-					{#if sourceWindowPlaylistCount !== undefined && sourceWindowPlaylistCount !== null}
+					{@const observedPlaylistCount = resolvedEntity.observedPlaylistCount}
+					{#if observedPlaylistCount !== undefined && observedPlaylistCount !== null}
 						<div>
-							<dt>Source-window playlists</dt>
+							<dt>Observed playlists</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowPlaylistCount)} />
+								<NumberValue value={Number(observedPlaylistCount)} />
 							</dd>
 						</div>
 					{/if}

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaAccount}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaAccounts)}
 			{@const uniqueHederaAccounts = [...new Map(hederaAccounts.values.map((hederaAccount) => [hederaAccount[EntityMetaKey.SelectorKey], hederaAccount])).values()]}
 			<EntitiesList

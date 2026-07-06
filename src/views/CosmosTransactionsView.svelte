@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cosmosTransactions)}
 			{@const uniqueCosmosTransactions = [...new Map(cosmosTransactions.values.map((cosmosTransaction) => [cosmosTransaction[EntityMetaKey.SelectorKey], cosmosTransaction])).values()]}
 			<EntitiesList

@@ -45,7 +45,7 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const mcpPromptResult = $derived(selection({
 		sources: [
-			Source.McpConfigured_Protocol,
+			Source.McpDeclared_Protocol,
 		],
 		fields: {
 			error: true,

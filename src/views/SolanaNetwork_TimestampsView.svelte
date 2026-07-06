@@ -79,6 +79,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SolanaNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(solanaNetworkTimestamps)}
 			{@const uniqueSolanaNetworkTimestamps = [...new Map(solanaNetworkTimestamps.values.map((solanaNetworkTimestamp) => [solanaNetworkTimestamp[EntityMetaKey.SelectorKey], solanaNetworkTimestamp])).values()]}
 			<EntitiesList

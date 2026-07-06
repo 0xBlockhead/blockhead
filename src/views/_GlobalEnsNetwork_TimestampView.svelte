@@ -203,18 +203,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowNameCount: true,
+							observedNameCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowNameCount = prefetched.sourceWindowNameCount}
-					{#if sourceWindowNameCount !== undefined && sourceWindowNameCount !== null}
+					{@const observedNameCount = prefetched.observedNameCount}
+					{#if observedNameCount !== undefined && observedNameCount !== null}
 						<div>
-							<dt>Source window names</dt>
+							<dt>Observed names</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowNameCount)} />
+								<NumberValue value={Number(observedNameCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -222,12 +222,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowNameCount = resolvedEntity.sourceWindowNameCount}
-					{#if sourceWindowNameCount !== undefined && sourceWindowNameCount !== null}
+					{@const observedNameCount = resolvedEntity.observedNameCount}
+					{#if observedNameCount !== undefined && observedNameCount !== null}
 						<div>
-							<dt>Source window names</dt>
+							<dt>Observed names</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowNameCount)} />
+								<NumberValue value={Number(observedNameCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -240,18 +240,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowRecordCount: true,
+							observedRecordCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowRecordCount = prefetched.sourceWindowRecordCount}
-					{#if sourceWindowRecordCount !== undefined && sourceWindowRecordCount !== null}
+					{@const observedRecordCount = prefetched.observedRecordCount}
+					{#if observedRecordCount !== undefined && observedRecordCount !== null}
 						<div>
-							<dt>Source window records</dt>
+							<dt>Observed records</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowRecordCount)} />
+								<NumberValue value={Number(observedRecordCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -259,12 +259,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowRecordCount = resolvedEntity.sourceWindowRecordCount}
-					{#if sourceWindowRecordCount !== undefined && sourceWindowRecordCount !== null}
+					{@const observedRecordCount = resolvedEntity.observedRecordCount}
+					{#if observedRecordCount !== undefined && observedRecordCount !== null}
 						<div>
-							<dt>Source window records</dt>
+							<dt>Observed records</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowRecordCount)} />
+								<NumberValue value={Number(observedRecordCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -277,18 +277,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowReverseRecordCount: true,
+							observedReverseRecordCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowReverseRecordCount = prefetched.sourceWindowReverseRecordCount}
-					{#if sourceWindowReverseRecordCount !== undefined && sourceWindowReverseRecordCount !== null}
+					{@const observedReverseRecordCount = prefetched.observedReverseRecordCount}
+					{#if observedReverseRecordCount !== undefined && observedReverseRecordCount !== null}
 						<div>
-							<dt>Source window reverse records</dt>
+							<dt>Observed reverse records</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowReverseRecordCount)} />
+								<NumberValue value={Number(observedReverseRecordCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -296,12 +296,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowReverseRecordCount = resolvedEntity.sourceWindowReverseRecordCount}
-					{#if sourceWindowReverseRecordCount !== undefined && sourceWindowReverseRecordCount !== null}
+					{@const observedReverseRecordCount = resolvedEntity.observedReverseRecordCount}
+					{#if observedReverseRecordCount !== undefined && observedReverseRecordCount !== null}
 						<div>
-							<dt>Source window reverse records</dt>
+							<dt>Observed reverse records</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowReverseRecordCount)} />
+								<NumberValue value={Number(observedReverseRecordCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -314,18 +314,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogContractCount: true,
+							seededContractCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogContractCount = prefetched.localCatalogContractCount}
-					{#if localCatalogContractCount !== undefined && localCatalogContractCount !== null}
+					{@const seededContractCount = prefetched.seededContractCount}
+					{#if seededContractCount !== undefined && seededContractCount !== null}
 						<div>
-							<dt>Local catalog contracts</dt>
+							<dt>Seeded contracts</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogContractCount)} />
+								<NumberValue value={Number(seededContractCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -333,12 +333,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogContractCount = resolvedEntity.localCatalogContractCount}
-					{#if localCatalogContractCount !== undefined && localCatalogContractCount !== null}
+					{@const seededContractCount = resolvedEntity.seededContractCount}
+					{#if seededContractCount !== undefined && seededContractCount !== null}
 						<div>
-							<dt>Local catalog contracts</dt>
+							<dt>Seeded contracts</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogContractCount)} />
+								<NumberValue value={Number(seededContractCount)} />
 							</dd>
 						</div>
 					{/if}

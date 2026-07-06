@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.PolkadotReferendum_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(polkadotReferendumTimestamps)}
 			{@const uniquePolkadotReferendumTimestamps = [...new Map(polkadotReferendumTimestamps.values.map((polkadotReferendumTimestamp) => [polkadotReferendumTimestamp[EntityMetaKey.SelectorKey], polkadotReferendumTimestamp])).values()]}
 			<EntitiesList

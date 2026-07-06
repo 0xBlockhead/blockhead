@@ -430,18 +430,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowActorCount: true,
+							observedActorCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowActorCount = prefetched.sourceWindowActorCount}
-					{#if sourceWindowActorCount !== undefined && sourceWindowActorCount !== null}
+					{@const observedActorCount = prefetched.observedActorCount}
+					{#if observedActorCount !== undefined && observedActorCount !== null}
 						<div>
-							<dt>Source-window actors</dt>
+							<dt>Observed actors</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowActorCount)} />
+								<NumberValue value={Number(observedActorCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -449,12 +449,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowActorCount = resolvedEntity.sourceWindowActorCount}
-					{#if sourceWindowActorCount !== undefined && sourceWindowActorCount !== null}
+					{@const observedActorCount = resolvedEntity.observedActorCount}
+					{#if observedActorCount !== undefined && observedActorCount !== null}
 						<div>
-							<dt>Source-window actors</dt>
+							<dt>Observed actors</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowActorCount)} />
+								<NumberValue value={Number(observedActorCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -465,18 +465,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowNoteCount: true,
+							observedNoteCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowNoteCount = prefetched.sourceWindowNoteCount}
-					{#if sourceWindowNoteCount !== undefined && sourceWindowNoteCount !== null}
+					{@const observedNoteCount = prefetched.observedNoteCount}
+					{#if observedNoteCount !== undefined && observedNoteCount !== null}
 						<div>
-							<dt>Source-window notes</dt>
+							<dt>Observed notes</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowNoteCount)} />
+								<NumberValue value={Number(observedNoteCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -484,12 +484,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowNoteCount = resolvedEntity.sourceWindowNoteCount}
-					{#if sourceWindowNoteCount !== undefined && sourceWindowNoteCount !== null}
+					{@const observedNoteCount = resolvedEntity.observedNoteCount}
+					{#if observedNoteCount !== undefined && observedNoteCount !== null}
 						<div>
-							<dt>Source-window notes</dt>
+							<dt>Observed notes</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowNoteCount)} />
+								<NumberValue value={Number(observedNoteCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -500,18 +500,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogInstanceCount: true,
+							seededInstanceCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogInstanceCount = prefetched.localCatalogInstanceCount}
-					{#if localCatalogInstanceCount !== undefined && localCatalogInstanceCount !== null}
+					{@const seededInstanceCount = prefetched.seededInstanceCount}
+					{#if seededInstanceCount !== undefined && seededInstanceCount !== null}
 						<div>
-							<dt>Local catalog instances</dt>
+							<dt>Seeded instances</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogInstanceCount)} />
+								<NumberValue value={Number(seededInstanceCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -519,12 +519,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogInstanceCount = resolvedEntity.localCatalogInstanceCount}
-					{#if localCatalogInstanceCount !== undefined && localCatalogInstanceCount !== null}
+					{@const seededInstanceCount = resolvedEntity.seededInstanceCount}
+					{#if seededInstanceCount !== undefined && seededInstanceCount !== null}
 						<div>
-							<dt>Local catalog instances</dt>
+							<dt>Seeded instances</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogInstanceCount)} />
+								<NumberValue value={Number(seededInstanceCount)} />
 							</dd>
 						</div>
 					{/if}

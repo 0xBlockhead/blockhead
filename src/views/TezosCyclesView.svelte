@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TezosCycle}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tezosCycles)}
 			{@const uniqueTezosCycles = [...new Map(tezosCycles.values.map((tezosCycle) => [tezosCycle[EntityMetaKey.SelectorKey], tezosCycle])).values()]}
 			<EntitiesList

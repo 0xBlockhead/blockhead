@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearExecutionOutcome}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearExecutionOutcomes)}
 			{@const uniqueNearExecutionOutcomes = [...new Map(nearExecutionOutcomes.values.map((nearExecutionOutcome) => [nearExecutionOutcome[EntityMetaKey.SelectorKey], nearExecutionOutcome])).values()]}
 			<EntitiesList

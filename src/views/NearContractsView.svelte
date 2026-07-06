@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearContract}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearContracts)}
 			{@const uniqueNearContracts = [...new Map(nearContracts.values.map((nearContract) => [nearContract[EntityMetaKey.SelectorKey], nearContract])).values()]}
 			<EntitiesList

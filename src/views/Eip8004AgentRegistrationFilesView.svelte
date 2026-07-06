@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Eip8004AgentRegistrationFile}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eip8004AgentRegistrationFiles)}
 			{@const uniqueEip8004AgentRegistrationFiles = [...new Map(eip8004AgentRegistrationFiles.values.map((eip8004AgentRegistrationFile) => [eip8004AgentRegistrationFile[EntityMetaKey.SelectorKey], eip8004AgentRegistrationFile])).values()]}
 			<EntitiesList

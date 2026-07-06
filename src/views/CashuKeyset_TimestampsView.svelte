@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CashuKeyset_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cashuKeysetTimestamps)}
 			{@const uniqueCashuKeysetTimestamps = [...new Map(cashuKeysetTimestamps.values.map((cashuKeysetTimestamp) => [cashuKeysetTimestamp[EntityMetaKey.SelectorKey], cashuKeysetTimestamp])).values()]}
 			<EntitiesList

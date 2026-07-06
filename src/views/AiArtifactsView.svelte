@@ -79,6 +79,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiArtifact}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiArtifacts)}
 			{@const uniqueAiArtifacts = [...new Map(aiArtifacts.values.map((aiArtifact) => [aiArtifact[EntityMetaKey.SelectorKey], aiArtifact])).values()]}
 			<EntitiesList

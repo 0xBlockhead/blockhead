@@ -542,9 +542,14 @@ describe('resolver registry live resolver architecture', () => {
 		expect(appEntityTypeRows.length).toBe(appEntityTypes.size)
 		expect([...appEntityTypes].filter((entityType) => !generatedEntityTypes.has(entityType))).toEqual([])
 		expect([...generatedEntityTypes].filter((entityType) => !appEntityTypes.has(entityType))).toEqual([])
-		expect(sourceProviders.length).toBe(app.sources.providers.length)
-		expect(sourceProviders.flatMap((sourceProvider) => sourceProvider.sources).length)
-			.toBe(app.sources.sources.length)
+		expect(app.sources.providers.filter((provider) => (
+			!sourceProviders.some((sourceProvider) => sourceProvider.provider === provider.provider)
+		))).toEqual([])
+		expect(app.sources.sources.filter((source) => (
+			!sourceProviders.some((sourceProvider) => (
+				sourceProvider.sources.some((sourceDefinition) => sourceDefinition.source === source.source)
+			))
+		))).toEqual([])
 		expect(resolvers.length).toBe(app.resolvers.modules.length)
 	})
 
@@ -628,38 +633,38 @@ describe('resolver registry live resolver architecture', () => {
 			sourceBackedExamples: unresolvedSourceBackedEntityTypes.slice(0, 20),
 		}).toEqual({
 			all: {
-				count: 687,
-				sha256: '9770b47abd3ec02ab005cf8d42f480d6be9f0f687dd06b200108113fc34bc88f',
+				count: 678,
+				sha256: '59007a232ac3800ba12a3fde80de9fe5fdf83fb09de60f0c60f448b82666bb41',
 			},
 			sourceBacked: {
-				count: 227,
-				sha256: '831850bfea8f6150ee64ff5afcfc9493085b067571e6a82ed14f35a70b80977e',
+				count: 224,
+				sha256: 'e1595c444ea85624ede220b31971f13761fe9ec0fe13851e1cdade6a4779e049',
 			},
 			noDeclaredSource: {
-				count: 460,
-				sha256: '5293d3cd8c10a88d2287bc6d5a2d69cb75c5ad9c0b6d4bf25ed9cae619ec3159',
+				count: 454,
+				sha256: 'c299a5fda174f05ad3a19c39eb0d1a063884877141c1a789dd408a139ff25cbe',
 			},
 			sourceBackedExamples: [
-				'ZeroGDaQuorum',
-				'ZeroGDaNode',
-				'ZeroGKvEntry',
-				'ZeroGServiceProvider',
-				'ZeroGServiceRequest',
-				'ZeroGSettlementTrace',
-				'ZeroGStorageProof',
-				'AiModel',
-				'AiModel_Timestamp',
-				'AiProviderApiOperation',
-				'AiProviderApiOperation_Timestamp',
-				'AiProviderCatalogEntry',
-				'AiProviderCatalogEntry_Timestamp',
-				'AiArtifact',
-				'AiDocument',
-				'AiArtifactAttestation',
-				'AiDocumentClaim',
-				'AiRelationshipClaim',
-				'AgentIdentityClaim',
-				'A2aAgentCard',
+				'_GlobalActivityPubNetwork_Timestamp',
+				'_GlobalArweaveNetwork',
+				'_GlobalArweaveNetwork_Timestamp',
+				'_GlobalEnsNetwork_Timestamp',
+				'_GlobalFarcasterNetwork_Timestamp',
+				'_GlobalIpfsAccess',
+				'_GlobalIpfsAccess_Timestamp',
+				'_GlobalLensNetwork',
+				'_GlobalLensNetwork_Timestamp',
+				'_GlobalRssNetwork',
+				'_GlobalRssNetwork_Timestamp',
+				'_GlobalSwarmAccess',
+				'_GlobalSwarmAccess_Timestamp',
+				'_GlobalXNetwork',
+				'_GlobalXNetwork_Timestamp',
+				'A2aAgentInterface',
+				'A2aAgentService',
+				'A2aAgentService_Timestamp',
+				'A2aAgentSkill',
+				'A2aArtifact',
 			],
 		})
 	})

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearAccessKey}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearAccessKeys)}
 			{@const uniqueNearAccessKeys = [...new Map(nearAccessKeys.values.map((nearAccessKey) => [nearAccessKey[EntityMetaKey.SelectorKey], nearAccessKey])).values()]}
 			<EntitiesList

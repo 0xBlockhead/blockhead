@@ -18,7 +18,7 @@
 	// State
 	let {
 		selection,
-		title = 'ActivityPub source windows',
+		title = 'ActivityPub observeds',
 		typeAnnotationParagraphs = [],
 		placeholderText,
 		emptyText = undefined,
@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalActivityPubNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalActivityPubNetworks)}
 			{@const uniqueGlobalActivityPubNetworks = [...new Map(globalActivityPubNetworks.values.map((globalActivityPubNetwork) => [globalActivityPubNetwork[EntityMetaKey.SelectorKey], globalActivityPubNetwork])).values()]}
 			<EntitiesList

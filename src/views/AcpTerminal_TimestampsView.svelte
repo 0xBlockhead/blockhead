@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpTerminal_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpTerminalTimestamps)}
 			{@const uniqueAcpTerminalTimestamps = [...new Map(acpTerminalTimestamps.values.map((acpTerminalTimestamp) => [acpTerminalTimestamp[EntityMetaKey.SelectorKey], acpTerminalTimestamp])).values()]}
 			<EntitiesList

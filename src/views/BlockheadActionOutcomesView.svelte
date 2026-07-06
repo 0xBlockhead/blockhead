@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadActionOutcome}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadActionOutcomes)}
 			{@const uniqueBlockheadActionOutcomes = [...new Map(blockheadActionOutcomes.values.map((blockheadActionOutcome) => [blockheadActionOutcome[EntityMetaKey.SelectorKey], blockheadActionOutcome])).values()]}
 			<EntitiesList

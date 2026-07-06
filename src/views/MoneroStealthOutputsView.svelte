@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.MoneroStealthOutput}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(moneroStealthOutputs)}
 			{@const uniqueMoneroStealthOutputs = [...new Map(moneroStealthOutputs.values.map((moneroStealthOutput) => [moneroStealthOutput[EntityMetaKey.SelectorKey], moneroStealthOutput])).values()]}
 			<EntitiesList

@@ -273,18 +273,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowStartHeight: true,
+							observedStartHeight: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowStartHeight = prefetched.sourceWindowStartHeight}
-					{#if sourceWindowStartHeight !== undefined && sourceWindowStartHeight !== null}
+					{@const observedStartHeight = prefetched.observedStartHeight}
+					{#if observedStartHeight !== undefined && observedStartHeight !== null}
 						<div>
-							<dt>source window start height</dt>
+							<dt>observed start height</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowStartHeight)} />
+								<NumberValue value={Number(observedStartHeight)} />
 							</dd>
 						</div>
 					{/if}
@@ -292,12 +292,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowStartHeight = resolvedEntity.sourceWindowStartHeight}
-					{#if sourceWindowStartHeight !== undefined && sourceWindowStartHeight !== null}
+					{@const observedStartHeight = resolvedEntity.observedStartHeight}
+					{#if observedStartHeight !== undefined && observedStartHeight !== null}
 						<div>
-							<dt>source window start height</dt>
+							<dt>observed start height</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowStartHeight)} />
+								<NumberValue value={Number(observedStartHeight)} />
 							</dd>
 						</div>
 					{/if}
@@ -308,18 +308,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowEndHeight: true,
+							observedEndHeight: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowEndHeight = prefetched.sourceWindowEndHeight}
-					{#if sourceWindowEndHeight !== undefined && sourceWindowEndHeight !== null}
+					{@const observedEndHeight = prefetched.observedEndHeight}
+					{#if observedEndHeight !== undefined && observedEndHeight !== null}
 						<div>
-							<dt>source window end height</dt>
+							<dt>observed end height</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowEndHeight)} />
+								<NumberValue value={Number(observedEndHeight)} />
 							</dd>
 						</div>
 					{/if}
@@ -327,12 +327,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowEndHeight = resolvedEntity.sourceWindowEndHeight}
-					{#if sourceWindowEndHeight !== undefined && sourceWindowEndHeight !== null}
+					{@const observedEndHeight = resolvedEntity.observedEndHeight}
+					{#if observedEndHeight !== undefined && observedEndHeight !== null}
 						<div>
-							<dt>source window end height</dt>
+							<dt>observed end height</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowEndHeight)} />
+								<NumberValue value={Number(observedEndHeight)} />
 							</dd>
 						</div>
 					{/if}

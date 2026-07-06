@@ -77,6 +77,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EvmSelector}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(evmSelectors)}
 			{@const uniqueEvmSelectors = [...new Map(evmSelectors.values.map((evmSelector) => [evmSelector[EntityMetaKey.SelectorKey], evmSelector])).values()]}
 			<EntitiesList

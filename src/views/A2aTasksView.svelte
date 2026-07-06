@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aTask}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aTasks)}
 			{@const uniqueA2aTasks = [...new Map(a2aTasks.values.map((a2aTask) => [a2aTask[EntityMetaKey.SelectorKey], a2aTask])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BitTorrentAnnounce_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bitTorrentAnnounceTimestamps)}
 			{@const uniqueBitTorrentAnnounceTimestamps = [...new Map(bitTorrentAnnounceTimestamps.values.map((bitTorrentAnnounceTimestamp) => [bitTorrentAnnounceTimestamp[EntityMetaKey.SelectorKey], bitTorrentAnnounceTimestamp])).values()]}
 			<EntitiesList

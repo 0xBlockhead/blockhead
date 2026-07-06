@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadWakuMessageObservation_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadWakuMessageObservationTimestamps)}
 			{@const uniqueBlockheadWakuMessageObservationTimestamps = [...new Map(blockheadWakuMessageObservationTimestamps.values.map((blockheadWakuMessageObservationTimestamp) => [blockheadWakuMessageObservationTimestamp[EntityMetaKey.SelectorKey], blockheadWakuMessageObservationTimestamp])).values()]}
 			<EntitiesList

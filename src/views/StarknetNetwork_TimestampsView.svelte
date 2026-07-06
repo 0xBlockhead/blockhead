@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StarknetNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(starknetNetworkTimestamps)}
 			{@const uniqueStarknetNetworkTimestamps = [...new Map(starknetNetworkTimestamps.values.map((starknetNetworkTimestamp) => [starknetNetworkTimestamp[EntityMetaKey.SelectorKey], starknetNetworkTimestamp])).values()]}
 			<EntitiesList

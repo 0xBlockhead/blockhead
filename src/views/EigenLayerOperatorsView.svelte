@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EigenLayerOperator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eigenLayerOperators)}
 			{@const uniqueEigenLayerOperators = [...new Map(eigenLayerOperators.values.map((eigenLayerOperator) => [eigenLayerOperator[EntityMetaKey.SelectorKey], eigenLayerOperator])).values()]}
 			<EntitiesList

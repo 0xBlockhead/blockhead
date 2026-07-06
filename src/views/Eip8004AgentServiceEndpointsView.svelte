@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Eip8004AgentServiceEndpoint}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eip8004AgentServiceEndpoints)}
 			{@const uniqueEip8004AgentServiceEndpoints = [...new Map(eip8004AgentServiceEndpoints.values.map((eip8004AgentServiceEndpoint) => [eip8004AgentServiceEndpoint[EntityMetaKey.SelectorKey], eip8004AgentServiceEndpoint])).values()]}
 			<EntitiesList

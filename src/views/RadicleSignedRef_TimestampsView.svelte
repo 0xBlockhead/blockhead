@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RadicleSignedRef_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(radicleSignedRefTimestamps)}
 			{@const uniqueRadicleSignedRefTimestamps = [...new Map(radicleSignedRefTimestamps.values.map((radicleSignedRefTimestamp) => [radicleSignedRefTimestamp[EntityMetaKey.SelectorKey], radicleSignedRefTimestamp])).values()]}
 			<EntitiesList

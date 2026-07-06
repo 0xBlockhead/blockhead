@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IcpCertifiedState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(icpCertifiedStates)}
 			{@const uniqueIcpCertifiedStates = [...new Map(icpCertifiedStates.values.map((icpCertifiedState) => [icpCertifiedState[EntityMetaKey.SelectorKey], icpCertifiedState])).values()]}
 			<EntitiesList

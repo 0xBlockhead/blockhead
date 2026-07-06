@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.UsageRight_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(usageRightTimestamps)}
 			{@const uniqueUsageRightTimestamps = [...new Map(usageRightTimestamps.values.map((usageRightTimestamp) => [usageRightTimestamp[EntityMetaKey.SelectorKey], usageRightTimestamp])).values()]}
 			<EntitiesList

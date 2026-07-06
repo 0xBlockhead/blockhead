@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StellarTrustline}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(stellarTrustlines)}
 			{@const uniqueStellarTrustlines = [...new Map(stellarTrustlines.values.map((stellarTrustline) => [stellarTrustline[EntityMetaKey.SelectorKey], stellarTrustline])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TronTokenTransfer}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tronTokenTransfers)}
 			{@const uniqueTronTokenTransfers = [...new Map(tronTokenTransfers.values.map((tronTokenTransfer) => [tronTokenTransfer[EntityMetaKey.SelectorKey], tronTokenTransfer])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StellarAccount}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(stellarAccounts)}
 			{@const uniqueStellarAccounts = [...new Map(stellarAccounts.values.map((stellarAccount) => [stellarAccount[EntityMetaKey.SelectorKey], stellarAccount])).values()]}
 			<EntitiesList

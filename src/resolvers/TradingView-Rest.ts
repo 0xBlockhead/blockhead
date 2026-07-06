@@ -5,11 +5,11 @@ import {
 	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
 import {
-	localCatalogCoinSpotUsdMarkets,
-	localCatalogCoinSpotUsdMarketByCoinId,
+	seededCoinSpotUsdMarkets,
+	seededCoinSpotUsdMarketByCoinId,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
-	localCatalogSpotMarketsWithCurrencyAsBase,
+	seededSpotMarketsWithCurrencyAsBase,
 } from '$/constants/MarketCatalog.ts'
 import {
 	defineResolver,
@@ -133,7 +133,7 @@ export default {
 					const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 					const markets = (
 						iso4217 === Iso4217.USD ?
-							localCatalogCoinSpotUsdMarkets.filter((catalogMarket) => (
+							seededCoinSpotUsdMarkets.filter((catalogMarket) => (
 								tradingViewMarketByCoinId[catalogMarket.baseCoinId] != null
 							))
 						:
@@ -156,7 +156,7 @@ export default {
 			entityType: EntityType.Currency,
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }) => {
-					const markets = localCatalogSpotMarketsWithCurrencyAsBase
+					const markets = seededSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.baseIso4217 === iso4217)
 						.map((catalogMarket) => ({
 							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),

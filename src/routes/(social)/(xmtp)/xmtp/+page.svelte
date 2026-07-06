@@ -35,8 +35,8 @@
 			select(EntityType.XmtpNetwork, data.selector, {
 				fields: {
 					protocolName: true,
-					registryLabel: true,
-					topology: true,
+					registryName: true,
+					relationshipModel: true,
 					homeUrl: true,
 					docsUrl: true,
 				},

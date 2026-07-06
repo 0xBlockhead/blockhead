@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ArweaveTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(arweaveTransactions)}
 			{@const uniqueArweaveTransactions = [...new Map(arweaveTransactions.values.map((arweaveTransaction) => [arweaveTransaction[EntityMetaKey.SelectorKey], arweaveTransaction])).values()]}
 			<EntitiesList

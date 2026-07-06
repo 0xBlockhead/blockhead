@@ -67,6 +67,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalEnsNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalEnsNetworks)}
 			{@const uniqueGlobalEnsNetworks = [...new Map(globalEnsNetworks.values.map((globalEnsNetwork) => [globalEnsNetwork[EntityMetaKey.SelectorKey], globalEnsNetwork])).values()]}
 			<EntitiesList

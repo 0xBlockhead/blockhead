@@ -11,6 +11,7 @@ import type {
 	NeynarCast,
 	NeynarFeedQuery,
 	NeynarFeedResponse,
+	NeynarUser,
 } from '$/sources/Neynar/Rest/types.ts'
 
 export const getBulkUsers = async ({
@@ -19,10 +20,15 @@ export const getBulkUsers = async ({
 }: {
 	publicEnv: SourcePublicEnv
 	fids: number[]
-}): Promise<NeynarBulkUsersResponse | undefined> => {
-	if (fids.length === 0) return { users: [] }
+}): Promise<readonly NeynarUser[]> => {
+	if (fids.length === 0) return []
 	const searchParams = new URLSearchParams({ fids: fids.join(',') })
-	return neynarFetch<NeynarBulkUsersResponse>(publicEnv, `/v2/farcaster/user/bulk/?${searchParams}`)
+	return (
+		(await neynarFetch<NeynarBulkUsersResponse>(
+			publicEnv,
+			`/v2/farcaster/user/bulk/?${searchParams}`
+		))?.users ?? []
+	)
 }
 
 /**

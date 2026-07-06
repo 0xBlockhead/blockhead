@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'Nostr networks',
-		typeAnnotationParagraphs = ['Compatibility protocol row for the Nostr network concept. The product-backed source window is modeled by _GlobalNostrNetwork.'],
+		typeAnnotationParagraphs = ['Compatibility protocol row for the Nostr network concept. The product-backed observed is modeled by _GlobalNostrNetwork.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -67,13 +67,27 @@
 			selection({
 				fields: {
 					protocolName: true,
-					registryLabel: true,
+					registryName: true,
 					scope: true,
 				},
 			})
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NostrNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nostrNetworks)}
 			{@const uniqueNostrNetworks = [...new Map(nostrNetworks.values.map((nostrNetwork) => [nostrNetwork[EntityMetaKey.SelectorKey], nostrNetwork])).values()]}
 			<EntitiesList

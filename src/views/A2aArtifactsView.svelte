@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aArtifact}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aArtifacts)}
 			{@const uniqueA2aArtifacts = [...new Map(a2aArtifacts.values.map((a2aArtifact) => [a2aArtifact[EntityMetaKey.SelectorKey], a2aArtifact])).values()]}
 			<EntitiesList

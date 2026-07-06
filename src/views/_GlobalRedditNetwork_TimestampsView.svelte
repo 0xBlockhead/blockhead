@@ -69,12 +69,26 @@
 					timestampMs: true,
 					source: true,
 					reachable: true,
-					sourceWindowLinkCount: true,
+					observedLinkCount: true,
 				},
 			})
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalRedditNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalRedditNetworkTimestamps)}
 			{@const uniqueGlobalRedditNetworkTimestamps = [...new Map(globalRedditNetworkTimestamps.values.map((globalRedditNetworkTimestamp) => [globalRedditNetworkTimestamp[EntityMetaKey.SelectorKey], globalRedditNetworkTimestamp])).values()]}
 			<EntitiesList

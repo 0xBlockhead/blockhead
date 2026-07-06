@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NostrRelay_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nostrRelayTimestamps)}
 			{@const uniqueNostrRelayTimestamps = [...new Map(nostrRelayTimestamps.values.map((nostrRelayTimestamp) => [nostrRelayTimestamp[EntityMetaKey.SelectorKey], nostrRelayTimestamp])).values()]}
 			<EntitiesList

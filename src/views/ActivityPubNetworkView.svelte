@@ -96,7 +96,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from configured instance sources.
+			ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from declared instance sources.
 		</p>
 	{/snippet}
 

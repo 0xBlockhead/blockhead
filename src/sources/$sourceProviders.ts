@@ -249,7 +249,7 @@ import magnetUriUriSourceDefinition from '$/sources/MagnetUri/Uri/index.ts'
 import checkedInMartianSourceProviderDefinition from '$/sources/Martian/index.ts'
 import martianWalletApiSourceDefinition from '$/sources/Martian/WalletApi/index.ts'
 import mastodonRestSourceDefinition from '$/sources/Mastodon/Rest/index.ts'
-import mcpConfiguredProtocolSourceDefinition from '$/sources/Mcp/index.ts'
+import mcpDeclaredProtocolSourceDefinition from '$/sources/Mcp/McpDeclared/Protocol/index.ts'
 import mcpPackageRegistryRestSourceDefinition from '$/sources/Mcp/McpPackageRegistry/Rest/index.ts'
 import mempoolSpaceRestSourceDefinition from '$/sources/MempoolSpace/index.ts'
 import metadataVisionRestSourceDefinition from '$/sources/MetadataVision/Rest/index.ts'
@@ -2528,7 +2528,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.CircleCctpContracts_Evm,
 				target: {
 					kind: SourceTargetKind.Eip155Chain,
-					key: 'configured-chain',
+					key: 'declared-chain',
 				},
 				endpoints: [
 					{
@@ -2938,7 +2938,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 	},
 	{
 		provider: SourceProvider.CosmosChainRegistry,
-		label: 'Cosmos Chain Registry',
+		label: 'Cosmos Chain Registry name',
 		sources: [
 			cosmosChainRegistryGithubSourceDefinition,
 		],
@@ -3400,7 +3400,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.EasContracts_Evm,
 				target: {
 					kind: SourceTargetKind.Eip155Chain,
-					key: 'configured-chain',
+					key: 'declared-chain',
 				},
 				endpoints: [
 					{
@@ -3532,7 +3532,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.EigenLayerContracts_Evm,
 				target: {
 					kind: SourceTargetKind.Eip155Chain,
-					key: 'configured-chain',
+					key: 'declared-chain',
 				},
 				endpoints: [
 					{
@@ -4665,7 +4665,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.LightningLnd_Grpc,
 				target: {
 					kind: SourceTargetKind.LocalDevice,
-					key: 'configured-lnd-node',
+					key: 'declared-lnd-node',
 				},
 				endpoints: [
 					{
@@ -5282,16 +5282,16 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		provider: SourceProvider.Mcp,
 		label: 'MCP',
 		sources: [
-			mcpConfiguredProtocolSourceDefinition,
+			mcpDeclaredProtocolSourceDefinition,
 			mcpPackageRegistryRestSourceDefinition,
 		],
 		bindings: [
 			{
 				provider: SourceProvider.Mcp,
-				source: Source.McpConfigured_Protocol,
+				source: Source.McpDeclared_Protocol,
 				target: {
 					kind: SourceTargetKind.LocalDevice,
-					key: 'mcp-configured',
+					key: 'mcp-declared',
 				},
 				endpoints: [
 					{
@@ -6436,7 +6436,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Pyth_EvmContract,
 				target: {
 					kind: SourceTargetKind.Eip155Chain,
-					key: 'configured-chain',
+					key: 'declared-chain',
 				},
 				endpoints: [
 					{
@@ -6700,7 +6700,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.QuilibriumNodeMetrics_Prometheus,
 				target: {
 					kind: SourceTargetKind.LocalDevice,
-					key: 'configured-quilibrium-node',
+					key: 'declared-quilibrium-node',
 				},
 				endpoints: [
 					{
@@ -6996,7 +6996,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 	},
 	{
 		provider: SourceProvider.Superchain,
-		label: 'Superchain Registry',
+		label: 'Superchain Registry name',
 		sources: [
 			superchainGithubSourceDefinition,
 		],

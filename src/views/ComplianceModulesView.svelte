@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ComplianceModule}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(complianceModules)}
 			{@const uniqueComplianceModules = [...new Map(complianceModules.values.map((complianceModule) => [complianceModule[EntityMetaKey.SelectorKey], complianceModule])).values()]}
 			<EntitiesList

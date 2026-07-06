@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StarknetEvent}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(starknetEvents)}
 			{@const uniqueStarknetEvents = [...new Map(starknetEvents.values.map((starknetEvent) => [starknetEvent[EntityMetaKey.SelectorKey], starknetEvent])).values()]}
 			<EntitiesList

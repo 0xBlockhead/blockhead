@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BittensorBlock}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bittensorBlocks)}
 			{@const uniqueBittensorBlocks = [...new Map(bittensorBlocks.values.map((bittensorBlock) => [bittensorBlock[EntityMetaKey.SelectorKey], bittensorBlock])).values()]}
 			<EntitiesList

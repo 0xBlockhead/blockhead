@@ -629,7 +629,7 @@
 						{@const registryStatus = prefetched.registryStatus}
 						{#if registryStatus !== undefined && registryStatus !== null}
 							<div>
-								<dt>Registry status</dt>
+								<dt>Registry name status</dt>
 								<dd>
 									{String((registryStatus) ?? '')}
 								</dd>
@@ -642,7 +642,7 @@
 						{@const registryStatus = resolvedEntity.registryStatus}
 						{#if registryStatus !== undefined && registryStatus !== null}
 							<div>
-								<dt>Registry status</dt>
+								<dt>Registry name status</dt>
 								<dd>
 									{String((registryStatus) ?? '')}
 								</dd>
@@ -1893,57 +1893,57 @@
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
-				id={viewDomId + '-carousel-topology'}
+				id={viewDomId + '-carousel-relationshipModel'}
 				sectionIdPrefix={viewDomId}
 				sections={
 					[
 						{
-							id: 'topology-upgrades',
+							id: 'relationshipModel-upgrades',
 							label: 'Upgrades',
 						},
 						{
-							id: 'topology-parent-layer',
+							id: 'relationshipModel-parent-layer',
 							label: 'Parent',
 						},
 						{
-							id: 'topology-rollup',
+							id: 'relationshipModel-rollup',
 							label: 'Rollup',
 						},
 						{
-							id: 'topology-sibling-shards',
+							id: 'relationshipModel-sibling-shards',
 							label: 'Shards',
 						},
 						{
-							id: 'topology-testnets',
+							id: 'relationshipModel-testnets',
 							label: 'Testnets',
 						},
 						{
-							id: 'topology-mainnet',
+							id: 'relationshipModel-mainnet',
 							label: 'Mainnet',
 						},
 						{
-							id: 'topology-child-layers',
+							id: 'relationshipModel-child-layers',
 							label: 'Layers',
 						},
 						{
-							id: 'topology-settled-rollups',
+							id: 'relationshipModel-settled-rollups',
 							label: 'Settled rollups',
 						},
 					]
 				}
 				data-card
-				class='network-view-collapsible-topology'
+				class='network-view-collapsible-relationshipModel'
 				scrollContainerProps={{
 					'data-row': 'start align-start',
 				}}
 			>
 				{#snippet Summary({})}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Topology</HeadingComponent>
+						<HeadingComponent>Relationship model</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet SectionTopologyUpgrades({ id, label, open })}
+				{#snippet SectionRelationshipModelUpgrades({ id, label, open })}
 					<EthereumNetworkUpgradesView
 						selection={
 							selection[EntityProxyField]<EntityType.EthereumNetworkUpgrade>('$$upgrades', {
@@ -1965,7 +1965,7 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionTopologyParentLayer({ id, label, open })}
+				{#snippet SectionRelationshipModelParentLayer({ id, label, open })}
 					<ResourceBoundary
 						resource={
 							selection[EntityProxyField]<EntityType.Network, false>('$parent', {
@@ -1999,7 +1999,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionTopologyRollup({ id, label, open })}
+				{#snippet SectionRelationshipModelRollup({ id, label, open })}
 					<ResourceBoundary
 						resource={
 							selection[EntityProxyField]<EntityType.EvmRollup, false>('$rollup', {
@@ -2030,7 +2030,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionTopologySiblingShards({ id, label, open })}
+				{#snippet SectionRelationshipModelSiblingShards({ id, label, open })}
 					<EvmNetworksView
 						selection={
 							selection[EntityProxyField]<EntityType.EvmNetwork>('$$siblingShardNetworks', {
@@ -2050,7 +2050,7 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionTopologyTestnets({ id, label, open })}
+				{#snippet SectionRelationshipModelTestnets({ id, label, open })}
 					<NetworksView
 						selection={
 							selection[EntityProxyField]<EntityType.Network>('$$testnets', {
@@ -2070,7 +2070,7 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionTopologyMainnet({ id, label, open })}
+				{#snippet SectionRelationshipModelMainnet({ id, label, open })}
 					<ResourceBoundary
 						resource={
 							selection[EntityProxyField]<EntityType.Network, false>('$mainnet', {
@@ -2103,7 +2103,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionTopologyChildLayers({ id, label, open })}
+				{#snippet SectionRelationshipModelChildLayers({ id, label, open })}
 					<NetworksView
 						selection={
 							selection[EntityProxyField]<EntityType.Network>('$$childLayers', {
@@ -2124,7 +2124,7 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionTopologySettledRollups({ id, label, open })}
+				{#snippet SectionRelationshipModelSettledRollups({ id, label, open })}
 					<EvmRollupsView
 						selection={
 							selection[EntityProxyField]<EntityType.EvmRollup>('$$settledRollups', {

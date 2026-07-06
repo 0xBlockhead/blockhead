@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Eip7702Authorization}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eip7702Authorizations)}
 			{@const uniqueEip7702Authorizations = [...new Map(eip7702Authorizations.values.map((eip7702Authorization) => [eip7702Authorization[EntityMetaKey.SelectorKey], eip7702Authorization])).values()]}
 			<EntitiesList

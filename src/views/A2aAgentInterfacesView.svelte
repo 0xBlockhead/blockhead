@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aAgentInterface}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aAgentInterfaces)}
 			{@const uniqueA2aAgentInterfaces = [...new Map(a2aAgentInterfaces.values.map((a2aAgentInterface) => [a2aAgentInterface[EntityMetaKey.SelectorKey], a2aAgentInterface])).values()]}
 			<EntitiesList

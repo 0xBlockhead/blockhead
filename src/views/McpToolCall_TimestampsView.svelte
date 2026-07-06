@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.McpToolCall_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(mcpToolCallTimestamps)}
 			{@const uniqueMcpToolCallTimestamps = [...new Map(mcpToolCallTimestamps.values.map((mcpToolCallTimestamp) => [mcpToolCallTimestamp[EntityMetaKey.SelectorKey], mcpToolCallTimestamp])).values()]}
 			<EntitiesList

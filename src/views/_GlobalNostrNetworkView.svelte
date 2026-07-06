@@ -46,10 +46,10 @@
 		],
 		fields: {
 			protocolName: true,
-			registryLabel: true,
+			registryName: true,
 			homeUrl: true,
 			docsUrl: true,
-			topology: true,
+			relationshipModel: true,
 		},
 	}))
 	const titleFallback = $derived(['Nostr'].filter(Boolean).join(' ') || 'Nostr')
@@ -107,18 +107,18 @@
 							Source.Constants_Internal,
 						],
 						fields: {
-							registryLabel: true,
+							registryName: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const registryLabel = prefetched.registryLabel}
-					{#if registryLabel !== undefined && registryLabel !== null}
+					{@const registryName = prefetched.registryName}
+					{#if registryName !== undefined && registryName !== null}
 						<div>
-							<dt>Registry</dt>
+							<dt>Registry name</dt>
 							<dd>
-								{String((registryLabel) ?? '')}
+								{String((registryName) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -126,12 +126,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registryLabel = resolvedEntity.registryLabel}
-					{#if registryLabel !== undefined && registryLabel !== null}
+					{@const registryName = resolvedEntity.registryName}
+					{#if registryName !== undefined && registryName !== null}
 						<div>
-							<dt>Registry</dt>
+							<dt>Registry name</dt>
 							<dd>
-								{String((registryLabel) ?? '')}
+								{String((registryName) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -292,18 +292,18 @@
 								Source.Constants_Internal,
 							],
 							fields: {
-								topology: true,
+								relationshipModel: true,
 							},
 						})
 					}
 				>
 					{#snippet Pending()}
-						{@const topology = prefetched.topology}
-						{#if topology !== undefined && topology !== null}
+						{@const relationshipModel = prefetched.relationshipModel}
+						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
-								<dt>Topology</dt>
+								<dt>Relationship model</dt>
 								<dd>
-									<span data-text="long-text">{String((topology) ?? '')}</span>
+									<span data-text="long-text">{String((relationshipModel) ?? '')}</span>
 								</dd>
 							</div>
 						{/if}
@@ -311,12 +311,12 @@
 
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const topology = resolvedEntity.topology}
-						{#if topology !== undefined && topology !== null}
+						{@const relationshipModel = resolvedEntity.relationshipModel}
+						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
-								<dt>Topology</dt>
+								<dt>Relationship model</dt>
 								<dd>
-									<span data-text="long-text">{String((topology) ?? '')}</span>
+									<span data-text="long-text">{String((relationshipModel) ?? '')}</span>
 								</dd>
 							</div>
 						{/if}
@@ -330,7 +330,7 @@
 		{#if detailsOpen}
 			<NostrProfilesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrProfile>('$$sourceWindowProfiles', {
+						selection[EntityProxyField]<EntityType.NostrProfile>('$$observedProfiles', {
 							sources: [
 								Source.NostrBand_Rest,
 							],
@@ -338,13 +338,13 @@
 					}
 				title='Profiles'
 				href={resolve('/(social)/(nostr)/nostr/profiles')}
-				emptyText='No Nostr profiles in this source window.'
-				id='NostrProfilesView-$$sourceWindowProfiles'
+				emptyText='No Nostr profiles in this observed.'
+				id='NostrProfilesView-$$observedProfiles'
 			/>
 
 			<NostrNotesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrNote>('$$sourceWindowNotes', {
+						selection[EntityProxyField]<EntityType.NostrNote>('$$observedNotes', {
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -353,13 +353,13 @@
 					}
 				title='Notes'
 				href={resolve('/(social)/(nostr)/nostr/notes')}
-				emptyText='No Nostr notes in this source window.'
-				id='NostrNotesView-$$sourceWindowNotes'
+				emptyText='No Nostr notes in this observed.'
+				id='NostrNotesView-$$observedNotes'
 			/>
 
 			<NostrRelaysView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrRelay>('$$sourceWindowRelays', {
+						selection[EntityProxyField]<EntityType.NostrRelay>('$$observedRelays', {
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -368,13 +368,13 @@
 					}
 				title='Relays'
 				href={resolve('/(social)/(nostr)/nostr/relays')}
-				emptyText='No Nostr relays in this source window.'
-				id='NostrRelaysView-$$sourceWindowRelays'
+				emptyText='No Nostr relays in this observed.'
+				id='NostrRelaysView-$$observedRelays'
 			/>
 
 			<NostrArticlesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrArticle>('$$sourceWindowArticles', {
+						selection[EntityProxyField]<EntityType.NostrArticle>('$$observedArticles', {
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -383,13 +383,13 @@
 					}
 				title='Articles'
 				href={resolve('/(social)/(nostr)/nostr/articles')}
-				emptyText='No Nostr articles in this source window.'
-				id='NostrArticlesView-$$sourceWindowArticles'
+				emptyText='No Nostr articles in this observed.'
+				id='NostrArticlesView-$$observedArticles'
 			/>
 
 			<NostrRepostsView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrRepost>('$$sourceWindowReposts', {
+						selection[EntityProxyField]<EntityType.NostrRepost>('$$observedReposts', {
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -398,16 +398,16 @@
 					}
 				title='Reposts'
 				href={resolve('/(social)/(nostr)/nostr/reposts')}
-				emptyText='No Nostr reposts in this source window.'
-				id='NostrRepostsView-$$sourceWindowReposts'
+				emptyText='No Nostr reposts in this observed.'
+				id='NostrRepostsView-$$observedReposts'
 			/>
 
 			<NostrReactionsView
-				selection={selection[EntityProxyField]<EntityType.NostrReaction>('$$sourceWindowReactions')}
+				selection={selection[EntityProxyField]<EntityType.NostrReaction>('$$observedReactions')}
 				title='Reactions'
 				href={resolve('/(social)/(nostr)/nostr/reactions')}
-				emptyText='No Nostr reactions in this source window.'
-				id='NostrReactionsView-$$sourceWindowReactions'
+				emptyText='No Nostr reactions in this observed.'
+				id='NostrReactionsView-$$observedReactions'
 			/>
 
 			<GlobalNostrNetwork_TimestampsView

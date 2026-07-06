@@ -30,12 +30,12 @@
 		selection={
 			select(EntityType._GlobalAtprotoNetwork, {
 				scope: '_GlobalAtprotoNetwork',
-			})[EntityProxyField]<EntityType.AtprotoActor>('$$sourceWindowActors', {
+			})[EntityProxyField]<EntityType.AtprotoActor>('$$observedActors', {
 				sources: [
 					Source.Constants_Internal,
 				],
 			})
 		}
-		id='source-window-actors'
+		id='observed-actors'
 	/>
 </Page>

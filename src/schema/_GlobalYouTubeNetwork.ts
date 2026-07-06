@@ -30,7 +30,7 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$sourceWindowChannels',
+			name: '$$observedChannels',
 			label: 'Channels',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.YoutubeChannel,
@@ -41,7 +41,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowVideos',
+			name: '$$observedVideos',
 			label: 'Videos',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.YoutubeVideo,
@@ -52,7 +52,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowPlaylists',
+			name: '$$observedPlaylists',
 			label: 'Playlists',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.YoutubePlaylist,

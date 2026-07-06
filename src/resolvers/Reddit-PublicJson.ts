@@ -336,7 +336,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowSubreddits: (subreddits) => subreddits,
+				$$observedSubreddits: (subreddits) => subreddits,
 			},
 		}),
 
@@ -363,7 +363,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowLinks: (links) => links,
+				$$observedLinks: (links) => links,
 			},
 		}),
 

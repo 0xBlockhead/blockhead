@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.DydxChainMarket_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(dydxChainMarketTimestamps)}
 			{@const uniqueDydxChainMarketTimestamps = [...new Map(dydxChainMarketTimestamps.values.map((dydxChainMarketTimestamp) => [dydxChainMarketTimestamp[EntityMetaKey.SelectorKey], dydxChainMarketTimestamp])).values()]}
 			<EntitiesList

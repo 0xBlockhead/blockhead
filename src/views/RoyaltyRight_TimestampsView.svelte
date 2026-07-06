@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RoyaltyRight_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(royaltyRightTimestamps)}
 			{@const uniqueRoyaltyRightTimestamps = [...new Map(royaltyRightTimestamps.values.map((royaltyRightTimestamp) => [royaltyRightTimestamp[EntityMetaKey.SelectorKey], royaltyRightTimestamp])).values()]}
 			<EntitiesList

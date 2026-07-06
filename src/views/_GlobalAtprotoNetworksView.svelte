@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'AT Protocol',
-		typeAnnotationParagraphs = ['AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from configured Bluesky-compatible appview sources, not a claim about every repository on the network.'],
+		typeAnnotationParagraphs = ['AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalAtprotoNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalAtprotoNetworks)}
 			{@const uniqueGlobalAtprotoNetworks = [...new Map(globalAtprotoNetworks.values.map((globalAtprotoNetwork) => [globalAtprotoNetwork[EntityMetaKey.SelectorKey], globalAtprotoNetwork])).values()]}
 			<EntitiesList

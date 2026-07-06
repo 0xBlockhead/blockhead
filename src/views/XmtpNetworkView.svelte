@@ -46,8 +46,8 @@
 			protocolName: true,
 			homeUrl: true,
 			docsUrl: true,
-			registryLabel: true,
-			topology: true,
+			registryName: true,
+			relationshipModel: true,
 		},
 	}))
 	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'XMTP')
@@ -98,7 +98,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the local catalog.
+			XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the seeded.
 		</p>
 	{/snippet}
 
@@ -140,18 +140,18 @@
 				resource={
 					selection({
 						fields: {
-							registryLabel: true,
+							registryName: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const registryLabel = prefetched.registryLabel}
-					{#if registryLabel !== undefined && registryLabel !== null}
+					{@const registryName = prefetched.registryName}
+					{#if registryName !== undefined && registryName !== null}
 						<div>
-							<dt>Registry</dt>
+							<dt>Registry name</dt>
 							<dd>
-								{String((registryLabel) ?? '')}
+								{String((registryName) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -159,12 +159,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const registryLabel = resolvedEntity.registryLabel}
-					{#if registryLabel !== undefined && registryLabel !== null}
+					{@const registryName = resolvedEntity.registryName}
+					{#if registryName !== undefined && registryName !== null}
 						<div>
-							<dt>Registry</dt>
+							<dt>Registry name</dt>
 							<dd>
-								{String((registryLabel) ?? '')}
+								{String((registryName) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -177,18 +177,18 @@
 				resource={
 					selection({
 						fields: {
-							topology: true,
+							relationshipModel: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const topology = prefetched.topology}
-					{#if topology !== undefined && topology !== null}
+					{@const relationshipModel = prefetched.relationshipModel}
+					{#if relationshipModel !== undefined && relationshipModel !== null}
 						<div>
-							<dt>Topology</dt>
+							<dt>Relationship model</dt>
 							<dd>
-								{String((topology) ?? '')}
+								{String((relationshipModel) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -196,12 +196,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const topology = resolvedEntity.topology}
-					{#if topology !== undefined && topology !== null}
+					{@const relationshipModel = resolvedEntity.relationshipModel}
+					{#if relationshipModel !== undefined && relationshipModel !== null}
 						<div>
-							<dt>Topology</dt>
+							<dt>Relationship model</dt>
 							<dd>
-								{String((topology) ?? '')}
+								{String((relationshipModel) ?? '')}
 							</dd>
 						</div>
 					{/if}

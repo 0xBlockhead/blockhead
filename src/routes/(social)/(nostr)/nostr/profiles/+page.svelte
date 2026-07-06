@@ -30,12 +30,12 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			})[EntityProxyField]<EntityType.NostrProfile>('$$sourceWindowProfiles', {
+			})[EntityProxyField]<EntityType.NostrProfile>('$$observedProfiles', {
 				sources: [
 					Source.NostrBand_Rest,
 				],
 			})
 		}
-		id='source-window-profiles'
+		id='observed-profiles'
 	/>
 </Page>

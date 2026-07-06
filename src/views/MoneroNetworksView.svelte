@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.MoneroNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(moneroNetworks)}
 			{@const uniqueMoneroNetworks = [...new Map(moneroNetworks.values.map((moneroNetwork) => [moneroNetwork[EntityMetaKey.SelectorKey], moneroNetwork])).values()]}
 			<EntitiesList

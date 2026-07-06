@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BnbBeaconTokenMigration}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bnbBeaconTokenMigrations)}
 			{@const uniqueBnbBeaconTokenMigrations = [...new Map(bnbBeaconTokenMigrations.values.map((bnbBeaconTokenMigration) => [bnbBeaconTokenMigration[EntityMetaKey.SelectorKey], bnbBeaconTokenMigration])).values()]}
 			<EntitiesList

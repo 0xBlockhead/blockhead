@@ -288,7 +288,7 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowSubreddits: (network) => network,
+					$$observedSubreddits: (network) => network,
 				},
 			}),
 
@@ -316,7 +316,7 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowLinks: (network) => network,
+					$$observedLinks: (network) => network,
 				},
 			}),
 

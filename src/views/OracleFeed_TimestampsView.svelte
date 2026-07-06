@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.OracleFeed_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(oracleFeedTimestamps)}
 			{@const uniqueOracleFeedTimestamps = [...new Map(oracleFeedTimestamps.values.map((oracleFeedTimestamp) => [oracleFeedTimestamp[EntityMetaKey.SelectorKey], oracleFeedTimestamp])).values()]}
 			<EntitiesList

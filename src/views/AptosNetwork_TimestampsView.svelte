@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AptosNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aptosNetworkTimestamps)}
 			{@const uniqueAptosNetworkTimestamps = [...new Map(aptosNetworkTimestamps.values.map((aptosNetworkTimestamp) => [aptosNetworkTimestamp[EntityMetaKey.SelectorKey], aptosNetworkTimestamp])).values()]}
 			<EntitiesList

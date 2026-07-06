@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.McpPrompt}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(mcpPrompts)}
 			{@const uniqueMcpPrompts = [...new Map(mcpPrompts.values.map((mcpPrompt) => [mcpPrompt[EntityMetaKey.SelectorKey], mcpPrompt])).values()]}
 			<EntitiesList

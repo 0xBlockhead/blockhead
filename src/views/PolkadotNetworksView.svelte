@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.PolkadotNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(polkadotNetworks)}
 			{@const uniquePolkadotNetworks = [...new Map(polkadotNetworks.values.map((polkadotNetwork) => [polkadotNetwork[EntityMetaKey.SelectorKey], polkadotNetwork])).values()]}
 			<EntitiesList

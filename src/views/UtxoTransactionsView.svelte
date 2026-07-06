@@ -77,6 +77,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.UtxoTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(utxoTransactions)}
 			{@const uniqueUtxoTransactions = [...new Map(utxoTransactions.values.map((utxoTransaction) => [utxoTransaction[EntityMetaKey.SelectorKey], utxoTransaction])).values()]}
 			<EntitiesList

@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.PayjoinDirectory}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(payjoinDirectories)}
 			{@const uniquePayjoinDirectories = [...new Map(payjoinDirectories.values.map((payjoinDirectory) => [payjoinDirectory[EntityMetaKey.SelectorKey], payjoinDirectory])).values()]}
 			<EntitiesList

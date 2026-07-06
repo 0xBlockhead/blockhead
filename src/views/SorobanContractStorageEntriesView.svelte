@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SorobanContractStorageEntry}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(sorobanContractStorageEntries)}
 			{@const uniqueSorobanContractStorageEntries = [...new Map(sorobanContractStorageEntries.values.map((sorobanContractStorageEntry) => [sorobanContractStorageEntry[EntityMetaKey.SelectorKey], sorobanContractStorageEntry])).values()]}
 			<EntitiesList

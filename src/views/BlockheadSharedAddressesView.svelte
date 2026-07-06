@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadSharedAddress}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadSharedAddresses)}
 			{@const uniqueBlockheadSharedAddresses = [...new Map(blockheadSharedAddresses.values.map((blockheadSharedAddress) => [blockheadSharedAddress[EntityMetaKey.SelectorKey], blockheadSharedAddress])).values()]}
 			<EntitiesList

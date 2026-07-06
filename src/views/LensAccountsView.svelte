@@ -77,6 +77,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LensAccount}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(lensAccounts)}
 			{@const uniqueLensAccounts = [...new Map(lensAccounts.values.map((lensAccount) => [lensAccount[EntityMetaKey.SelectorKey], lensAccount])).values()]}
 			<EntitiesList

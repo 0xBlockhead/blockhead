@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiRelationshipClaim}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiRelationshipClaims)}
 			{@const uniqueAiRelationshipClaims = [...new Map(aiRelationshipClaims.values.map((aiRelationshipClaim) => [aiRelationshipClaim[EntityMetaKey.SelectorKey], aiRelationshipClaim])).values()]}
 			<EntitiesList

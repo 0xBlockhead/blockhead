@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AptosAccountResource_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aptosAccountResourceTimestamps)}
 			{@const uniqueAptosAccountResourceTimestamps = [...new Map(aptosAccountResourceTimestamps.values.map((aptosAccountResourceTimestamp) => [aptosAccountResourceTimestamp[EntityMetaKey.SelectorKey], aptosAccountResourceTimestamp])).values()]}
 			<EntitiesList

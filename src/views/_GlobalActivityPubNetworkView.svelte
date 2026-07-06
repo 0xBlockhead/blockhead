@@ -133,39 +133,39 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ActivityPubActorsView
-				selection={selection[EntityProxyField]<EntityType.ActivityPubActor>('$$sourceWindowActors')}
-				title='Source-window actors'
+				selection={selection[EntityProxyField]<EntityType.ActivityPubActor>('$$observedActors')}
+				title='Observed actors'
 				href={resolve('/(social)/(activitypub)/activitypub/actors')}
-				emptyText='No ActivityPub actors in this source window.'
-				id='ActivityPubActorsView-$$sourceWindowActors'
+				emptyText='No ActivityPub actors in this observed.'
+				id='ActivityPubActorsView-$$observedActors'
 			/>
 
 			<ActivityPubNotesView
-				selection={selection[EntityProxyField]<EntityType.ActivityPubNote>('$$sourceWindowNotes')}
-				title='Source-window notes'
+				selection={selection[EntityProxyField]<EntityType.ActivityPubNote>('$$observedNotes')}
+				title='Observed notes'
 				href={resolve('/(social)/(activitypub)/activitypub/notes')}
-				emptyText='No ActivityPub notes in this source window.'
-				id='ActivityPubNotesView-$$sourceWindowNotes'
+				emptyText='No ActivityPub notes in this observed.'
+				id='ActivityPubNotesView-$$observedNotes'
 			/>
 
 			<ActivityPubInstancesView
 				selection={selection[EntityProxyField]<EntityType.ActivityPubInstance>('$$instances')}
 				title='Instances'
-				emptyText='No ActivityPub instances configured.'
+				emptyText='No ActivityPub instances declared.'
 				id='ActivityPubInstancesView-$$instances'
 			/>
 
 			<ActivityPubInstancePeersView
 				selection={selection[EntityProxyField]<EntityType.ActivityPubInstancePeer>('$$instancePeers')}
 				title='Instance peers'
-				emptyText='No ActivityPub instance peers in this source window.'
+				emptyText='No ActivityPub instance peers in this observed.'
 				id='ActivityPubInstancePeersView-$$instancePeers'
 			/>
 
 			<ActivityPubInstanceModeratedDomainsView
 				selection={selection[EntityProxyField]<EntityType.ActivityPubInstanceModeratedDomain>('$$instanceModeratedDomains')}
 				title='Instance moderated domains'
-				emptyText='No ActivityPub moderated domains in this source window.'
+				emptyText='No ActivityPub moderated domains in this observed.'
 				id='ActivityPubInstanceModeratedDomainsView-$$instanceModeratedDomains'
 			/>
 

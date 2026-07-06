@@ -5407,6 +5407,27 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 			),
 			'\t\t{placeholderText}',
 			'\t>',
+			'\t\t{#snippet Pending()}',
+			'\t\t\t<EntitiesList',
+			'\t\t\t\t{...EntitiesListProps}',
+			`\t\t\t\tentityType={EntityType.${entity.entityType}}`,
+			'\t\t\t\t{id}',
+			'\t\t\t\t{title}',
+			'\t\t\t\tbind:open',
+			'\t\t\t\t{collapsible}',
+			'\t\t\t\t{showTypeAnnotation}',
+			renderSvelteAttribute(
+				4,
+				'TypeAnnotationTooltip',
+				modelTypeAnnotationTooltipMarkup.length === 0 ?
+					'typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined'
+				:
+					'typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip'
+			),
+			'\t\t\t\tplaceholderText={placeholderText}',
+			'\t\t\t/>',
+			'\t\t{/snippet}',
+			'',
 			`\t\t{#snippet children(${entityValuesName})}`,
 			`\t\t\t{@const ${uniqueEntityValuesName} = [...new Map(${filteredEntityValuesExpression}.map((${entityValueName}) => [${entityValueName}[EntityMetaKey.SelectorKey], ${entityValueName}])).values()]}`,
 			'\t\t\t<EntitiesList',

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiRegulatedCoinState_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiRegulatedCoinStateTimestamps)}
 			{@const uniqueSuiRegulatedCoinStateTimestamps = [...new Map(suiRegulatedCoinStateTimestamps.values.map((suiRegulatedCoinStateTimestamp) => [suiRegulatedCoinStateTimestamp[EntityMetaKey.SelectorKey], suiRegulatedCoinStateTimestamp])).values()]}
 			<EntitiesList

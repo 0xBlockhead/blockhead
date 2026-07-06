@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AptosTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aptosTransactions)}
 			{@const uniqueAptosTransactions = [...new Map(aptosTransactions.values.map((aptosTransaction) => [aptosTransaction[EntityMetaKey.SelectorKey], aptosTransaction])).values()]}
 			<EntitiesList

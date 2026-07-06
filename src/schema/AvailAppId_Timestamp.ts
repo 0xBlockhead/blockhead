@@ -61,8 +61,8 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'sourceWindowSubmissionCount',
-			label: 'source window submission count',
+			name: 'observedSubmissionCount',
+			label: 'observed submission count',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

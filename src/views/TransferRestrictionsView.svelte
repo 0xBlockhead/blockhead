@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TransferRestriction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(transferRestrictions)}
 			{@const uniqueTransferRestrictions = [...new Map(transferRestrictions.values.map((transferRestriction) => [transferRestriction[EntityMetaKey.SelectorKey], transferRestriction])).values()]}
 			<EntitiesList

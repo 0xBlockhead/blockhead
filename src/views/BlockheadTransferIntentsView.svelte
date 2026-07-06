@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadTransferIntent}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadTransferIntents)}
 			{@const uniqueBlockheadTransferIntents = [...new Map(blockheadTransferIntents.values.map((blockheadTransferIntent) => [blockheadTransferIntent[EntityMetaKey.SelectorKey], blockheadTransferIntent])).values()]}
 			<EntitiesList

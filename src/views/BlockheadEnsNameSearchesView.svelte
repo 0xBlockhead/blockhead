@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadEnsNameSearch}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadEnsNameSearches)}
 			{@const uniqueBlockheadEnsNameSearches = [...new Map(blockheadEnsNameSearches.values.map((blockheadEnsNameSearch) => [blockheadEnsNameSearch[EntityMetaKey.SelectorKey], blockheadEnsNameSearch])).values()]}
 			<EntitiesList

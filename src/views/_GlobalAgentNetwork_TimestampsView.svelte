@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalAgentNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalAgentNetworkTimestamps)}
 			{@const uniqueGlobalAgentNetworkTimestamps = [...new Map(globalAgentNetworkTimestamps.values.map((globalAgentNetworkTimestamp) => [globalAgentNetworkTimestamp[EntityMetaKey.SelectorKey], globalAgentNetworkTimestamp])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StellarClaimableBalance}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(stellarClaimableBalances)}
 			{@const uniqueStellarClaimableBalances = [...new Map(stellarClaimableBalances.values.map((stellarClaimableBalance) => [stellarClaimableBalance[EntityMetaKey.SelectorKey], stellarClaimableBalance])).values()]}
 			<EntitiesList

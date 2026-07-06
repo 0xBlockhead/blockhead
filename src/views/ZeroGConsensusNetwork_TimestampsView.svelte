@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGConsensusNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGConsensusNetworkTimestamps)}
 			{@const uniqueZeroGConsensusNetworkTimestamps = [...new Map(zeroGConsensusNetworkTimestamps.values.map((zeroGConsensusNetworkTimestamp) => [zeroGConsensusNetworkTimestamp[EntityMetaKey.SelectorKey], zeroGConsensusNetworkTimestamp])).values()]}
 			<EntitiesList

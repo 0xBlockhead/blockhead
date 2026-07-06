@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalAiArtifactCatalog_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalAiArtifactCatalogTimestamps)}
 			{@const uniqueGlobalAiArtifactCatalogTimestamps = [...new Map(globalAiArtifactCatalogTimestamps.values.map((globalAiArtifactCatalogTimestamp) => [globalAiArtifactCatalogTimestamp[EntityMetaKey.SelectorKey], globalAiArtifactCatalogTimestamp])).values()]}
 			<EntitiesList

@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NostrRepost}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nostrReposts)}
 			{@const uniqueNostrReposts = [...new Map(nostrReposts.values.map((nostrRepost) => [nostrRepost[EntityMetaKey.SelectorKey], nostrRepost])).values()]}
 			<EntitiesList

@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadLightningPayment}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadLightningPayments)}
 			{@const uniqueBlockheadLightningPayments = [...new Map(blockheadLightningPayments.values.map((blockheadLightningPayment) => [blockheadLightningPayment[EntityMetaKey.SelectorKey], blockheadLightningPayment])).values()]}
 			<EntitiesList

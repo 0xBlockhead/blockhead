@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AtprotoActor_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(atprotoActorTimestamps)}
 			{@const uniqueAtprotoActorTimestamps = [...new Map(atprotoActorTimestamps.values.map((atprotoActorTimestamp) => [atprotoActorTimestamp[EntityMetaKey.SelectorKey], atprotoActorTimestamp])).values()]}
 			<EntitiesList

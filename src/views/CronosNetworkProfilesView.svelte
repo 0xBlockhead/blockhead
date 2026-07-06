@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CronosNetworkProfile}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cronosNetworkProfiles)}
 			{@const uniqueCronosNetworkProfiles = [...new Map(cronosNetworkProfiles.values.map((cronosNetworkProfile) => [cronosNetworkProfile[EntityMetaKey.SelectorKey], cronosNetworkProfile])).values()]}
 			<EntitiesList

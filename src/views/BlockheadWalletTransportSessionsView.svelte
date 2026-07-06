@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadWalletTransportSession}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadWalletTransportSessions)}
 			{@const uniqueBlockheadWalletTransportSessions = [...new Map(blockheadWalletTransportSessions.values.map((blockheadWalletTransportSession) => [blockheadWalletTransportSession[EntityMetaKey.SelectorKey], blockheadWalletTransportSession])).values()]}
 			<EntitiesList

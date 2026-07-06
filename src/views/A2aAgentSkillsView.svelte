@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aAgentSkill}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aAgentSkills)}
 			{@const uniqueA2aAgentSkills = [...new Map(a2aAgentSkills.values.map((a2aAgentSkill) => [a2aAgentSkill[EntityMetaKey.SelectorKey], a2aAgentSkill])).values()]}
 			<EntitiesList

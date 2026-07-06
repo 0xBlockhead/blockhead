@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IcpSubnet}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(icpSubnets)}
 			{@const uniqueIcpSubnets = [...new Map(icpSubnets.values.map((icpSubnet) => [icpSubnet[EntityMetaKey.SelectorKey], icpSubnet])).values()]}
 			<EntitiesList

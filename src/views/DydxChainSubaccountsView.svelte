@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.DydxChainSubaccount}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(dydxChainSubaccounts)}
 			{@const uniqueDydxChainSubaccounts = [...new Map(dydxChainSubaccounts.values.map((dydxChainSubaccount) => [dydxChainSubaccount[EntityMetaKey.SelectorKey], dydxChainSubaccount])).values()]}
 			<EntitiesList

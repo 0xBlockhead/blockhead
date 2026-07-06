@@ -418,7 +418,7 @@
 					}
 				title='Replies'
 				href={resolve('/(social)/(nostr)/nostr/notes')}
-				emptyText='No replies in this source window.'
+				emptyText='No replies in this observed.'
 				id='NostrNotesView-$$replies'
 			/>
 
@@ -433,7 +433,7 @@
 					}
 				title='Reactions'
 				href={resolve('/(social)/(nostr)/nostr/reactions')}
-				emptyText='No reactions in this source window.'
+				emptyText='No reactions in this observed.'
 				id='NostrReactionsView-$$reactions'
 			/>
 		{/if}

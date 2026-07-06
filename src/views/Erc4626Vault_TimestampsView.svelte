@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Erc4626Vault_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(erc4626VaultTimestamps)}
 			{@const uniqueErc4626VaultTimestamps = [...new Map(erc4626VaultTimestamps.values.map((erc4626VaultTimestamp) => [erc4626VaultTimestamp[EntityMetaKey.SelectorKey], erc4626VaultTimestamp])).values()]}
 			<EntitiesList

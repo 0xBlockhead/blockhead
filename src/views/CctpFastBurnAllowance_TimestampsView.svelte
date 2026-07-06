@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CctpFastBurnAllowance_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cctpFastBurnAllowanceTimestamps)}
 			{@const uniqueCctpFastBurnAllowanceTimestamps = [...new Map(cctpFastBurnAllowanceTimestamps.values.map((cctpFastBurnAllowanceTimestamp) => [cctpFastBurnAllowanceTimestamp[EntityMetaKey.SelectorKey], cctpFastBurnAllowanceTimestamp])).values()]}
 			<EntitiesList

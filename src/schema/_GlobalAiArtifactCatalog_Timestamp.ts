@@ -54,8 +54,8 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'localCatalogArtifactCount',
-			label: 'localCatalogArtifactCount',
+			name: 'seededArtifactCount',
+			label: 'seededArtifactCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -68,8 +68,8 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'localCatalogDocumentCount',
-			label: 'localCatalogDocumentCount',
+			name: 'seededDocumentCount',
+			label: 'seededDocumentCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -117,8 +117,8 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'configuredEndpointCount',
-			label: 'configuredEndpointCount',
+			name: 'declaredEndpointCount',
+			label: 'declaredEndpointCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

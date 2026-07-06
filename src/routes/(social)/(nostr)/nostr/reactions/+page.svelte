@@ -29,8 +29,8 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			})[EntityProxyField]<EntityType.NostrReaction>('$$sourceWindowReactions')
+			})[EntityProxyField]<EntityType.NostrReaction>('$$observedReactions')
 		}
-		id='source-window-reactions'
+		id='observed-reactions'
 	/>
 </Page>

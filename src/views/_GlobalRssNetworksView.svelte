@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalRssNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalRssNetworks)}
 			{@const uniqueGlobalRssNetworks = [...new Map(globalRssNetworks.values.map((globalRssNetwork) => [globalRssNetwork[EntityMetaKey.SelectorKey], globalRssNetwork])).values()]}
 			<EntitiesList

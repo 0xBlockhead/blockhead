@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadSiweChallenge}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadSiweChallenges)}
 			{@const uniqueBlockheadSiweChallenges = [...new Map(blockheadSiweChallenges.values.map((blockheadSiweChallenge) => [blockheadSiweChallenge[EntityMetaKey.SelectorKey], blockheadSiweChallenge])).values()]}
 			<EntitiesList

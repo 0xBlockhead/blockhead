@@ -238,6 +238,9 @@ const pageFileToPathname = (absPath: string) => {
 				paramKey === 'networkSlug' && routeStaticSegments.includes('shielded-action') ?
 					['zcash']
 			:
+				paramKey === 'networkSlug' && routeStaticSegments.includes('shielded-pool') ?
+					['zcash']
+			:
 				paramKey === 'networkSlug' && (
 					routeStaticSegments.includes('channels')
 					|| routeStaticSegments.includes('invoices')

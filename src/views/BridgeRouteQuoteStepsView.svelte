@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BridgeRouteQuoteStep}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bridgeRouteQuoteSteps)}
 			{@const uniqueBridgeRouteQuoteSteps = [...new Map(bridgeRouteQuoteSteps.values.map((bridgeRouteQuoteStep) => [bridgeRouteQuoteStep[EntityMetaKey.SelectorKey], bridgeRouteQuoteStep])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadAvalancheNodeState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadAvalancheNodeStates)}
 			{@const uniqueBlockheadAvalancheNodeStates = [...new Map(blockheadAvalancheNodeStates.values.map((blockheadAvalancheNodeState) => [blockheadAvalancheNodeState[EntityMetaKey.SelectorKey], blockheadAvalancheNodeState])).values()]}
 			<EntitiesList

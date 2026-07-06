@@ -77,6 +77,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NostrRelay}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nostrRelays)}
 			{@const uniqueNostrRelays = [...new Map(nostrRelays.values.map((nostrRelay) => [nostrRelay[EntityMetaKey.SelectorKey], nostrRelay])).values()]}
 			<EntitiesList

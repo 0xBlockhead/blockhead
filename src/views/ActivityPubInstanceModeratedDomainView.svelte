@@ -95,7 +95,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			A domain that a configured ActivityPub instance reports in its public moderation-domain list.
+			A domain that a declared ActivityPub instance reports in its public moderation-domain list.
 		</p>
 	{/snippet}
 

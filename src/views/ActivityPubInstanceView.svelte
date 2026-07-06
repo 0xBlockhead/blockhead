@@ -96,7 +96,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			A configured Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.
+			A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.
 		</p>
 	{/snippet}
 

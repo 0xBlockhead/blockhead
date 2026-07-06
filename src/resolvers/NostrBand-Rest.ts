@@ -799,7 +799,7 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowProfiles: (profiles) => profiles,
+					$$observedProfiles: (profiles) => profiles,
 				},
 			}),
 
@@ -826,7 +826,7 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowNotes: (notes) => notes,
+					$$observedNotes: (notes) => notes,
 				},
 			}),
 
@@ -850,7 +850,7 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowRelays: (relays) => relays,
+					$$observedRelays: (relays) => relays,
 				},
 			}),
 
@@ -877,7 +877,7 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowReposts: (reposts) => reposts,
+					$$observedReposts: (reposts) => reposts,
 				},
 			}),
 
@@ -895,7 +895,7 @@ export default {
 			},
 			})({
 				fields: {
-					$$sourceWindowArticles: (articles) => articles,
+					$$observedArticles: (articles) => articles,
 				},
 			}),
 

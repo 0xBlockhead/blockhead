@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvailAppId_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(availAppIdTimestamps)}
 			{@const uniqueAvailAppIdTimestamps = [...new Map(availAppIdTimestamps.values.map((availAppIdTimestamp) => [availAppIdTimestamp[EntityMetaKey.SelectorKey], availAppIdTimestamp])).values()]}
 			<EntitiesList

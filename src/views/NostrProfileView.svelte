@@ -385,7 +385,7 @@
 					}
 				title='Notes'
 				href={resolve('/(social)/(nostr)/nostr/notes')}
-				emptyText='No notes in this source window.'
+				emptyText='No notes in this observed.'
 				id='NostrNotesView-$$notes'
 			/>
 
@@ -400,7 +400,7 @@
 					}
 				title='Articles'
 				href={resolve('/(social)/(nostr)/nostr/articles')}
-				emptyText='No articles in this source window.'
+				emptyText='No articles in this observed.'
 				id='NostrArticlesView-$$articles'
 			/>
 
@@ -415,7 +415,7 @@
 					}
 				title='Reposts'
 				href={resolve('/(social)/(nostr)/nostr/reposts')}
-				emptyText='No reposts in this source window.'
+				emptyText='No reposts in this observed.'
 				id='NostrRepostsView-$$reposts'
 			/>
 		{/if}

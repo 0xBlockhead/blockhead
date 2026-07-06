@@ -246,7 +246,7 @@
 									selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
 									prefetched={zcashShieldedPool}
 									href={
-										(zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2 !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2 !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined && zcashShieldedPool[EntityMetaKey.Selector].pool !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/zcash/shielded-pool/[pool]', {
+										(zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2 !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2 !== undefined && zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined && zcashShieldedPool[EntityMetaKey.Selector].pool !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/shielded-pool/[pool]', {
 											networkSlug: String(networkByCaip2[String(String(zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(zcashShieldedPool[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
 											pool: String(zcashShieldedPool[EntityMetaKey.Selector].pool ?? ''),
 										}) : undefined)

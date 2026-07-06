@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandAssetHolding_Round}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandAssetHoldingRounds)}
 			{@const uniqueAlgorandAssetHoldingRounds = [...new Map(algorandAssetHoldingRounds.values.map((algorandAssetHoldingRound) => [algorandAssetHoldingRound[EntityMetaKey.SelectorKey], algorandAssetHoldingRound])).values()]}
 			<EntitiesList

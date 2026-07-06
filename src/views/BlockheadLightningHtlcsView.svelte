@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadLightningHtlc}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadLightningHtlcs)}
 			{@const uniqueBlockheadLightningHtlcs = [...new Map(blockheadLightningHtlcs.values.map((blockheadLightningHtlc) => [blockheadLightningHtlc[EntityMetaKey.SelectorKey], blockheadLightningHtlc])).values()]}
 			<EntitiesList

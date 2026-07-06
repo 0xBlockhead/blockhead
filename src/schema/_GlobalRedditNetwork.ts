@@ -30,7 +30,7 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$sourceWindowSubreddits',
+			name: '$$observedSubreddits',
 			label: 'Subreddits',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.RedditSubreddit,
@@ -41,7 +41,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowLinks',
+			name: '$$observedLinks',
 			label: 'Popular submissions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.RedditLink,

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpToolCall}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpToolCalls)}
 			{@const uniqueAcpToolCalls = [...new Map(acpToolCalls.values.map((acpToolCall) => [acpToolCall[EntityMetaKey.SelectorKey], acpToolCall])).values()]}
 			<EntitiesList

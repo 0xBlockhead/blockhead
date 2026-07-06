@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadSession}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadSessions)}
 			{@const uniqueBlockheadSessions = [...new Map(blockheadSessions.values.map((blockheadSession) => [blockheadSession[EntityMetaKey.SelectorKey], blockheadSession])).values()]}
 			<EntitiesList

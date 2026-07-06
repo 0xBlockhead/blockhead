@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiTransactions)}
 			{@const uniqueSuiTransactions = [...new Map(suiTransactions.values.map((suiTransaction) => [suiTransaction[EntityMetaKey.SelectorKey], suiTransaction])).values()]}
 			<EntitiesList

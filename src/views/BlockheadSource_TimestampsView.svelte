@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadSource_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadSourceTimestamps)}
 			{@const uniqueBlockheadSourceTimestamps = [...new Map(blockheadSourceTimestamps.values.map((blockheadSourceTimestamp) => [blockheadSourceTimestamp[EntityMetaKey.SelectorKey], blockheadSourceTimestamp])).values()]}
 			<EntitiesList

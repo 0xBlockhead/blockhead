@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadCashuMintQuote}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadCashuMintQuotes)}
 			{@const uniqueBlockheadCashuMintQuotes = [...new Map(blockheadCashuMintQuotes.values.map((blockheadCashuMintQuote) => [blockheadCashuMintQuote[EntityMetaKey.SelectorKey], blockheadCashuMintQuote])).values()]}
 			<EntitiesList

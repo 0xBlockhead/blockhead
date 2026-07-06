@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BnbValidator_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bnbValidatorTimestamps)}
 			{@const uniqueBnbValidatorTimestamps = [...new Map(bnbValidatorTimestamps.values.map((bnbValidatorTimestamp) => [bnbValidatorTimestamp[EntityMetaKey.SelectorKey], bnbValidatorTimestamp])).values()]}
 			<EntitiesList

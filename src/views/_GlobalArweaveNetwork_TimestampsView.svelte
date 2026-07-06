@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalArweaveNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalArweaveNetworkTimestamps)}
 			{@const uniqueGlobalArweaveNetworkTimestamps = [...new Map(globalArweaveNetworkTimestamps.values.map((globalArweaveNetworkTimestamp) => [globalArweaveNetworkTimestamp[EntityMetaKey.SelectorKey], globalArweaveNetworkTimestamp])).values()]}
 			<EntitiesList

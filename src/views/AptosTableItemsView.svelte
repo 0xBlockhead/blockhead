@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AptosTableItem}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aptosTableItems)}
 			{@const uniqueAptosTableItems = [...new Map(aptosTableItems.values.map((aptosTableItem) => [aptosTableItem[EntityMetaKey.SelectorKey], aptosTableItem])).values()]}
 			<EntitiesList

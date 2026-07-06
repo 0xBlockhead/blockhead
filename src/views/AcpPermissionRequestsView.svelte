@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpPermissionRequest}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpPermissionRequests)}
 			{@const uniqueAcpPermissionRequests = [...new Map(acpPermissionRequests.values.map((acpPermissionRequest) => [acpPermissionRequest[EntityMetaKey.SelectorKey], acpPermissionRequest])).values()]}
 			<EntitiesList

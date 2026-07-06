@@ -46,7 +46,7 @@
 		sources: [
 			Source.Anthropic_Rest,
 			Source.Local_Internal,
-			Source.McpConfigured_Protocol,
+			Source.McpDeclared_Protocol,
 			Source.OpenAI_Rest,
 		],
 		fields: {

@@ -12,6 +12,10 @@ export const youtubeNetworkSeedChannels = [
 		channelId: 'UCBR8-60-B28hp2BmDPdntcQ',
 		title: 'YouTube Viewers',
 	},
+	{
+		channelId: 'UCC5NfQ6Mf0dq_eEwv4P_hWA',
+		title: 'jawed',
+	},
 ] as const satisfies readonly {
 	channelId: string
 	title: string

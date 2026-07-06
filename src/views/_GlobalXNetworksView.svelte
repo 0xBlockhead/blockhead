@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalXNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalXNetworks)}
 			{@const uniqueGlobalXNetworks = [...new Map(globalXNetworks.values.map((globalXNetwork) => [globalXNetwork[EntityMetaKey.SelectorKey], globalXNetwork])).values()]}
 			<EntitiesList

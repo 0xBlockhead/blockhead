@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpPromptTurn}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpPromptTurns)}
 			{@const uniqueAcpPromptTurns = [...new Map(acpPromptTurns.values.map((acpPromptTurn) => [acpPromptTurn[EntityMetaKey.SelectorKey], acpPromptTurn])).values()]}
 			<EntitiesList

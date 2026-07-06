@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiProgrammableTransactionCommand}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiProgrammableTransactionCommands)}
 			{@const uniqueSuiProgrammableTransactionCommands = [...new Map(suiProgrammableTransactionCommands.values.map((suiProgrammableTransactionCommand) => [suiProgrammableTransactionCommand[EntityMetaKey.SelectorKey], suiProgrammableTransactionCommand])).values()]}
 			<EntitiesList

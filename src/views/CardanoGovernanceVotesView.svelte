@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CardanoGovernanceVote}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cardanoGovernanceVotes)}
 			{@const uniqueCardanoGovernanceVotes = [...new Map(cardanoGovernanceVotes.values.map((cardanoGovernanceVote) => [cardanoGovernanceVote[EntityMetaKey.SelectorKey], cardanoGovernanceVote])).values()]}
 			<EntitiesList

@@ -35,7 +35,7 @@
 			select(EntityType._GlobalAtprotoNetwork, data.selector, {
 				fields: {
 					protocolName: true,
-					topology: true,
+					relationshipModel: true,
 					homeUrl: true,
 					docsUrl: true,
 				},

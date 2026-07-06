@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalFarcasterNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalFarcasterNetworks)}
 			{@const uniqueGlobalFarcasterNetworks = [...new Map(globalFarcasterNetworks.values.map((globalFarcasterNetwork) => [globalFarcasterNetwork[EntityMetaKey.SelectorKey], globalFarcasterNetwork])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StellarOffer_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(stellarOfferTimestamps)}
 			{@const uniqueStellarOfferTimestamps = [...new Map(stellarOfferTimestamps.values.map((stellarOfferTimestamp) => [stellarOfferTimestamp[EntityMetaKey.SelectorKey], stellarOfferTimestamp])).values()]}
 			<EntitiesList

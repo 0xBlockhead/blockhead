@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CelestiaNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(celestiaNetworkTimestamps)}
 			{@const uniqueCelestiaNetworkTimestamps = [...new Map(celestiaNetworkTimestamps.values.map((celestiaNetworkTimestamp) => [celestiaNetworkTimestamp[EntityMetaKey.SelectorKey], celestiaNetworkTimestamp])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TezosOperationGroup}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tezosOperationGroups)}
 			{@const uniqueTezosOperationGroups = [...new Map(tezosOperationGroups.values.map((tezosOperationGroup) => [tezosOperationGroup[EntityMetaKey.SelectorKey], tezosOperationGroup])).values()]}
 			<EntitiesList

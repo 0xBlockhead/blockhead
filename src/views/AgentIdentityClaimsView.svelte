@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AgentIdentityClaim}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(agentIdentityClaims)}
 			{@const uniqueAgentIdentityClaims = [...new Map(agentIdentityClaims.values.map((agentIdentityClaim) => [agentIdentityClaim[EntityMetaKey.SelectorKey], agentIdentityClaim])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadFilecoinPendingMessage}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadFilecoinPendingMessages)}
 			{@const uniqueBlockheadFilecoinPendingMessages = [...new Map(blockheadFilecoinPendingMessages.values.map((blockheadFilecoinPendingMessage) => [blockheadFilecoinPendingMessage[EntityMetaKey.SelectorKey], blockheadFilecoinPendingMessage])).values()]}
 			<EntitiesList

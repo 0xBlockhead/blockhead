@@ -11,7 +11,7 @@ export default {
 	entityType: EntityType.ActivityPubInstanceModeratedDomain,
 	label: 'ActivityPub instance moderated domain',
 	labelPlural: 'ActivityPub instance moderated domains',
-	description: 'A domain that a configured ActivityPub instance reports in its public moderation-domain list.',
+	description: 'A domain that a declared ActivityPub instance reports in its public moderation-domain list.',
 	selectors: [
 		{
 			name: ActivityPubInstanceModeratedDomainSelector.InstanceOriginModeratedDomainSource,

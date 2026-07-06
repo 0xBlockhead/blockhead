@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TonContractGetMethod}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tonContractGetMethods)}
 			{@const uniqueTonContractGetMethods = [...new Map(tonContractGetMethods.values.map((tonContractGetMethod) => [tonContractGetMethod[EntityMetaKey.SelectorKey], tonContractGetMethod])).values()]}
 			<EntitiesList

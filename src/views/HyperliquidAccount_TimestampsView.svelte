@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidAccount_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidAccountTimestamps)}
 			{@const uniqueHyperliquidAccountTimestamps = [...new Map(hyperliquidAccountTimestamps.values.map((hyperliquidAccountTimestamp) => [hyperliquidAccountTimestamp[EntityMetaKey.SelectorKey], hyperliquidAccountTimestamp])).values()]}
 			<EntitiesList

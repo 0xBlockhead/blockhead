@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidValidator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidValidators)}
 			{@const uniqueHyperliquidValidators = [...new Map(hyperliquidValidators.values.map((hyperliquidValidator) => [hyperliquidValidator[EntityMetaKey.SelectorKey], hyperliquidValidator])).values()]}
 			<EntitiesList

@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'Reddit networks',
-		typeAnnotationParagraphs = ['Reddit protocol catalog identity for public API and listing metadata. Product source windows live on the global Reddit hub.'],
+		typeAnnotationParagraphs = ['Reddit protocol catalog identity for public API and listing metadata. Product observeds live on the global Reddit hub.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RedditNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(redditNetworks)}
 			{@const uniqueRedditNetworks = [...new Map(redditNetworks.values.map((redditNetwork) => [redditNetwork[EntityMetaKey.SelectorKey], redditNetwork])).values()]}
 			<EntitiesList

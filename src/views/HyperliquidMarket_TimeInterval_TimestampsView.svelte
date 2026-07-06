@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidMarket_TimeInterval_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidMarketTimeIntervalTimestamps)}
 			{@const uniqueHyperliquidMarketTimeIntervalTimestamps = [...new Map(hyperliquidMarketTimeIntervalTimestamps.values.map((hyperliquidMarketTimeIntervalTimestamp) => [hyperliquidMarketTimeIntervalTimestamp[EntityMetaKey.SelectorKey], hyperliquidMarketTimeIntervalTimestamp])).values()]}
 			<EntitiesList

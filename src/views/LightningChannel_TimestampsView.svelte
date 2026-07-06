@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LightningChannel_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(lightningChannelTimestamps)}
 			{@const uniqueLightningChannelTimestamps = [...new Map(lightningChannelTimestamps.values.map((lightningChannelTimestamp) => [lightningChannelTimestamp[EntityMetaKey.SelectorKey], lightningChannelTimestamp])).values()]}
 			<EntitiesList

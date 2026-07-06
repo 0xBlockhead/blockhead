@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AtprotoRepoCommit}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(atprotoRepoCommits)}
 			{@const uniqueAtprotoRepoCommits = [...new Map(atprotoRepoCommits.values.map((atprotoRepoCommit) => [atprotoRepoCommit[EntityMetaKey.SelectorKey], atprotoRepoCommit])).values()]}
 			<EntitiesList

@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StarknetStorageEntry}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(starknetStorageEntries)}
 			{@const uniqueStarknetStorageEntries = [...new Map(starknetStorageEntries.values.map((starknetStorageEntry) => [starknetStorageEntry[EntityMetaKey.SelectorKey], starknetStorageEntry])).values()]}
 			<EntitiesList

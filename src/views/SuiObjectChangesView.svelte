@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiObjectChange}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiObjectChanges)}
 			{@const uniqueSuiObjectChanges = [...new Map(suiObjectChanges.values.map((suiObjectChange) => [suiObjectChange[EntityMetaKey.SelectorKey], suiObjectChange])).values()]}
 			<EntitiesList

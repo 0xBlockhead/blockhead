@@ -78,6 +78,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cosmosNetworkTimestamps)}
 			{@const uniqueCosmosNetworkTimestamps = [...new Map(cosmosNetworkTimestamps.values.map((cosmosNetworkTimestamp) => [cosmosNetworkTimestamp[EntityMetaKey.SelectorKey], cosmosNetworkTimestamp])).values()]}
 			<EntitiesList

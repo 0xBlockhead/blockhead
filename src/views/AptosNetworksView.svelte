@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AptosNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aptosNetworks)}
 			{@const uniqueAptosNetworks = [...new Map(aptosNetworks.values.map((aptosNetwork) => [aptosNetwork[EntityMetaKey.SelectorKey], aptosNetwork])).values()]}
 			<EntitiesList

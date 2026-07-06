@@ -78,6 +78,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearValidator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearValidators)}
 			{@const uniqueNearValidators = [...new Map(nearValidators.values.map((nearValidator) => [nearValidator[EntityMetaKey.SelectorKey], nearValidator])).values()]}
 			<EntitiesList

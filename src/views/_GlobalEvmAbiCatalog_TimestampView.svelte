@@ -295,18 +295,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogSelectorCount: true,
+							seededSelectorCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogSelectorCount = prefetched.localCatalogSelectorCount}
-					{#if localCatalogSelectorCount !== undefined && localCatalogSelectorCount !== null}
+					{@const seededSelectorCount = prefetched.seededSelectorCount}
+					{#if seededSelectorCount !== undefined && seededSelectorCount !== null}
 						<div>
-							<dt>local catalog selector count</dt>
+							<dt>seeded selector count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogSelectorCount)} />
+								<NumberValue value={Number(seededSelectorCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -314,12 +314,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogSelectorCount = resolvedEntity.localCatalogSelectorCount}
-					{#if localCatalogSelectorCount !== undefined && localCatalogSelectorCount !== null}
+					{@const seededSelectorCount = resolvedEntity.seededSelectorCount}
+					{#if seededSelectorCount !== undefined && seededSelectorCount !== null}
 						<div>
-							<dt>local catalog selector count</dt>
+							<dt>seeded selector count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogSelectorCount)} />
+								<NumberValue value={Number(seededSelectorCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -330,18 +330,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogTopicCount: true,
+							seededTopicCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogTopicCount = prefetched.localCatalogTopicCount}
-					{#if localCatalogTopicCount !== undefined && localCatalogTopicCount !== null}
+					{@const seededTopicCount = prefetched.seededTopicCount}
+					{#if seededTopicCount !== undefined && seededTopicCount !== null}
 						<div>
-							<dt>local catalog topic count</dt>
+							<dt>seeded topic count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogTopicCount)} />
+								<NumberValue value={Number(seededTopicCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -349,12 +349,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogTopicCount = resolvedEntity.localCatalogTopicCount}
-					{#if localCatalogTopicCount !== undefined && localCatalogTopicCount !== null}
+					{@const seededTopicCount = resolvedEntity.seededTopicCount}
+					{#if seededTopicCount !== undefined && seededTopicCount !== null}
 						<div>
-							<dt>local catalog topic count</dt>
+							<dt>seeded topic count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogTopicCount)} />
+								<NumberValue value={Number(seededTopicCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -365,18 +365,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogErrorCount: true,
+							seededErrorCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogErrorCount = prefetched.localCatalogErrorCount}
-					{#if localCatalogErrorCount !== undefined && localCatalogErrorCount !== null}
+					{@const seededErrorCount = prefetched.seededErrorCount}
+					{#if seededErrorCount !== undefined && seededErrorCount !== null}
 						<div>
-							<dt>local catalog error count</dt>
+							<dt>seeded error count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogErrorCount)} />
+								<NumberValue value={Number(seededErrorCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -384,12 +384,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogErrorCount = resolvedEntity.localCatalogErrorCount}
-					{#if localCatalogErrorCount !== undefined && localCatalogErrorCount !== null}
+					{@const seededErrorCount = resolvedEntity.seededErrorCount}
+					{#if seededErrorCount !== undefined && seededErrorCount !== null}
 						<div>
-							<dt>local catalog error count</dt>
+							<dt>seeded error count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogErrorCount)} />
+								<NumberValue value={Number(seededErrorCount)} />
 							</dd>
 						</div>
 					{/if}

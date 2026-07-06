@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiProviderCatalogEntry}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiProviderCatalogEntries)}
 			{@const uniqueAiProviderCatalogEntries = [...new Map(aiProviderCatalogEntries.values.map((aiProviderCatalogEntry) => [aiProviderCatalogEntry[EntityMetaKey.SelectorKey], aiProviderCatalogEntry])).values()]}
 			<EntitiesList

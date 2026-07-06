@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGDataChunk}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGDataChunks)}
 			{@const uniqueZeroGDataChunks = [...new Map(zeroGDataChunks.values.map((zeroGDataChunk) => [zeroGDataChunk[EntityMetaKey.SelectorKey], zeroGDataChunk])).values()]}
 			<EntitiesList

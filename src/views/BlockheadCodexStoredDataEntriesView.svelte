@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadCodexStoredData}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadCodexStoredDataEntries)}
 			{@const uniqueBlockheadCodexStoredDataEntries = [...new Map(blockheadCodexStoredDataEntries.values.map((blockheadCodexStoredData) => [blockheadCodexStoredData[EntityMetaKey.SelectorKey], blockheadCodexStoredData])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaNft_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaNftTimestamps)}
 			{@const uniqueHederaNftTimestamps = [...new Map(hederaNftTimestamps.values.map((hederaNftTimestamp) => [hederaNftTimestamp[EntityMetaKey.SelectorKey], hederaNftTimestamp])).values()]}
 			<EntitiesList

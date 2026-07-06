@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BitcoinCashBcmrMetadata}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bitcoinCashBcmrMetadatas)}
 			{@const uniqueBitcoinCashBcmrMetadatas = [...new Map(bitcoinCashBcmrMetadatas.values.map((bitcoinCashBcmrMetadata) => [bitcoinCashBcmrMetadata[EntityMetaKey.SelectorKey], bitcoinCashBcmrMetadata])).values()]}
 			<EntitiesList

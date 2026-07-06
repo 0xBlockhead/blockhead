@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FedimintGateway}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(fedimintGateways)}
 			{@const uniqueFedimintGateways = [...new Map(fedimintGateways.values.map((fedimintGateway) => [fedimintGateway[EntityMetaKey.SelectorKey], fedimintGateway])).values()]}
 			<EntitiesList

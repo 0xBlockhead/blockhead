@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaTokenCustomFee}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaTokenCustomFees)}
 			{@const uniqueHederaTokenCustomFees = [...new Map(hederaTokenCustomFees.values.map((hederaTokenCustomFee) => [hederaTokenCustomFee[EntityMetaKey.SelectorKey], hederaTokenCustomFee])).values()]}
 			<EntitiesList

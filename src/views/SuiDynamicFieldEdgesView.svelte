@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiDynamicFieldEdge}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiDynamicFieldEdges)}
 			{@const uniqueSuiDynamicFieldEdges = [...new Map(suiDynamicFieldEdges.values.map((suiDynamicFieldEdge) => [suiDynamicFieldEdge[EntityMetaKey.SelectorKey], suiDynamicFieldEdge])).values()]}
 			<EntitiesList

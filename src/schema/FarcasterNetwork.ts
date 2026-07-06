@@ -12,7 +12,7 @@ export default {
 	entityType: EntityType.FarcasterNetwork,
 	label: 'Farcaster',
 	labelPlural: 'Farcaster',
-	description: 'Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from configured Farcaster sources.',
+	description: 'Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from declared Farcaster sources.',
 	selectors: [
 		{
 			name: FarcasterNetworkSelector.Scope,
@@ -52,15 +52,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'Registry',
+			name: 'registryName',
+			label: 'Registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

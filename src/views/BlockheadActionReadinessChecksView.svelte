@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadActionReadinessCheck}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadActionReadinessChecks)}
 			{@const uniqueBlockheadActionReadinessChecks = [...new Map(blockheadActionReadinessChecks.values.map((blockheadActionReadinessCheck) => [blockheadActionReadinessCheck[EntityMetaKey.SelectorKey], blockheadActionReadinessCheck])).values()]}
 			<EntitiesList

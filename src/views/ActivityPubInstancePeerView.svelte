@@ -91,7 +91,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			A domain that a configured ActivityPub instance reports as a known connected domain.
+			A domain that a declared ActivityPub instance reports as a known connected domain.
 		</p>
 	{/snippet}
 

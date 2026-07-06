@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitForgePullRequest}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitForgePullRequests)}
 			{@const uniqueGitForgePullRequests = [...new Map(gitForgePullRequests.values.map((gitForgePullRequest) => [gitForgePullRequest[EntityMetaKey.SelectorKey], gitForgePullRequest])).values()]}
 			<EntitiesList

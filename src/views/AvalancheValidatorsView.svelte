@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvalancheValidator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(avalancheValidators)}
 			{@const uniqueAvalancheValidators = [...new Map(avalancheValidators.values.map((avalancheValidator) => [avalancheValidator[EntityMetaKey.SelectorKey], avalancheValidator])).values()]}
 			<EntitiesList

@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitRemote}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitRemotes)}
 			{@const uniqueGitRemotes = [...new Map(gitRemotes.values.map((gitRemote) => [gitRemote[EntityMetaKey.SelectorKey], gitRemote])).values()]}
 			<EntitiesList

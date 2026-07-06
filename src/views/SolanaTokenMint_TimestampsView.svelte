@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SolanaTokenMint_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(solanaTokenMintTimestamps)}
 			{@const uniqueSolanaTokenMintTimestamps = [...new Map(solanaTokenMintTimestamps.values.map((solanaTokenMintTimestamp) => [solanaTokenMintTimestamp[EntityMetaKey.SelectorKey], solanaTokenMintTimestamp])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandTealProgram}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandTealPrograms)}
 			{@const uniqueAlgorandTealPrograms = [...new Map(algorandTealPrograms.values.map((algorandTealProgram) => [algorandTealProgram[EntityMetaKey.SelectorKey], algorandTealProgram])).values()]}
 			<EntitiesList

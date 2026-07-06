@@ -46,7 +46,7 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const mcpResourceContentTimestamp = $derived(selection({
 		sources: [
-			Source.McpConfigured_Protocol,
+			Source.McpDeclared_Protocol,
 		],
 		fields: {
 			contentKind: true,

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EigenLayerReward_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eigenLayerRewardTimestamps)}
 			{@const uniqueEigenLayerRewardTimestamps = [...new Map(eigenLayerRewardTimestamps.values.map((eigenLayerRewardTimestamp) => [eigenLayerRewardTimestamp[EntityMetaKey.SelectorKey], eigenLayerRewardTimestamp])).values()]}
 			<EntitiesList

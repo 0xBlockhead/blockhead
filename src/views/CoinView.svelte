@@ -12,7 +12,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
-	import { localCatalogCoinSpotUsdMarkets } from '$/constants/MarketCatalog.ts'
+	import { seededCoinSpotUsdMarkets } from '$/constants/MarketCatalog.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -273,7 +273,7 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CollapsibleTabs
-				id={viewDomId + '-carousel-topology'}
+				id={viewDomId + '-carousel-relationshipModel'}
 				sectionIdPrefix={viewDomId}
 				sections={
 					[
@@ -298,7 +298,7 @@
 			>
 				{#snippet Summary({})}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Topology</HeadingComponent>
+						<HeadingComponent>Relationship model</HeadingComponent>
 					</header>
 				{/snippet}
 
@@ -365,7 +365,7 @@
 				{/snippet}
 
 				{#snippet SectionCatalogUsdMarket({ id, label, open })}
-					{@const catalogUsdMarket = localCatalogCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
+					{@const catalogUsdMarket = seededCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
 					{#if catalogUsdMarket}
 						<div data-row="wrap align-center gap-2">
 							<a href={resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {

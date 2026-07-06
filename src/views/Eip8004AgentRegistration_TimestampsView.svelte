@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Eip8004AgentRegistration_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eip8004AgentRegistrationTimestamps)}
 			{@const uniqueEip8004AgentRegistrationTimestamps = [...new Map(eip8004AgentRegistrationTimestamps.values.map((eip8004AgentRegistrationTimestamp) => [eip8004AgentRegistrationTimestamp[EntityMetaKey.SelectorKey], eip8004AgentRegistrationTimestamp])).values()]}
 			<EntitiesList

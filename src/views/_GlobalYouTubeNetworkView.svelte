@@ -117,7 +117,7 @@
 		{#if detailsOpen}
 			<YoutubeChannelsView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubeChannel>('$$sourceWindowChannels', {
+						selection[EntityProxyField]<EntityType.YoutubeChannel>('$$observedChannels', {
 							sources: [
 								Source.Constants_Internal,
 								Source.Youtube_Rest,
@@ -126,12 +126,12 @@
 					}
 				title='Channels'
 				href={resolve('/(social)/(youtube)/youtube/channels')}
-				id='YoutubeChannelsView-$$sourceWindowChannels'
+				id='YoutubeChannelsView-$$observedChannels'
 			/>
 
 			<YoutubeVideosView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubeVideo>('$$sourceWindowVideos', {
+						selection[EntityProxyField]<EntityType.YoutubeVideo>('$$observedVideos', {
 							sources: [
 								Source.Constants_Internal,
 								Source.Youtube_Rest,
@@ -140,12 +140,12 @@
 					}
 				title='Videos'
 				href={resolve('/(social)/(youtube)/youtube/videos')}
-				id='YoutubeVideosView-$$sourceWindowVideos'
+				id='YoutubeVideosView-$$observedVideos'
 			/>
 
 			<YoutubePlaylistsView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubePlaylist>('$$sourceWindowPlaylists', {
+						selection[EntityProxyField]<EntityType.YoutubePlaylist>('$$observedPlaylists', {
 							sources: [
 								Source.Constants_Internal,
 								Source.Youtube_Rest,
@@ -154,7 +154,7 @@
 					}
 				title='Playlists'
 				href={resolve('/(social)/(youtube)/youtube/playlists')}
-				id='YoutubePlaylistsView-$$sourceWindowPlaylists'
+				id='YoutubePlaylistsView-$$observedPlaylists'
 			/>
 		{/if}
 	{/snippet}

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaTokenTransfer}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaTokenTransfers)}
 			{@const uniqueHederaTokenTransfers = [...new Map(hederaTokenTransfers.values.map((hederaTokenTransfer) => [hederaTokenTransfer[EntityMetaKey.SelectorKey], hederaTokenTransfer])).values()]}
 			<EntitiesList

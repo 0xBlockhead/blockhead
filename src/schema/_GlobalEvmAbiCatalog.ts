@@ -30,8 +30,8 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$sourceWindowTopics',
-			label: 'source window topics',
+			name: '$$observedTopics',
+			label: 'observed topics',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTopic,
 			cardinality: EntityFieldCardinality.Many,
@@ -40,8 +40,8 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowSelectors',
-			label: 'source window selectors',
+			name: '$$observedSelectors',
+			label: 'observed selectors',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmSelector,
 			cardinality: EntityFieldCardinality.Many,
@@ -50,8 +50,8 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowErrors',
-			label: 'source window errors',
+			name: '$$observedErrors',
+			label: 'observed errors',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmError,
 			cardinality: EntityFieldCardinality.Many,

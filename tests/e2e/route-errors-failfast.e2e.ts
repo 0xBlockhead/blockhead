@@ -15,7 +15,6 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
-	clearOriginOpfs,
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../_e2eBrowserHelpers.ts'
@@ -52,18 +51,6 @@ const withRouteTimeout = async (
 	])
 }
 
-const isTransientDevLoadFailure = (message: string) => (
-	message.includes('Failed to fetch dynamically imported module')
-	|| message.includes('[vite] Failed to reload')
-	|| (
-		message.includes('__sveltekit_dev')
-		&& (
-			message.includes('"mainCount":0')
-			|| message.includes('no-main')
-		)
-	)
-)
-
 const visitRouteFailFast = async (
 	page: import('@playwright/test').Page,
 	testInfo: import('@playwright/test').TestInfo,
@@ -74,38 +61,39 @@ const visitRouteFailFast = async (
 		flushArtifacts,
 		step,
 	} = setupRouteViewSmokePage(page)
-	const attemptVisit = async () => {
-		try {
-			await step(page.goto(pathname, {
-				waitUntil: 'load',
-				timeout: routeViewSmokeTimeoutsMs.goto,
-			}))
-			await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
-			const main = page.locator('#main')
-			await step(expect(main.locator('[data-error]')).toHaveCount(0, {
-				timeout: routeViewSmokeTimeoutsMs.mainSelector,
-			}))
-			await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics))
-		}
-		catch (e) {
-			await flushArtifacts(testInfo)
-			const message = e instanceof Error ? e.message : String(e)
-			throw new Error(
-				`route-errors-failfast stopped at ${pathname} (url=${page.url()}): ${message}`,
-				{ cause: e }
-			)
-		}
-	}
-
 	try {
-		await attemptVisit()
+		await step(page.goto(pathname, {
+			waitUntil: 'load',
+			timeout: routeViewSmokeTimeoutsMs.goto,
+		}))
+		await expectMainVisible(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics)
+		const main = page.locator('#main')
+		await step(expect(main.locator('[data-error]')).toHaveCount(0, {
+			timeout: routeViewSmokeTimeoutsMs.mainSelector,
+		}))
+		await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics))
 	}
-	catch (first) {
-		const message = first instanceof Error ? first.message : String(first)
-		if (!isTransientDevLoadFailure(message)) throw first
-		await page.waitForTimeout(2_000)
-		await attemptVisit()
+	catch (e) {
+		await flushArtifacts(testInfo)
+		const message = e instanceof Error ? e.message : String(e)
+		throw new Error(
+			`route-errors-failfast stopped at ${pathname} (url=${page.url()}): ${message}`,
+			{ cause: e }
+		)
 	}
+}
+
+const installRouteProbeDatabase = async (
+	page: import('@playwright/test').Page,
+	databaseName: string
+) => {
+	await page.addInitScript(({ name, schemaVersion }) => {
+		window.__blockheadWaSqliteDatabaseNameOverride = name
+		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
+	}, {
+		name: databaseName,
+		schemaVersion: Date.now(),
+	})
 }
 
 test.describe('route errors fail-fast (every +page, stop on first)', () => {
@@ -115,8 +103,10 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 		test.skip(probePath == null || probePath === '', 'set E2E_PROBE_PATH')
 		testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 		page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-		await page.goto('/')
-		await clearOriginOpfs(page)
+		await installRouteProbeDatabase(
+			page,
+			`blockhead-route-errors-probe-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${Date.now()}.sqlite`
+		)
 		await installChainlistRpcsJsonStub(page)
 		await visitRouteFailFast(page, testInfo, probePath!)
 	})
@@ -126,6 +116,13 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 		const pageUrls = await selectPathnames()
 		const perRouteBudgetMs = routeViewSmokeTimeoutsMs.test + 30_000
 		testInfo.setTimeout(pageUrls.length * perRouteBudgetMs + 60_000)
+		console.log([
+			`[route-errors-failfast] selected ${pageUrls.length} routes`,
+			`pattern=${process.env.E2E_PATH_PATTERN?.trim() || '<unset>'}`,
+			`start=${process.env.E2E_START_PATH?.trim() || '<unset>'}`,
+			`limit=${process.env.E2E_PATH_LIMIT?.trim() || '<unset>'}`,
+			`shard=${process.env.E2E_PATH_SHARD_INDEX?.trim() || '0'}/${process.env.E2E_PATH_SHARD_TOTAL?.trim() || '1'}`,
+		].join(' '))
 
 		for (const [index, pathname] of pageUrls.entries()) {
 			console.log(`[route-errors-failfast] ${index + 1}/${pageUrls.length} ${pathname}`)
@@ -133,8 +130,10 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 				const page = await browser.newPage()
 				try {
 					page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-					await page.goto('/')
-					await clearOriginOpfs(page)
+					await installRouteProbeDatabase(
+						page,
+						`blockhead-route-errors-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${index}-${Date.now()}.sqlite`
+					)
 					await installChainlistRpcsJsonStub(page)
 					await withRouteTimeout(
 						pathname,

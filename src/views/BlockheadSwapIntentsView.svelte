@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadSwapIntent}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadSwapIntents)}
 			{@const uniqueBlockheadSwapIntents = [...new Map(blockheadSwapIntents.values.map((blockheadSwapIntent) => [blockheadSwapIntent[EntityMetaKey.SelectorKey], blockheadSwapIntent])).values()]}
 			<EntitiesList

@@ -337,18 +337,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowCastCount: true,
+							observedCastCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowCastCount = prefetched.sourceWindowCastCount}
-					{#if sourceWindowCastCount !== undefined && sourceWindowCastCount !== null}
+					{@const observedCastCount = prefetched.observedCastCount}
+					{#if observedCastCount !== undefined && observedCastCount !== null}
 						<div>
-							<dt>source window cast count</dt>
+							<dt>observed cast count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowCastCount)} />
+								<NumberValue value={Number(observedCastCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -356,12 +356,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowCastCount = resolvedEntity.sourceWindowCastCount}
-					{#if sourceWindowCastCount !== undefined && sourceWindowCastCount !== null}
+					{@const observedCastCount = resolvedEntity.observedCastCount}
+					{#if observedCastCount !== undefined && observedCastCount !== null}
 						<div>
-							<dt>source window cast count</dt>
+							<dt>observed cast count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowCastCount)} />
+								<NumberValue value={Number(observedCastCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -372,18 +372,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowUserCount: true,
+							observedUserCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowUserCount = prefetched.sourceWindowUserCount}
-					{#if sourceWindowUserCount !== undefined && sourceWindowUserCount !== null}
+					{@const observedUserCount = prefetched.observedUserCount}
+					{#if observedUserCount !== undefined && observedUserCount !== null}
 						<div>
-							<dt>source window user count</dt>
+							<dt>observed user count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowUserCount)} />
+								<NumberValue value={Number(observedUserCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -391,12 +391,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowUserCount = resolvedEntity.sourceWindowUserCount}
-					{#if sourceWindowUserCount !== undefined && sourceWindowUserCount !== null}
+					{@const observedUserCount = resolvedEntity.observedUserCount}
+					{#if observedUserCount !== undefined && observedUserCount !== null}
 						<div>
-							<dt>source window user count</dt>
+							<dt>observed user count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowUserCount)} />
+								<NumberValue value={Number(observedUserCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -407,18 +407,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowChannelCount: true,
+							observedChannelCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowChannelCount = prefetched.sourceWindowChannelCount}
-					{#if sourceWindowChannelCount !== undefined && sourceWindowChannelCount !== null}
+					{@const observedChannelCount = prefetched.observedChannelCount}
+					{#if observedChannelCount !== undefined && observedChannelCount !== null}
 						<div>
-							<dt>source window channel count</dt>
+							<dt>observed channel count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowChannelCount)} />
+								<NumberValue value={Number(observedChannelCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -426,12 +426,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowChannelCount = resolvedEntity.sourceWindowChannelCount}
-					{#if sourceWindowChannelCount !== undefined && sourceWindowChannelCount !== null}
+					{@const observedChannelCount = resolvedEntity.observedChannelCount}
+					{#if observedChannelCount !== undefined && observedChannelCount !== null}
 						<div>
-							<dt>source window channel count</dt>
+							<dt>observed channel count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowChannelCount)} />
+								<NumberValue value={Number(observedChannelCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -444,18 +444,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogFeedVariantCount: true,
+							seededFeedVariantCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogFeedVariantCount = prefetched.localCatalogFeedVariantCount}
-					{#if localCatalogFeedVariantCount !== undefined && localCatalogFeedVariantCount !== null}
+					{@const seededFeedVariantCount = prefetched.seededFeedVariantCount}
+					{#if seededFeedVariantCount !== undefined && seededFeedVariantCount !== null}
 						<div>
-							<dt>local catalog feed variant count</dt>
+							<dt>seeded feed variant count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogFeedVariantCount)} />
+								<NumberValue value={Number(seededFeedVariantCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -463,12 +463,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogFeedVariantCount = resolvedEntity.localCatalogFeedVariantCount}
-					{#if localCatalogFeedVariantCount !== undefined && localCatalogFeedVariantCount !== null}
+					{@const seededFeedVariantCount = resolvedEntity.seededFeedVariantCount}
+					{#if seededFeedVariantCount !== undefined && seededFeedVariantCount !== null}
 						<div>
-							<dt>local catalog feed variant count</dt>
+							<dt>seeded feed variant count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogFeedVariantCount)} />
+								<NumberValue value={Number(seededFeedVariantCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -479,18 +479,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogChannelCount: true,
+							seededChannelCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogChannelCount = prefetched.localCatalogChannelCount}
-					{#if localCatalogChannelCount !== undefined && localCatalogChannelCount !== null}
+					{@const seededChannelCount = prefetched.seededChannelCount}
+					{#if seededChannelCount !== undefined && seededChannelCount !== null}
 						<div>
-							<dt>local catalog channel count</dt>
+							<dt>seeded channel count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogChannelCount)} />
+								<NumberValue value={Number(seededChannelCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -498,12 +498,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogChannelCount = resolvedEntity.localCatalogChannelCount}
-					{#if localCatalogChannelCount !== undefined && localCatalogChannelCount !== null}
+					{@const seededChannelCount = resolvedEntity.seededChannelCount}
+					{#if seededChannelCount !== undefined && seededChannelCount !== null}
 						<div>
-							<dt>local catalog channel count</dt>
+							<dt>seeded channel count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogChannelCount)} />
+								<NumberValue value={Number(seededChannelCount)} />
 							</dd>
 						</div>
 					{/if}

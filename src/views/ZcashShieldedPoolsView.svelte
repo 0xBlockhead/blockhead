@@ -77,6 +77,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZcashShieldedPool}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zcashShieldedPools)}
 			{@const uniqueZcashShieldedPools = [...new Map(zcashShieldedPools.values.map((zcashShieldedPool) => [zcashShieldedPool[EntityMetaKey.SelectorKey], zcashShieldedPool])).values()]}
 			<EntitiesList
@@ -107,7 +121,7 @@
 						selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
 						prefetched={zcashShieldedPoolFields}
 						href={
-							(zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined && zcashShieldedPoolHrefFields.$network.caip2.namespace !== undefined && zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined && zcashShieldedPoolHrefFields.$network.caip2.reference !== undefined && zcashShieldedPoolHrefFields.pool !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/zcash/shielded-pool/[pool]', {
+							(zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined && zcashShieldedPoolHrefFields.$network.caip2.namespace !== undefined && zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined && zcashShieldedPoolHrefFields.$network.caip2.reference !== undefined && zcashShieldedPoolHrefFields.pool !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/shielded-pool/[pool]', {
 								networkSlug: String(networkByCaip2[String(String(zcashShieldedPoolHrefFields.$network.caip2.namespace) + ':' + String(zcashShieldedPoolHrefFields.$network.caip2.reference))].slug ?? ''),
 								pool: String(zcashShieldedPoolHrefFields.pool ?? ''),
 							}) : undefined)

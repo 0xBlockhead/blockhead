@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SorobanWasm}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(sorobanWasmModules)}
 			{@const uniqueSorobanWasmModules = [...new Map(sorobanWasmModules.values.map((sorobanWasm) => [sorobanWasm[EntityMetaKey.SelectorKey], sorobanWasm])).values()]}
 			<EntitiesList

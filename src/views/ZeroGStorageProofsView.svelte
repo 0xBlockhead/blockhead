@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGStorageProof}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGStorageProofs)}
 			{@const uniqueZeroGStorageProofs = [...new Map(zeroGStorageProofs.values.map((zeroGStorageProof) => [zeroGStorageProof[EntityMetaKey.SelectorKey], zeroGStorageProof])).values()]}
 			<EntitiesList

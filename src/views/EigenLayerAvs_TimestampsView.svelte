@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EigenLayerAvs_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eigenLayerAvsTimestamps)}
 			{@const uniqueEigenLayerAvsTimestamps = [...new Map(eigenLayerAvsTimestamps.values.map((eigenLayerAvsTimestamp) => [eigenLayerAvsTimestamp[EntityMetaKey.SelectorKey], eigenLayerAvsTimestamp])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadStateChannel_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadStateChannelTimestamps)}
 			{@const uniqueBlockheadStateChannelTimestamps = [...new Map(blockheadStateChannelTimestamps.values.map((blockheadStateChannelTimestamp) => [blockheadStateChannelTimestamp[EntityMetaKey.SelectorKey], blockheadStateChannelTimestamp])).values()]}
 			<EntitiesList

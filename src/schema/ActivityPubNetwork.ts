@@ -12,7 +12,7 @@ export default {
 	entityType: EntityType.ActivityPubNetwork,
 	label: 'ActivityPub',
 	labelPlural: 'ActivityPub',
-	description: 'ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from configured instance sources.',
+	description: 'ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from declared instance sources.',
 	selectors: [
 		{
 			name: ActivityPubNetworkSelector.Scope,

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aMessagePart}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aMessageParts)}
 			{@const uniqueA2aMessageParts = [...new Map(a2aMessageParts.values.map((a2aMessagePart) => [a2aMessagePart[EntityMetaKey.SelectorKey], a2aMessagePart])).values()]}
 			<EntitiesList

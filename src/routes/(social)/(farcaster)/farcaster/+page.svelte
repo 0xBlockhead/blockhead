@@ -37,8 +37,8 @@
 					protocolName: true,
 					homeUrl: true,
 					docsUrl: true,
-					registryLabel: true,
-					topology: true,
+					registryName: true,
+					relationshipModel: true,
 				},
 			})
 		}

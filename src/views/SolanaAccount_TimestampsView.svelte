@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SolanaAccount_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(solanaAccountTimestamps)}
 			{@const uniqueSolanaAccountTimestamps = [...new Map(solanaAccountTimestamps.values.map((solanaAccountTimestamp) => [solanaAccountTimestamp[EntityMetaKey.SelectorKey], solanaAccountTimestamp])).values()]}
 			<EntitiesList

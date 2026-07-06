@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RadicleDiscussionComment}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(radicleDiscussionComments)}
 			{@const uniqueRadicleDiscussionComments = [...new Map(radicleDiscussionComments.values.map((radicleDiscussionComment) => [radicleDiscussionComment[EntityMetaKey.SelectorKey], radicleDiscussionComment])).values()]}
 			<EntitiesList

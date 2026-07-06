@@ -20,7 +20,7 @@
 	let {
 		selection,
 		title = 'Near networks',
-		typeAnnotationParagraphs = ['NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from configured NEAR sources.'],
+		typeAnnotationParagraphs = ['NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from declared NEAR sources.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -79,6 +79,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearNetworks)}
 			{@const uniqueNearNetworks = [...new Map(nearNetworks.values.map((nearNetwork) => [nearNetwork[EntityMetaKey.SelectorKey], nearNetwork])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aTask_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aTaskTimestamps)}
 			{@const uniqueA2aTaskTimestamps = [...new Map(a2aTaskTimestamps.values.map((a2aTaskTimestamp) => [a2aTaskTimestamp[EntityMetaKey.SelectorKey], a2aTaskTimestamp])).values()]}
 			<EntitiesList

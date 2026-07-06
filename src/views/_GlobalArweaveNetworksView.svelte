@@ -18,7 +18,7 @@
 	// State
 	let {
 		selection,
-		title = 'Arweave source windows',
+		title = 'Arweave observeds',
 		typeAnnotationParagraphs = [],
 		placeholderText,
 		emptyText = undefined,
@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalArweaveNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalArweaveNetworks)}
 			{@const uniqueGlobalArweaveNetworks = [...new Map(globalArweaveNetworks.values.map((globalArweaveNetwork) => [globalArweaveNetwork[EntityMetaKey.SelectorKey], globalArweaveNetwork])).values()]}
 			<EntitiesList

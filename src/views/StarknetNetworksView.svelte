@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StarknetNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(starknetNetworks)}
 			{@const uniqueStarknetNetworks = [...new Map(starknetNetworks.values.map((starknetNetwork) => [starknetNetwork[EntityMetaKey.SelectorKey], starknetNetwork])).values()]}
 			<EntitiesList

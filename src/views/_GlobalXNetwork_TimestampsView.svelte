@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalXNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalXNetworkTimestamps)}
 			{@const uniqueGlobalXNetworkTimestamps = [...new Map(globalXNetworkTimestamps.values.map((globalXNetworkTimestamp) => [globalXNetworkTimestamp[EntityMetaKey.SelectorKey], globalXNetworkTimestamp])).values()]}
 			<EntitiesList

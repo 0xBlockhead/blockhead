@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CardanoStakeCredential}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cardanoStakeCredentials)}
 			{@const uniqueCardanoStakeCredentials = [...new Map(cardanoStakeCredentials.values.map((cardanoStakeCredential) => [cardanoStakeCredential[EntityMetaKey.SelectorKey], cardanoStakeCredential])).values()]}
 			<EntitiesList

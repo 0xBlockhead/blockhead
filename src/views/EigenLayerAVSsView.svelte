@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EigenLayerAvs}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eigenLayerAVSs)}
 			{@const uniqueEigenLayerAVSs = [...new Map(eigenLayerAVSs.values.map((eigenLayerAvs) => [eigenLayerAvs[EntityMetaKey.SelectorKey], eigenLayerAvs])).values()]}
 			<EntitiesList

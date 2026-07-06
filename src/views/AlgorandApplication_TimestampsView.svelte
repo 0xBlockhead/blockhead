@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandApplication_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandApplicationTimestamps)}
 			{@const uniqueAlgorandApplicationTimestamps = [...new Map(algorandApplicationTimestamps.values.map((algorandApplicationTimestamp) => [algorandApplicationTimestamp[EntityMetaKey.SelectorKey], algorandApplicationTimestamp])).values()]}
 			<EntitiesList

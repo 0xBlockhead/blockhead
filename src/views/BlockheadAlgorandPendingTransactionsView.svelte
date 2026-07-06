@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadAlgorandPendingTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadAlgorandPendingTransactions)}
 			{@const uniqueBlockheadAlgorandPendingTransactions = [...new Map(blockheadAlgorandPendingTransactions.values.map((blockheadAlgorandPendingTransaction) => [blockheadAlgorandPendingTransaction[EntityMetaKey.SelectorKey], blockheadAlgorandPendingTransaction])).values()]}
 			<EntitiesList

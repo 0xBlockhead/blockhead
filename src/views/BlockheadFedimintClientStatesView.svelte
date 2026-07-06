@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadFedimintClientState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadFedimintClientStates)}
 			{@const uniqueBlockheadFedimintClientStates = [...new Map(blockheadFedimintClientStates.values.map((blockheadFedimintClientState) => [blockheadFedimintClientState[EntityMetaKey.SelectorKey], blockheadFedimintClientState])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CctpMessage}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cctpMessages)}
 			{@const uniqueCctpMessages = [...new Map(cctpMessages.values.map((cctpMessage) => [cctpMessage[EntityMetaKey.SelectorKey], cctpMessage])).values()]}
 			<EntitiesList

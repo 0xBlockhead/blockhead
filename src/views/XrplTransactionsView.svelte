@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.XrplTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(xrplTransactions)}
 			{@const uniqueXrplTransactions = [...new Map(xrplTransactions.values.map((xrplTransaction) => [xrplTransaction[EntityMetaKey.SelectorKey], xrplTransaction])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.McpServerPackage}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(mcpServerPackages)}
 			{@const uniqueMcpServerPackages = [...new Map(mcpServerPackages.values.map((mcpServerPackage) => [mcpServerPackage[EntityMetaKey.SelectorKey], mcpServerPackage])).values()]}
 			<EntitiesList

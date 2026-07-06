@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitLooseObject}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitLooseObjects)}
 			{@const uniqueGitLooseObjects = [...new Map(gitLooseObjects.values.map((gitLooseObject) => [gitLooseObject[EntityMetaKey.SelectorKey], gitLooseObject])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IcpRequestStatus}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(icpRequestStatuses)}
 			{@const uniqueIcpRequestStatuses = [...new Map(icpRequestStatuses.values.map((icpRequestStatus) => [icpRequestStatus[EntityMetaKey.SelectorKey], icpRequestStatus])).values()]}
 			<EntitiesList

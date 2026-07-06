@@ -28,7 +28,7 @@ export enum Source {
 	AcpLocal_JsonRpc = 'AcpLocal_JsonRpc',
 	AcpRegistry_Rest = 'AcpRegistry_Rest',
 	LogosBlockchainNode_Rest = 'LogosBlockchainNode_Rest',
-	McpConfigured_Protocol = 'McpConfigured_Protocol',
+	McpDeclared_Protocol = 'McpDeclared_Protocol',
 	McpPackageRegistry_Rest = 'McpPackageRegistry_Rest',
 	OpenAI_Rest = 'OpenAI_Rest',
 	Pyth_EvmContract = 'Pyth_EvmContract',

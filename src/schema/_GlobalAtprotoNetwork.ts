@@ -13,7 +13,7 @@ export default {
 	entityType: EntityType._GlobalAtprotoNetwork,
 	label: 'AT Protocol',
 	labelPlural: 'AT Protocol',
-	description: 'AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from configured Bluesky-compatible appview sources, not a claim about every repository on the network.',
+	description: 'AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.',
 	selectors: [
 		{
 			name: _GlobalAtprotoNetworkSelector.Scope,
@@ -39,8 +39,8 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -60,7 +60,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$sourceWindowActors',
+			name: '$$observedActors',
 			label: 'Accounts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.AtprotoActor,
@@ -71,7 +71,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowPosts',
+			name: '$$observedPosts',
 			label: 'Recent posts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.AtprotoPost,

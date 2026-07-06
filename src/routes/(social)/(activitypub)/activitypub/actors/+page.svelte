@@ -30,12 +30,12 @@
 		selection={
 			select(EntityType._GlobalActivityPubNetwork, {
 				scope: '_GlobalActivityPubNetwork',
-			})[EntityProxyField]<EntityType.ActivityPubActor>('$$sourceWindowActors', {
+			})[EntityProxyField]<EntityType.ActivityPubActor>('$$observedActors', {
 				sources: [
 					Source.Mastodon_Rest,
 				],
 			})
 		}
-		id='source-window-actors'
+		id='observed-actors'
 	/>
 </Page>

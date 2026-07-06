@@ -44,7 +44,7 @@
 	const globalNostrNetworkTimestamp = $derived(selection({
 		fields: {
 			reachable: true,
-			sourceWindowNoteCount: true,
+			observedNoteCount: true,
 		},
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Nostr network timestamp')
@@ -103,20 +103,20 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalNostrNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const sourceWindowNoteCount0 = prefetched.sourceWindowNoteCount}
-				{#if sourceWindowNoteCount0 !== undefined && sourceWindowNoteCount0 !== null}
+				{@const observedNoteCount0 = prefetched.observedNoteCount}
+				{#if observedNoteCount0 !== undefined && observedNoteCount0 !== null}
 					<span data-text="muted">
-						{String((sourceWindowNoteCount0) ?? '')}
+						{String((observedNoteCount0) ?? '')}
 					</span>
 				{/if}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sourceWindowNoteCount0 = resolvedEntity.sourceWindowNoteCount}
-				{#if sourceWindowNoteCount0 !== undefined && sourceWindowNoteCount0 !== null}
+				{@const observedNoteCount0 = resolvedEntity.observedNoteCount}
+				{#if observedNoteCount0 !== undefined && observedNoteCount0 !== null}
 					<span data-text="muted">
-						{String((sourceWindowNoteCount0) ?? '')}
+						{String((observedNoteCount0) ?? '')}
 					</span>
 				{/if}
 			{/snippet}
@@ -261,18 +261,18 @@
 				resource={
 					selection({
 						fields: {
-							configuredRelayCount: true,
+							declaredRelayCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const configuredRelayCount = prefetched.configuredRelayCount}
-					{#if configuredRelayCount !== undefined && configuredRelayCount !== null}
+					{@const declaredRelayCount = prefetched.declaredRelayCount}
+					{#if declaredRelayCount !== undefined && declaredRelayCount !== null}
 						<div>
-							<dt>Configured relay count</dt>
+							<dt>Declared relay count</dt>
 							<dd>
-								{String((configuredRelayCount) ?? '')}
+								{String((declaredRelayCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -280,12 +280,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const configuredRelayCount = resolvedEntity.configuredRelayCount}
-					{#if configuredRelayCount !== undefined && configuredRelayCount !== null}
+					{@const declaredRelayCount = resolvedEntity.declaredRelayCount}
+					{#if declaredRelayCount !== undefined && declaredRelayCount !== null}
 						<div>
-							<dt>Configured relay count</dt>
+							<dt>Declared relay count</dt>
 							<dd>
-								{String((configuredRelayCount) ?? '')}
+								{String((declaredRelayCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -331,18 +331,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogRelayCount: true,
+							seededRelayCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogRelayCount = prefetched.localCatalogRelayCount}
-					{#if localCatalogRelayCount !== undefined && localCatalogRelayCount !== null}
+					{@const seededRelayCount = prefetched.seededRelayCount}
+					{#if seededRelayCount !== undefined && seededRelayCount !== null}
 						<div>
-							<dt>Local catalog relay count</dt>
+							<dt>Seeded relay count</dt>
 							<dd>
-								{String((localCatalogRelayCount) ?? '')}
+								{String((seededRelayCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -350,12 +350,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogRelayCount = resolvedEntity.localCatalogRelayCount}
-					{#if localCatalogRelayCount !== undefined && localCatalogRelayCount !== null}
+					{@const seededRelayCount = resolvedEntity.seededRelayCount}
+					{#if seededRelayCount !== undefined && seededRelayCount !== null}
 						<div>
-							<dt>Local catalog relay count</dt>
+							<dt>Seeded relay count</dt>
 							<dd>
-								{String((localCatalogRelayCount) ?? '')}
+								{String((seededRelayCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -368,18 +368,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowProfileCount: true,
+							observedProfileCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowProfileCount = prefetched.sourceWindowProfileCount}
-					{#if sourceWindowProfileCount !== undefined && sourceWindowProfileCount !== null}
+					{@const observedProfileCount = prefetched.observedProfileCount}
+					{#if observedProfileCount !== undefined && observedProfileCount !== null}
 						<div>
-							<dt>Source window profile count</dt>
+							<dt>Observed profile count</dt>
 							<dd>
-								{String((sourceWindowProfileCount) ?? '')}
+								{String((observedProfileCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -387,12 +387,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowProfileCount = resolvedEntity.sourceWindowProfileCount}
-					{#if sourceWindowProfileCount !== undefined && sourceWindowProfileCount !== null}
+					{@const observedProfileCount = resolvedEntity.observedProfileCount}
+					{#if observedProfileCount !== undefined && observedProfileCount !== null}
 						<div>
-							<dt>Source window profile count</dt>
+							<dt>Observed profile count</dt>
 							<dd>
-								{String((sourceWindowProfileCount) ?? '')}
+								{String((observedProfileCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -403,18 +403,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowNoteCount: true,
+							observedNoteCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowNoteCount = prefetched.sourceWindowNoteCount}
-					{#if sourceWindowNoteCount !== undefined && sourceWindowNoteCount !== null}
+					{@const observedNoteCount = prefetched.observedNoteCount}
+					{#if observedNoteCount !== undefined && observedNoteCount !== null}
 						<div>
-							<dt>Source window note count</dt>
+							<dt>Observed note count</dt>
 							<dd>
-								{String((sourceWindowNoteCount) ?? '')}
+								{String((observedNoteCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -422,12 +422,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowNoteCount = resolvedEntity.sourceWindowNoteCount}
-					{#if sourceWindowNoteCount !== undefined && sourceWindowNoteCount !== null}
+					{@const observedNoteCount = resolvedEntity.observedNoteCount}
+					{#if observedNoteCount !== undefined && observedNoteCount !== null}
 						<div>
-							<dt>Source window note count</dt>
+							<dt>Observed note count</dt>
 							<dd>
-								{String((sourceWindowNoteCount) ?? '')}
+								{String((observedNoteCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -438,18 +438,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowRelayCount: true,
+							observedRelayCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowRelayCount = prefetched.sourceWindowRelayCount}
-					{#if sourceWindowRelayCount !== undefined && sourceWindowRelayCount !== null}
+					{@const observedRelayCount = prefetched.observedRelayCount}
+					{#if observedRelayCount !== undefined && observedRelayCount !== null}
 						<div>
-							<dt>Source window relay count</dt>
+							<dt>Observed relay count</dt>
 							<dd>
-								{String((sourceWindowRelayCount) ?? '')}
+								{String((observedRelayCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -457,12 +457,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowRelayCount = resolvedEntity.sourceWindowRelayCount}
-					{#if sourceWindowRelayCount !== undefined && sourceWindowRelayCount !== null}
+					{@const observedRelayCount = resolvedEntity.observedRelayCount}
+					{#if observedRelayCount !== undefined && observedRelayCount !== null}
 						<div>
-							<dt>Source window relay count</dt>
+							<dt>Observed relay count</dt>
 							<dd>
-								{String((sourceWindowRelayCount) ?? '')}
+								{String((observedRelayCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -473,18 +473,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowRepostCount: true,
+							observedRepostCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowRepostCount = prefetched.sourceWindowRepostCount}
-					{#if sourceWindowRepostCount !== undefined && sourceWindowRepostCount !== null}
+					{@const observedRepostCount = prefetched.observedRepostCount}
+					{#if observedRepostCount !== undefined && observedRepostCount !== null}
 						<div>
-							<dt>Source window repost count</dt>
+							<dt>Observed repost count</dt>
 							<dd>
-								{String((sourceWindowRepostCount) ?? '')}
+								{String((observedRepostCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -492,12 +492,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowRepostCount = resolvedEntity.sourceWindowRepostCount}
-					{#if sourceWindowRepostCount !== undefined && sourceWindowRepostCount !== null}
+					{@const observedRepostCount = resolvedEntity.observedRepostCount}
+					{#if observedRepostCount !== undefined && observedRepostCount !== null}
 						<div>
-							<dt>Source window repost count</dt>
+							<dt>Observed repost count</dt>
 							<dd>
-								{String((sourceWindowRepostCount) ?? '')}
+								{String((observedRepostCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -508,18 +508,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowArticleCount: true,
+							observedArticleCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowArticleCount = prefetched.sourceWindowArticleCount}
-					{#if sourceWindowArticleCount !== undefined && sourceWindowArticleCount !== null}
+					{@const observedArticleCount = prefetched.observedArticleCount}
+					{#if observedArticleCount !== undefined && observedArticleCount !== null}
 						<div>
-							<dt>Source window article count</dt>
+							<dt>Observed article count</dt>
 							<dd>
-								{String((sourceWindowArticleCount) ?? '')}
+								{String((observedArticleCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -527,12 +527,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowArticleCount = resolvedEntity.sourceWindowArticleCount}
-					{#if sourceWindowArticleCount !== undefined && sourceWindowArticleCount !== null}
+					{@const observedArticleCount = resolvedEntity.observedArticleCount}
+					{#if observedArticleCount !== undefined && observedArticleCount !== null}
 						<div>
-							<dt>Source window article count</dt>
+							<dt>Observed article count</dt>
 							<dd>
-								{String((sourceWindowArticleCount) ?? '')}
+								{String((observedArticleCount) ?? '')}
 							</dd>
 						</div>
 					{/if}

@@ -23,7 +23,7 @@ import {
 } from '$/constants/Evm.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import { CoinInstanceType, EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
-import { localCatalogCoinSpotUsdMarketByCoinId, type CatalogCoinCurrencyMarket } from '$/constants/MarketCatalog.ts'
+import { seededCoinSpotUsdMarketByCoinId, type CatalogCoinCurrencyMarket } from '$/constants/MarketCatalog.ts'
 import type {
 	BlockscoutInternalTransaction,
 	BlockscoutErc4337RegistryEntry,
@@ -1816,7 +1816,7 @@ export default {
 						throw new Error('Blockscout_Rest: market base is not a catalog coin')
 					if (feedKey !== coinId)
 						throw new Error('Blockscout_Rest: Market_Timestamp feedKey does not match catalog coin id')
-					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[coinId], $market))
 						throw new Error('Blockscout_Rest: Market_Timestamp only supports catalog USD spot markets')
 					const stats = await blockscoutStatsForNativeCoinId(coinId)
 					const price = usdPriceStringToPrice1e8(stats?.coin_price)
@@ -2714,7 +2714,7 @@ export default {
 					)
 					if (coinId == null)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[coinId], $market))
 						return []
 					const stats = await blockscoutStatsForNativeCoinId(coinId)
 					const price = usdPriceStringToPrice1e8(stats?.coin_price)

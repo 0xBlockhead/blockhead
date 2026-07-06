@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaTopicMessage}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaTopicMessages)}
 			{@const uniqueHederaTopicMessages = [...new Map(hederaTopicMessages.values.map((hederaTopicMessage) => [hederaTopicMessage[EntityMetaKey.SelectorKey], hederaTopicMessage])).values()]}
 			<EntitiesList

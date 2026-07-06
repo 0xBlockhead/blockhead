@@ -188,7 +188,7 @@ export default {
 		},
 		{
 			name: 'registryStatus',
-			label: 'Registry status',
+			label: 'Registry name status',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

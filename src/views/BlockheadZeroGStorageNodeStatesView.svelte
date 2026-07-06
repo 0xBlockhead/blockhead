@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadZeroGStorageNodeState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadZeroGStorageNodeStates)}
 			{@const uniqueBlockheadZeroGStorageNodeStates = [...new Map(blockheadZeroGStorageNodeStates.values.map((blockheadZeroGStorageNodeState) => [blockheadZeroGStorageNodeState[EntityMetaKey.SelectorKey], blockheadZeroGStorageNodeState])).values()]}
 			<EntitiesList

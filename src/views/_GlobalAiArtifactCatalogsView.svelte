@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalAiArtifactCatalog}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalAiArtifactCatalogs)}
 			{@const uniqueGlobalAiArtifactCatalogs = [...new Map(globalAiArtifactCatalogs.values.map((globalAiArtifactCatalog) => [globalAiArtifactCatalog[EntityMetaKey.SelectorKey], globalAiArtifactCatalog])).values()]}
 			<EntitiesList

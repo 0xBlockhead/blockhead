@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvalancheSubnet}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(avalancheSubnets)}
 			{@const uniqueAvalancheSubnets = [...new Map(avalancheSubnets.values.map((avalancheSubnet) => [avalancheSubnet[EntityMetaKey.SelectorKey], avalancheSubnet])).values()]}
 			<EntitiesList

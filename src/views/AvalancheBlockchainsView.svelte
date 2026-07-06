@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvalancheBlockchain}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(avalancheBlockchains)}
 			{@const uniqueAvalancheBlockchains = [...new Map(avalancheBlockchains.values.map((avalancheBlockchain) => [avalancheBlockchain[EntityMetaKey.SelectorKey], avalancheBlockchain])).values()]}
 			<EntitiesList

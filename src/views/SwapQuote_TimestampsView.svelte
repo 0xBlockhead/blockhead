@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SwapQuote_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(swapQuoteTimestamps)}
 			{@const uniqueSwapQuoteTimestamps = [...new Map(swapQuoteTimestamps.values.map((swapQuoteTimestamp) => [swapQuoteTimestamp[EntityMetaKey.SelectorKey], swapQuoteTimestamp])).values()]}
 			<EntitiesList

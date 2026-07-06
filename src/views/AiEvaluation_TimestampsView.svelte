@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiEvaluation_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiEvaluationTimestamps)}
 			{@const uniqueAiEvaluationTimestamps = [...new Map(aiEvaluationTimestamps.values.map((aiEvaluationTimestamp) => [aiEvaluationTimestamp[EntityMetaKey.SelectorKey], aiEvaluationTimestamp])).values()]}
 			<EntitiesList

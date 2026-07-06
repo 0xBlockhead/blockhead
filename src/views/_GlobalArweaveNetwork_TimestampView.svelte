@@ -250,18 +250,18 @@
 				resource={
 					selection({
 						fields: {
-							configuredAccessEndpointCount: true,
+							declaredAccessEndpointCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const configuredAccessEndpointCount = prefetched.configuredAccessEndpointCount}
-					{#if configuredAccessEndpointCount !== undefined && configuredAccessEndpointCount !== null}
+					{@const declaredAccessEndpointCount = prefetched.declaredAccessEndpointCount}
+					{#if declaredAccessEndpointCount !== undefined && declaredAccessEndpointCount !== null}
 						<div>
-							<dt>Configured access endpoints</dt>
+							<dt>Declared access endpoints</dt>
 							<dd>
-								<NumberValue value={Number(configuredAccessEndpointCount)} />
+								<NumberValue value={Number(declaredAccessEndpointCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -269,12 +269,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const configuredAccessEndpointCount = resolvedEntity.configuredAccessEndpointCount}
-					{#if configuredAccessEndpointCount !== undefined && configuredAccessEndpointCount !== null}
+					{@const declaredAccessEndpointCount = resolvedEntity.declaredAccessEndpointCount}
+					{#if declaredAccessEndpointCount !== undefined && declaredAccessEndpointCount !== null}
 						<div>
-							<dt>Configured access endpoints</dt>
+							<dt>Declared access endpoints</dt>
 							<dd>
-								<NumberValue value={Number(configuredAccessEndpointCount)} />
+								<NumberValue value={Number(declaredAccessEndpointCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -357,18 +357,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowBlockCount: true,
+							observedBlockCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowBlockCount = prefetched.sourceWindowBlockCount}
-					{#if sourceWindowBlockCount !== undefined && sourceWindowBlockCount !== null}
+					{@const observedBlockCount = prefetched.observedBlockCount}
+					{#if observedBlockCount !== undefined && observedBlockCount !== null}
 						<div>
-							<dt>Source-window blocks</dt>
+							<dt>Observed blocks</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowBlockCount)} />
+								<NumberValue value={Number(observedBlockCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -376,12 +376,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowBlockCount = resolvedEntity.sourceWindowBlockCount}
-					{#if sourceWindowBlockCount !== undefined && sourceWindowBlockCount !== null}
+					{@const observedBlockCount = resolvedEntity.observedBlockCount}
+					{#if observedBlockCount !== undefined && observedBlockCount !== null}
 						<div>
-							<dt>Source-window blocks</dt>
+							<dt>Observed blocks</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowBlockCount)} />
+								<NumberValue value={Number(observedBlockCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -392,18 +392,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowTransactionCount: true,
+							observedTransactionCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowTransactionCount = prefetched.sourceWindowTransactionCount}
-					{#if sourceWindowTransactionCount !== undefined && sourceWindowTransactionCount !== null}
+					{@const observedTransactionCount = prefetched.observedTransactionCount}
+					{#if observedTransactionCount !== undefined && observedTransactionCount !== null}
 						<div>
-							<dt>Source-window transactions</dt>
+							<dt>Observed transactions</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowTransactionCount)} />
+								<NumberValue value={Number(observedTransactionCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -411,12 +411,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowTransactionCount = resolvedEntity.sourceWindowTransactionCount}
-					{#if sourceWindowTransactionCount !== undefined && sourceWindowTransactionCount !== null}
+					{@const observedTransactionCount = resolvedEntity.observedTransactionCount}
+					{#if observedTransactionCount !== undefined && observedTransactionCount !== null}
 						<div>
-							<dt>Source-window transactions</dt>
+							<dt>Observed transactions</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowTransactionCount)} />
+								<NumberValue value={Number(observedTransactionCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -427,18 +427,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogExampleCount: true,
+							seededExampleCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogExampleCount = prefetched.localCatalogExampleCount}
-					{#if localCatalogExampleCount !== undefined && localCatalogExampleCount !== null}
+					{@const seededExampleCount = prefetched.seededExampleCount}
+					{#if seededExampleCount !== undefined && seededExampleCount !== null}
 						<div>
-							<dt>Local catalog examples</dt>
+							<dt>Seeded examples</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogExampleCount)} />
+								<NumberValue value={Number(seededExampleCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -446,12 +446,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogExampleCount = resolvedEntity.localCatalogExampleCount}
-					{#if localCatalogExampleCount !== undefined && localCatalogExampleCount !== null}
+					{@const seededExampleCount = resolvedEntity.seededExampleCount}
+					{#if seededExampleCount !== undefined && seededExampleCount !== null}
 						<div>
-							<dt>Local catalog examples</dt>
+							<dt>Seeded examples</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogExampleCount)} />
+								<NumberValue value={Number(seededExampleCount)} />
 							</dd>
 						</div>
 					{/if}

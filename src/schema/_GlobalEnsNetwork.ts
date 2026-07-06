@@ -30,7 +30,7 @@ export default {
 		},
 		{
 			name: '$registryContract',
-			label: 'Registry contract',
+			label: 'Registry name contract',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AptosCoinBalance_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aptosCoinBalanceTimestamps)}
 			{@const uniqueAptosCoinBalanceTimestamps = [...new Map(aptosCoinBalanceTimestamps.values.map((aptosCoinBalanceTimestamp) => [aptosCoinBalanceTimestamp[EntityMetaKey.SelectorKey], aptosCoinBalanceTimestamp])).values()]}
 			<EntitiesList

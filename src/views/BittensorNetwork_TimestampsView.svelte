@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BittensorNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bittensorNetworkTimestamps)}
 			{@const uniqueBittensorNetworkTimestamps = [...new Map(bittensorNetworkTimestamps.values.map((bittensorNetworkTimestamp) => [bittensorNetworkTimestamp[EntityMetaKey.SelectorKey], bittensorNetworkTimestamp])).values()]}
 			<EntitiesList

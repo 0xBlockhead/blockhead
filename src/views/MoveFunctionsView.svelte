@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.MoveFunction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(moveFunctions)}
 			{@const uniqueMoveFunctions = [...new Map(moveFunctions.values.map((moveFunction) => [moveFunction[EntityMetaKey.SelectorKey], moveFunction])).values()]}
 			<EntitiesList

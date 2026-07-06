@@ -78,6 +78,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Coin_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(coinTimestamps)}
 			{@const uniqueCoinTimestamps = [...new Map(coinTimestamps.values.map((coinTimestamp) => [coinTimestamp[EntityMetaKey.SelectorKey], coinTimestamp])).values()]}
 			<EntitiesList

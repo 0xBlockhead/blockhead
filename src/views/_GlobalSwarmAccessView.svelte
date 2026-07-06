@@ -128,10 +128,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SwarmResourcesView
-				selection={selection[EntityProxyField]<EntityType.SwarmResource>('$$sourceWindowResources')}
-				title='Source window resources'
+				selection={selection[EntityProxyField]<EntityType.SwarmResource>('$$observedResources')}
+				title='Observed resources'
 				emptyText='No Swarm resources yet.'
-				id='SwarmResourcesView-$$sourceWindowResources'
+				id='SwarmResourcesView-$$observedResources'
 			/>
 
 			<GlobalSwarmAccess_TimestampsView

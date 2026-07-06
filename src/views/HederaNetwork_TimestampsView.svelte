@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaNetworkTimestamps)}
 			{@const uniqueHederaNetworkTimestamps = [...new Map(hederaNetworkTimestamps.values.map((hederaNetworkTimestamp) => [hederaNetworkTimestamp[EntityMetaKey.SelectorKey], hederaNetworkTimestamp])).values()]}
 			<EntitiesList

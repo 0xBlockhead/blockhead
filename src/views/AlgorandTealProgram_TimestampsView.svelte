@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandTealProgram_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandTealProgramTimestamps)}
 			{@const uniqueAlgorandTealProgramTimestamps = [...new Map(algorandTealProgramTimestamps.values.map((algorandTealProgramTimestamp) => [algorandTealProgramTimestamp[EntityMetaKey.SelectorKey], algorandTealProgramTimestamp])).values()]}
 			<EntitiesList

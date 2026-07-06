@@ -122,7 +122,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from configured NEAR sources.
+			NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from declared NEAR sources.
 		</p>
 	{/snippet}
 

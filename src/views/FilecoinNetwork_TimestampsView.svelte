@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FilecoinNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(filecoinNetworkTimestamps)}
 			{@const uniqueFilecoinNetworkTimestamps = [...new Map(filecoinNetworkTimestamps.values.map((filecoinNetworkTimestamp) => [filecoinNetworkTimestamp[EntityMetaKey.SelectorKey], filecoinNetworkTimestamp])).values()]}
 			<EntitiesList

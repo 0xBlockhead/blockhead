@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGDaQuorum}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGDaQuorums)}
 			{@const uniqueZeroGDaQuorums = [...new Map(zeroGDaQuorums.values.map((zeroGDaQuorum) => [zeroGDaQuorum[EntityMetaKey.SelectorKey], zeroGDaQuorum])).values()]}
 			<EntitiesList

@@ -78,6 +78,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TokenMetadataDocument}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tokenMetadataDocuments)}
 			{@const uniqueTokenMetadataDocuments = [...new Map(tokenMetadataDocuments.values.map((tokenMetadataDocument) => [tokenMetadataDocument[EntityMetaKey.SelectorKey], tokenMetadataDocument])).values()]}
 			<EntitiesList

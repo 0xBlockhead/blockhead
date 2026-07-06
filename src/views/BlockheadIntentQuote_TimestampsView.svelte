@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadIntentQuote_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadIntentQuoteTimestamps)}
 			{@const uniqueBlockheadIntentQuoteTimestamps = [...new Map(blockheadIntentQuoteTimestamps.values.map((blockheadIntentQuoteTimestamp) => [blockheadIntentQuoteTimestamp[EntityMetaKey.SelectorKey], blockheadIntentQuoteTimestamp])).values()]}
 			<EntitiesList

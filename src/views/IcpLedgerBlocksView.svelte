@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IcpLedgerBlock}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(icpLedgerBlocks)}
 			{@const uniqueIcpLedgerBlocks = [...new Map(icpLedgerBlocks.values.map((icpLedgerBlock) => [icpLedgerBlock[EntityMetaKey.SelectorKey], icpLedgerBlock])).values()]}
 			<EntitiesList

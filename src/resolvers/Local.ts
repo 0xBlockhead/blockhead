@@ -80,9 +80,9 @@ const globalEvmAbiCatalogTimestampFields = async ({
 		},
 		timestampMs,
 		source: Source.Local_Internal,
-		localCatalogSelectorCount: normalizedLocalInternal.evmSelectors.length,
-		localCatalogTopicCount: normalizedLocalInternal.evmTopics.length,
-		localCatalogErrorCount: normalizedLocalInternal.evmErrors.length,
+		seededSelectorCount: normalizedLocalInternal.evmSelectors.length,
+		seededTopicCount: normalizedLocalInternal.evmTopics.length,
+		seededErrorCount: normalizedLocalInternal.evmErrors.length,
 		reachable: true,
 	}
 }
@@ -1620,7 +1620,7 @@ export default {
 			},
 		})({
 				fields: {
-					$$sourceWindowSelectors: (entity) => entity,
+					$$observedSelectors: (entity) => entity,
 			},
 			}),
 
@@ -1639,7 +1639,7 @@ export default {
 			},
 		})({
 				fields: {
-					$$sourceWindowTopics: (entity) => entity,
+					$$observedTopics: (entity) => entity,
 			},
 			}),
 
@@ -1658,7 +1658,7 @@ export default {
 			},
 		})({
 				fields: {
-					$$sourceWindowErrors: (entity) => entity,
+					$$observedErrors: (entity) => entity,
 			},
 			}),
 
@@ -1702,9 +1702,9 @@ export default {
 				$hub: (timestamp) => timestamp.$hub,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
-				localCatalogSelectorCount: (timestamp) => timestamp.localCatalogSelectorCount,
-				localCatalogTopicCount: (timestamp) => timestamp.localCatalogTopicCount,
-				localCatalogErrorCount: (timestamp) => timestamp.localCatalogErrorCount,
+				seededSelectorCount: (timestamp) => timestamp.seededSelectorCount,
+				seededTopicCount: (timestamp) => timestamp.seededTopicCount,
+				seededErrorCount: (timestamp) => timestamp.seededErrorCount,
 				reachable: (timestamp) => timestamp.reachable,
 			},
 		}),

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LitecoinMwebPegIn}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(litecoinMwebPegIns)}
 			{@const uniqueLitecoinMwebPegIns = [...new Map(litecoinMwebPegIns.values.map((litecoinMwebPegIn) => [litecoinMwebPegIn[EntityMetaKey.SelectorKey], litecoinMwebPegIn])).values()]}
 			<EntitiesList

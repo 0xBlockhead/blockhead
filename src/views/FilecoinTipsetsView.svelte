@@ -79,6 +79,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FilecoinTipset}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(filecoinTipsets)}
 			{@const uniqueFilecoinTipsets = [...new Map(filecoinTipsets.values.map((filecoinTipset) => [filecoinTipset[EntityMetaKey.SelectorKey], filecoinTipset])).values()]}
 			<EntitiesList

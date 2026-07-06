@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ArweaveBlock}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(arweaveBlocks)}
 			{@const uniqueArweaveBlocks = [...new Map(arweaveBlocks.values.map((arweaveBlock) => [arweaveBlock[EntityMetaKey.SelectorKey], arweaveBlock])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadLightningPayment_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadLightningPaymentTimestamps)}
 			{@const uniqueBlockheadLightningPaymentTimestamps = [...new Map(blockheadLightningPaymentTimestamps.values.map((blockheadLightningPaymentTimestamp) => [blockheadLightningPaymentTimestamp[EntityMetaKey.SelectorKey], blockheadLightningPaymentTimestamp])).values()]}
 			<EntitiesList

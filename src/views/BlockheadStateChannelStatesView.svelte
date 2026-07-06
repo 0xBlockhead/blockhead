@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadStateChannelState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadStateChannelStates)}
 			{@const uniqueBlockheadStateChannelStates = [...new Map(blockheadStateChannelStates.values.map((blockheadStateChannelState) => [blockheadStateChannelState[EntityMetaKey.SelectorKey], blockheadStateChannelState])).values()]}
 			<EntitiesList

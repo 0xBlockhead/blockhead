@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SwapQuoteStep}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(swapQuoteSteps)}
 			{@const uniqueSwapQuoteSteps = [...new Map(swapQuoteSteps.values.map((swapQuoteStep) => [swapQuoteStep[EntityMetaKey.SelectorKey], swapQuoteStep])).values()]}
 			<EntitiesList

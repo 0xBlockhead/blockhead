@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadFedimintClientState_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadFedimintClientStateTimestamps)}
 			{@const uniqueBlockheadFedimintClientStateTimestamps = [...new Map(blockheadFedimintClientStateTimestamps.values.map((blockheadFedimintClientStateTimestamp) => [blockheadFedimintClientStateTimestamp[EntityMetaKey.SelectorKey], blockheadFedimintClientStateTimestamp])).values()]}
 			<EntitiesList

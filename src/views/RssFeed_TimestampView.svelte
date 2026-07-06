@@ -237,18 +237,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowItemCount: true,
+							observedItemCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowItemCount = prefetched.sourceWindowItemCount}
-					{#if sourceWindowItemCount !== undefined && sourceWindowItemCount !== null}
+					{@const observedItemCount = prefetched.observedItemCount}
+					{#if observedItemCount !== undefined && observedItemCount !== null}
 						<div>
-							<dt>Source window items</dt>
+							<dt>Observed items</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowItemCount)} />
+								<NumberValue value={Number(observedItemCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -256,12 +256,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowItemCount = resolvedEntity.sourceWindowItemCount}
-					{#if sourceWindowItemCount !== undefined && sourceWindowItemCount !== null}
+					{@const observedItemCount = resolvedEntity.observedItemCount}
+					{#if observedItemCount !== undefined && observedItemCount !== null}
 						<div>
-							<dt>Source window items</dt>
+							<dt>Observed items</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowItemCount)} />
+								<NumberValue value={Number(observedItemCount)} />
 							</dd>
 						</div>
 					{/if}

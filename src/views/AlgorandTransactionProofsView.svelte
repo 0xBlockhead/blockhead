@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandTransactionProof}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandTransactionProofs)}
 			{@const uniqueAlgorandTransactionProofs = [...new Map(algorandTransactionProofs.values.map((algorandTransactionProof) => [algorandTransactionProof[EntityMetaKey.SelectorKey], algorandTransactionProof])).values()]}
 			<EntitiesList

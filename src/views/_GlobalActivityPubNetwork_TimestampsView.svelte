@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalActivityPubNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalActivityPubNetworkTimestamps)}
 			{@const uniqueGlobalActivityPubNetworkTimestamps = [...new Map(globalActivityPubNetworkTimestamps.values.map((globalActivityPubNetworkTimestamp) => [globalActivityPubNetworkTimestamp[EntityMetaKey.SelectorKey], globalActivityPubNetworkTimestamp])).values()]}
 			<EntitiesList

@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'AT Protocol',
-		typeAnnotationParagraphs = ['AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product source windows live on the global AT Protocol hub.'],
+		typeAnnotationParagraphs = ['AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product observeds live on the global AT Protocol hub.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AtprotoNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(atprotoNetworks)}
 			{@const uniqueAtprotoNetworks = [...new Map(atprotoNetworks.values.map((atprotoNetwork) => [atprotoNetwork[EntityMetaKey.SelectorKey], atprotoNetwork])).values()]}
 			<EntitiesList

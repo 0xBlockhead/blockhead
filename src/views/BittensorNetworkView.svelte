@@ -121,7 +121,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from configured Bittensor JSON-RPC sources.
+			Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from declared Bittensor JSON-RPC sources.
 		</p>
 	{/snippet}
 

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NetworkUpgrade}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(networkUpgrades)}
 			{@const uniqueNetworkUpgrades = [...new Map(networkUpgrades.values.map((networkUpgrade) => [networkUpgrade[EntityMetaKey.SelectorKey], networkUpgrade])).values()]}
 			<EntitiesList

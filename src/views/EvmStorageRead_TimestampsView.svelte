@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EvmStorageRead_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(evmStorageReadTimestamps)}
 			{@const uniqueEvmStorageReadTimestamps = [...new Map(evmStorageReadTimestamps.values.map((evmStorageReadTimestamp) => [evmStorageReadTimestamp[EntityMetaKey.SelectorKey], evmStorageReadTimestamp])).values()]}
 			<EntitiesList

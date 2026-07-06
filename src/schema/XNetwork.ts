@@ -12,7 +12,7 @@ export default {
 	entityType: EntityType.XNetwork,
 	label: 'X',
 	labelPlural: 'X',
-	description: 'X profiles and posts surfaced through configured public HTTP sources.',
+	description: 'X profiles and posts surfaced through declared public HTTP sources.',
 	selectors: [
 		{
 			name: XNetworkSelector.Scope,
@@ -52,15 +52,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'Registry',
+			name: 'registryName',
+			label: 'Registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BittensorSubnet}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bittensorSubnets)}
 			{@const uniqueBittensorSubnets = [...new Map(bittensorSubnets.values.map((bittensorSubnet) => [bittensorSubnet[EntityMetaKey.SelectorKey], bittensorSubnet])).values()]}
 			<EntitiesList

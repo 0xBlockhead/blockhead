@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'ActivityPub instance peers',
-		typeAnnotationParagraphs = ['A domain that a configured ActivityPub instance reports as a known connected domain.'],
+		typeAnnotationParagraphs = ['A domain that a declared ActivityPub instance reports as a known connected domain.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ActivityPubInstancePeer}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(activityPubInstancePeers)}
 			{@const uniqueActivityPubInstancePeers = [...new Map(activityPubInstancePeers.values.map((activityPubInstancePeer) => [activityPubInstancePeer[EntityMetaKey.SelectorKey], activityPubInstancePeer])).values()]}
 			<EntitiesList

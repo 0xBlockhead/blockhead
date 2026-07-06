@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitBlob}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitBlobs)}
 			{@const uniqueGitBlobs = [...new Map(gitBlobs.values.map((gitBlob) => [gitBlob[EntityMetaKey.SelectorKey], gitBlob])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.DydxChainMarket}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(dydxChainMarkets)}
 			{@const uniqueDydxChainMarkets = [...new Map(dydxChainMarkets.values.map((dydxChainMarket) => [dydxChainMarket[EntityMetaKey.SelectorKey], dydxChainMarket])).values()]}
 			<EntitiesList

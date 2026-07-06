@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitTreeEntry}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitTreeEntries)}
 			{@const uniqueGitTreeEntries = [...new Map(gitTreeEntries.values.map((gitTreeEntry) => [gitTreeEntry[EntityMetaKey.SelectorKey], gitTreeEntry])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.KaspaBlock}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(kaspaBlocks)}
 			{@const uniqueKaspaBlocks = [...new Map(kaspaBlocks.values.map((kaspaBlock) => [kaspaBlock[EntityMetaKey.SelectorKey], kaspaBlock])).values()]}
 			<EntitiesList

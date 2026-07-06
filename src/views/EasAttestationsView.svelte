@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EasAttestation}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(easAttestations)}
 			{@const uniqueEasAttestations = [...new Map(easAttestations.values.map((easAttestation) => [easAttestation[EntityMetaKey.SelectorKey], easAttestation])).values()]}
 			<EntitiesList

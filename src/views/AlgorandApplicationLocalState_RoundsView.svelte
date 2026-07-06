@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandApplicationLocalState_Round}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandApplicationLocalStateRounds)}
 			{@const uniqueAlgorandApplicationLocalStateRounds = [...new Map(algorandApplicationLocalStateRounds.values.map((algorandApplicationLocalStateRound) => [algorandApplicationLocalStateRound[EntityMetaKey.SelectorKey], algorandApplicationLocalStateRound])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalAgentNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalAgentNetworks)}
 			{@const uniqueGlobalAgentNetworks = [...new Map(globalAgentNetworks.values.map((globalAgentNetwork) => [globalAgentNetwork[EntityMetaKey.SelectorKey], globalAgentNetwork])).values()]}
 			<EntitiesList

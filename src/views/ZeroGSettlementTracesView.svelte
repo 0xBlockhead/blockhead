@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGSettlementTrace}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGSettlementTraces)}
 			{@const uniqueZeroGSettlementTraces = [...new Map(zeroGSettlementTraces.values.map((zeroGSettlementTrace) => [zeroGSettlementTrace[EntityMetaKey.SelectorKey], zeroGSettlementTrace])).values()]}
 			<EntitiesList

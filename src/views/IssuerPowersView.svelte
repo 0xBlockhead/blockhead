@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IssuerPower}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(issuerPowers)}
 			{@const uniqueIssuerPowers = [...new Map(issuerPowers.values.map((issuerPower) => [issuerPower[EntityMetaKey.SelectorKey], issuerPower])).values()]}
 			<EntitiesList

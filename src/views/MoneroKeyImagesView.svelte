@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.MoneroKeyImage}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(moneroKeyImages)}
 			{@const uniqueMoneroKeyImages = [...new Map(moneroKeyImages.values.map((moneroKeyImage) => [moneroKeyImage[EntityMetaKey.SelectorKey], moneroKeyImage])).values()]}
 			<EntitiesList

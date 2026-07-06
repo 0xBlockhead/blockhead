@@ -715,44 +715,69 @@ export default {
 			},
 		}),
 
-			defineResolver(Source.Voltaire_JsonRpc, {
-				entityType: EntityType.EvmBlob,
-				resolve: {
-					[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector) => {
-						const { getTransactionByHashForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-						const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
-						const jsonRpcTransport = (await voltaireJsonRpcTransportWithOriginsByChainId())[chainId]
-					const tx = await getTransactionByHashForRpcUrl({
-							...jsonRpcTransport,
-							txHash: entitySelector.$transaction.txHash,
-						})
-						if (tx == null) throw new Error('Voltaire_JsonRpc: blob transaction not found')
-						const bvh = tx.blobVersionedHashes
+				defineResolver(Source.Voltaire_JsonRpc, {
+					entityType: EntityType.EvmBlob,
+					resolve: {
+						[EvmBlobSelector.TransactionIndexInTransaction]: async (entitySelector) => {
+							const {
+								getTransactionByHashForRpcUrl,
+								getTransactionReceiptForRpcUrl,
+							} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
+							const { getRpcReceipt } = await import('$/sources/Voltaire/JsonRpc/types.ts')
+							const chainId = chainIdFromEvmNetworkId(entitySelector.$transaction.$network)
+							const jsonRpcTransport = (await voltaireJsonRpcTransportWithOriginsByChainId())[chainId]
+							const tx = await getTransactionByHashForRpcUrl({
+								...jsonRpcTransport,
+								txHash: entitySelector.$transaction.txHash,
+							})
+							if (tx == null) throw new Error('Voltaire_JsonRpc: blob transaction not found')
+							const bvh = tx.blobVersionedHashes
 						if (!Array.isArray(bvh) || typeof bvh[entitySelector.indexInTransaction] !== 'string')
 							throw new Error('Voltaire_JsonRpc: blob index missing on transaction')
-						const versionedHash = hexLowerOfByteSize(bvh[entitySelector.indexInTransaction], 32)
-						if (versionedHash == null || !versionedHash.startsWith('0x01')) throw new Error('Voltaire_JsonRpc: invalid blob versioned hash')
-						return {
-							[EntityMetaKey.Selector]: entitySelector,
-							versionedHash: versionedHash as `0x01${string}`,
-							$transaction: {
-								[EntityMetaKey.Selector]: {
-									$network: evmNetworkIdFromChainId(chainId),
+							const versionedHash = hexLowerOfByteSize(bvh[entitySelector.indexInTransaction], 32)
+							if (versionedHash == null || !versionedHash.startsWith('0x01')) throw new Error('Voltaire_JsonRpc: invalid blob versioned hash')
+							const transactionBlockNumber = nonNegativeBigIntFromHex(tx.blockNumber)
+							const receiptBlockNumber = await (async () => {
+								if (transactionBlockNumber != null) return undefined
+								const receiptWire = await getTransactionReceiptForRpcUrl({
+									...jsonRpcTransport,
 									txHash: entitySelector.$transaction.txHash,
-								},
-							} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+								})
+								const receipt = receiptWire == null ? null : getRpcReceipt(receiptWire)
+								return nonNegativeBigIntFromHex(receipt?.blockNumber)
+							})()
+							const blockNumber = transactionBlockNumber ?? receiptBlockNumber
+							if (blockNumber == null) throw new Error('Voltaire_JsonRpc: blob transaction missing block')
+							return {
+								[EntityMetaKey.Selector]: entitySelector,
+								versionedHash: versionedHash as `0x01${string}`,
+								$transaction: {
+									[EntityMetaKey.Selector]: {
+									$network: evmNetworkIdFromChainId(chainId),
+										txHash: entitySelector.$transaction.txHash,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+								$block: {
+									[EntityMetaKey.Selector]: {
+										$network: evmNetworkIdFromChainId(chainId),
+										blockNumber,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+							}
 						}
-					}
-				},
-			})({
+					},
+				})({
 				fields: {
 					indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
 					versionedHash: (entity) => entity.versionedHash,
-					$transaction: (entity) => ({
-						[EntityMetaKey.Selector]: entity.$transaction[EntityMetaKey.Selector],
-					}),
-				},
-			}),
+						$transaction: (entity) => ({
+							[EntityMetaKey.Selector]: entity.$transaction[EntityMetaKey.Selector],
+						}),
+						$block: (entity) => ({
+							[EntityMetaKey.Selector]: entity.$block[EntityMetaKey.Selector],
+						}),
+					},
+				}),
 
 			defineResolver(Source.Voltaire_JsonRpc, {
 				entityType: EntityType.EvmBlob,

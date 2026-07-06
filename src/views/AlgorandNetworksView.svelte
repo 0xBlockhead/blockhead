@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandNetworks)}
 			{@const uniqueAlgorandNetworks = [...new Map(algorandNetworks.values.map((algorandNetwork) => [algorandNetwork[EntityMetaKey.SelectorKey], algorandNetwork])).values()]}
 			<EntitiesList

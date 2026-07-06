@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.KaspaVirtualChain_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(kaspaVirtualChainTimestamps)}
 			{@const uniqueKaspaVirtualChainTimestamps = [...new Map(kaspaVirtualChainTimestamps.values.map((kaspaVirtualChainTimestamp) => [kaspaVirtualChainTimestamp[EntityMetaKey.SelectorKey], kaspaVirtualChainTimestamp])).values()]}
 			<EntitiesList

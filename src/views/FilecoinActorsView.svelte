@@ -79,6 +79,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FilecoinActor}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(filecoinActors)}
 			{@const uniqueFilecoinActors = [...new Map(filecoinActors.values.map((filecoinActor) => [filecoinActor[EntityMetaKey.SelectorKey], filecoinActor])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BnbBeaconBlock}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bnbBeaconBlocks)}
 			{@const uniqueBnbBeaconBlocks = [...new Map(bnbBeaconBlocks.values.map((bnbBeaconBlock) => [bnbBeaconBlock[EntityMetaKey.SelectorKey], bnbBeaconBlock])).values()]}
 			<EntitiesList

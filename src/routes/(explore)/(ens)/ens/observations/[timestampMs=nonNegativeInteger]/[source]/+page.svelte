@@ -41,10 +41,10 @@
 			select(EntityType._GlobalEnsNetwork_Timestamp, data.selector, {
 				sources: [data.selector.source],
 				fields: {
-					sourceWindowNameCount: true,
-					sourceWindowRecordCount: true,
-					sourceWindowReverseRecordCount: true,
-					localCatalogContractCount: true,
+					observedNameCount: true,
+					observedRecordCount: true,
+					observedReverseRecordCount: true,
+					seededContractCount: true,
 					discoveredResolverContractCount: true,
 					subgraphBlockNumber: true,
 					rpcBlockNumber: true,

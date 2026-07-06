@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadRadicleNodeState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadRadicleNodeStates)}
 			{@const uniqueBlockheadRadicleNodeStates = [...new Map(blockheadRadicleNodeStates.values.map((blockheadRadicleNodeState) => [blockheadRadicleNodeState[EntityMetaKey.SelectorKey], blockheadRadicleNodeState])).values()]}
 			<EntitiesList

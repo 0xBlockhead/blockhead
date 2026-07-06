@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TonContractGetMethod_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tonContractGetMethodTimestamps)}
 			{@const uniqueTonContractGetMethodTimestamps = [...new Map(tonContractGetMethodTimestamps.values.map((tonContractGetMethodTimestamp) => [tonContractGetMethodTimestamp[EntityMetaKey.SelectorKey], tonContractGetMethodTimestamp])).values()]}
 			<EntitiesList

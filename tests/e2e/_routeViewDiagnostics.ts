@@ -33,7 +33,6 @@ export const setupRouteViewSmokePage = (page: Page) => {
 		failFast: true,
 		failOnDevServerContamination: true,
 		failOnTanStackWarnings: true,
-		ignoreTransientDevLoad: true,
 	})
 
 	return {

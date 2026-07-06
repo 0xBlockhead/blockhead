@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadZeroGStoredChunk}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadZeroGStoredChunks)}
 			{@const uniqueBlockheadZeroGStoredChunks = [...new Map(blockheadZeroGStoredChunks.values.map((blockheadZeroGStoredChunk) => [blockheadZeroGStoredChunk[EntityMetaKey.SelectorKey], blockheadZeroGStoredChunk])).values()]}
 			<EntitiesList

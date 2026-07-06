@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalNostrNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalNostrNetworks)}
 			{@const uniqueGlobalNostrNetworks = [...new Map(globalNostrNetworks.values.map((globalNostrNetwork) => [globalNostrNetwork[EntityMetaKey.SelectorKey], globalNostrNetwork])).values()]}
 			<EntitiesList

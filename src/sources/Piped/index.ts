@@ -22,6 +22,7 @@ export const pipedOrigins = [
 export default {
 	provider: SourceProvider.Piped,
 	label: 'Piped',
+	origins: pipedOrigins,
 	sources: [
 		{
 			provider: SourceProvider.Piped,

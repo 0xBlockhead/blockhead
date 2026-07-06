@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TronContract_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tronContractTimestamps)}
 			{@const uniqueTronContractTimestamps = [...new Map(tronContractTimestamps.values.map((tronContractTimestamp) => [tronContractTimestamp[EntityMetaKey.SelectorKey], tronContractTimestamp])).values()]}
 			<EntitiesList

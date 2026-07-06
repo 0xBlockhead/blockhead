@@ -32,7 +32,7 @@
 <Page>
 	<ZcashShieldedPoolView
 		href={
-			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/zcash/shielded-pool/[pool]', {
+			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/shielded-pool/[pool]', {
 				networkSlug: params.networkSlug,
 				pool: params.pool,
 			})

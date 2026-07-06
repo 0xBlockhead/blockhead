@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.MoneroNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(moneroNetworkTimestamps)}
 			{@const uniqueMoneroNetworkTimestamps = [...new Map(moneroNetworkTimestamps.values.map((moneroNetworkTimestamp) => [moneroNetworkTimestamp[EntityMetaKey.SelectorKey], moneroNetworkTimestamp])).values()]}
 			<EntitiesList

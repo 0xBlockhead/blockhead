@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadStateChannelDeposit_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadStateChannelDepositTimestamps)}
 			{@const uniqueBlockheadStateChannelDepositTimestamps = [...new Map(blockheadStateChannelDepositTimestamps.values.map((blockheadStateChannelDepositTimestamp) => [blockheadStateChannelDepositTimestamp[EntityMetaKey.SelectorKey], blockheadStateChannelDepositTimestamp])).values()]}
 			<EntitiesList

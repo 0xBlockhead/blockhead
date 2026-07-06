@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LiquidityPool_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(liquidityPoolTimestamps)}
 			{@const uniqueLiquidityPoolTimestamps = [...new Map(liquidityPoolTimestamps.values.map((liquidityPoolTimestamp) => [liquidityPoolTimestamp[EntityMetaKey.SelectorKey], liquidityPoolTimestamp])).values()]}
 			<EntitiesList

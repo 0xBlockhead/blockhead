@@ -3396,6 +3396,7 @@ export enum SourceBinding {
 | `Esplora` | Esplora |
 | `EthForks` | EthForks |
 | `Farcaster` | Farcaster |
+| `Fedi` | Fedi |
 | `FedimintClient` | FedimintClient |
 | `FedimintGatewayd` | FedimintGatewayd |
 | `FilecoinFips` | FilecoinFips |
@@ -3680,6 +3681,7 @@ export enum SourceBinding {
 | `Esplora_Rest` | `Esplora` | Esplora_Rest |
 | `EthForks_Rest` | `EthForks` | EthForks_Rest |
 | `Farcaster_Rest` | `Farcaster` | Farcaster_Rest |
+| `Fedi_Rest` | `Fedi` | Fedi_Rest |
 | `FedimintClient_Rpc` | `FedimintClient` | FedimintClient_Rpc |
 | `FedimintGatewayd_Rest` | `FedimintGatewayd` | FedimintGatewayd_Rest |
 | `FilecoinFips_Github` | `FilecoinFips` | FilecoinFips_Github |
@@ -4019,6 +4021,7 @@ export enum SourceBinding {
 | `EthereumSpecs_Github` | `EthereumSpecs` | GitRepository:ethereum/* | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
 | `Etherscan_Rest` | `Etherscan` | Global:etherscan-v2 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule, EvmRpcCore | 1 | 1 |
 | `Farcaster_Rest` | `Farcaster` | Global:client-api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 3 |
+| `Fedi_Rest` | `Fedi` | Global:configured-fedi-rest | HttpRest | RestJson | HttpProxy | GenericRead | 0 | 1 |
 | `FedimintClient_Rpc` | `FedimintClient` | LocalDevice:configured-fedimint-client | JsonRpc2 | JsonRpcApi | LocalOnly | GenericRead | 0 | 1 |
 | `FedimintGatewayd_Rest` | `FedimintGatewayd` | LocalDevice:configured-fedimint-gatewayd | HttpRest | FedimintGatewaydApi | ServerOnly | GenericRead | 0 | 1 |
 | `FilecoinFips_Github` | `FilecoinFips` | GitRepository:filecoin-project/FIPs@master:FIPS | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
@@ -4619,3 +4622,8 @@ export enum SourceBinding {
 | `ZeroGChainScan_Rest` | HandwrittenTypes | `src/sources/ZeroG/ChainScan/Rest/types.ts` | no |
 | `ZeroGStorageNode_JsonRpc` | HandwrittenTypes | `src/sources/ZeroG/StorageNode/JsonRpc/types.ts` | no |
 | `ZeroGStorageScan_Rest` | HandwrittenTypes | `src/sources/ZeroG/StorageScan/Rest/types.ts` | no |
+
+## Binding Sync Gaps
+
+| Type | Name | Status | Evidence |
+|---|---|---|---|

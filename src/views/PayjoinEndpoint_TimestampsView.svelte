@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.PayjoinEndpoint_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(payjoinEndpointTimestamps)}
 			{@const uniquePayjoinEndpointTimestamps = [...new Map(payjoinEndpointTimestamps.values.map((payjoinEndpointTimestamp) => [payjoinEndpointTimestamp[EntityMetaKey.SelectorKey], payjoinEndpointTimestamp])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TezosNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tezosNetworkTimestamps)}
 			{@const uniqueTezosNetworkTimestamps = [...new Map(tezosNetworkTimestamps.values.map((tezosNetworkTimestamp) => [tezosNetworkTimestamp[EntityMetaKey.SelectorKey], tezosNetworkTimestamp])).values()]}
 			<EntitiesList

@@ -4,10 +4,10 @@ import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$so
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 
-const mcpConfiguredProtocolSourceDefinition = {
+const mcpDeclaredProtocolSourceDefinition = {
 	provider: SourceProvider.Mcp,
-	source: Source.McpConfigured_Protocol,
-	label: 'Configured MCP server',
+	source: Source.McpDeclared_Protocol,
+	label: 'Declared MCP server',
 } satisfies SourceDefinitionTemplate<SourceProvider, Source>
 
-export default mcpConfiguredProtocolSourceDefinition
+export default mcpDeclaredProtocolSourceDefinition

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StarknetTransaction_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(starknetTransactionTimestamps)}
 			{@const uniqueStarknetTransactionTimestamps = [...new Map(starknetTransactionTimestamps.values.map((starknetTransactionTimestamp) => [starknetTransactionTimestamp[EntityMetaKey.SelectorKey], starknetTransactionTimestamp])).values()]}
 			<EntitiesList

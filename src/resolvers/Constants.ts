@@ -22,12 +22,12 @@ import {
 	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
 import {
-	localCatalogCoinSpotUsdMarkets,
-	localCatalogCoinSpotUsdMarketByCoinId,
-	localCatalogMarketsWithCoinAsQuoteByQuoteCoinId,
-	localCatalogMarketsWithCurrencyAsBaseByIso4217,
-	localCatalogSpotMarketsWithCoinAsQuote,
-	localCatalogSpotMarketsWithCurrencyAsBase,
+	seededCoinSpotUsdMarkets,
+	seededCoinSpotUsdMarketByCoinId,
+	seededMarketsWithCoinAsQuoteByQuoteCoinId,
+	seededMarketsWithCurrencyAsBaseByIso4217,
+	seededSpotMarketsWithCoinAsQuote,
+	seededSpotMarketsWithCurrencyAsBase,
 	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
@@ -160,6 +160,7 @@ import { XNetworkSelector } from '$/schema/XNetwork.ts'
 import { XPostSelector } from '$/schema/XPost.ts'
 import { XmtpNetworkSelector } from '$/schema/XmtpNetwork.ts'
 import { YoutubeChannelSelector } from '$/schema/YoutubeChannel.ts'
+import { YoutubeChannel_TimestampSelector } from '$/schema/YoutubeChannel_Timestamp.ts'
 import { YoutubeNetworkSelector } from '$/schema/YoutubeNetwork.ts'
 import { _GlobalYoutubeNetworkSelector } from '$/schema/_GlobalYoutubeNetwork.ts'
 import { _GlobalRedditNetworkSelector } from '$/schema/_GlobalRedditNetwork.ts'
@@ -973,7 +974,7 @@ export default {
 						[EntityMetaKey.Selector]: EntitySelector<typeof schema, EntityType.Market>
 					}[] = []
 
-					for (const catalogMarket of localCatalogCoinSpotUsdMarkets) {
+					for (const catalogMarket of seededCoinSpotUsdMarkets) {
 						if (marketReferences.length >= limit)
 							return marketReferences
 
@@ -983,7 +984,7 @@ export default {
 							})
 					}
 
-					for (const catalogMarket of localCatalogSpotMarketsWithCoinAsQuote) {
+					for (const catalogMarket of seededSpotMarketsWithCoinAsQuote) {
 						if (marketReferences.length >= limit)
 							return marketReferences
 
@@ -993,7 +994,7 @@ export default {
 							})
 					}
 
-					for (const catalogMarket of localCatalogSpotMarketsWithCurrencyAsBase) {
+					for (const catalogMarket of seededSpotMarketsWithCurrencyAsBase) {
 						if (marketReferences.length >= limit)
 							return marketReferences
 
@@ -1343,12 +1344,12 @@ export default {
 			entityType: EntityType._GlobalAtprotoNetwork,
 			resolve: {
 				[_GlobalAtprotoNetworkSelector.Scope]: async () => ({
-					$$sourceWindowActors: atprotoNetworkSeedActors.map((actor) => ({
+					$$observedActors: atprotoNetworkSeedActors.map((actor) => ({
 						[EntityMetaKey.Selector]: {
 							did: actor.did,
 						},
 					})),
-					$$sourceWindowPosts: atprotoNetworkSeedPosts.map((post) => ({
+					$$observedPosts: atprotoNetworkSeedPosts.map((post) => ({
 						[EntityMetaKey.Selector]: {
 							uri: post.uri,
 						},
@@ -1356,17 +1357,17 @@ export default {
 					docsUrl: 'https://atproto.com/specs/atp',
 					homeUrl: 'https://atproto.com',
 					protocolName: 'AT Protocol',
-					topology: 'DIDs identify repos; PDS hosts serve signed records; appviews index public profiles, feeds, and relationships.',
+					relationshipModel: 'DIDs identify repos; PDS hosts serve signed records; appviews index public profiles, feeds, and relationships.',
 				})
 			},
 		})({
 			fields: {
 				protocolName: (entity) => entity.protocolName,
-				topology: (entity) => entity.topology,
+				relationshipModel: (entity) => entity.relationshipModel,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				$$sourceWindowActors: (entity) => entity.$$sourceWindowActors,
-				$$sourceWindowPosts: (entity) => entity.$$sourceWindowPosts,
+				$$observedActors: (entity) => entity.$$observedActors,
+				$$observedPosts: (entity) => entity.$$observedPosts,
 			},
 		}),
 
@@ -1449,8 +1450,8 @@ export default {
 					docsUrl: 'https://docs.farcaster.xyz',
 					homeUrl: 'https://www.farcaster.xyz',
 					protocolName: 'Farcaster',
-					registryLabel: 'Farcaster hub and indexer source window',
-					topology: 'FID-keyed users, channels, and immutable casts resolved through configured Farcaster REST, Neynar, and Snapchain sources.',
+					registryName: 'Farcaster hub and indexer source window',
+					relationshipModel: 'FID-keyed users, channels, and immutable casts resolved through configured Farcaster REST, Neynar, and Snapchain sources.',
 					$$feeds: Object.values(farcasterFeedKindByVariant).map((feed) => ({
 						[EntityMetaKey.Selector]: {
 							variant: feed.variant,
@@ -1464,8 +1465,8 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
+				registryName: (entity) => entity.registryName,
+				relationshipModel: (entity) => entity.relationshipModel,
 				$$feeds: (entity) => entity.$$feeds,
 			},
 		}),
@@ -1477,8 +1478,8 @@ export default {
 					docsUrl: 'https://docs.lens.xyz',
 					homeUrl: 'https://lens.xyz',
 					protocolName: 'Lens',
-					registryLabel: 'Lens GraphQL source window',
-					topology: 'Profiles and posts are indexed social graph records resolved through configured Lens GraphQL endpoints.',
+					registryName: 'Lens GraphQL source window',
+					relationshipModel: 'Profiles and posts are indexed social graph records resolved through configured Lens GraphQL endpoints.',
 					$$lensAccounts: lensNetworkSeedAccounts.map((account) => ({
 						[EntityMetaKey.Selector]: {
 							address: account.address,
@@ -1491,8 +1492,8 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
+				registryName: (entity) => entity.registryName,
+				relationshipModel: (entity) => entity.relationshipModel,
 				$$lensAccounts: (entity) => entity.$$lensAccounts,
 			},
 		}),
@@ -1504,39 +1505,39 @@ export default {
 					docsUrl: 'https://github.com/nostr-protocol/nips',
 					homeUrl: 'https://nostr.com',
 					protocolName: 'Nostr',
-					registryLabel: 'Nostr public relay and indexer source window',
-					topology: 'Profiles, notes, reposts, reactions, and articles are signed events. Relays are WebSocket transports; they do not imply a single global canonical database.',
-					$$sourceWindowProfiles: nostrNetworkSeedProfiles.slice(0, resolverContextRowLimit(context)).map((profile) => ({
+					registryName: 'Nostr public relay and indexer source window',
+					relationshipModel: 'Profiles, notes, reposts, reactions, and articles are signed events. Relays are WebSocket transports; they do not imply a single global canonical database.',
+					$$observedProfiles: nostrNetworkSeedProfiles.slice(0, resolverContextRowLimit(context)).map((profile) => ({
 						[EntityMetaKey.Selector]: {
 							pubkey: profile.pubkey,
 						},
 					})),
-					$$sourceWindowNotes: nostrNetworkSeedNotes.slice(0, resolverContextRowLimit(context)).map((note) => ({
+					$$observedNotes: nostrNetworkSeedNotes.slice(0, resolverContextRowLimit(context)).map((note) => ({
 						[EntityMetaKey.Selector]: {
 							eventId: note.eventId,
 						},
 					})),
-					$$sourceWindowRelays: nostrNetworkSeedRelays.slice(0, resolverContextRowLimit(context)).map((relay) => ({
+					$$observedRelays: nostrNetworkSeedRelays.slice(0, resolverContextRowLimit(context)).map((relay) => ({
 						[EntityMetaKey.Selector]: {
 							relayUrl: relay.relayUrl,
 						},
 					})),
-					$$sourceWindowReposts: [],
-					$$sourceWindowArticles: [],
+					$$observedReposts: [],
+					$$observedArticles: [],
 				})
 			},
 		})({
 			fields: {
 				protocolName: (network) => network.protocolName,
-				registryLabel: (network) => network.registryLabel,
+				registryName: (network) => network.registryName,
 				homeUrl: (network) => network.homeUrl,
 				docsUrl: (network) => network.docsUrl,
-				topology: (network) => network.topology,
-				$$sourceWindowProfiles: (network) => network.$$sourceWindowProfiles,
-				$$sourceWindowNotes: (network) => network.$$sourceWindowNotes,
-				$$sourceWindowRelays: (network) => network.$$sourceWindowRelays,
-				$$sourceWindowReposts: (network) => network.$$sourceWindowReposts,
-				$$sourceWindowArticles: (network) => network.$$sourceWindowArticles,
+				relationshipModel: (network) => network.relationshipModel,
+				$$observedProfiles: (network) => network.$$observedProfiles,
+				$$observedNotes: (network) => network.$$observedNotes,
+				$$observedRelays: (network) => network.$$observedRelays,
+				$$observedReposts: (network) => network.$$observedReposts,
+				$$observedArticles: (network) => network.$$observedArticles,
 			},
 		}),
 
@@ -1654,8 +1655,8 @@ export default {
 					docsUrl: 'https://www.rssboard.org/rss-specification',
 					homeUrl: 'https://www.rssboard.org',
 					protocolName: 'RSS / Atom syndication',
-					registryLabel: 'Seed feeds',
-					topology: 'A configured feed directory with live item windows resolved from each feed URL.',
+					registryName: 'Seed feeds',
+					relationshipModel: 'A configured feed directory with live item windows resolved from each feed URL.',
 					$$rssFeeds: rssNetworkSeedFeeds.map((feed) => ({
 						[EntityMetaKey.Selector]: {
 							feedUrl: feed.feedUrl,
@@ -1668,8 +1669,8 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
+				registryName: (entity) => entity.registryName,
+				relationshipModel: (entity) => entity.relationshipModel,
 				$$rssFeeds: (entity) => entity.$$rssFeeds,
 			},
 		}),
@@ -1681,8 +1682,8 @@ export default {
 					docsUrl: 'https://developer.x.com',
 					homeUrl: 'https://x.com',
 					protocolName: 'X (API v2)',
-					registryLabel: 'Public profiles and posts',
-					topology: 'Public X users and posts resolved from configured HTTP sources.',
+					registryName: 'Public profiles and posts',
+					relationshipModel: 'Public X users and posts resolved from configured HTTP sources.',
 				})
 			},
 		})({
@@ -1690,8 +1691,8 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
+				registryName: (entity) => entity.registryName,
+				relationshipModel: (entity) => entity.relationshipModel,
 			},
 		}),
 
@@ -1702,8 +1703,8 @@ export default {
 					docsUrl: 'https://docs.xmtp.org',
 					homeUrl: 'https://xmtp.org',
 					protocolName: 'XMTP (wallet messaging)',
-					registryLabel: 'Local inbox state',
-					topology: 'Local catalog conversations associated with provisioned wallet identities.',
+					registryName: 'Local inbox state',
+					relationshipModel: 'Local catalog conversations associated with provisioned wallet identities.',
 				})
 			},
 		})({
@@ -1711,8 +1712,8 @@ export default {
 				protocolName: (entity) => entity.protocolName,
 				homeUrl: (entity) => entity.homeUrl,
 				docsUrl: (entity) => entity.docsUrl,
-				registryLabel: (entity) => entity.registryLabel,
-				topology: (entity) => entity.topology,
+				registryName: (entity) => entity.registryName,
+				relationshipModel: (entity) => entity.relationshipModel,
 			},
 		}),
 
@@ -1743,14 +1744,36 @@ export default {
 						return channel
 					}
 				},
-			})({
-				fields: {
-					title: (entity) => entity.title,
-				},
-			}),
+				})({
+					fields: {
+						title: (entity) => entity.title,
+					},
+				}),
 
-			defineResolver(Source.Constants_Internal, {
-				entityType: EntityType.YoutubePlaylist,
+				defineResolver(Source.Constants_Internal, {
+					entityType: EntityType.YoutubeChannel_Timestamp,
+					resolve: {
+						[YoutubeChannel_TimestampSelector.YoutubeChannelTimestampMs]: async ({ $channel, timestampMs }) => {
+							const channel = youtubeNetworkSeedChannelByChannelId[$channel.channelId]
+							if (channel == null || timestampMs !== 0) throw new Error(`Constants_Internal: YoutubeChannel_Timestamp ${$channel.channelId}:${String(timestampMs)} not found`)
+
+							return {
+								$channel: {
+									[EntityMetaKey.Selector]: $channel,
+								},
+								timestampMs,
+							}
+						}
+					},
+				})({
+					fields: {
+						$channel: (entity) => entity.$channel,
+						timestampMs: (entity) => entity.timestampMs,
+					},
+				}),
+
+				defineResolver(Source.Constants_Internal, {
+					entityType: EntityType.YoutubePlaylist,
 				resolve: {
 				[YoutubePlaylistSelector.PlaylistId]: async ({ playlistId }) => {
 						const playlist = youtubeNetworkSeedPlaylistByPlaylistId[playlistId]
@@ -1853,7 +1876,7 @@ export default {
 				},
 			})({
 				fields: {
-					$$sourceWindowSubreddits: (entity) => entity,
+					$$observedSubreddits: (entity) => entity,
 				},
 			}),
 
@@ -1881,7 +1904,7 @@ export default {
 				},
 			})({
 				fields: {
-					$$sourceWindowLinks: (entity) => entity,
+					$$observedLinks: (entity) => entity,
 				},
 			}),
 
@@ -1901,7 +1924,7 @@ export default {
 				},
 			})({
 				fields: {
-					$$sourceWindowChannels: (entity) => entity,
+					$$observedChannels: (entity) => entity,
 				},
 			}),
 
@@ -1929,7 +1952,7 @@ export default {
 				},
 			})({
 				fields: {
-					$$sourceWindowVideos: (entity) => entity,
+					$$observedVideos: (entity) => entity,
 				},
 			}),
 
@@ -1954,7 +1977,7 @@ export default {
 				},
 			})({
 				fields: {
-					$$sourceWindowPlaylists: (entity) => entity,
+					$$observedPlaylists: (entity) => entity,
 				},
 			}),
 
@@ -2238,7 +2261,7 @@ export default {
 					return (
 						coins.map((coin) => (
 						{
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coin.id]),
+							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coin.id]),
 						}
 						))
 					)
@@ -2254,7 +2277,7 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
-					localCatalogCoinSpotUsdMarkets.slice(0, resolverContextRowLimit(context)).map((catalogMarket) => (
+					seededCoinSpotUsdMarkets.slice(0, resolverContextRowLimit(context)).map((catalogMarket) => (
 						{
 							[EntityMetaKey.Selector]: {
 								$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
@@ -2278,7 +2301,7 @@ export default {
 				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
 					[
 						{
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId]),
+							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
 						},
 					]
 				)
@@ -2293,7 +2316,7 @@ export default {
 			entityType: EntityType.Coin,
 			resolve: {
 				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
-					(localCatalogMarketsWithCoinAsQuoteByQuoteCoinId[coinId] ).map((catalogMarket) => ({
+					(seededMarketsWithCoinAsQuoteByQuoteCoinId[coinId] ).map((catalogMarket) => ({
 						[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCoinMarket(catalogMarket),
 					}))
 				)
@@ -2308,7 +2331,7 @@ export default {
 			entityType: EntityType.Currency,
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => (
-					(localCatalogMarketsWithCurrencyAsBaseByIso4217[iso4217] ?? []).map((catalogMarket: CatalogCurrencyCurrencyMarket) => ({
+					(seededMarketsWithCurrencyAsBaseByIso4217[iso4217] ?? []).map((catalogMarket: CatalogCurrencyCurrencyMarket) => ({
 						[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
 					}))
 				)
@@ -2325,13 +2348,13 @@ export default {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => [
 					...(
 						iso4217 === Iso4217.USD ?
-							localCatalogCoinSpotUsdMarkets.map((catalogMarket) => ({
+							seededCoinSpotUsdMarkets.map((catalogMarket) => ({
 								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
 							}))
 						:
 							[]
 					),
-					...localCatalogSpotMarketsWithCurrencyAsBase
+					...seededSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.quoteIso4217 === iso4217)
 						.map((catalogMarket) => ({
 							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
@@ -2420,7 +2443,7 @@ export default {
 				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
 					(
 						entitySelector.$base.kind === MarketAssetKind.Coin
-					&& catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector)
+					&& catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector)
 					) ?
 						[
 							{
@@ -3021,17 +3044,6 @@ export default {
 				author: (comment) => comment.author,
 				createdAt: (comment) => comment.createdAt,
 				$link: (comment) => comment.$link,
-			},
-		}),
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.RedditComment,
-			resolve: {
-				[RedditCommentSelector.Fullname]: async () => [],
-			},
-		})({
-			fields: {
-				$$replies: (entity) => entity,
 			},
 		}),
 

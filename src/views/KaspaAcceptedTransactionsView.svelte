@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.KaspaAcceptedTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(kaspaAcceptedTransactions)}
 			{@const uniqueKaspaAcceptedTransactions = [...new Map(kaspaAcceptedTransactions.values.map((kaspaAcceptedTransaction) => [kaspaAcceptedTransaction[EntityMetaKey.SelectorKey], kaspaAcceptedTransaction])).values()]}
 			<EntitiesList

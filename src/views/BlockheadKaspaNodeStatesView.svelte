@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadKaspaNodeState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadKaspaNodeStates)}
 			{@const uniqueBlockheadKaspaNodeStates = [...new Map(blockheadKaspaNodeStates.values.map((blockheadKaspaNodeState) => [blockheadKaspaNodeState[EntityMetaKey.SelectorKey], blockheadKaspaNodeState])).values()]}
 			<EntitiesList

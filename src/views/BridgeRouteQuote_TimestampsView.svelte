@@ -77,6 +77,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BridgeRouteQuote_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bridgeRouteQuoteTimestamps)}
 			{@const uniqueBridgeRouteQuoteTimestamps = [...new Map(bridgeRouteQuoteTimestamps.values.map((bridgeRouteQuoteTimestamp) => [bridgeRouteQuoteTimestamp[EntityMetaKey.SelectorKey], bridgeRouteQuoteTimestamp])).values()]}
 			<EntitiesList

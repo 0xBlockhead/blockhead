@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvalanchePChainBlock}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(avalanchePChainBlocks)}
 			{@const uniqueAvalanchePChainBlocks = [...new Map(avalanchePChainBlocks.values.map((avalanchePChainBlock) => [avalanchePChainBlock[EntityMetaKey.SelectorKey], avalanchePChainBlock])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadBitTorrentClientState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadBitTorrentClientStates)}
 			{@const uniqueBlockheadBitTorrentClientStates = [...new Map(blockheadBitTorrentClientStates.values.map((blockheadBitTorrentClientState) => [blockheadBitTorrentClientState[EntityMetaKey.SelectorKey], blockheadBitTorrentClientState])).values()]}
 			<EntitiesList

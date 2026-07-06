@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.PolkadotAsset_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(polkadotAssetTimestamps)}
 			{@const uniquePolkadotAssetTimestamps = [...new Map(polkadotAssetTimestamps.values.map((polkadotAssetTimestamp) => [polkadotAssetTimestamp[EntityMetaKey.SelectorKey], polkadotAssetTimestamp])).values()]}
 			<EntitiesList

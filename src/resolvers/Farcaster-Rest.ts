@@ -388,7 +388,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowFeeds: (feeds) => feeds,
+				$$observedFeeds: (feeds) => feeds,
 			},
 		}),
 
@@ -408,7 +408,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowChannels: (channels) => channels,
+				$$observedChannels: (channels) => channels,
 			},
 		}),
 	],

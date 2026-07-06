@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearNetworkTimestamps)}
 			{@const uniqueNearNetworkTimestamps = [...new Map(nearNetworkTimestamps.values.map((nearNetworkTimestamp) => [nearNetworkTimestamp[EntityMetaKey.SelectorKey], nearNetworkTimestamp])).values()]}
 			<EntitiesList

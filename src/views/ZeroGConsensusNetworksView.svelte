@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGConsensusNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGConsensusNetworks)}
 			{@const uniqueZeroGConsensusNetworks = [...new Map(zeroGConsensusNetworks.values.map((zeroGConsensusNetwork) => [zeroGConsensusNetwork[EntityMetaKey.SelectorKey], zeroGConsensusNetwork])).values()]}
 			<EntitiesList

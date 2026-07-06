@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitForgeIssue}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitForgeIssues)}
 			{@const uniqueGitForgeIssues = [...new Map(gitForgeIssues.values.map((gitForgeIssue) => [gitForgeIssue[EntityMetaKey.SelectorKey], gitForgeIssue])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EigenLayerSlashingEvent}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eigenLayerSlashingEvents)}
 			{@const uniqueEigenLayerSlashingEvents = [...new Map(eigenLayerSlashingEvents.values.map((eigenLayerSlashingEvent) => [eigenLayerSlashingEvent[EntityMetaKey.SelectorKey], eigenLayerSlashingEvent])).values()]}
 			<EntitiesList

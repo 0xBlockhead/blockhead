@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.PythPriceFeed}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(pythPriceFeeds)}
 			{@const uniquePythPriceFeeds = [...new Map(pythPriceFeeds.values.map((pythPriceFeed) => [pythPriceFeed[EntityMetaKey.SelectorKey], pythPriceFeed])).values()]}
 			<EntitiesList

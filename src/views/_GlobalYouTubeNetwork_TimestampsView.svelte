@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalYoutubeNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalYoutubeNetworkTimestamps)}
 			{@const uniqueGlobalYoutubeNetworkTimestamps = [...new Map(globalYoutubeNetworkTimestamps.values.map((globalYoutubeNetworkTimestamp) => [globalYoutubeNetworkTimestamp[EntityMetaKey.SelectorKey], globalYoutubeNetworkTimestamp])).values()]}
 			<EntitiesList

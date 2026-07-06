@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadMoneroTransferState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadMoneroTransferStates)}
 			{@const uniqueBlockheadMoneroTransferStates = [...new Map(blockheadMoneroTransferStates.values.map((blockheadMoneroTransferState) => [blockheadMoneroTransferState[EntityMetaKey.SelectorKey], blockheadMoneroTransferState])).values()]}
 			<EntitiesList

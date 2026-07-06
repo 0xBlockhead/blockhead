@@ -44,7 +44,7 @@
 	const globalRedditNetworkTimestamp = $derived(selection({
 		fields: {
 			reachable: true,
-			sourceWindowLinkCount: true,
+			observedLinkCount: true,
 		},
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global Reddit network timestamp')
@@ -103,20 +103,20 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={globalRedditNetworkTimestamp}>
 			{#snippet Pending()}
-				{@const sourceWindowLinkCount0 = prefetched.sourceWindowLinkCount}
-				{#if sourceWindowLinkCount0 !== undefined && sourceWindowLinkCount0 !== null}
+				{@const observedLinkCount0 = prefetched.observedLinkCount}
+				{#if observedLinkCount0 !== undefined && observedLinkCount0 !== null}
 					<span data-text="muted">
-						{String((sourceWindowLinkCount0) ?? '')}
+						{String((observedLinkCount0) ?? '')}
 					</span>
 				{/if}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{@const sourceWindowLinkCount0 = resolvedEntity.sourceWindowLinkCount}
-				{#if sourceWindowLinkCount0 !== undefined && sourceWindowLinkCount0 !== null}
+				{@const observedLinkCount0 = resolvedEntity.observedLinkCount}
+				{#if observedLinkCount0 !== undefined && observedLinkCount0 !== null}
 					<span data-text="muted">
-						{String((sourceWindowLinkCount0) ?? '')}
+						{String((observedLinkCount0) ?? '')}
 					</span>
 				{/if}
 			{/snippet}
@@ -261,18 +261,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowSubredditCount: true,
+							observedSubredditCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowSubredditCount = prefetched.sourceWindowSubredditCount}
-					{#if sourceWindowSubredditCount !== undefined && sourceWindowSubredditCount !== null}
+					{@const observedSubredditCount = prefetched.observedSubredditCount}
+					{#if observedSubredditCount !== undefined && observedSubredditCount !== null}
 						<div>
-							<dt>Source window subreddit count</dt>
+							<dt>Observed subreddit count</dt>
 							<dd>
-								{String((sourceWindowSubredditCount) ?? '')}
+								{String((observedSubredditCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -280,12 +280,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowSubredditCount = resolvedEntity.sourceWindowSubredditCount}
-					{#if sourceWindowSubredditCount !== undefined && sourceWindowSubredditCount !== null}
+					{@const observedSubredditCount = resolvedEntity.observedSubredditCount}
+					{#if observedSubredditCount !== undefined && observedSubredditCount !== null}
 						<div>
-							<dt>Source window subreddit count</dt>
+							<dt>Observed subreddit count</dt>
 							<dd>
-								{String((sourceWindowSubredditCount) ?? '')}
+								{String((observedSubredditCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -296,18 +296,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowLinkCount: true,
+							observedLinkCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowLinkCount = prefetched.sourceWindowLinkCount}
-					{#if sourceWindowLinkCount !== undefined && sourceWindowLinkCount !== null}
+					{@const observedLinkCount = prefetched.observedLinkCount}
+					{#if observedLinkCount !== undefined && observedLinkCount !== null}
 						<div>
-							<dt>Source window link count</dt>
+							<dt>Observed link count</dt>
 							<dd>
-								{String((sourceWindowLinkCount) ?? '')}
+								{String((observedLinkCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -315,12 +315,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowLinkCount = resolvedEntity.sourceWindowLinkCount}
-					{#if sourceWindowLinkCount !== undefined && sourceWindowLinkCount !== null}
+					{@const observedLinkCount = resolvedEntity.observedLinkCount}
+					{#if observedLinkCount !== undefined && observedLinkCount !== null}
 						<div>
-							<dt>Source window link count</dt>
+							<dt>Observed link count</dt>
 							<dd>
-								{String((sourceWindowLinkCount) ?? '')}
+								{String((observedLinkCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -331,18 +331,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogSubredditCount: true,
+							seededSubredditCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogSubredditCount = prefetched.localCatalogSubredditCount}
-					{#if localCatalogSubredditCount !== undefined && localCatalogSubredditCount !== null}
+					{@const seededSubredditCount = prefetched.seededSubredditCount}
+					{#if seededSubredditCount !== undefined && seededSubredditCount !== null}
 						<div>
-							<dt>Local catalog subreddit count</dt>
+							<dt>Seeded subreddit count</dt>
 							<dd>
-								{String((localCatalogSubredditCount) ?? '')}
+								{String((seededSubredditCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -350,12 +350,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogSubredditCount = resolvedEntity.localCatalogSubredditCount}
-					{#if localCatalogSubredditCount !== undefined && localCatalogSubredditCount !== null}
+					{@const seededSubredditCount = resolvedEntity.seededSubredditCount}
+					{#if seededSubredditCount !== undefined && seededSubredditCount !== null}
 						<div>
-							<dt>Local catalog subreddit count</dt>
+							<dt>Seeded subreddit count</dt>
 							<dd>
-								{String((localCatalogSubredditCount) ?? '')}
+								{String((seededSubredditCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -366,18 +366,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogLinkCount: true,
+							seededLinkCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogLinkCount = prefetched.localCatalogLinkCount}
-					{#if localCatalogLinkCount !== undefined && localCatalogLinkCount !== null}
+					{@const seededLinkCount = prefetched.seededLinkCount}
+					{#if seededLinkCount !== undefined && seededLinkCount !== null}
 						<div>
-							<dt>Local catalog link count</dt>
+							<dt>Seeded link count</dt>
 							<dd>
-								{String((localCatalogLinkCount) ?? '')}
+								{String((seededLinkCount) ?? '')}
 							</dd>
 						</div>
 					{/if}
@@ -385,12 +385,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogLinkCount = resolvedEntity.localCatalogLinkCount}
-					{#if localCatalogLinkCount !== undefined && localCatalogLinkCount !== null}
+					{@const seededLinkCount = resolvedEntity.seededLinkCount}
+					{#if seededLinkCount !== undefined && seededLinkCount !== null}
 						<div>
-							<dt>Local catalog link count</dt>
+							<dt>Seeded link count</dt>
 							<dd>
-								{String((localCatalogLinkCount) ?? '')}
+								{String((seededLinkCount) ?? '')}
 							</dd>
 						</div>
 					{/if}

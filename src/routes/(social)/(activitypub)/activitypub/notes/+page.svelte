@@ -30,12 +30,12 @@
 		selection={
 			select(EntityType._GlobalActivityPubNetwork, {
 				scope: '_GlobalActivityPubNetwork',
-			})[EntityProxyField]<EntityType.ActivityPubNote>('$$sourceWindowNotes', {
+			})[EntityProxyField]<EntityType.ActivityPubNote>('$$observedNotes', {
 				sources: [
 					Source.Mastodon_Rest,
 				],
 			})
 		}
-		id='source-window-notes'
+		id='observed-notes'
 	/>
 </Page>

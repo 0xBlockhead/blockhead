@@ -69,12 +69,26 @@
 					timestampMs: true,
 					source: true,
 					reachable: true,
-					sourceWindowNoteCount: true,
+					observedNoteCount: true,
 				},
 			})
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalNostrNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalNostrNetworkTimestamps)}
 			{@const uniqueGlobalNostrNetworkTimestamps = [...new Map(globalNostrNetworkTimestamps.values.map((globalNostrNetworkTimestamp) => [globalNostrNetworkTimestamp[EntityMetaKey.SelectorKey], globalNostrNetworkTimestamp])).values()]}
 			<EntitiesList

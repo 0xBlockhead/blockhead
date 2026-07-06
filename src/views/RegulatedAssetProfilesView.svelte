@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RegulatedAssetProfile}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(regulatedAssetProfiles)}
 			{@const uniqueRegulatedAssetProfiles = [...new Map(regulatedAssetProfiles.values.map((regulatedAssetProfile) => [regulatedAssetProfile[EntityMetaKey.SelectorKey], regulatedAssetProfile])).values()]}
 			<EntitiesList

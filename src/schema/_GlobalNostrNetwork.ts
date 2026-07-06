@@ -42,8 +42,8 @@ export default {
 			],
 		},
 		{
-			name: 'registryLabel',
-			label: 'Registry',
+			name: 'registryName',
+			label: 'Registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -72,8 +72,8 @@ export default {
 			],
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -82,7 +82,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowProfiles',
+			name: '$$observedProfiles',
 			label: 'Profiles',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NostrProfile,
@@ -92,7 +92,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowNotes',
+			name: '$$observedNotes',
 			label: 'Notes',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NostrNote,
@@ -103,7 +103,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowRelays',
+			name: '$$observedRelays',
 			label: 'Relays',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NostrRelay,
@@ -114,7 +114,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowReposts',
+			name: '$$observedReposts',
 			label: 'Reposts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NostrRepost,
@@ -125,14 +125,14 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowReactions',
+			name: '$$observedReactions',
 			label: 'Reactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NostrReaction,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$sourceWindowArticles',
+			name: '$$observedArticles',
 			label: 'Articles',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NostrArticle,

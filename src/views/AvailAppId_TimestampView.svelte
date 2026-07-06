@@ -278,18 +278,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowSubmissionCount: true,
+							observedSubmissionCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowSubmissionCount = prefetched.sourceWindowSubmissionCount}
-					{#if sourceWindowSubmissionCount !== undefined && sourceWindowSubmissionCount !== null}
+					{@const observedSubmissionCount = prefetched.observedSubmissionCount}
+					{#if observedSubmissionCount !== undefined && observedSubmissionCount !== null}
 						<div>
-							<dt>source window submission count</dt>
+							<dt>observed submission count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowSubmissionCount)} />
+								<NumberValue value={Number(observedSubmissionCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -297,12 +297,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowSubmissionCount = resolvedEntity.sourceWindowSubmissionCount}
-					{#if sourceWindowSubmissionCount !== undefined && sourceWindowSubmissionCount !== null}
+					{@const observedSubmissionCount = resolvedEntity.observedSubmissionCount}
+					{#if observedSubmissionCount !== undefined && observedSubmissionCount !== null}
 						<div>
-							<dt>source window submission count</dt>
+							<dt>observed submission count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowSubmissionCount)} />
+								<NumberValue value={Number(observedSubmissionCount)} />
 							</dd>
 						</div>
 					{/if}

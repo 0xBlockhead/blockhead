@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BitTorrentPiece}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bitTorrentPieces)}
 			{@const uniqueBitTorrentPieces = [...new Map(bitTorrentPieces.values.map((bitTorrentPiece) => [bitTorrentPiece[EntityMetaKey.SelectorKey], bitTorrentPiece])).values()]}
 			<EntitiesList

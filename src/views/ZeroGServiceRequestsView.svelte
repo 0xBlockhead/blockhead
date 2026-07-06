@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGServiceRequest}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGServiceRequests)}
 			{@const uniqueZeroGServiceRequests = [...new Map(zeroGServiceRequests.values.map((zeroGServiceRequest) => [zeroGServiceRequest[EntityMetaKey.SelectorKey], zeroGServiceRequest])).values()]}
 			<EntitiesList

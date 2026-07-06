@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGDaNode}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGDaNodes)}
 			{@const uniqueZeroGDaNodes = [...new Map(zeroGDaNodes.values.map((zeroGDaNode) => [zeroGDaNode[EntityMetaKey.SelectorKey], zeroGDaNode])).values()]}
 			<EntitiesList

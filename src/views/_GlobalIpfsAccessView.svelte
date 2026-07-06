@@ -128,10 +128,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<IpfsResourcesView
-				selection={selection[EntityProxyField]<EntityType.IpfsResource>('$$sourceWindowResources')}
-				title='Source window resources'
+				selection={selection[EntityProxyField]<EntityType.IpfsResource>('$$observedResources')}
+				title='Observed resources'
 				emptyText='No IPFS resources yet.'
-				id='IpfsResourcesView-$$sourceWindowResources'
+				id='IpfsResourcesView-$$observedResources'
 			/>
 
 			<GlobalIpfsAccess_TimestampsView

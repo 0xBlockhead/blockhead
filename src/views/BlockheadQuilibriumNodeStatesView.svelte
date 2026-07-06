@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadQuilibriumNodeState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadQuilibriumNodeStates)}
 			{@const uniqueBlockheadQuilibriumNodeStates = [...new Map(blockheadQuilibriumNodeStates.values.map((blockheadQuilibriumNodeState) => [blockheadQuilibriumNodeState[EntityMetaKey.SelectorKey], blockheadQuilibriumNodeState])).values()]}
 			<EntitiesList

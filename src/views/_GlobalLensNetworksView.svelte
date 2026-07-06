@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalLensNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalLensNetworks)}
 			{@const uniqueGlobalLensNetworks = [...new Map(globalLensNetworks.values.map((globalLensNetwork) => [globalLensNetwork[EntityMetaKey.SelectorKey], globalLensNetwork])).values()]}
 			<EntitiesList

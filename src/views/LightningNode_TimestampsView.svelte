@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LightningNode_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(lightningNodeTimestamps)}
 			{@const uniqueLightningNodeTimestamps = [...new Map(lightningNodeTimestamps.values.map((lightningNodeTimestamp) => [lightningNodeTimestamp[EntityMetaKey.SelectorKey], lightningNodeTimestamp])).values()]}
 			<EntitiesList

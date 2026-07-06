@@ -35,8 +35,8 @@
 			select(EntityType.LensNetwork, data.selector, {
 				fields: {
 					protocolName: true,
-					topology: true,
-					registryLabel: true,
+					relationshipModel: true,
+					registryName: true,
 					homeUrl: true,
 					docsUrl: true,
 				},

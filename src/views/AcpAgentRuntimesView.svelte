@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpAgentRuntime}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpAgentRuntimes)}
 			{@const uniqueAcpAgentRuntimes = [...new Map(acpAgentRuntimes.values.map((acpAgentRuntime) => [acpAgentRuntime[EntityMetaKey.SelectorKey], acpAgentRuntime])).values()]}
 			<EntitiesList

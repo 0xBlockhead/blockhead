@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.MagnetLink}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(magnetLinks)}
 			{@const uniqueMagnetLinks = [...new Map(magnetLinks.values.map((magnetLink) => [magnetLink[EntityMetaKey.SelectorKey], magnetLink])).values()]}
 			<EntitiesList

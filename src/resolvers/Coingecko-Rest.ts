@@ -10,10 +10,10 @@ import {
 } from '$/constants/Market.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import {
-	localCatalogCoinSpotUsdMarkets,
-	localCatalogCoinSpotUsdMarketByCoinId,
-	localCatalogSpotMarketsWithCoinAsQuote,
-	localCatalogSpotMarketsWithCurrencyAsBase,
+	seededCoinSpotUsdMarkets,
+	seededCoinSpotUsdMarketByCoinId,
+	seededSpotMarketsWithCoinAsQuote,
+	seededSpotMarketsWithCurrencyAsBase,
 	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
@@ -269,7 +269,7 @@ export default {
 						throw new Error('Coingecko_Rest: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						throw new Error('Coingecko_Rest: Market_Timestamp is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					const { getCoinMarketSpot } = await import('$/sources/Coingecko/Rest/queries.ts')
@@ -325,7 +325,7 @@ export default {
 						throw new Error('Coingecko_Rest: OHLC is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						throw new Error('Coingecko_Rest: OHLC is catalog coin USD market only')
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
@@ -464,7 +464,7 @@ export default {
 						Object.values(CoinId)
 							.filter((coinId) => idByCoinId[coinId] != null && coinId in coinById)
 							.map((coinId) => ({
-								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId]),
+								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
 							}))
 					)
 				}
@@ -498,7 +498,7 @@ export default {
 									return [
 										{
 											[EntityMetaKey.Selector]: {
-												$market: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId]),
+												$market: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
 												timestampMs: spot.lastUpdatedAtSec * 1000,
 												feedKey: coingeckoId,
 											},
@@ -535,7 +535,7 @@ export default {
 					)
 					return (
 						(await Promise.all(previewCoinIds.map(async (coinId) => {
-						const $market = marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId])
+						const $market = marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId])
 						const coingeckoId = idByCoinId[coinId]
 						if (coingeckoId == null)
 							return []
@@ -654,7 +654,7 @@ export default {
 						return (
 							[
 								{
-								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId]),
+								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(seededCoinSpotUsdMarketByCoinId[coinId]),
 							},
 						]
 					)
@@ -672,7 +672,7 @@ export default {
 					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
 						const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 						return (
-							(localCatalogSpotMarketsWithCoinAsQuote
+							(seededSpotMarketsWithCoinAsQuote
 							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
 							.map(marketSelectorFromCatalogCoinCoinMarket))
 							.filter((marketId) => (
@@ -698,7 +698,7 @@ export default {
 					return (
 						(
 						iso4217 === Iso4217.USD ?
-							localCatalogCoinSpotUsdMarkets.filter((catalogMarket) => (
+							seededCoinSpotUsdMarkets.filter((catalogMarket) => (
 								idByCoinId[catalogMarket.baseCoinId] != null
 							))
 						:
@@ -719,7 +719,7 @@ export default {
 			entityType: EntityType.Currency,
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const markets = localCatalogSpotMarketsWithCurrencyAsBase
+					const markets = seededSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.baseIso4217 === iso4217)
 						.map((catalogMarket) => ({
 							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
@@ -762,7 +762,7 @@ export default {
 					(
 						entitySelector.$base.kind === MarketAssetKind.Coin
 					&& entitySelector.marketKind === MarketKind.Spot
-					&& catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector)
+					&& catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector)
 					) ?
 						[
 							{
@@ -789,7 +789,7 @@ export default {
 						return []
 					if (entitySelector.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector))
+					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector))
 						return []
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
@@ -835,7 +835,7 @@ export default {
 						return []
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(seededCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						return []
 					const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 					const { getCoinMarketSpot } = await import('$/sources/Coingecko/Rest/queries.ts')

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGStorageLogEntry}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGStorageLogEntries)}
 			{@const uniqueZeroGStorageLogEntries = [...new Map(zeroGStorageLogEntries.values.map((zeroGStorageLogEntry) => [zeroGStorageLogEntry[EntityMetaKey.SelectorKey], zeroGStorageLogEntry])).values()]}
 			<EntitiesList

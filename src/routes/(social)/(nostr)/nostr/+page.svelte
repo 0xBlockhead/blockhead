@@ -34,11 +34,11 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, data.selector, {
 				fields: {
-					registryLabel: true,
+					registryName: true,
 					protocolName: true,
 					homeUrl: true,
 					docsUrl: true,
-					topology: true,
+					relationshipModel: true,
 				},
 			})
 		}

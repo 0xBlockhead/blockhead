@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CardanoConstitution_Epoch}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cardanoConstitutionEpochs)}
 			{@const uniqueCardanoConstitutionEpochs = [...new Map(cardanoConstitutionEpochs.values.map((cardanoConstitutionEpoch) => [cardanoConstitutionEpoch[EntityMetaKey.SelectorKey], cardanoConstitutionEpoch])).values()]}
 			<EntitiesList

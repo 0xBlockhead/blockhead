@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpMessagePart}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpMessageParts)}
 			{@const uniqueAcpMessageParts = [...new Map(acpMessageParts.values.map((acpMessagePart) => [acpMessagePart[EntityMetaKey.SelectorKey], acpMessagePart])).values()]}
 			<EntitiesList

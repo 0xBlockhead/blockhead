@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LightningNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(lightningNetworks)}
 			{@const uniqueLightningNetworks = [...new Map(lightningNetworks.values.map((lightningNetwork) => [lightningNetwork[EntityMetaKey.SelectorKey], lightningNetwork])).values()]}
 			<EntitiesList

@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SolanaNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(solanaNetworks)}
 			{@const uniqueSolanaNetworks = [...new Map(solanaNetworks.values.map((solanaNetwork) => [solanaNetwork[EntityMetaKey.SelectorKey], solanaNetwork])).values()]}
 			<EntitiesList

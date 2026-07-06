@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LogosBlockchainNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(logosBlockchainNetworks)}
 			{@const uniqueLogosBlockchainNetworks = [...new Map(logosBlockchainNetworks.values.map((logosBlockchainNetwork) => [logosBlockchainNetwork[EntityMetaKey.SelectorKey], logosBlockchainNetwork])).values()]}
 			<EntitiesList

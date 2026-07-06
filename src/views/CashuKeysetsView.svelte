@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CashuKeyset}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cashuKeysets)}
 			{@const uniqueCashuKeysets = [...new Map(cashuKeysets.values.map((cashuKeyset) => [cashuKeyset[EntityMetaKey.SelectorKey], cashuKeyset])).values()]}
 			<EntitiesList

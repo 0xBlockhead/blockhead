@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FilecoinMiner_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(filecoinMinerTimestamps)}
 			{@const uniqueFilecoinMinerTimestamps = [...new Map(filecoinMinerTimestamps.values.map((filecoinMinerTimestamp) => [filecoinMinerTimestamp[EntityMetaKey.SelectorKey], filecoinMinerTimestamp])).values()]}
 			<EntitiesList

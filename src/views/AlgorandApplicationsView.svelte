@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandApplication}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandApplications)}
 			{@const uniqueAlgorandApplications = [...new Map(algorandApplications.values.map((algorandApplication) => [algorandApplication[EntityMetaKey.SelectorKey], algorandApplication])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidValidator_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidValidatorTimestamps)}
 			{@const uniqueHyperliquidValidatorTimestamps = [...new Map(hyperliquidValidatorTimestamps.values.map((hyperliquidValidatorTimestamp) => [hyperliquidValidatorTimestamp[EntityMetaKey.SelectorKey], hyperliquidValidatorTimestamp])).values()]}
 			<EntitiesList

@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Eip8004ReputationFeedback_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eip8004ReputationFeedbackTimestamps)}
 			{@const uniqueEip8004ReputationFeedbackTimestamps = [...new Map(eip8004ReputationFeedbackTimestamps.values.map((eip8004ReputationFeedbackTimestamp) => [eip8004ReputationFeedbackTimestamp[EntityMetaKey.SelectorKey], eip8004ReputationFeedbackTimestamp])).values()]}
 			<EntitiesList

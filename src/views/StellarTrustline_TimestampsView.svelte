@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StellarTrustline_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(stellarTrustlineTimestamps)}
 			{@const uniqueStellarTrustlineTimestamps = [...new Map(stellarTrustlineTimestamps.values.map((stellarTrustlineTimestamp) => [stellarTrustlineTimestamp[EntityMetaKey.SelectorKey], stellarTrustlineTimestamp])).values()]}
 			<EntitiesList

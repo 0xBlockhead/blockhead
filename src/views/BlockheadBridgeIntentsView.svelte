@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadBridgeIntent}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadBridgeIntents)}
 			{@const uniqueBlockheadBridgeIntents = [...new Map(blockheadBridgeIntents.values.map((blockheadBridgeIntent) => [blockheadBridgeIntent[EntityMetaKey.SelectorKey], blockheadBridgeIntent])).values()]}
 			<EntitiesList

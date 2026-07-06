@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EvmActorCoinAllowance_Block}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(evmActorCoinAllowanceBlocks)}
 			{@const uniqueEvmActorCoinAllowanceBlocks = [...new Map(evmActorCoinAllowanceBlocks.values.map((evmActorCoinAllowanceBlock) => [evmActorCoinAllowanceBlock[EntityMetaKey.SelectorKey], evmActorCoinAllowanceBlock])).values()]}
 			<EntitiesList

@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'ActivityPub instances',
-		typeAnnotationParagraphs = ['A configured Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.'],
+		typeAnnotationParagraphs = ['A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ActivityPubInstance}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(activityPubInstances)}
 			{@const uniqueActivityPubInstances = [...new Map(activityPubInstances.values.map((activityPubInstance) => [activityPubInstance[EntityMetaKey.SelectorKey], activityPubInstance])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiCheckpoint}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiCheckpoints)}
 			{@const uniqueSuiCheckpoints = [...new Map(suiCheckpoints.values.map((suiCheckpoint) => [suiCheckpoint[EntityMetaKey.SelectorKey], suiCheckpoint])).values()]}
 			<EntitiesList

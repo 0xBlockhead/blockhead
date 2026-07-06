@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidFill}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidFills)}
 			{@const uniqueHyperliquidFills = [...new Map(hyperliquidFills.values.map((hyperliquidFill) => [hyperliquidFill[EntityMetaKey.SelectorKey], hyperliquidFill])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitForgeMirror}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitForgeMirrors)}
 			{@const uniqueGitForgeMirrors = [...new Map(gitForgeMirrors.values.map((gitForgeMirror) => [gitForgeMirror[EntityMetaKey.SelectorKey], gitForgeMirror])).values()]}
 			<EntitiesList

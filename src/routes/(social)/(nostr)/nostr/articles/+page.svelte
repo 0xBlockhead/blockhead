@@ -30,13 +30,13 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			})[EntityProxyField]<EntityType.NostrArticle>('$$sourceWindowArticles', {
+			})[EntityProxyField]<EntityType.NostrArticle>('$$observedArticles', {
 				sources: [
 					Source.Constants_Internal,
 					Source.NostrBand_Rest,
 				],
 			})
 		}
-		id='source-window-articles'
+		id='observed-articles'
 	/>
 </Page>

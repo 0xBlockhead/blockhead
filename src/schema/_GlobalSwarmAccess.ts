@@ -29,8 +29,8 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$$sourceWindowResources',
-			label: 'Source window resources',
+			name: '$$observedResources',
+			label: 'Observed resources',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SwarmResource,
 			cardinality: EntityFieldCardinality.Many,

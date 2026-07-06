@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.OracleFeed_Round}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(oracleFeedRounds)}
 			{@const uniqueOracleFeedRounds = [...new Map(oracleFeedRounds.values.map((oracleFeedRound) => [oracleFeedRound[EntityMetaKey.SelectorKey], oracleFeedRound])).values()]}
 			<EntitiesList

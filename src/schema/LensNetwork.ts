@@ -12,7 +12,7 @@ export default {
 	entityType: EntityType.LensNetwork,
 	label: 'Lens',
 	labelPlural: 'Lens',
-	description: 'Lens is a social graph protocol. This hub shows bounded account and post windows from the configured Lens GraphQL source.',
+	description: 'Lens is a social graph protocol. This hub shows bounded account and post windows from the declared Lens GraphQL source.',
 	selectors: [
 		{
 			name: LensNetworkSelector.Scope,
@@ -38,8 +38,8 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -59,8 +59,8 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'Registry',
+			name: 'registryName',
+			label: 'Registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

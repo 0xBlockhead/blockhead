@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BridgeTransfer}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bridgeTransfers)}
 			{@const uniqueBridgeTransfers = [...new Map(bridgeTransfers.values.map((bridgeTransfer) => [bridgeTransfer[EntityMetaKey.SelectorKey], bridgeTransfer])).values()]}
 			<EntitiesList

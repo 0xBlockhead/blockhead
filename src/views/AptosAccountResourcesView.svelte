@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AptosAccountResource}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aptosAccountResources)}
 			{@const uniqueAptosAccountResources = [...new Map(aptosAccountResources.values.map((aptosAccountResource) => [aptosAccountResource[EntityMetaKey.SelectorKey], aptosAccountResource])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TonTransactionPhase}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tonTransactionPhases)}
 			{@const uniqueTonTransactionPhases = [...new Map(tonTransactionPhases.values.map((tonTransactionPhase) => [tonTransactionPhase[EntityMetaKey.SelectorKey], tonTransactionPhase])).values()]}
 			<EntitiesList

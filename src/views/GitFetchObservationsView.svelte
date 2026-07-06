@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitFetchObservation}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitFetchObservations)}
 			{@const uniqueGitFetchObservations = [...new Map(gitFetchObservations.values.map((gitFetchObservation) => [gitFetchObservation[EntityMetaKey.SelectorKey], gitFetchObservation])).values()]}
 			<EntitiesList

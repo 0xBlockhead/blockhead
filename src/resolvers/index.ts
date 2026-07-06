@@ -10,6 +10,7 @@ const resolverModuleByPath = import.meta.glob<SourceResolverModule<typeof schema
 		'./Atproto-Xrpc.ts',
 		'./Atproto-BskySocial-Xrpc.ts',
 		'./Allium-Rest.ts',
+		'./A2aWellKnown-Http.ts',
 		'./Beacon-Rest.ts',
 		'./BeaconchaIn-Rest.ts',
 		'./BitcoinBips-Github.ts',

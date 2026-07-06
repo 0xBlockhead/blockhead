@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiDynamicFieldEdge_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiDynamicFieldEdgeTimestamps)}
 			{@const uniqueSuiDynamicFieldEdgeTimestamps = [...new Map(suiDynamicFieldEdgeTimestamps.values.map((suiDynamicFieldEdgeTimestamp) => [suiDynamicFieldEdgeTimestamp[EntityMetaKey.SelectorKey], suiDynamicFieldEdgeTimestamp])).values()]}
 			<EntitiesList

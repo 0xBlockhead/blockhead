@@ -193,18 +193,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowFeedCount: true,
+							observedFeedCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowFeedCount = prefetched.sourceWindowFeedCount}
-					{#if sourceWindowFeedCount !== undefined && sourceWindowFeedCount !== null}
+					{@const observedFeedCount = prefetched.observedFeedCount}
+					{#if observedFeedCount !== undefined && observedFeedCount !== null}
 						<div>
-							<dt>source window feed count</dt>
+							<dt>observed feed count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowFeedCount)} />
+								<NumberValue value={Number(observedFeedCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -212,12 +212,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowFeedCount = resolvedEntity.sourceWindowFeedCount}
-					{#if sourceWindowFeedCount !== undefined && sourceWindowFeedCount !== null}
+					{@const observedFeedCount = resolvedEntity.observedFeedCount}
+					{#if observedFeedCount !== undefined && observedFeedCount !== null}
 						<div>
-							<dt>source window feed count</dt>
+							<dt>observed feed count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowFeedCount)} />
+								<NumberValue value={Number(observedFeedCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -228,18 +228,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowItemCount: true,
+							observedItemCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowItemCount = prefetched.sourceWindowItemCount}
-					{#if sourceWindowItemCount !== undefined && sourceWindowItemCount !== null}
+					{@const observedItemCount = prefetched.observedItemCount}
+					{#if observedItemCount !== undefined && observedItemCount !== null}
 						<div>
-							<dt>source window item count</dt>
+							<dt>observed item count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowItemCount)} />
+								<NumberValue value={Number(observedItemCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -247,12 +247,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowItemCount = resolvedEntity.sourceWindowItemCount}
-					{#if sourceWindowItemCount !== undefined && sourceWindowItemCount !== null}
+					{@const observedItemCount = resolvedEntity.observedItemCount}
+					{#if observedItemCount !== undefined && observedItemCount !== null}
 						<div>
-							<dt>source window item count</dt>
+							<dt>observed item count</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowItemCount)} />
+								<NumberValue value={Number(observedItemCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -265,18 +265,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogFeedCount: true,
+							seededFeedCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogFeedCount = prefetched.localCatalogFeedCount}
-					{#if localCatalogFeedCount !== undefined && localCatalogFeedCount !== null}
+					{@const seededFeedCount = prefetched.seededFeedCount}
+					{#if seededFeedCount !== undefined && seededFeedCount !== null}
 						<div>
-							<dt>local catalog feed count</dt>
+							<dt>seeded feed count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogFeedCount)} />
+								<NumberValue value={Number(seededFeedCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -284,12 +284,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogFeedCount = resolvedEntity.localCatalogFeedCount}
-					{#if localCatalogFeedCount !== undefined && localCatalogFeedCount !== null}
+					{@const seededFeedCount = resolvedEntity.seededFeedCount}
+					{#if seededFeedCount !== undefined && seededFeedCount !== null}
 						<div>
-							<dt>local catalog feed count</dt>
+							<dt>seeded feed count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogFeedCount)} />
+								<NumberValue value={Number(seededFeedCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -300,18 +300,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogItemCount: true,
+							seededItemCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogItemCount = prefetched.localCatalogItemCount}
-					{#if localCatalogItemCount !== undefined && localCatalogItemCount !== null}
+					{@const seededItemCount = prefetched.seededItemCount}
+					{#if seededItemCount !== undefined && seededItemCount !== null}
 						<div>
-							<dt>local catalog item count</dt>
+							<dt>seeded item count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogItemCount)} />
+								<NumberValue value={Number(seededItemCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -319,12 +319,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogItemCount = resolvedEntity.localCatalogItemCount}
-					{#if localCatalogItemCount !== undefined && localCatalogItemCount !== null}
+					{@const seededItemCount = resolvedEntity.seededItemCount}
+					{#if seededItemCount !== undefined && seededItemCount !== null}
 						<div>
-							<dt>local catalog item count</dt>
+							<dt>seeded item count</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogItemCount)} />
+								<NumberValue value={Number(seededItemCount)} />
 							</dd>
 						</div>
 					{/if}

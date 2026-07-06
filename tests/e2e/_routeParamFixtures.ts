@@ -51,6 +51,7 @@ const SOLANA_PROBE_TOKEN_MINT_ADDRESS = 'So1111111111111111111111111111111111111
 const SOLANA_PROBE_OWNER_PUBKEY = 'ba4df886d2a7c4224bc98efb6cbf3817b0e2b7227c287b692a7c7d0a9e3e86ff' as const
 const SOLANA_PROBE_VOTE_PUBKEY = 'E2eVotePubkey111111111111111111111111111111111111111' as const
 const CAST_HASH_32 = '0xe4f2e1c70d72388a98dba2a2511a9b480840e544' as const
+const FARCASTER_OBSERVATION_TIMESTAMP_MS = '1700000000000' as const
 const NOSTR_PROBE_PUBKEY = nostrNetworkSeedProfiles[0].pubkey
 const NOSTR_PROBE_RELAY_URL = nostrNetworkSeedRelays[0].relayUrl
 const NOSTR_PROBE_REPOST_EVENT_ID = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as const
@@ -385,11 +386,21 @@ export const e2eRouteParamFixtureForContext = (
 	if (paramKey === 'timestampMs' && path.includes('market'))
 		return ETHEREUM_MARKET_TIMESTAMP_MS
 
+	if (
+		paramKey === 'timestampMs'
+		&& path.includes('farcaster')
+		&& path.includes('observations')
+	)
+		return FARCASTER_OBSERVATION_TIMESTAMP_MS
+
 	if (paramKey === 'caip2Namespace' && path === 'network')
 		return 'bip122'
 
 	if (paramKey === 'caip2Reference' && path === 'network')
 		return '000000000019d6689c085ae165831e93'
+
+	if (paramKey === 'networkSlug' && path.includes('network/utxo/shielded-pool'))
+		return 'zcash'
 
 	if (paramKey === 'networkSlug' && path === 'network')
 		return 'bitcoin'
@@ -518,6 +529,9 @@ export const e2eRouteParamFixtureForContext = (
 	}
 
 	if (paramKey === 'pool' && path.includes('shielded-action'))
+		return 'sapling'
+
+	if (paramKey === 'pool' && path.includes('shielded-pool'))
 		return 'sapling'
 
 	if (paramKey === 'actionKind' && path.includes('shielded-action'))

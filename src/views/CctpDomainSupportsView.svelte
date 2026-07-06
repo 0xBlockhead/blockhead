@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CctpDomainSupport}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cctpDomainSupports)}
 			{@const uniqueCctpDomainSupports = [...new Map(cctpDomainSupports.values.map((cctpDomainSupport) => [cctpDomainSupport[EntityMetaKey.SelectorKey], cctpDomainSupport])).values()]}
 			<EntitiesList

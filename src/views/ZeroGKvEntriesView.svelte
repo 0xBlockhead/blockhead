@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGKvEntry}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGKvEntries)}
 			{@const uniqueZeroGKvEntries = [...new Map(zeroGKvEntries.values.map((zeroGKvEntry) => [zeroGKvEntry[EntityMetaKey.SelectorKey], zeroGKvEntry])).values()]}
 			<EntitiesList

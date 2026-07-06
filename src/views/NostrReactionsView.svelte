@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NostrReaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nostrReactions)}
 			{@const uniqueNostrReactions = [...new Map(nostrReactions.values.map((nostrReaction) => [nostrReaction[EntityMetaKey.SelectorKey], nostrReaction])).values()]}
 			<EntitiesList

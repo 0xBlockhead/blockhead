@@ -368,7 +368,7 @@ enum Source {
 	LogosDocs_Rest = "LogosDocs_Rest",
 	Lotus_JsonRpc = "Lotus_JsonRpc",
 	Mastodon_Rest = "Mastodon_Rest",
-	McpConfigured_Protocol = "McpConfigured_Protocol",
+	McpDeclared_Protocol = "McpDeclared_Protocol",
 	McpPackageRegistry_Rest = "McpPackageRegistry_Rest",
 	MempoolSpace_Rest = "MempoolSpace_Rest",
 	MetadataVision_Rest = "MetadataVision_Rest",
@@ -3911,15 +3911,15 @@ export const app = {
 						primitiveType: { unit: "_GlobalActivityPubNetwork" },
 					},
 					{
-						name: "$$sourceWindowActors",
-						label: "Source-window actors",
+						name: "$$observedActors",
+						label: "Observed actors",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
 						entityType: EntityType.ActivityPubActor,
 					},
 					{
-						name: "$$sourceWindowNotes",
-						label: "Source-window notes",
+						name: "$$observedNotes",
+						label: "Observed notes",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
 						entityType: EntityType.ActivityPubNote,
@@ -3957,10 +3957,10 @@ export const app = {
 					query: {
 						sources: [Source.Constants_Internal, Source.Mastodon_Rest],
 						fields: ["scope"],
-						openFields: ["$$sourceWindowActors", "$$sourceWindowNotes", "$$instances", "$$instancePeers", "$$instanceModeratedDomains", "$$timestamps"],
+						openFields: ["$$observedActors", "$$observedNotes", "$$instances", "$$instancePeers", "$$instanceModeratedDomains", "$$timestamps"],
 					},
 					summary: {
-						title: [{ text: "ActivityPub source windows" }],
+						title: [{ text: "ActivityPub observeds" }],
 						value: ["scope"],
 					},
 					closed: ["scope"],
@@ -3969,29 +3969,29 @@ export const app = {
 					},
 					lists: [
 						{
-							field: "$$sourceWindowActors",
+							field: "$$observedActors",
 							component: "ActivityPubActorsView",
-							emptyText: "No ActivityPub actors in this source window.",
+							emptyText: "No ActivityPub actors in this observed.",
 						},
 							{
-								field: "$$sourceWindowNotes",
+								field: "$$observedNotes",
 								component: "ActivityPubNotesView",
-								emptyText: "No ActivityPub notes in this source window.",
+								emptyText: "No ActivityPub notes in this observed.",
 							},
 							{
 								field: "$$instances",
 								component: "ActivityPubInstancesView",
-								emptyText: "No ActivityPub instances configured.",
+								emptyText: "No ActivityPub instances declared.",
 							},
 							{
 								field: "$$instancePeers",
 								component: "ActivityPubInstancePeersView",
-								emptyText: "No ActivityPub instance peers in this source window.",
+								emptyText: "No ActivityPub instance peers in this observed.",
 							},
 							{
 								field: "$$instanceModeratedDomains",
 								component: "ActivityPubInstanceModeratedDomainsView",
-								emptyText: "No ActivityPub moderated domains in this source window.",
+								emptyText: "No ActivityPub moderated domains in this observed.",
 							},
 							{
 								field: "$$timestamps",
@@ -4002,7 +4002,7 @@ export const app = {
 				},
 					pluralView: {
 						component: "_GlobalActivityPubNetworksView",
-						title: "ActivityPub source windows",
+						title: "ActivityPub observeds",
 						entityRow: _ListEntityRow.Summary,
 					},
 			},
@@ -4040,9 +4040,9 @@ export const app = {
 					{ name: "instanceDescription", label: "Instance description", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "instanceVersion", label: "Instance version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "activeUserCount", label: "Active users", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowActorCount", label: "Source-window actors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowNoteCount", label: "Source-window notes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogInstanceCount", label: "Local catalog instances", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedActorCount", label: "Observed actors", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedNoteCount", label: "Observed notes", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededInstanceCount", label: "Seeded instances", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "knownPeerDomainCount", label: "Known peer domains", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "moderatedDomainCount", label: "Moderated domains", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachable", label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
@@ -4051,7 +4051,7 @@ export const app = {
 					query: {
 						sources: [Source.Mastodon_Rest],
 						fields: ["$hub", "timestampMs", "source"],
-						openFields: ["instanceOrigin", "instanceTitle", "instanceDescription", "instanceVersion", "activeUserCount", "sourceWindowActorCount", "sourceWindowNoteCount", "localCatalogInstanceCount", "knownPeerDomainCount", "moderatedDomainCount", "reachable"],
+						openFields: ["instanceOrigin", "instanceTitle", "instanceDescription", "instanceVersion", "activeUserCount", "observedActorCount", "observedNoteCount", "seededInstanceCount", "knownPeerDomainCount", "moderatedDomainCount", "reachable"],
 					},
 					summary: {
 						title: ["instanceTitle", { field: "timestampMs", format: "timestamp" }],
@@ -4063,7 +4063,7 @@ export const app = {
 						dl: [
 							["$hub", { field: "timestampMs", format: "timestamp" }, "source", { field: "instanceOrigin", format: "url" }],
 							["instanceTitle", "instanceDescription", "instanceVersion", "reachable"],
-							[{ field: "activeUserCount", format: "number" }, { field: "sourceWindowActorCount", format: "number" }, { field: "sourceWindowNoteCount", format: "number" }, { field: "localCatalogInstanceCount", format: "number" }],
+							[{ field: "activeUserCount", format: "number" }, { field: "observedActorCount", format: "number" }, { field: "observedNoteCount", format: "number" }, { field: "seededInstanceCount", format: "number" }],
 							[{ field: "knownPeerDomainCount", format: "number" }, { field: "moderatedDomainCount", format: "number" }],
 						],
 					},
@@ -4107,7 +4107,7 @@ export const app = {
 					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalAgentNetwork },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					...["sourceReportedAgentCount", "localCatalogAgentCount", "sourceReportedRegistrationCount", "localCatalogRegistrationCount", "sourceReportedServerCount", "localCatalogServerCount", "configuredEndpointCount", "reachableEndpointCount", "searchResultCount", "rateLimitRemaining"].map((name) => ({ name, label: name, type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" })),
+					...["sourceReportedAgentCount", "seededAgentCount", "sourceReportedRegistrationCount", "seededRegistrationCount", "sourceReportedServerCount", "seededServerCount", "declaredEndpointCount", "reachableEndpointCount", "searchResultCount", "rateLimitRemaining"].map((name) => ({ name, label: name, type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" })),
 					{ name: "queryHashAlgorithm", label: "query hash algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "queryHash", label: "query hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 					{ name: "lastCursor", label: "last cursor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -4117,7 +4117,7 @@ export const app = {
 				singularView: {
 					summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"], HeadingAfter: ["source"] },
 					closed: ["$network", { field: "timestampMs", format: "timestamp" }, "source"],
-					content: { dl: [["$network", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedAgentCount", format: "number" }, { field: "localCatalogAgentCount", format: "number" }, { field: "sourceReportedServerCount", format: "number" }, { field: "localCatalogServerCount", format: "number" }], [{ field: "configuredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }, { field: "rateLimitRemaining", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
+					content: { dl: [["$network", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedAgentCount", format: "number" }, { field: "seededAgentCount", format: "number" }, { field: "sourceReportedServerCount", format: "number" }, { field: "seededServerCount", format: "number" }], [{ field: "declaredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }, { field: "rateLimitRemaining", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
 				},
 				pluralView: { component: "_GlobalAgentNetwork_TimestampsView", title: "global agent network observations", entityRow: _ListEntityRow.Summary },
 			},
@@ -4154,7 +4154,7 @@ export const app = {
 					{ name: "$catalog", label: "catalog", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalAiArtifactCatalog },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					...["sourceReportedArtifactCount", "localCatalogArtifactCount", "sourceReportedDocumentCount", "localCatalogDocumentCount", "ociManifestCount", "spdxDocumentCount", "cycloneDxDocumentCount", "croissantDocumentCount", "mlflowModelCount", "onnxModelCount", "configuredEndpointCount", "reachableEndpointCount"].map((name) => ({ name, label: name, type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" })),
+					...["sourceReportedArtifactCount", "seededArtifactCount", "sourceReportedDocumentCount", "seededDocumentCount", "ociManifestCount", "spdxDocumentCount", "cycloneDxDocumentCount", "croissantDocumentCount", "mlflowModelCount", "onnxModelCount", "declaredEndpointCount", "reachableEndpointCount"].map((name) => ({ name, label: name, type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" })),
 					{ name: "queryHashAlgorithm", label: "query hash algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "queryHash", label: "query hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 					{ name: "lastCursor", label: "last cursor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -4164,7 +4164,7 @@ export const app = {
 				singularView: {
 					summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"], HeadingAfter: ["source"] },
 					closed: ["$catalog", { field: "timestampMs", format: "timestamp" }, "source"],
-					content: { dl: [["$catalog", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedArtifactCount", format: "number" }, { field: "localCatalogArtifactCount", format: "number" }, { field: "sourceReportedDocumentCount", format: "number" }, { field: "localCatalogDocumentCount", format: "number" }], [{ field: "configuredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
+					content: { dl: [["$catalog", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedArtifactCount", format: "number" }, { field: "seededArtifactCount", format: "number" }, { field: "sourceReportedDocumentCount", format: "number" }, { field: "seededDocumentCount", format: "number" }], [{ field: "declaredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
 				},
 				pluralView: { component: "_GlobalAiArtifactCatalog_TimestampsView", title: "global AI artifact catalog observations", entityRow: _ListEntityRow.Summary },
 			},
@@ -4209,7 +4209,7 @@ export const app = {
 					{ name: "$catalog", label: "catalog", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalAiModelCatalog },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					...["sourceReportedProviderCount", "localCatalogProviderCount", "sourceReportedModelCount", "localCatalogModelCount", "sourceReportedDatasetCount", "localCatalogDatasetCount", "sourceReportedBenchmarkCount", "localCatalogBenchmarkCount", "sourceReportedEvaluationCount", "localCatalogEvaluationCount", "configuredEndpointCount", "reachableEndpointCount", "searchResultCount", "rateLimitRemaining"].map((name) => ({ name, label: name, type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" })),
+					...["sourceReportedProviderCount", "seededProviderCount", "sourceReportedModelCount", "seededModelCount", "sourceReportedDatasetCount", "seededDatasetCount", "sourceReportedBenchmarkCount", "seededBenchmarkCount", "sourceReportedEvaluationCount", "seededEvaluationCount", "declaredEndpointCount", "reachableEndpointCount", "searchResultCount", "rateLimitRemaining"].map((name) => ({ name, label: name, type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" })),
 					{ name: "queryHashAlgorithm", label: "query hash algorithm", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "queryHash", label: "query hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 					{ name: "lastCursor", label: "last cursor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -4219,7 +4219,7 @@ export const app = {
 				singularView: {
 					summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["status"], HeadingAfter: ["source"] },
 					closed: ["$catalog", { field: "timestampMs", format: "timestamp" }, "source"],
-					content: { dl: [["$catalog", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedModelCount", format: "number" }, { field: "localCatalogModelCount", format: "number" }, { field: "searchResultCount", format: "number" }], [{ field: "configuredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }, { field: "rateLimitRemaining", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
+					content: { dl: [["$catalog", { field: "timestampMs", format: "timestamp" }, "source", "status", "error"], [{ field: "sourceReportedModelCount", format: "number" }, { field: "seededModelCount", format: "number" }, { field: "searchResultCount", format: "number" }], [{ field: "declaredEndpointCount", format: "number" }, { field: "reachableEndpointCount", format: "number" }, { field: "rateLimitRemaining", format: "number" }], ["queryHashAlgorithm", "queryHash", "lastCursor"]] },
 				},
 				pluralView: { component: "_GlobalAiModelCatalog_TimestampsView", title: "global AI model catalog observations", entityRow: _ListEntityRow.Summary },
 			},
@@ -4237,34 +4237,34 @@ export const app = {
 						cardinality: EntityFieldCardinality.One,
 						primitiveType: { unit: "_GlobalArweaveNetwork" },
 					},
-					{ name: "$$sourceWindowNetworks", label: "Source-window networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveNetwork },
-					{ name: "$$sourceWindowBlocks", label: "Source-window blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveBlock },
-					{ name: "$$sourceWindowTransactions", label: "Source-window transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveTransaction },
-					{ name: "$$sourceWindowResources", label: "Source-window resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource },
+					{ name: "$$observedNetworks", label: "Observed networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveNetwork },
+					{ name: "$$observedBlocks", label: "Observed blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveBlock },
+					{ name: "$$observedTransactions", label: "Observed transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveTransaction },
+					{ name: "$$observedResources", label: "Observed resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ArweaveResource },
 					{ name: "$$timestamps", label: "Timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalArweaveNetwork_Timestamp },
 				],
 				singularView: {
 					query: {
 							sources: ["Arweave_Graphql", "Arweave_Rest", Source.Constants_Internal],
 						fields: ["scope"],
-						openFields: ["$$sourceWindowNetworks", "$$sourceWindowBlocks", "$$sourceWindowTransactions", "$$sourceWindowResources", "$$timestamps"],
+						openFields: ["$$observedNetworks", "$$observedBlocks", "$$observedTransactions", "$$observedResources", "$$timestamps"],
 					},
 					summary: {
-						title: [{ text: "Arweave source windows" }],
+						title: [{ text: "Arweave observeds" }],
 						value: ["scope"],
 					},
 					closed: ["scope"],
 					content: { dl: [["scope"]] },
 					lists: [
-						{ field: "$$sourceWindowNetworks", component: "ArweaveNetworksView", emptyText: "No Arweave networks in this source window." },
-						{ field: "$$sourceWindowBlocks", component: "ArweaveBlocksView", emptyText: "No Arweave blocks in this source window." },
-						{ field: "$$sourceWindowTransactions", component: "ArweaveTransactionsView", emptyText: "No Arweave transactions in this source window." },
-						{ field: "$$sourceWindowResources", component: "ArweaveResourcesView", emptyText: "No Arweave resources in this source window." },
+						{ field: "$$observedNetworks", component: "ArweaveNetworksView", emptyText: "No Arweave networks in this observed." },
+						{ field: "$$observedBlocks", component: "ArweaveBlocksView", emptyText: "No Arweave blocks in this observed." },
+						{ field: "$$observedTransactions", component: "ArweaveTransactionsView", emptyText: "No Arweave transactions in this observed." },
+						{ field: "$$observedResources", component: "ArweaveResourcesView", emptyText: "No Arweave resources in this observed." },
 						{ field: "$$timestamps", component: "_GlobalArweaveNetwork_TimestampsView", emptyText: "No Arweave hub observations yet." },
 					],
 				},
 				pluralView: { component: "_GlobalArweaveNetworksView",
-					title: "Arweave source windows",
+					title: "Arweave observeds",
 					entityRow: _ListEntityRow.Summary,
 				},
 			},
@@ -4277,19 +4277,19 @@ export const app = {
 					{ name: "$hub", label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalArweaveNetwork },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "configuredAccessEndpointCount", label: "Configured access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "declaredAccessEndpointCount", label: "Declared access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachableAccessEndpointCount", label: "Reachable access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "sourceReportedLatestHeight", label: "Source-reported latest height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-					{ name: "sourceWindowBlockCount", label: "Source-window blocks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowTransactionCount", label: "Source-window transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogExampleCount", label: "Local catalog examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedBlockCount", label: "Observed blocks", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedTransactionCount", label: "Observed transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededExampleCount", label: "Seeded examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachable", label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 				],
 				singularView: {
 					query: {
 							sources: ["Arweave_Graphql", "Arweave_Rest", Source.Constants_Internal],
 						fields: ["$hub", "timestampMs", "source"],
-						openFields: ["configuredAccessEndpointCount", "reachableAccessEndpointCount", "sourceReportedLatestHeight", "sourceWindowBlockCount", "sourceWindowTransactionCount", "localCatalogExampleCount", "reachable"],
+						openFields: ["declaredAccessEndpointCount", "reachableAccessEndpointCount", "sourceReportedLatestHeight", "observedBlockCount", "observedTransactionCount", "seededExampleCount", "reachable"],
 					},
 					summary: {
 						title: [{ field: "timestampMs", format: "timestamp" }],
@@ -4300,8 +4300,8 @@ export const app = {
 					content: {
 						dl: [
 							["$hub", { field: "timestampMs", format: "timestamp" }, "source", "reachable"],
-							[{ field: "configuredAccessEndpointCount", format: "number" }, { field: "reachableAccessEndpointCount", format: "number" }, { field: "sourceReportedLatestHeight", format: "number" }],
-							[{ field: "sourceWindowBlockCount", format: "number" }, { field: "sourceWindowTransactionCount", format: "number" }, { field: "localCatalogExampleCount", format: "number" }],
+							[{ field: "declaredAccessEndpointCount", format: "number" }, { field: "reachableAccessEndpointCount", format: "number" }, { field: "sourceReportedLatestHeight", format: "number" }],
+							[{ field: "observedBlockCount", format: "number" }, { field: "observedTransactionCount", format: "number" }, { field: "seededExampleCount", format: "number" }],
 						],
 					},
 				},
@@ -4314,7 +4314,7 @@ export const app = {
 				entityType: EntityType._GlobalAtprotoNetwork,
 				label: "AT Protocol",
 				labelPlural: "AT Protocol",
-				description: "AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from configured Bluesky-compatible appview sources, not a claim about every repository on the network.",
+				description: "AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.",
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{
@@ -4333,8 +4333,8 @@ export const app = {
 						valueType: "string",
 					},
 					{
-						name: "topology",
-						label: "Topology",
+						name: "relationshipModel",
+						label: "Relationship model",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "string",
@@ -4354,7 +4354,7 @@ export const app = {
 						valueType: "urlString",
 					},
 					{
-						name: "$$sourceWindowActors",
+						name: "$$observedActors",
 						label: "Accounts",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -4362,7 +4362,7 @@ export const app = {
 						defaultSources: [Source.Constants_Internal, Source.Atproto_Xrpc],
 					},
 					{
-						name: "$$sourceWindowPosts",
+						name: "$$observedPosts",
 						label: "Recent posts",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -4380,7 +4380,7 @@ export const app = {
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						openFields: ["$$sourceWindowActors", "$$sourceWindowPosts"],
+						openFields: ["$$observedActors", "$$observedPosts"],
 					},
 					summary: {
 						title: ["protocolName"],
@@ -4391,7 +4391,7 @@ export const app = {
 						dl: [
 							[
 								{ field: "protocolName" },
-								{ field: "topology", when: "open" },
+								{ field: "relationshipModel", when: "open" },
 								{ field: "homeUrl", when: "open", format: "url" },
 								{ field: "docsUrl", when: "open", format: "url" },
 							],
@@ -4401,17 +4401,17 @@ export const app = {
 							{
 								id: "directory",
 								label: "Directory and examples",
-								description: "Bounded source windows and example routes from configured AT Protocol appviews.",
+								description: "Bounded observeds and example routes from declared AT Protocol appviews.",
 								sections: [
 									{
 										id: "accounts",
-										field: "$$sourceWindowActors",
+										field: "$$observedActors",
 										List: "AtprotoActorsView",
 										label: "Accounts",
 									},
 									{
 										id: "recent-posts",
-										field: "$$sourceWindowPosts",
+										field: "$$observedPosts",
 										List: "AtprotoPostsView",
 										label: "Recent posts",
 									},
@@ -4458,36 +4458,36 @@ export const app = {
 						valueType: "string",
 					},
 					{
-						name: "sourceWindowActorCount",
-						label: "Source-window accounts",
+						name: "observedActorCount",
+						label: "Observed accounts",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "sourceWindowPostCount",
-						label: "Source-window posts",
+						name: "observedPostCount",
+						label: "Observed posts",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "sourceWindowRepoCommitCount",
-						label: "Source-window repo commits",
+						name: "observedRepoCommitCount",
+						label: "Observed repo commits",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "localCatalogActorCount",
-						label: "Local catalog accounts",
+						name: "seededActorCount",
+						label: "Seeded accounts",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "localCatalogPostCount",
-						label: "Local catalog posts",
+						name: "seededPostCount",
+						label: "Seeded posts",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
@@ -4544,11 +4544,11 @@ export const app = {
 								{ field: "timestampMs", format: "timestamp" },
 								{ field: "source" },
 								{
-									field: "sourceWindowActorCount",
+									field: "observedActorCount",
 									format: "number",
 								},
 								{
-									field: "sourceWindowPostCount",
+									field: "observedPostCount",
 									format: "number",
 								},
 								{ field: "reachable", format: "boolean" },
@@ -4584,7 +4584,7 @@ export const app = {
 							cardinality: EntityFieldCardinality.One,
 							primitiveType: { unit: "_GlobalEnsNetwork" },
 						},
-						{ name: "$registryContract", label: "Registry contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
+						{ name: "$registryContract", label: "Registry name contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
 						{ name: "$ethRegistrarController", label: ".eth registrar controller", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
 						{ name: "$reverseRegistrar", label: "Reverse registrar", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
 						{ name: "$nameWrapper", label: "Name wrapper", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
@@ -4623,10 +4623,10 @@ export const app = {
 						{ name: "$hub", label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalEnsNetwork },
 						{ name: "timestampMs", label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "source", label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-						{ name: "sourceWindowNameCount", label: "Source window names", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						{ name: "sourceWindowRecordCount", label: "Source window records", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						{ name: "sourceWindowReverseRecordCount", label: "Source window reverse records", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						{ name: "localCatalogContractCount", label: "Local catalog contracts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "observedNameCount", label: "Observed names", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "observedRecordCount", label: "Observed records", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "observedReverseRecordCount", label: "Observed reverse records", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "seededContractCount", label: "Seeded contracts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 						{ name: "discoveredResolverContractCount", label: "Discovered resolver contracts", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 						{ name: "subgraphBlockNumber", label: "Subgraph block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 						{ name: "rpcBlockNumber", label: "RPC block", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -4643,10 +4643,10 @@ export const app = {
 								[{ field: "$hub" }],
 								[{ field: "timestampMs", format: "timestamp" }],
 								[{ field: "source" }],
-								[{ field: "sourceWindowNameCount", format: "number" }],
-								[{ field: "sourceWindowRecordCount", format: "number" }],
-								[{ field: "sourceWindowReverseRecordCount", format: "number" }],
-								[{ field: "localCatalogContractCount", format: "number" }],
+								[{ field: "observedNameCount", format: "number" }],
+								[{ field: "observedRecordCount", format: "number" }],
+								[{ field: "observedReverseRecordCount", format: "number" }],
+								[{ field: "seededContractCount", format: "number" }],
 								[{ field: "discoveredResolverContractCount", format: "number" }],
 								[{ field: "subgraphBlockNumber", format: "number" }],
 								[{ field: "rpcBlockNumber", format: "number" }],
@@ -4664,16 +4664,16 @@ export const app = {
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{ name: "scope", label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "$$sourceWindowTopics", label: "source window topics", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTopic, defaultSources: [Source.Local_Internal] },
-					{ name: "$$sourceWindowSelectors", label: "source window selectors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmSelector, defaultSources: [Source.Local_Internal] },
-					{ name: "$$sourceWindowErrors", label: "source window errors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmError, defaultSources: [Source.Local_Internal] },
+					{ name: "$$observedTopics", label: "observed topics", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTopic, defaultSources: [Source.Local_Internal] },
+					{ name: "$$observedSelectors", label: "observed selectors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmSelector, defaultSources: [Source.Local_Internal] },
+					{ name: "$$observedErrors", label: "observed errors", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmError, defaultSources: [Source.Local_Internal] },
 					{ name: "$$timestamps", label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalEvmAbiCatalog_Timestamp, defaultSources: [Source.Local_Internal] },
 				],
 				singularView: {
 					query: {
 						sources: [Source.Local_Internal],
 						fields: ["scope"],
-						openFields: ["$$sourceWindowTopics", "$$sourceWindowSelectors", "$$sourceWindowErrors", "$$timestamps"],
+						openFields: ["$$observedTopics", "$$observedSelectors", "$$observedErrors", "$$timestamps"],
 					},
 					summary: {
 						title: [{ text: "EVM ABI catalog" }],
@@ -4681,9 +4681,9 @@ export const app = {
 					},
 					content: {
 						lists: [
-							{ field: "$$sourceWindowSelectors", component: "EvmSelectorsView", emptyText: "No EVM selectors in this catalog window." },
-							{ field: "$$sourceWindowTopics", component: "EvmTopicsView", emptyText: "No EVM topics in this catalog window." },
-							{ field: "$$sourceWindowErrors", component: "EvmErrorsView", emptyText: "No EVM errors in this catalog window." },
+							{ field: "$$observedSelectors", component: "EvmSelectorsView", emptyText: "No EVM selectors in this catalog window." },
+							{ field: "$$observedTopics", component: "EvmTopicsView", emptyText: "No EVM topics in this catalog window." },
+							{ field: "$$observedErrors", component: "EvmErrorsView", emptyText: "No EVM errors in this catalog window." },
 							{ field: "$$timestamps", component: "_GlobalEvmAbiCatalog_TimestampsView", emptyText: "No EVM ABI catalog observations." },
 						],
 					},
@@ -4702,9 +4702,9 @@ export const app = {
 					{ name: "sourceReportedSelectorCount", label: "source reported selector count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "sourceReportedTopicCount", label: "source reported topic count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "sourceReportedErrorCount", label: "source reported error count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogSelectorCount", label: "local catalog selector count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogTopicCount", label: "local catalog topic count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogErrorCount", label: "local catalog error count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededSelectorCount", label: "seeded selector count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededTopicCount", label: "seeded topic count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededErrorCount", label: "seeded error count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachable", label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 					{ name: "rateLimitRemaining", label: "rate limit remaining", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				],
@@ -4718,7 +4718,7 @@ export const app = {
 						dl: [
 							["$hub", { field: "timestampMs", format: "timestamp" }, "source"],
 							[{ field: "sourceReportedSelectorCount", format: "number" }, { field: "sourceReportedTopicCount", format: "number" }, { field: "sourceReportedErrorCount", format: "number" }],
-							[{ field: "localCatalogSelectorCount", format: "number" }, { field: "localCatalogTopicCount", format: "number" }, { field: "localCatalogErrorCount", format: "number" }],
+							[{ field: "seededSelectorCount", format: "number" }, { field: "seededTopicCount", format: "number" }, { field: "seededErrorCount", format: "number" }],
 							["reachable", { field: "rateLimitRemaining", format: "number" }],
 						],
 					},
@@ -4732,29 +4732,29 @@ export const app = {
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{ name: "scope", label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "$$sourceWindowUsers", label: "source window users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest] },
-					{ name: "$$sourceWindowChannels", label: "source window channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest] },
-					{ name: "$$sourceWindowCasts", label: "source window casts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast },
-					{ name: "$$sourceWindowFeeds", label: "source window feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterFeed, defaultSources: [Source.Constants_Internal, Source.Farcaster_Rest] },
+					{ name: "$$observedUsers", label: "observed users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest] },
+					{ name: "$$observedChannels", label: "observed channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel, defaultSources: [Source.Farcaster_Rest, Source.Neynar_Rest] },
+					{ name: "$$observedCasts", label: "observed casts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterCast },
+					{ name: "$$observedFeeds", label: "observed feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterFeed, defaultSources: [Source.Constants_Internal, Source.Farcaster_Rest] },
 					{ name: "$$timestamps", label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalFarcasterNetwork_Timestamp },
 				],
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal, Source.Farcaster_Rest, Source.Neynar_Rest, Source.Snapchain_Rest],
 						fields: ["scope"],
-						openFields: ["$$sourceWindowUsers", "$$sourceWindowChannels", "$$sourceWindowCasts", "$$sourceWindowFeeds", "$$timestamps"],
+						openFields: ["$$observedUsers", "$$observedChannels", "$$observedCasts", "$$observedFeeds", "$$timestamps"],
 					},
 					summary: {
-						title: [{ text: "Farcaster source window" }],
+						title: [{ text: "Farcaster observed" }],
 						value: [{ field: "scope" }],
 					},
 					content: {
 						lists: [
-							{ field: "$$sourceWindowFeeds", component: "FarcasterFeedsView", emptyText: "No Farcaster feeds in this source window." },
-							{ field: "$$sourceWindowUsers", component: "FarcasterUsersView", emptyText: "No Farcaster users in this source window." },
-							{ field: "$$sourceWindowChannels", component: "FarcasterChannelsView", emptyText: "No Farcaster channels in this source window." },
-							{ field: "$$sourceWindowCasts", component: "FarcasterCastsView", emptyText: "No Farcaster casts in this source window." },
-							{ field: "$$timestamps", component: "_GlobalFarcasterNetwork_TimestampsView", emptyText: "No Farcaster source-window observations yet." },
+							{ field: "$$observedFeeds", component: "FarcasterFeedsView", emptyText: "No Farcaster feeds in this observed." },
+							{ field: "$$observedUsers", component: "FarcasterUsersView", emptyText: "No Farcaster users in this observed." },
+							{ field: "$$observedChannels", component: "FarcasterChannelsView", emptyText: "No Farcaster channels in this observed." },
+							{ field: "$$observedCasts", component: "FarcasterCastsView", emptyText: "No Farcaster casts in this observed." },
+							{ field: "$$timestamps", component: "_GlobalFarcasterNetwork_TimestampsView", emptyText: "No Farcaster observed observations yet." },
 						],
 					},
 				},
@@ -4773,11 +4773,11 @@ export const app = {
 					{ name: "fid", label: "FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "channelId", label: "channel ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "viewerFid", label: "viewer FID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowCastCount", label: "source window cast count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowUserCount", label: "source window user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowChannelCount", label: "source window channel count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogFeedVariantCount", label: "local catalog feed variant count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogChannelCount", label: "local catalog channel count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedCastCount", label: "observed cast count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedUserCount", label: "observed user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedChannelCount", label: "observed channel count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededFeedVariantCount", label: "seeded feed variant count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededChannelCount", label: "seeded channel count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "hubHost", label: "hub host", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "snapchainHost", label: "snapchain host", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "reachable", label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
@@ -4795,8 +4795,8 @@ export const app = {
 							[{ field: "timestampMs", format: "timestamp" }],
 							[{ field: "source" }],
 							[{ field: "feedVariant" }, { field: "fid", format: "number" }, { field: "channelId" }, { field: "viewerFid", format: "number" }],
-							[{ field: "sourceWindowCastCount", format: "number" }, { field: "sourceWindowUserCount", format: "number" }, { field: "sourceWindowChannelCount", format: "number" }],
-							[{ field: "localCatalogFeedVariantCount", format: "number" }, { field: "localCatalogChannelCount", format: "number" }],
+							[{ field: "observedCastCount", format: "number" }, { field: "observedUserCount", format: "number" }, { field: "observedChannelCount", format: "number" }],
+							[{ field: "seededFeedVariantCount", format: "number" }, { field: "seededChannelCount", format: "number" }],
 							[{ field: "hubHost" }, { field: "snapchainHost" }],
 							[{ field: "reachable" }, { field: "cursor", format: "truncated" }],
 						],
@@ -4811,17 +4811,17 @@ export const app = {
 					selectors: [{ name: "Scope", fields: ["scope"] }],
 					fields: [
 						{ name: "scope", label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "_GlobalIpfsAccess" } },
-						{ name: "$$sourceWindowResources", label: "Source window resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IpfsResource },
+						{ name: "$$observedResources", label: "Observed resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.IpfsResource },
 						{ name: "$$timestamps", label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalIpfsAccess_Timestamp },
 					],
 					singularView: {
-						query: { sources: [Source.Constants_Internal], openFields: ["$$sourceWindowResources", "$$timestamps"] },
+						query: { sources: [Source.Constants_Internal], openFields: ["$$observedResources", "$$timestamps"] },
 						summary: {
 							title: [{ text: "IPFS access" }],
 							value: [{ text: "IPFS gateway access" }],
 						},
 						lists: [
-							{ field: "$$sourceWindowResources", component: "IpfsResourcesView", emptyText: "No IPFS resources yet." },
+							{ field: "$$observedResources", component: "IpfsResourcesView", emptyText: "No IPFS resources yet." },
 							{ field: "$$timestamps", component: "_GlobalIpfsAccess_TimestampsView", emptyText: "No IPFS access observations yet." },
 						],
 					},
@@ -4839,10 +4839,10 @@ export const app = {
 						{ name: "$hub", label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalIpfsAccess },
 						{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-						{ name: "configuredAccessEndpointCount", label: "Configured access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "declaredAccessEndpointCount", label: "Declared access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 						{ name: "reachableAccessEndpointCount", label: "Reachable access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						{ name: "sourceWindowResourceCount", label: "Source window resources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						{ name: "localCatalogExampleCount", label: "Local catalog examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "observedResourceCount", label: "Observed resources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "seededExampleCount", label: "Seeded examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 						{ name: "reachable", label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 					],
 					singularView: {
@@ -4857,10 +4857,10 @@ export const app = {
 								[
 									{ field: "timestampMs", format: "timestamp" },
 									"source",
-									{ field: "configuredAccessEndpointCount", format: "number" },
+									{ field: "declaredAccessEndpointCount", format: "number" },
 									{ field: "reachableAccessEndpointCount", format: "number" },
-									{ field: "sourceWindowResourceCount", format: "number" },
-									{ field: "localCatalogExampleCount", format: "number" },
+									{ field: "observedResourceCount", format: "number" },
+									{ field: "seededExampleCount", format: "number" },
 									"reachable",
 								],
 							],
@@ -4876,29 +4876,29 @@ export const app = {
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{ name: "scope", label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "$$sourceWindowAccounts", label: "source window accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensAccount },
-					{ name: "$$sourceWindowFeeds", label: "source window feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensFeed },
-					{ name: "$$sourceWindowPosts", label: "source window posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensPost },
-					{ name: "$$sourceWindowUsernameNamespaces", label: "source window username namespaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensUsernameNamespace },
+					{ name: "$$observedAccounts", label: "observed accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensAccount },
+					{ name: "$$observedFeeds", label: "observed feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensFeed },
+					{ name: "$$observedPosts", label: "observed posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensPost },
+					{ name: "$$observedUsernameNamespaces", label: "observed username namespaces", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.LensUsernameNamespace },
 					{ name: "$$timestamps", label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalLensNetwork_Timestamp },
 				],
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal, Source.Lens_Graphql],
 						fields: ["scope"],
-						openFields: ["$$sourceWindowAccounts", "$$sourceWindowFeeds", "$$sourceWindowPosts", "$$sourceWindowUsernameNamespaces", "$$timestamps"],
+						openFields: ["$$observedAccounts", "$$observedFeeds", "$$observedPosts", "$$observedUsernameNamespaces", "$$timestamps"],
 					},
 					summary: {
-						title: [{ text: "Lens source window" }],
+						title: [{ text: "Lens observed" }],
 						value: [{ field: "scope" }],
 					},
 					content: {
 						lists: [
-							{ field: "$$sourceWindowAccounts", component: "LensAccountsView", emptyText: "No Lens accounts in this source window." },
-							{ field: "$$sourceWindowFeeds", component: "LensFeedsView", emptyText: "No Lens feeds in this source window." },
-							{ field: "$$sourceWindowPosts", component: "LensPostsView", emptyText: "No Lens posts in this source window." },
-							{ field: "$$sourceWindowUsernameNamespaces", component: "LensUsernameNamespacesView", emptyText: "No Lens username namespaces in this source window." },
-							{ field: "$$timestamps", component: "_GlobalLensNetwork_TimestampsView", emptyText: "No Lens source-window observations yet." },
+							{ field: "$$observedAccounts", component: "LensAccountsView", emptyText: "No Lens accounts in this observed." },
+							{ field: "$$observedFeeds", component: "LensFeedsView", emptyText: "No Lens feeds in this observed." },
+							{ field: "$$observedPosts", component: "LensPostsView", emptyText: "No Lens posts in this observed." },
+							{ field: "$$observedUsernameNamespaces", component: "LensUsernameNamespacesView", emptyText: "No Lens username namespaces in this observed." },
+							{ field: "$$timestamps", component: "_GlobalLensNetwork_TimestampsView", emptyText: "No Lens observed observations yet." },
 						],
 					},
 				},
@@ -4913,13 +4913,13 @@ export const app = {
 					{ name: "$hub", label: "hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalLensNetwork },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "sourceWindowAccountCount", label: "source window account count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowFeedCount", label: "source window feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowPostCount", label: "source window post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowUsernameNamespaceCount", label: "source window username namespace count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogAccountCount", label: "local catalog account count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogFeedCount", label: "local catalog feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogPostCount", label: "local catalog post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedAccountCount", label: "observed account count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedFeedCount", label: "observed feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedPostCount", label: "observed post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedUsernameNamespaceCount", label: "observed username namespace count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededAccountCount", label: "seeded account count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededFeedCount", label: "seeded feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededPostCount", label: "seeded post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachable", label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 					{ name: "cursor", label: "cursor", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				],
@@ -4934,9 +4934,9 @@ export const app = {
 							[{ field: "$hub" }],
 							[{ field: "timestampMs", format: "timestamp" }],
 							[{ field: "source" }],
-							[{ field: "sourceWindowAccountCount", format: "number" }, { field: "sourceWindowFeedCount", format: "number" }],
-							[{ field: "sourceWindowPostCount", format: "number" }, { field: "sourceWindowUsernameNamespaceCount", format: "number" }],
-							[{ field: "localCatalogAccountCount", format: "number" }, { field: "localCatalogFeedCount", format: "number" }, { field: "localCatalogPostCount", format: "number" }],
+							[{ field: "observedAccountCount", format: "number" }, { field: "observedFeedCount", format: "number" }],
+							[{ field: "observedPostCount", format: "number" }, { field: "observedUsernameNamespaceCount", format: "number" }],
+							[{ field: "seededAccountCount", format: "number" }, { field: "seededFeedCount", format: "number" }, { field: "seededPostCount", format: "number" }],
 							[{ field: "reachable" }, { field: "cursor", format: "truncated" }],
 						],
 					},
@@ -4967,8 +4967,8 @@ export const app = {
 						defaultSources: [Source.Constants_Internal],
 					},
 					{
-						name: "registryLabel",
-						label: "Registry",
+						name: "registryName",
+						label: "Registry name",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "string",
@@ -4991,15 +4991,15 @@ export const app = {
 						defaultSources: [Source.Constants_Internal],
 					},
 					{
-						name: "topology",
-						label: "Topology",
+						name: "relationshipModel",
+						label: "Relationship model",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "string",
 						defaultSources: [Source.Constants_Internal],
 					},
 					{
-						name: "$$sourceWindowProfiles",
+						name: "$$observedProfiles",
 						label: "Profiles",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5007,7 +5007,7 @@ export const app = {
 						defaultSources: [Source.NostrBand_Rest],
 					},
 					{
-						name: "$$sourceWindowNotes",
+						name: "$$observedNotes",
 						label: "Notes",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5015,7 +5015,7 @@ export const app = {
 						defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 					},
 					{
-						name: "$$sourceWindowRelays",
+						name: "$$observedRelays",
 						label: "Relays",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5023,7 +5023,7 @@ export const app = {
 						defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 					},
 					{
-						name: "$$sourceWindowReposts",
+						name: "$$observedReposts",
 						label: "Reposts",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5031,14 +5031,14 @@ export const app = {
 						defaultSources: [Source.Constants_Internal, Source.NostrBand_Rest],
 					},
 					{
-						name: "$$sourceWindowReactions",
+						name: "$$observedReactions",
 						label: "Reactions",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
 						entityType: EntityType.NostrReaction,
 					},
 					{
-						name: "$$sourceWindowArticles",
+						name: "$$observedArticles",
 						label: "Articles",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5058,29 +5058,29 @@ export const app = {
 						sources: [Source.Constants_Internal],
 						fields: [
 							"protocolName",
-							"registryLabel",
+							"registryName",
 							"homeUrl",
 							"docsUrl",
-							"topology",
+							"relationshipModel",
 						],
 						openFields: [
-							"$$sourceWindowProfiles",
-							"$$sourceWindowNotes",
-							"$$sourceWindowRelays",
-							"$$sourceWindowReposts",
-							"$$sourceWindowReactions",
-							"$$sourceWindowArticles",
+							"$$observedProfiles",
+							"$$observedNotes",
+							"$$observedRelays",
+							"$$observedReposts",
+							"$$observedReactions",
+							"$$observedArticles",
 							"$$timestamps",
 						],
 					},
 					summary: {
 						title: [{ kind: _ViewItemKind.Text, label: "Nostr" }],
 					},
-					closed: ["protocolName", "registryLabel"],
+					closed: ["protocolName", "registryName"],
 					content: {
 						dl: [
 							[
-								{ field: "registryLabel" },
+								{ field: "registryName" },
 								{ field: "protocolName" },
 								{ field: "homeUrl", format: "url", when: "open" },
 								{
@@ -5090,7 +5090,7 @@ export const app = {
 									when: "open",
 								},
 								{
-									field: "topology",
+									field: "relationshipModel",
 									format: "longText",
 									when: "open",
 								},
@@ -5099,40 +5099,40 @@ export const app = {
 					},
 					lists: [
 						{
-							field: "$$sourceWindowProfiles",
+							field: "$$observedProfiles",
 							component: "NostrProfilesView",
 							href: "/(social)/(nostr)/nostr/profiles",
-							emptyText: "No Nostr profiles in this source window.",
+							emptyText: "No Nostr profiles in this observed.",
 						},
 						{
-							field: "$$sourceWindowNotes",
+							field: "$$observedNotes",
 							component: "NostrNotesView",
 							href: "/(social)/(nostr)/nostr/notes",
-							emptyText: "No Nostr notes in this source window.",
+							emptyText: "No Nostr notes in this observed.",
 						},
 						{
-							field: "$$sourceWindowRelays",
+							field: "$$observedRelays",
 							component: "NostrRelaysView",
 							href: "/(social)/(nostr)/nostr/relays",
-							emptyText: "No Nostr relays in this source window.",
+							emptyText: "No Nostr relays in this observed.",
 						},
 						{
-							field: "$$sourceWindowArticles",
+							field: "$$observedArticles",
 							component: "NostrArticlesView",
 							href: "/(social)/(nostr)/nostr/articles",
-							emptyText: "No Nostr articles in this source window.",
+							emptyText: "No Nostr articles in this observed.",
 						},
 						{
-							field: "$$sourceWindowReposts",
+							field: "$$observedReposts",
 							component: "NostrRepostsView",
 							href: "/(social)/(nostr)/nostr/reposts",
-							emptyText: "No Nostr reposts in this source window.",
+							emptyText: "No Nostr reposts in this observed.",
 						},
 						{
-							field: "$$sourceWindowReactions",
+							field: "$$observedReactions",
 							component: "NostrReactionsView",
 							href: "/(social)/(nostr)/nostr/reactions",
-							emptyText: "No Nostr reactions in this source window.",
+							emptyText: "No Nostr reactions in this observed.",
 						},
 						{
 							field: "$$timestamps",
@@ -5155,25 +5155,25 @@ export const app = {
 					{ name: "$hub", label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalNostrNetwork },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "configuredRelayCount", label: "Configured relay count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "declaredRelayCount", label: "Declared relay count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachableRelayCount", label: "Reachable relay count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowProfileCount", label: "Source window profile count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowNoteCount", label: "Source window note count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowRelayCount", label: "Source window relay count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowRepostCount", label: "Source window repost count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowArticleCount", label: "Source window article count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogRelayCount", label: "Local catalog relay count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedProfileCount", label: "Observed profile count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedNoteCount", label: "Observed note count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedRelayCount", label: "Observed relay count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedRepostCount", label: "Observed repost count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedArticleCount", label: "Observed article count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededRelayCount", label: "Seeded relay count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachable", label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 					{ name: "filterKind", label: "Filter kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				],
 				singularView: {
-					summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["source", "reachable"], HeadingAfter: ["sourceWindowNoteCount"] },
+					summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["source", "reachable"], HeadingAfter: ["observedNoteCount"] },
 					closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
 					content: {
 						dl: [
 							[{ field: "timestampMs", format: "timestamp" }, "source", "reachable", "filterKind"],
-							["configuredRelayCount", "reachableRelayCount", "localCatalogRelayCount"],
-							["sourceWindowProfileCount", "sourceWindowNoteCount", "sourceWindowRelayCount", "sourceWindowRepostCount", "sourceWindowArticleCount", "$hub"],
+							["declaredRelayCount", "reachableRelayCount", "seededRelayCount"],
+							["observedProfileCount", "observedNoteCount", "observedRelayCount", "observedRepostCount", "observedArticleCount", "$hub"],
 						],
 					},
 				},
@@ -5199,7 +5199,7 @@ export const app = {
 						valueType: "_GlobalRedditNetworkScope",
 					},
 					{
-						name: "$$sourceWindowSubreddits",
+						name: "$$observedSubreddits",
 						label: "Subreddits",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5210,7 +5210,7 @@ export const app = {
 						],
 					},
 					{
-						name: "$$sourceWindowLinks",
+						name: "$$observedLinks",
 						label: "Popular submissions",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5231,16 +5231,16 @@ export const app = {
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						openFields: ["$$sourceWindowSubreddits", "$$sourceWindowLinks", "$$timestamps"],
+						openFields: ["$$observedSubreddits", "$$observedLinks", "$$timestamps"],
 					},
 					lists: [
 						{
-							field: "$$sourceWindowSubreddits",
+							field: "$$observedSubreddits",
 							component: "RedditSubredditsView",
 							href: "/(social)/(reddit)/reddit/subreddits",
 						},
 						{
-							field: "$$sourceWindowLinks",
+							field: "$$observedLinks",
 							component: "RedditLinksView",
 							href: "/(social)/(reddit)/reddit/links",
 						},
@@ -5265,21 +5265,21 @@ export const app = {
 					{ name: "$hub", label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalRedditNetwork },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "sourceWindowSubredditCount", label: "Source window subreddit count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowLinkCount", label: "Source window link count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogSubredditCount", label: "Local catalog subreddit count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogLinkCount", label: "Local catalog link count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedSubredditCount", label: "Observed subreddit count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedLinkCount", label: "Observed link count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededSubredditCount", label: "Seeded subreddit count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededLinkCount", label: "Seeded link count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachable", label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 					{ name: "rateLimitRemaining", label: "Rate limit remaining", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "listingWindowKind", label: "Listing window kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				],
 				singularView: {
-					summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["source", "reachable"], HeadingAfter: ["sourceWindowLinkCount"] },
+					summary: { title: [{ field: "timestampMs", format: "timestamp" }], value: ["source", "reachable"], HeadingAfter: ["observedLinkCount"] },
 					closed: [{ field: "timestampMs", format: "timestamp" }, "source"],
 					content: {
 						dl: [
 							[{ field: "timestampMs", format: "timestamp" }, "source", "reachable", "listingWindowKind"],
-							["sourceWindowSubredditCount", "sourceWindowLinkCount", "localCatalogSubredditCount", "localCatalogLinkCount"],
+							["observedSubredditCount", "observedLinkCount", "seededSubredditCount", "seededLinkCount"],
 							["rateLimitRemaining", "$hub"],
 						],
 					},
@@ -5293,25 +5293,25 @@ export const app = {
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{ name: "scope", label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "$$sourceWindowFeeds", label: "source window feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.RssFeed },
-					{ name: "$$sourceWindowItems", label: "source window items", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.RssItem },
+					{ name: "$$observedFeeds", label: "observed feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.RssFeed },
+					{ name: "$$observedItems", label: "observed items", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.RssItem },
 					{ name: "$$timestamps", label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalRssNetwork_Timestamp },
 				],
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal, Source.Rss_Rest, Source.Rss2Json_Rest],
 						fields: ["scope"],
-						openFields: ["$$sourceWindowFeeds", "$$sourceWindowItems", "$$timestamps"],
+						openFields: ["$$observedFeeds", "$$observedItems", "$$timestamps"],
 					},
 					summary: {
-						title: [{ text: "RSS source window" }],
+						title: [{ text: "RSS observed" }],
 						value: [{ field: "scope" }],
 					},
 					content: {
 						lists: [
-							{ field: "$$sourceWindowFeeds", component: "RssFeedsView", emptyText: "No RSS feeds in this source window." },
-							{ field: "$$sourceWindowItems", component: "RssItemsView", emptyText: "No RSS items in this source window." },
-							{ field: "$$timestamps", component: "_GlobalRssNetwork_TimestampsView", emptyText: "No RSS source-window observations yet." },
+							{ field: "$$observedFeeds", component: "RssFeedsView", emptyText: "No RSS feeds in this observed." },
+							{ field: "$$observedItems", component: "RssItemsView", emptyText: "No RSS items in this observed." },
+							{ field: "$$timestamps", component: "_GlobalRssNetwork_TimestampsView", emptyText: "No RSS observed observations yet." },
 						],
 					},
 				},
@@ -5326,10 +5326,10 @@ export const app = {
 					{ name: "$hub", label: "hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalRssNetwork },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "sourceWindowFeedCount", label: "source window feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowItemCount", label: "source window item count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogFeedCount", label: "local catalog feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogItemCount", label: "local catalog item count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedFeedCount", label: "observed feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedItemCount", label: "observed item count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededFeedCount", label: "seeded feed count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededItemCount", label: "seeded item count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachable", label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 					{ name: "fetchWindowKind", label: "fetch window kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				],
@@ -5344,8 +5344,8 @@ export const app = {
 							[{ field: "$hub" }],
 							[{ field: "timestampMs", format: "timestamp" }],
 							[{ field: "source" }],
-							[{ field: "sourceWindowFeedCount", format: "number" }, { field: "sourceWindowItemCount", format: "number" }],
-							[{ field: "localCatalogFeedCount", format: "number" }, { field: "localCatalogItemCount", format: "number" }],
+							[{ field: "observedFeedCount", format: "number" }, { field: "observedItemCount", format: "number" }],
+							[{ field: "seededFeedCount", format: "number" }, { field: "seededItemCount", format: "number" }],
 							[{ field: "reachable" }, { field: "fetchWindowKind" }],
 						],
 					},
@@ -5359,17 +5359,17 @@ export const app = {
 					selectors: [{ name: "Scope", fields: ["scope"] }],
 					fields: [
 						{ name: "scope", label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, primitiveType: { unit: "_GlobalSwarmAccess" } },
-						{ name: "$$sourceWindowResources", label: "Source window resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SwarmResource },
+						{ name: "$$observedResources", label: "Observed resources", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SwarmResource },
 						{ name: "$$timestamps", label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalSwarmAccess_Timestamp },
 					],
 					singularView: {
-						query: { sources: [Source.Constants_Internal], openFields: ["$$sourceWindowResources", "$$timestamps"] },
+						query: { sources: [Source.Constants_Internal], openFields: ["$$observedResources", "$$timestamps"] },
 						summary: {
 							title: [{ text: "Swarm access" }],
 							value: [{ text: "Swarm gateway access" }],
 						},
 						lists: [
-							{ field: "$$sourceWindowResources", component: "SwarmResourcesView", emptyText: "No Swarm resources yet." },
+							{ field: "$$observedResources", component: "SwarmResourcesView", emptyText: "No Swarm resources yet." },
 							{ field: "$$timestamps", component: "_GlobalSwarmAccess_TimestampsView", emptyText: "No Swarm access observations yet." },
 						],
 					},
@@ -5387,10 +5387,10 @@ export const app = {
 						{ name: "$hub", label: "Hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalSwarmAccess },
 						{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-						{ name: "configuredAccessEndpointCount", label: "Configured access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "declaredAccessEndpointCount", label: "Declared access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 						{ name: "reachableAccessEndpointCount", label: "Reachable access endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						{ name: "sourceWindowResourceCount", label: "Source window resources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-						{ name: "localCatalogExampleCount", label: "Local catalog examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "observedResourceCount", label: "Observed resources", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						{ name: "seededExampleCount", label: "Seeded examples", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 						{ name: "reachable", label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 					],
 					singularView: {
@@ -5405,10 +5405,10 @@ export const app = {
 								[
 									{ field: "timestampMs", format: "timestamp" },
 									"source",
-									{ field: "configuredAccessEndpointCount", format: "number" },
+									{ field: "declaredAccessEndpointCount", format: "number" },
 									{ field: "reachableAccessEndpointCount", format: "number" },
-									{ field: "sourceWindowResourceCount", format: "number" },
-									{ field: "localCatalogExampleCount", format: "number" },
+									{ field: "observedResourceCount", format: "number" },
+									{ field: "seededExampleCount", format: "number" },
 									"reachable",
 								],
 							],
@@ -5424,25 +5424,25 @@ export const app = {
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{ name: "scope", label: "Scope", description: "The fixed scope value that identifies this hub row.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "$$sourceWindowUsers", label: "source window users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XUser },
-					{ name: "$$sourceWindowPosts", label: "source window posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XPost },
+					{ name: "$$observedUsers", label: "observed users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XUser },
+					{ name: "$$observedPosts", label: "observed posts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.XPost },
 					{ name: "$$timestamps", label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType._GlobalXNetwork_Timestamp },
 				],
 				singularView: {
 					query: {
 						sources: [Source.X_Rest, Source.X_FxEmbed_Rest],
 						fields: ["scope"],
-						openFields: ["$$sourceWindowUsers", "$$sourceWindowPosts", "$$timestamps"],
+						openFields: ["$$observedUsers", "$$observedPosts", "$$timestamps"],
 					},
 					summary: {
-						title: [{ text: "X source window" }],
+						title: [{ text: "X observed" }],
 						value: [{ field: "scope" }],
 					},
 					content: {
 						lists: [
-							{ field: "$$sourceWindowUsers", component: "XUsersView", emptyText: "No X users in this source window." },
-							{ field: "$$sourceWindowPosts", component: "XPostsView", emptyText: "No X posts in this source window." },
-							{ field: "$$timestamps", component: "_GlobalXNetwork_TimestampsView", emptyText: "No X source-window observations yet." },
+							{ field: "$$observedUsers", component: "XUsersView", emptyText: "No X users in this observed." },
+							{ field: "$$observedPosts", component: "XPostsView", emptyText: "No X posts in this observed." },
+							{ field: "$$timestamps", component: "_GlobalXNetwork_TimestampsView", emptyText: "No X observed observations yet." },
 						],
 					},
 				},
@@ -5457,10 +5457,10 @@ export const app = {
 					{ name: "$hub", label: "hub", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType._GlobalXNetwork },
 					{ name: "timestampMs", label: "Timestamp", description: "The observation time in Unix milliseconds.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "sourceWindowUserCount", label: "source window user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowPostCount", label: "source window post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogUserCount", label: "local catalog user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "localCatalogPostCount", label: "local catalog post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedUserCount", label: "observed user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedPostCount", label: "observed post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededUserCount", label: "seeded user count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "seededPostCount", label: "seeded post count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "reachable", label: "reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 					{ name: "rateLimitRemaining", label: "rate limit remaining", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "searchWindowStartMs", label: "search window start ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -5477,8 +5477,8 @@ export const app = {
 							[{ field: "$hub" }],
 							[{ field: "timestampMs", format: "timestamp" }],
 							[{ field: "source" }],
-							[{ field: "sourceWindowUserCount", format: "number" }, { field: "sourceWindowPostCount", format: "number" }],
-							[{ field: "localCatalogUserCount", format: "number" }, { field: "localCatalogPostCount", format: "number" }],
+							[{ field: "observedUserCount", format: "number" }, { field: "observedPostCount", format: "number" }],
+							[{ field: "seededUserCount", format: "number" }, { field: "seededPostCount", format: "number" }],
 							[{ field: "reachable" }, { field: "rateLimitRemaining", format: "number" }],
 							[{ field: "searchWindowStartMs", format: "timestamp" }, { field: "searchWindowEndMs", format: "timestamp" }],
 						],
@@ -5501,7 +5501,7 @@ export const app = {
 						valueType: "_GlobalYoutubeNetworkScope",
 					},
 					{
-						name: "$$sourceWindowChannels",
+						name: "$$observedChannels",
 						label: "Channels",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5509,7 +5509,7 @@ export const app = {
 						defaultSources: [Source.Constants_Internal, Source.Youtube_Rest],
 					},
 					{
-						name: "$$sourceWindowVideos",
+						name: "$$observedVideos",
 						label: "Videos",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5517,7 +5517,7 @@ export const app = {
 						defaultSources: [Source.Constants_Internal, Source.Youtube_Rest],
 					},
 					{
-						name: "$$sourceWindowPlaylists",
+						name: "$$observedPlaylists",
 						label: "Playlists",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -5547,17 +5547,17 @@ export const app = {
 					},
 					lists: [
 						{
-							field: "$$sourceWindowChannels",
+							field: "$$observedChannels",
 							component: "YoutubeChannelsView",
 							href: "/(social)/(youtube)/youtube/channels",
 						},
 						{
-							field: "$$sourceWindowVideos",
+							field: "$$observedVideos",
 							component: "YoutubeVideosView",
 							href: "/(social)/(youtube)/youtube/videos",
 						},
 						{
-							field: "$$sourceWindowPlaylists",
+							field: "$$observedPlaylists",
 							component: "YoutubePlaylistsView",
 							href: "/(social)/(youtube)/youtube/playlists",
 						},
@@ -5602,43 +5602,43 @@ export const app = {
 						valueType: "string",
 					},
 					{
-						name: "sourceWindowChannelCount",
-						label: "Source-window channels",
+						name: "observedChannelCount",
+						label: "Observed channels",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "sourceWindowVideoCount",
-						label: "Source-window videos",
+						name: "observedVideoCount",
+						label: "Observed videos",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "sourceWindowPlaylistCount",
-						label: "Source-window playlists",
+						name: "observedPlaylistCount",
+						label: "Observed playlists",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "localCatalogChannelCount",
-						label: "Local catalog channels",
+						name: "seededChannelCount",
+						label: "Seeded channels",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "localCatalogVideoCount",
-						label: "Local catalog videos",
+						name: "seededVideoCount",
+						label: "Seeded videos",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
 					},
 					{
-						name: "localCatalogPlaylistCount",
-						label: "Local catalog playlists",
+						name: "seededPlaylistCount",
+						label: "Seeded playlists",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "number",
@@ -5688,15 +5688,15 @@ export const app = {
 								{ field: "timestampMs", format: "timestamp" },
 								{ field: "source" },
 								{
-									field: "sourceWindowChannelCount",
+									field: "observedChannelCount",
 									format: "number",
 								},
 								{
-									field: "sourceWindowVideoCount",
+									field: "observedVideoCount",
 									format: "number",
 								},
 								{
-									field: "sourceWindowPlaylistCount",
+									field: "observedPlaylistCount",
 									format: "number",
 								},
 								{ field: "reachable", format: "boolean" },
@@ -6660,7 +6660,7 @@ export const app = {
 				entityType: EntityType.ActivityPubInstance,
 				label: "ActivityPub instance",
 				labelPlural: "ActivityPub instances",
-				description: "A configured Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.",
+				description: "A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.",
 				selectors: [{ name: "InstanceOriginSource", fields: ["instanceOrigin", "source"] }],
 				fields: [
 					{ name: "instanceOrigin", label: "Instance origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -6721,7 +6721,7 @@ export const app = {
 				entityType: EntityType.ActivityPubInstanceModeratedDomain,
 				label: "ActivityPub instance moderated domain",
 				labelPlural: "ActivityPub instance moderated domains",
-				description: "A domain that a configured ActivityPub instance reports in its public moderation-domain list.",
+				description: "A domain that a declared ActivityPub instance reports in its public moderation-domain list.",
 				selectors: [{ name: "InstanceOriginModeratedDomainSource", fields: ["instanceOrigin", "domain", "source"] }],
 				fields: [
 					{ name: "instanceOrigin", label: "Instance origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -6753,7 +6753,7 @@ export const app = {
 				entityType: EntityType.ActivityPubInstancePeer,
 				label: "ActivityPub instance peer",
 				labelPlural: "ActivityPub instance peers",
-				description: "A domain that a configured ActivityPub instance reports as a known connected domain.",
+				description: "A domain that a declared ActivityPub instance reports as a known connected domain.",
 				selectors: [{ name: "InstanceOriginPeerDomainSource", fields: ["instanceOrigin", "peerDomain", "source"] }],
 				fields: [
 					{ name: "instanceOrigin", label: "Instance origin", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -6782,7 +6782,7 @@ export const app = {
 				entityType: EntityType.ActivityPubNetwork,
 				label: "ActivityPub",
 				labelPlural: "ActivityPub",
-				description: "ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from configured instance sources.",
+				description: "ActivityPub is the W3C federation protocol. This hub shows bounded Mastodon-compatible actor and note windows from declared instance sources.",
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{
@@ -6833,12 +6833,12 @@ export const app = {
 							{
 								field: "$$activityPubActors",
 								component: "ActivityPubActorsView",
-								emptyText: "No ActivityPub actors in this source window.",
+								emptyText: "No ActivityPub actors in this observed.",
 							},
 							{
 								field: "$$activityPubNotes",
 								component: "ActivityPubNotesView",
-								emptyText: "No ActivityPub notes in this source window.",
+								emptyText: "No ActivityPub notes in this observed.",
 							},
 						],
 					},
@@ -9487,7 +9487,7 @@ export const app = {
 				entityType: EntityType.AtprotoNetwork,
 				label: "AT Protocol",
 				labelPlural: "AT Protocol",
-				description: "AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product source windows live on the global AT Protocol hub.",
+				description: "AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product observeds live on the global AT Protocol hub.",
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{
@@ -9501,13 +9501,13 @@ export const app = {
 					{ name: "protocolName", label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "registryLabel", label: "Registry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				],
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						fields: ["protocolName", "homeUrl", "docsUrl", "registryLabel", "topology"],
+						fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
 					},
 					summary: {
 						title: [{ field: "protocolName" }],
@@ -9518,8 +9518,8 @@ export const app = {
 							[{ field: "protocolName" }],
 							[{ field: "homeUrl", format: "url" }],
 							[{ field: "docsUrl", format: "url" }],
-							[{ field: "registryLabel" }],
-							[{ field: "topology" }],
+							[{ field: "registryName" }],
+							[{ field: "relationshipModel" }],
 						],
 					},
 				},
@@ -9898,7 +9898,7 @@ export const app = {
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "blockNumber", label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 					{ name: "dataSubmissionCount", label: "data submission count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowSubmissionCount", label: "source window submission count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedSubmissionCount", label: "observed submission count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 				],
 				singularView: {
 					summary: {
@@ -9909,7 +9909,7 @@ export const app = {
 					content: {
 						dl: [
 							["$appId", { field: "timestampMs", format: "timestamp" }, "source"],
-							[{ field: "blockNumber", format: "numberValue" }, { field: "dataSubmissionCount", format: "number" }, { field: "sourceWindowSubmissionCount", format: "number" }],
+							[{ field: "blockNumber", format: "numberValue" }, { field: "dataSubmissionCount", format: "number" }, { field: "observedSubmissionCount", format: "number" }],
 						],
 					},
 				},
@@ -11427,7 +11427,7 @@ export const app = {
 				entityType: EntityType.BittensorNetwork,
 				label: "Bittensor network",
 				labelPlural: "Bittensor networks",
-				description: "Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from configured Bittensor JSON-RPC sources.",
+				description: "Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from declared Bittensor JSON-RPC sources.",
 				selectors: [
 					{
 						name: "Network",
@@ -12238,7 +12238,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.Anthropic_Rest, Source.Local_Internal, Source.McpConfigured_Protocol, Source.OpenAI_Rest],
+						sources: [Source.Anthropic_Rest, Source.Local_Internal, Source.McpDeclared_Protocol, Source.OpenAI_Rest],
 						fields: ["$connection", "timestampMs", "source"],
 						openFields: ["health", "latencyMs", "statusCode", "error"],
 					},
@@ -20439,8 +20439,8 @@ export const app = {
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "height", label: "Height", description: "The block or ledger height in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 					{ name: "blobCount", label: "blob count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-					{ name: "sourceWindowStartHeight", label: "source window start height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-					{ name: "sourceWindowEndHeight", label: "source window end height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+					{ name: "observedStartHeight", label: "observed start height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+					{ name: "observedEndHeight", label: "observed end height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				],
 				singularView: {
 					summary: {
@@ -20451,7 +20451,7 @@ export const app = {
 					content: {
 						dl: [
 							["$namespace", { field: "timestampMs", format: "timestamp" }, "source", { field: "height", format: "numberValue" }, { field: "blobCount", format: "number" }],
-							[{ field: "sourceWindowStartHeight", format: "numberValue" }, { field: "sourceWindowEndHeight", format: "numberValue" }],
+							[{ field: "observedStartHeight", format: "numberValue" }, { field: "observedEndHeight", format: "numberValue" }],
 						],
 					},
 				},
@@ -20688,7 +20688,7 @@ export const app = {
 							},
 							{
 								from: "$/constants/MarketCatalog.ts",
-								names: ["localCatalogCoinSpotUsdMarkets"],
+								names: ["seededCoinSpotUsdMarkets"],
 							},
 						],
 						query: {
@@ -20777,8 +20777,8 @@ export const app = {
 						},
 						carousels: [
 								{
-									id: "topology",
-									label: "Topology",
+									id: "relationshipModel",
+									label: "Relationship model",
 									sections: [
 										{
 											id: "coin-instances",
@@ -20808,7 +20808,7 @@ export const app = {
 											id: "catalog-usd-market",
 											label: "USD market",
 											Content: dedent`
-												{@const catalogUsdMarket = localCatalogCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
+												{@const catalogUsdMarket = seededCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
 												{#if catalogUsdMarket}
 													<div data-row="wrap align-center gap-2">
 														<a href={resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {
@@ -26931,7 +26931,7 @@ export const app = {
 					},
 					{
 						name: "registryStatus",
-						label: "Registry status",
+						label: "Registry name status",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "string",
@@ -27894,12 +27894,12 @@ export const app = {
 							],
 						},
 						{
-							id: "topology",
-							label: "Topology",
-							className: "network-view-collapsible-topology",
+							id: "relationshipModel",
+							label: "Relationship model",
+							className: "network-view-collapsible-relationshipModel",
 							sections: [
 								{
-									id: "topology-upgrades",
+									id: "relationshipModel-upgrades",
 									field: "$$upgrades",
 									List: "EthereumNetworkUpgradesView",
 									label: "Upgrades",
@@ -27909,7 +27909,7 @@ export const app = {
 									},
 								},
 								{
-									id: "topology-parent-layer",
+									id: "relationshipModel-parent-layer",
 									field: "$parent",
 									List: "NetworkView",
 									label: "Parent",
@@ -27923,7 +27923,7 @@ export const app = {
 									},
 								},
 								{
-									id: "topology-rollup",
+									id: "relationshipModel-rollup",
 									field: "$rollup",
 									List: "EvmRollupView",
 									label: "Rollup",
@@ -27933,7 +27933,7 @@ export const app = {
 									},
 								},
 								{
-									id: "topology-sibling-shards",
+									id: "relationshipModel-sibling-shards",
 									field: "$$siblingShardNetworks",
 									List: "EvmNetworksView",
 									label: "Shards",
@@ -27947,7 +27947,7 @@ export const app = {
 									},
 								},
 								{
-									id: "topology-testnets",
+									id: "relationshipModel-testnets",
 									field: "$$testnets",
 									List: "NetworksView",
 									label: "Testnets",
@@ -27961,7 +27961,7 @@ export const app = {
 									},
 								},
 								{
-									id: "topology-mainnet",
+									id: "relationshipModel-mainnet",
 									field: "$mainnet",
 									List: "NetworkView",
 									label: "Mainnet",
@@ -27974,7 +27974,7 @@ export const app = {
 									},
 								},
 								{
-									id: "topology-child-layers",
+									id: "relationshipModel-child-layers",
 									field: "$$childLayers",
 									List: "NetworksView",
 									label: "Layers",
@@ -27989,7 +27989,7 @@ export const app = {
 									},
 								},
 								{
-									id: "topology-settled-rollups",
+									id: "relationshipModel-settled-rollups",
 									field: "$$settledRollups",
 									List: "EvmRollupsView",
 									label: "Settled rollups",
@@ -28742,15 +28742,15 @@ export const app = {
 						valueType: "string",
 					},
 					{
-						name: "registryLabel",
-						label: "Registry label",
+						name: "registryName",
+						label: "Registry name name",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.One,
 						valueType: "string",
 					},
 					{
-						name: "topology",
-						label: "Topology",
+						name: "relationshipModel",
+						label: "Relationship model",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.One,
 						valueType: "string",
@@ -28783,8 +28783,8 @@ export const app = {
 						fields: [
 							"scope",
 							"protocolName",
-							"registryLabel",
-							"topology",
+							"registryName",
+							"relationshipModel",
 						],
 						openFields: [
 							"homeUrl",
@@ -28796,19 +28796,19 @@ export const app = {
 					},
 					summary: {
 						title: ["protocolName"],
-						value: ["registryLabel"],
+						value: ["registryName"],
 					},
 					closed: [
 						"protocolName",
-						"registryLabel",
-						"topology",
+						"registryName",
+						"relationshipModel",
 					],
 					content: {
 						dl: [
 							[
 								"protocolName",
-								"registryLabel",
-								"topology",
+								"registryName",
+								"relationshipModel",
 								"homeUrl",
 								"docsUrl",
 							],
@@ -28818,17 +28818,17 @@ export const app = {
 						{
 							field: "$$evmSelectors",
 							component: "EvmSelectorsView",
-							emptyText: "No EVM selectors in this source window.",
+							emptyText: "No EVM selectors in this observed.",
 						},
 						{
 							field: "$$evmTopics",
 							component: "EvmTopicsView",
-							emptyText: "No EVM topics in this source window.",
+							emptyText: "No EVM topics in this observed.",
 						},
 						{
 							field: "$$evmErrors",
 							component: "EvmErrorsView",
-							emptyText: "No EVM errors in this source window.",
+							emptyText: "No EVM errors in this observed.",
 						},
 					],
 				},
@@ -31099,7 +31099,7 @@ export const app = {
 				entityType: EntityType.FarcasterNetwork,
 				label: "Farcaster",
 				labelPlural: "Farcaster",
-				description: "Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from configured Farcaster sources.",
+				description: "Farcaster profiles, channels, and casts: FID plus cast-hash identity with hub feeds from declared Farcaster sources.",
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{
@@ -31113,8 +31113,8 @@ export const app = {
 					{ name: "protocolName", label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "registryLabel", label: "Registry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "$$feeds", label: "Feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterFeed, defaultSources: [Source.Constants_Internal, Source.Farcaster_Rest] },
 					{ name: "$$users", label: "Users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser },
 					{ name: "$$channels", label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel },
@@ -31122,7 +31122,7 @@ export const app = {
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						fields: ["protocolName", "homeUrl", "docsUrl", "registryLabel", "topology"],
+						fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
 						openFields: ["$$feeds", "$$users", "$$channels"],
 					},
 					summary: {
@@ -31134,13 +31134,13 @@ export const app = {
 							[{ field: "protocolName" }],
 							[{ field: "homeUrl", format: "url" }],
 							[{ field: "docsUrl", format: "url" }],
-							[{ field: "registryLabel" }],
-							[{ field: "topology" }],
+							[{ field: "registryName" }],
+							[{ field: "relationshipModel" }],
 						],
 						lists: [
-							{ field: "$$feeds", component: "FarcasterFeedsView", emptyText: "No Farcaster feeds in this source window." },
-							{ field: "$$users", component: "FarcasterUsersView", emptyText: "No Farcaster users in this source window." },
-							{ field: "$$channels", component: "FarcasterChannelsView", emptyText: "No Farcaster channels in this source window." },
+							{ field: "$$feeds", component: "FarcasterFeedsView", emptyText: "No Farcaster feeds in this observed." },
+							{ field: "$$users", component: "FarcasterUsersView", emptyText: "No Farcaster users in this observed." },
+							{ field: "$$channels", component: "FarcasterChannelsView", emptyText: "No Farcaster channels in this observed." },
 						],
 					},
 				},
@@ -39431,24 +39431,24 @@ export const app = {
 						{ name: "protocolName", label: "Protocol name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 						{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 						{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
-						{ name: "registryLabel", label: "Registry label", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-						{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+						{ name: "registryName", label: "Registry name name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+						{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					],
 					singularView: {
 						query: { sources: [Source.Constants_Internal] },
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ field: "topology" }],
+							value: [{ field: "relationshipModel" }],
 						},
-						closed: ["protocolName", "registryLabel"],
+						closed: ["protocolName", "registryName"],
 						content: {
 							dl: [
 								[
 									"protocolName",
-									"registryLabel",
+									"registryName",
 									{ field: "homeUrl", format: "url" },
 									{ field: "docsUrl", format: "url" },
-									"topology",
+									"relationshipModel",
 								],
 							],
 						},
@@ -39998,7 +39998,7 @@ export const app = {
 				entityType: EntityType.LensNetwork,
 				label: "Lens",
 				labelPlural: "Lens",
-				description: "Lens is a social graph protocol. This hub shows bounded account and post windows from the configured Lens GraphQL source.",
+				description: "Lens is a social graph protocol. This hub shows bounded account and post windows from the declared Lens GraphQL source.",
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{
@@ -40010,10 +40010,10 @@ export const app = {
 						primitiveType: { unit: "LensNetwork" },
 					},
 					{ name: "protocolName", label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "registryLabel", label: "Registry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{
 						name: "$$lensAccounts",
 						label: "Accounts",
@@ -40036,7 +40036,7 @@ export const app = {
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						fields: ["protocolName", "topology", "homeUrl", "docsUrl", "registryLabel"],
+						fields: ["protocolName", "relationshipModel", "homeUrl", "docsUrl", "registryName"],
 						openFields: ["$$lensAccounts", "$$lensPosts", "$$lensFeeds", "$$lensUsernameNamespaces"],
 					},
 					summary: {
@@ -40046,8 +40046,8 @@ export const app = {
 					content: {
 						dl: [
 							[{ field: "protocolName" }],
-							[{ field: "topology" }],
-							[{ field: "registryLabel" }],
+							[{ field: "relationshipModel" }],
+							[{ field: "registryName" }],
 							[{ field: "homeUrl", format: "url" }],
 							[{ field: "docsUrl", format: "url" }],
 						],
@@ -40055,22 +40055,22 @@ export const app = {
 							{
 								field: "$$lensAccounts",
 								component: "LensAccountsView",
-								emptyText: "No Lens accounts in this source window.",
+								emptyText: "No Lens accounts in this observed.",
 							},
 							{
 								field: "$$lensPosts",
 								component: "LensPostsView",
-								emptyText: "No Lens posts in this source window.",
+								emptyText: "No Lens posts in this observed.",
 							},
 							{
 								field: "$$lensFeeds",
 								component: "LensFeedsView",
-								emptyText: "No Lens feeds in this source window.",
+								emptyText: "No Lens feeds in this observed.",
 							},
 							{
 								field: "$$lensUsernameNamespaces",
 								component: "LensUsernameNamespacesView",
-								emptyText: "No Lens username namespaces in this source window.",
+								emptyText: "No Lens username namespaces in this observed.",
 							},
 						],
 					},
@@ -41703,7 +41703,7 @@ export const app = {
 							</p>
 
 							<p>
-								Candles load from every configured OHLC provider on the parent market row (Coingecko, Coinpaprika, CoinMarketCap, …).
+								Candles load from every declared OHLC provider on the parent market row (Coingecko, Coinpaprika, CoinMarketCap, …).
 							</p>
 						`,
 					filters: [
@@ -42009,7 +42009,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$server", "name"],
 						openFields: ["title", "description", "argumentsSchema", "$$results"],
 					},
@@ -42044,7 +42044,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$prompt", "argumentsHashAlgorithm", "argumentsHash", "timestampMs", "source"],
 						openFields: ["description", "messages", "raw", "error"],
 					},
@@ -42077,7 +42077,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$server", "uri"],
 						openFields: ["name", "title", "description", "mimeType", "annotations", "subscribed", "$$contentTimestamps"],
 					},
@@ -42115,7 +42115,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$resource", "timestampMs", "source"],
 						openFields: ["contentKind", "text", "blobHashAlgorithm", "blobHash", "uri", "mimeType", "size", "annotations", "error"],
 					},
@@ -42146,7 +42146,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$server", "uriTemplate"],
 						openFields: ["name", "title", "description", "mimeType", "annotations"],
 					},
@@ -42179,7 +42179,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.Eip8004Scan_Rest, Source.McpConfigured_Protocol],
+						sources: [Source.Eip8004Scan_Rest, Source.McpDeclared_Protocol],
 						fields: ["serverKey"],
 						openFields: ["$source", "$packageVersion", "transportKind", "endpointUrl", "$$tools", "$$resources", "$$resourceTemplates", "$$prompts", "$$timestamps"],
 					},
@@ -42224,7 +42224,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$server", "timestampMs", "source"],
 						openFields: ["health", "protocolVersion", "serverCapabilities", "toolsListChanged", "resourcesListChanged", "resourcesSubscribe", "promptsListChanged", "toolCount", "resourceCount", "promptCount", "nextCursor", "error"],
 					},
@@ -42322,7 +42322,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$server", "name"],
 						openFields: ["title", "description", "inputSchema", "outputSchema", "annotations"],
 					},
@@ -42355,7 +42355,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$server", "callId"],
 						openFields: ["$tool", "startedAt", "completedAt", "inputHashAlgorithm", "inputHash", "outputHashAlgorithm", "outputHash", "$$timestamps"],
 					},
@@ -42395,7 +42395,7 @@ export const app = {
 				],
 				singularView: {
 					query: {
-						sources: [Source.McpConfigured_Protocol],
+						sources: [Source.McpDeclared_Protocol],
 						fields: ["$toolCall", "timestampMs", "source"],
 						openFields: ["status", "latencyMs", "isError", "protocolError", "content", "structuredContent", "resourceLinks", "embeddedResources", "error", "payload"],
 					},
@@ -44208,7 +44208,7 @@ export const app = {
 				entityType: EntityType.NearNetwork,
 				label: "near network",
 				labelPlural: "near networks",
-				description: "NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from configured NEAR sources.",
+				description: "NEAR network catalog row with RPC endpoints, runtime observations, blocks, and validator sets from declared NEAR sources.",
 				selectors: [
 					{
 						name: "Slug",
@@ -45136,7 +45136,7 @@ export const app = {
 				entityType: EntityType.NostrNetwork,
 				label: "Nostr network",
 				labelPlural: "Nostr networks",
-				description: "Compatibility protocol row for the Nostr network concept. The product-backed source window is modeled by _GlobalNostrNetwork.",
+				description: "Compatibility protocol row for the Nostr network concept. The product-backed observed is modeled by _GlobalNostrNetwork.",
 				selectors: [
 					{ name: "Scope", fields: ["scope"] },
 				],
@@ -45145,18 +45145,18 @@ export const app = {
 					{ name: "protocolName", label: "protocol name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "homeUrl", label: "home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "registryLabel", label: "registry label", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "topology", label: "topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+					{ name: "registryName", label: "registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+					{ name: "relationshipModel", label: "relationshipModel", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				],
 				singularView: {
 					summary: {
 						title: ["protocolName"],
 						titleFallback: ["scope"],
-						value: ["registryLabel"],
+						value: ["registryName"],
 					},
 					content: {
 						dl: [
-							["scope", "protocolName", "registryLabel", "topology"],
+							["scope", "protocolName", "registryName", "relationshipModel"],
 							["homeUrl", "docsUrl"],
 						],
 					},
@@ -45332,12 +45332,12 @@ export const app = {
 						{
 							field: "$$replies",
 							component: "NostrNotesView",
-							emptyText: "No replies in this source window.",
+							emptyText: "No replies in this observed.",
 						},
 						{
 							field: "$$reactions",
 							component: "NostrReactionsView",
-							emptyText: "No reactions in this source window.",
+							emptyText: "No reactions in this observed.",
 						},
 					],
 				},
@@ -45528,17 +45528,17 @@ export const app = {
 						{
 							field: "$$notes",
 							component: "NostrNotesView",
-							emptyText: "No notes in this source window.",
+							emptyText: "No notes in this observed.",
 						},
 						{
 							field: "$$articles",
 							component: "NostrArticlesView",
-							emptyText: "No articles in this source window.",
+							emptyText: "No articles in this observed.",
 						},
 						{
 							field: "$$reposts",
 							component: "NostrRepostsView",
-							emptyText: "No reposts in this source window.",
+							emptyText: "No reposts in this observed.",
 						},
 					],
 				},
@@ -48374,7 +48374,7 @@ export const app = {
 				entityType: EntityType.RedditNetwork,
 				label: "Reddit network",
 				labelPlural: "Reddit networks",
-				description: "Reddit protocol catalog identity for public API and listing metadata. Product source windows live on the global Reddit hub.",
+				description: "Reddit protocol catalog identity for public API and listing metadata. Product observeds live on the global Reddit hub.",
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{
@@ -48388,13 +48388,13 @@ export const app = {
 					{ name: "protocolName", label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "registryLabel", label: "Registry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				],
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						fields: ["protocolName", "homeUrl", "docsUrl", "registryLabel", "topology"],
+						fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
 					},
 					summary: {
 						title: [{ field: "protocolName" }],
@@ -48405,8 +48405,8 @@ export const app = {
 							[{ field: "protocolName" }],
 							[{ field: "homeUrl", format: "url" }],
 							[{ field: "docsUrl", format: "url" }],
-							[{ field: "registryLabel" }],
-							[{ field: "topology" }],
+							[{ field: "registryName" }],
+							[{ field: "relationshipModel" }],
 						],
 					},
 				},
@@ -48799,7 +48799,7 @@ export const app = {
 					{ name: "timestampMs", label: "Timestamp", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "source", label: "Source", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "reachable", label: "Reachable", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-					{ name: "sourceWindowItemCount", label: "Source window items", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					{ name: "observedItemCount", label: "Observed items", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "fetchWindowKind", label: "Fetch window", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				],
 				singularView: {
@@ -48814,7 +48814,7 @@ export const app = {
 							[{ field: "timestampMs", format: "timestamp" }],
 							[{ field: "source" }],
 							[{ field: "reachable" }],
-							[{ field: "sourceWindowItemCount", format: "number" }],
+							[{ field: "observedItemCount", format: "number" }],
 							[{ field: "fetchWindowKind" }],
 						],
 					},
@@ -48930,8 +48930,8 @@ export const app = {
 					{ name: "protocolName", label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "registryLabel", label: "Registry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{
 						name: "$$rssFeeds",
 						label: "Feeds",
@@ -48941,7 +48941,7 @@ export const app = {
 						defaultSources: [Source.Constants_Internal],
 					},
 					{
-						name: "$$sourceWindowItems",
+						name: "$$observedItems",
 						label: "Items",
 						type: EntityFieldType.EntitiesReference,
 						cardinality: EntityFieldCardinality.Many,
@@ -48952,8 +48952,8 @@ export const app = {
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						fields: ["protocolName", "homeUrl", "docsUrl", "registryLabel", "topology"],
-						openFields: ["$$rssFeeds", "$$sourceWindowItems"],
+						fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
+						openFields: ["$$rssFeeds", "$$observedItems"],
 					},
 					summary: {
 						title: [{ field: "protocolName" }],
@@ -48964,8 +48964,8 @@ export const app = {
 							[{ field: "protocolName" }],
 							[{ field: "homeUrl", format: "url" }],
 							[{ field: "docsUrl", format: "url" }],
-							[{ field: "registryLabel" }],
-							[{ field: "topology" }],
+							[{ field: "registryName" }],
+							[{ field: "relationshipModel" }],
 						],
 						lists: [
 							{
@@ -48974,7 +48974,7 @@ export const app = {
 								emptyText: "No RSS feeds in this hub yet.",
 							},
 							{
-								field: "$$sourceWindowItems",
+								field: "$$observedItems",
 								component: "RssItemsView",
 								emptyText: "No RSS items here yet.",
 							},
@@ -54808,24 +54808,24 @@ export const app = {
 						{ name: "protocolName", label: "Protocol name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 						{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 						{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
-						{ name: "registryLabel", label: "Registry label", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-						{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+						{ name: "registryName", label: "Registry name name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+						{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					],
 					singularView: {
 						query: { sources: [Source.Constants_Internal] },
 						summary: {
 							title: [{ field: "protocolName" }],
-							value: [{ field: "topology" }],
+							value: [{ field: "relationshipModel" }],
 						},
-						closed: ["protocolName", "registryLabel"],
+						closed: ["protocolName", "registryName"],
 						content: {
 							dl: [
 								[
 									"protocolName",
-									"registryLabel",
+									"registryName",
 									{ field: "homeUrl", format: "url" },
 									{ field: "docsUrl", format: "url" },
-									"topology",
+									"relationshipModel",
 								],
 							],
 						},
@@ -60707,7 +60707,7 @@ export const app = {
 				entityType: EntityType.XmtpNetwork,
 				label: "XMTP",
 				labelPlural: "XMTP",
-				description: "XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the local catalog.",
+				description: "XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the seeded.",
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{
@@ -60721,8 +60721,8 @@ export const app = {
 					{ name: "protocolName", label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "registryLabel", label: "Registry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{
 						name: "$$xmtpConversations",
 						label: "Conversations",
@@ -60735,7 +60735,7 @@ export const app = {
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						fields: ["protocolName", "homeUrl", "docsUrl", "registryLabel", "topology"],
+						fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
 						openFields: ["$$xmtpConversations"],
 					},
 					summary: {
@@ -60745,8 +60745,8 @@ export const app = {
 					content: {
 						dl: [
 							[{ field: "protocolName" }],
-							[{ field: "registryLabel" }],
-							[{ field: "topology" }],
+							[{ field: "registryName" }],
+							[{ field: "relationshipModel" }],
 							[{ field: "homeUrl", format: "url" }],
 							[{ field: "docsUrl", format: "url" }],
 						],
@@ -60765,7 +60765,7 @@ export const app = {
 				entityType: EntityType.XNetwork,
 				label: "X",
 				labelPlural: "X",
-				description: "X profiles and posts surfaced through configured public HTTP sources.",
+				description: "X profiles and posts surfaced through declared public HTTP sources.",
 				selectors: [{ name: "Scope", fields: ["scope"] }],
 				fields: [
 					{
@@ -60779,8 +60779,8 @@ export const app = {
 					{ name: "protocolName", label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "registryLabel", label: "Registry", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "topology", label: "Topology", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{
 						name: "$$xUsers",
 						label: "Users",
@@ -60801,7 +60801,7 @@ export const app = {
 				singularView: {
 					query: {
 						sources: [Source.Constants_Internal],
-						fields: ["protocolName", "homeUrl", "docsUrl", "registryLabel", "topology"],
+						fields: ["protocolName", "homeUrl", "docsUrl", "registryName", "relationshipModel"],
 						openFields: ["$$xUsers", "$$xPosts"],
 					},
 					summary: {
@@ -60811,8 +60811,8 @@ export const app = {
 					content: {
 						dl: [
 							[{ field: "protocolName" }],
-							[{ field: "registryLabel" }],
-							[{ field: "topology" }],
+							[{ field: "registryName" }],
+							[{ field: "relationshipModel" }],
 							[{ field: "homeUrl", format: "url" }],
 							[{ field: "docsUrl", format: "url" }],
 						],
@@ -62302,9 +62302,14 @@ export const app = {
 						],
 					},
 				},
-				pluralView: { component: "YoutubeChannel_TimestampsView",
+					pluralView: { component: "YoutubeChannel_TimestampsView",
+					},
+					query: {
+						sources: {
+							default: [Source.Constants_Internal, Source.Youtube_Rest, Source.Piped_Rest],
+						},
+					},
 				},
-			},
 			{
 				entityType: EntityType.YoutubeComment,
 				label: "YouTube comment",
@@ -76497,44 +76502,39 @@ export const app = {
 														],
 													},
 													{
-														segment: "zcash",
+														segment: "shielded-pool",
 														children: [
 															{
-																segment: "shielded-pool",
-																children: [
+																segment: "[pool]",
+																files: [
 																	{
-																		segment: "[pool]",
-																		files: [
-																			{
-																				kind: _RouteFileKind.PageModule,
-																				load: {
-																					entity: EntityType.ZcashShieldedPool,
-																					selector: "NetworkPool",
-																					href: {
+																		kind: _RouteFileKind.PageModule,
+																		load: {
+																			entity: EntityType.ZcashShieldedPool,
+																			selector: "NetworkPool",
+																			href: {
+																				params: [
+																					{ param: "networkSlug", value: routeNetworkSlugFromEntityReferenceField("$network") },
+																					{ param: "pool", value: { kind: "field", name: "pool" } },
+																				],
+																			},
+																			fields: [
+																				{
+																					field: "$network",
+																					value: {
+																						kind: "selector",
+																						entity: EntityType.Network,
+																						selector: "Slug",
 																						params: [
-																							{ param: "networkSlug", value: routeNetworkSlugFromEntityReferenceField("$network") },
-																							{ param: "pool", value: { kind: "field", name: "pool" } },
+																							{ field: "slug", param: "networkSlug" },
 																						],
 																					},
-																					fields: [
-																						{
-																							field: "$network",
-																							value: {
-																								kind: "selector",
-																								entity: EntityType.Network,
-																								selector: "Slug",
-																								params: [
-																									{ field: "slug", param: "networkSlug" },
-																								],
-																							},
-																						},
-																						{ field: "pool", value: { kind: "param", name: "pool", decode: _ExpressionDecode.DecodeURIComponent } },
-																					],
 																				},
-																			},
-																			{ kind: _RouteFileKind.Page, view: { entity: EntityType.ZcashShieldedPool, selector: "NetworkPool", component: "ZcashShieldedPoolView" } },
-																		],
+																				{ field: "pool", value: { kind: "param", name: "pool", decode: _ExpressionDecode.DecodeURIComponent } },
+																			],
+																		},
 																	},
+																	{ kind: _RouteFileKind.Page, view: { entity: EntityType.ZcashShieldedPool, selector: "NetworkPool", component: "ZcashShieldedPoolView" } },
 																],
 															},
 														],
@@ -77318,7 +77318,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "RssNetwork" } },
 															],
 														},
-														field: "$$sourceWindowItems",
+														field: "$$observedItems",
 													},
 												},
 												text: { title: "RSS items" },
@@ -79041,7 +79041,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "_GlobalActivityPubNetwork" } },
 															],
 														},
-														field: "$$sourceWindowActors",
+														field: "$$observedActors",
 													},
 													query: {
 														sources: [Source.Mastodon_Rest],
@@ -79067,7 +79067,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "_GlobalActivityPubNetwork" } },
 															],
 														},
-														field: "$$sourceWindowNotes",
+														field: "$$observedNotes",
 													},
 													query: {
 														sources: [Source.Mastodon_Rest],
@@ -79442,7 +79442,7 @@ export const app = {
 																},
 															],
 														},
-														field: "$$sourceWindowActors",
+														field: "$$observedActors",
 													},
 													query: {
 														sources: [Source.Constants_Internal],
@@ -79471,7 +79471,7 @@ export const app = {
 																},
 															],
 														},
-														field: "$$sourceWindowPosts",
+														field: "$$observedPosts",
 													},
 													query: {
 														sources: [Source.Constants_Internal],
@@ -79898,7 +79898,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "_GlobalNostrNetwork" } },
 															],
 														},
-														field: "$$sourceWindowProfiles",
+														field: "$$observedProfiles",
 													},
 												},
 												text: { title: "Nostr profiles" },
@@ -79921,7 +79921,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "_GlobalNostrNetwork" } },
 															],
 														},
-														field: "$$sourceWindowNotes",
+														field: "$$observedNotes",
 													},
 												},
 												text: { title: "Nostr notes" },
@@ -79944,7 +79944,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "_GlobalNostrNetwork" } },
 															],
 														},
-														field: "$$sourceWindowRelays",
+														field: "$$observedRelays",
 													},
 												},
 												text: { title: "Nostr relays" },
@@ -79967,7 +79967,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "_GlobalNostrNetwork" } },
 															],
 														},
-														field: "$$sourceWindowArticles",
+														field: "$$observedArticles",
 													},
 												},
 												text: { title: "Nostr articles" },
@@ -79990,7 +79990,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "_GlobalNostrNetwork" } },
 															],
 														},
-														field: "$$sourceWindowReposts",
+														field: "$$observedReposts",
 													},
 												},
 												text: { title: "Nostr reposts" },
@@ -80013,7 +80013,7 @@ export const app = {
 																{ name: "scope", value: { kind: "literal", value: "_GlobalNostrNetwork" } },
 															],
 														},
-														field: "$$sourceWindowReactions",
+														field: "$$observedReactions",
 													},
 												},
 												text: { title: "Nostr reactions" },
@@ -80415,7 +80415,7 @@ export const app = {
 																},
 															],
 														},
-														field: "$$sourceWindowSubreddits",
+														field: "$$observedSubreddits",
 													},
 												},
 												text: {
@@ -80448,7 +80448,7 @@ export const app = {
 																},
 															],
 														},
-														field: "$$sourceWindowLinks",
+														field: "$$observedLinks",
 													},
 												},
 												text: {
@@ -81120,7 +81120,7 @@ export const app = {
 																},
 															],
 														},
-														field: "$$sourceWindowChannels",
+														field: "$$observedChannels",
 													},
 												},
 												text: { title: "YouTube channels" },
@@ -81146,7 +81146,7 @@ export const app = {
 																},
 															],
 														},
-														field: "$$sourceWindowVideos",
+														field: "$$observedVideos",
 													},
 												},
 												text: { title: "YouTube Videos" },
@@ -81172,7 +81172,7 @@ export const app = {
 																},
 															],
 														},
-														field: "$$sourceWindowPlaylists",
+														field: "$$observedPlaylists",
 													},
 												},
 												text: { title: "YouTube playlists" },
@@ -81890,7 +81890,7 @@ export const app = {
 			},
 			{
 				provider: "CosmosChainRegistry",
-				label: "Cosmos Chain Registry",
+				label: "Cosmos Chain Registry name",
 			},
 			{
 				provider: "CosmosSdk",
@@ -82162,7 +82162,7 @@ export const app = {
 			},
 			{
 				provider: "Superchain",
-				label: "Superchain Registry",
+				label: "Superchain Registry name",
 			},
 			{
 				provider: "Solana",
@@ -83109,7 +83109,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Eip155Chain,
-						key: "configured-chain",
+						key: "declared-chain",
 					},
 					endpoints: [
 						{
@@ -83252,13 +83252,13 @@ export const app = {
 					},
 				},
 				{
-					source: Source.McpConfigured_Protocol,
+					source: Source.McpDeclared_Protocol,
 					provider: "Mcp",
-					label: "Configured MCP server",
+					label: "Declared MCP server",
 				binding: {
 					target: {
 						kind: SourceTargetKind.LocalDevice,
-						key: "mcp-configured",
+						key: "mcp-declared",
 					},
 					endpoints: [
 						{
@@ -83344,7 +83344,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Eip155Chain,
-						key: "configured-chain",
+						key: "declared-chain",
 					},
 					endpoints: [
 						{
@@ -83510,7 +83510,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.LocalDevice,
-						key: "configured-quilibrium-node",
+						key: "declared-quilibrium-node",
 					},
 					endpoints: [
 						{
@@ -84678,7 +84678,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.LocalDevice,
-						key: "configured-lnd-node",
+						key: "declared-lnd-node",
 					},
 					endpoints: [
 						{
@@ -85898,7 +85898,7 @@ export const app = {
 			{
 				source: Source.Superchain_Github,
 				provider: "Superchain",
-				label: "Superchain Registry GitHub",
+				label: "Superchain Registry name GitHub",
 				binding: {
 					target: {
 						kind: SourceTargetKind.GitRepository,
@@ -86632,7 +86632,7 @@ export const app = {
 			{
 				source: Source.CosmosChainRegistry_Github,
 				provider: "CosmosChainRegistry",
-				label: "Cosmos Chain Registry GitHub",
+				label: "Cosmos Chain Registry name GitHub",
 				binding: {
 					target: {
 						kind: SourceTargetKind.GitRepository,
@@ -86692,7 +86692,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Eip155Chain,
-						key: "configured-chain",
+						key: "declared-chain",
 					},
 					endpoints: [
 						{
@@ -86776,7 +86776,7 @@ export const app = {
 				binding: {
 					target: {
 						kind: SourceTargetKind.Eip155Chain,
-						key: "configured-chain",
+						key: "declared-chain",
 					},
 					endpoints: [
 						{
@@ -87225,6 +87225,10 @@ export const app = {
 			{
 				source: Source.Allium_Rest,
 				path: "src/resolvers/Allium-Rest.ts",
+			},
+			{
+				source: Source.A2aWellKnown_Http,
+				path: "src/resolvers/A2aWellKnown-Http.ts",
 			},
 			{
 				source: Source.Beacon_Rest,

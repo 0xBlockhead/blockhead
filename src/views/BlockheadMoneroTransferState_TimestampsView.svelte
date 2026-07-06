@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadMoneroTransferState_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadMoneroTransferStateTimestamps)}
 			{@const uniqueBlockheadMoneroTransferStateTimestamps = [...new Map(blockheadMoneroTransferStateTimestamps.values.map((blockheadMoneroTransferStateTimestamp) => [blockheadMoneroTransferStateTimestamp[EntityMetaKey.SelectorKey], blockheadMoneroTransferStateTimestamp])).values()]}
 			<EntitiesList

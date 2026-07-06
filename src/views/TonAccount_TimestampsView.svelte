@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TonAccount_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tonAccountTimestamps)}
 			{@const uniqueTonAccountTimestamps = [...new Map(tonAccountTimestamps.values.map((tonAccountTimestamp) => [tonAccountTimestamp[EntityMetaKey.SelectorKey], tonAccountTimestamp])).values()]}
 			<EntitiesList

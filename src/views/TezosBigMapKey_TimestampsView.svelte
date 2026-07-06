@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TezosBigMapKey_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tezosBigMapKeyTimestamps)}
 			{@const uniqueTezosBigMapKeyTimestamps = [...new Map(tezosBigMapKeyTimestamps.values.map((tezosBigMapKeyTimestamp) => [tezosBigMapKeyTimestamp[EntityMetaKey.SelectorKey], tezosBigMapKeyTimestamp])).values()]}
 			<EntitiesList

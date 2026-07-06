@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BittensorMetagraph_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bittensorMetagraphTimestamps)}
 			{@const uniqueBittensorMetagraphTimestamps = [...new Map(bittensorMetagraphTimestamps.values.map((bittensorMetagraphTimestamp) => [bittensorMetagraphTimestamp[EntityMetaKey.SelectorKey], bittensorMetagraphTimestamp])).values()]}
 			<EntitiesList

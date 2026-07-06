@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvalancheValidator_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(avalancheValidatorTimestamps)}
 			{@const uniqueAvalancheValidatorTimestamps = [...new Map(avalancheValidatorTimestamps.values.map((avalancheValidatorTimestamp) => [avalancheValidatorTimestamp[EntityMetaKey.SelectorKey], avalancheValidatorTimestamp])).values()]}
 			<EntitiesList

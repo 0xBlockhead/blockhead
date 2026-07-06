@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitRefUpdate}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitRefUpdates)}
 			{@const uniqueGitRefUpdates = [...new Map(gitRefUpdates.values.map((gitRefUpdate) => [gitRefUpdate[EntityMetaKey.SelectorKey], gitRefUpdate])).values()]}
 			<EntitiesList

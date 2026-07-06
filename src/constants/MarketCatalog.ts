@@ -29,7 +29,7 @@ export type CatalogCurrencyCurrencyMarket = {
 
 
 // Constants
-export const localCatalogCoinSpotUsdMarkets = coins.map((coin) => (
+export const seededCoinSpotUsdMarkets = coins.map((coin) => (
 	{
 		baseCoinId: coin.id,
 		quoteIso4217: Iso4217.USD,
@@ -38,7 +38,7 @@ export const localCatalogCoinSpotUsdMarkets = coins.map((coin) => (
 	}
 )) satisfies readonly CatalogCoinCurrencyMarket[]
 
-export const localCatalogSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) => (
+export const seededSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) => (
 	coins.flatMap((coin) => (
 		coin.id === quoteCoin.id ?
 			[]
@@ -52,7 +52,7 @@ export const localCatalogSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) 
 	))
 )) satisfies readonly CatalogCoinCoinMarket[]
 
-export const localCatalogSpotMarketsWithCurrencyAsBase = iso4217WithCatalogUsdCrossAsBase.map((iso4217) => ({
+export const seededSpotMarketsWithCurrencyAsBase = iso4217WithCatalogUsdCrossAsBase.map((iso4217) => ({
 	baseIso4217: iso4217,
 	quoteIso4217: Iso4217.USD,
 	marketVenueId: MarketVenueId.Coinbase,
@@ -62,25 +62,25 @@ export const localCatalogSpotMarketsWithCurrencyAsBase = iso4217WithCatalogUsdCr
 
 // Lookups
 
-export const localCatalogCoinSpotUsdMarketByCoinId = Object.fromEntries(
-	localCatalogCoinSpotUsdMarkets.map((catalogRow) => [
+export const seededCoinSpotUsdMarketByCoinId = Object.fromEntries(
+	seededCoinSpotUsdMarkets.map((catalogRow) => [
 		catalogRow.baseCoinId,
 		catalogRow,
 	])
 )
 
-export const localCatalogMarketsWithCoinAsQuoteByQuoteCoinId = Object.fromEntries(
+export const seededMarketsWithCoinAsQuoteByQuoteCoinId = Object.fromEntries(
 	[
-		...new Set(localCatalogSpotMarketsWithCoinAsQuote.map((catalogRow) => catalogRow.quoteCoinId)),
+		...new Set(seededSpotMarketsWithCoinAsQuote.map((catalogRow) => catalogRow.quoteCoinId)),
 	].map((quoteCoinId) => [
 		quoteCoinId,
-		localCatalogSpotMarketsWithCoinAsQuote
+		seededSpotMarketsWithCoinAsQuote
 				.filter((catalogRow) => catalogRow.quoteCoinId === quoteCoinId),
 	])
 )
 
-export const localCatalogMarketsWithCurrencyAsBaseByIso4217 = Object.fromEntries(
-	localCatalogSpotMarketsWithCurrencyAsBase.map((catalogRow) => [
+export const seededMarketsWithCurrencyAsBaseByIso4217 = Object.fromEntries(
+	seededSpotMarketsWithCurrencyAsBase.map((catalogRow) => [
 		catalogRow.baseIso4217,
 		[catalogRow],
 	])

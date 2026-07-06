@@ -117,7 +117,7 @@
 		{#if detailsOpen}
 			<RedditSubredditsView
 				selection={
-						selection[EntityProxyField]<EntityType.RedditSubreddit>('$$sourceWindowSubreddits', {
+						selection[EntityProxyField]<EntityType.RedditSubreddit>('$$observedSubreddits', {
 							sources: [
 								Source.Constants_Internal,
 								Source.Reddit_PublicJson,
@@ -126,12 +126,12 @@
 					}
 				title='Subreddits'
 				href={resolve('/(social)/(reddit)/reddit/subreddits')}
-				id='RedditSubredditsView-$$sourceWindowSubreddits'
+				id='RedditSubredditsView-$$observedSubreddits'
 			/>
 
 			<RedditLinksView
 				selection={
-						selection[EntityProxyField]<EntityType.RedditLink>('$$sourceWindowLinks', {
+						selection[EntityProxyField]<EntityType.RedditLink>('$$observedLinks', {
 							sources: [
 								Source.Constants_Internal,
 								Source.Reddit_PublicJson,
@@ -140,7 +140,7 @@
 					}
 				title='Popular submissions'
 				href={resolve('/(social)/(reddit)/reddit/links')}
-				id='RedditLinksView-$$sourceWindowLinks'
+				id='RedditLinksView-$$observedLinks'
 			/>
 
 			<GlobalRedditNetwork_TimestampsView

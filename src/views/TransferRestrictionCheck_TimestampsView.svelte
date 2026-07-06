@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TransferRestrictionCheck_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(transferRestrictionCheckTimestamps)}
 			{@const uniqueTransferRestrictionCheckTimestamps = [...new Map(transferRestrictionCheckTimestamps.values.map((transferRestrictionCheckTimestamp) => [transferRestrictionCheckTimestamp[EntityMetaKey.SelectorKey], transferRestrictionCheckTimestamp])).values()]}
 			<EntitiesList

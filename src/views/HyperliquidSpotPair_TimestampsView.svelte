@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidSpotPair_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidSpotPairTimestamps)}
 			{@const uniqueHyperliquidSpotPairTimestamps = [...new Map(hyperliquidSpotPairTimestamps.values.map((hyperliquidSpotPairTimestamp) => [hyperliquidSpotPairTimestamp[EntityMetaKey.SelectorKey], hyperliquidSpotPairTimestamp])).values()]}
 			<EntitiesList

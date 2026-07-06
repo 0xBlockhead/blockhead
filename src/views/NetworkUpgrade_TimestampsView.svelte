@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NetworkUpgrade_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(networkUpgradeTimestamps)}
 			{@const uniqueNetworkUpgradeTimestamps = [...new Map(networkUpgradeTimestamps.values.map((networkUpgradeTimestamp) => [networkUpgradeTimestamp[EntityMetaKey.SelectorKey], networkUpgradeTimestamp])).values()]}
 			<EntitiesList

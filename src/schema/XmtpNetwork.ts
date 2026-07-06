@@ -12,7 +12,7 @@ export default {
 	entityType: EntityType.XmtpNetwork,
 	label: 'XMTP',
 	labelPlural: 'XMTP',
-	description: 'XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the local catalog.',
+	description: 'XMTP transports encrypted payloads between inbox identities. This hub shows local conversation state from the seeded.',
 	selectors: [
 		{
 			name: XmtpNetworkSelector.Scope,
@@ -52,15 +52,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'Registry',
+			name: 'registryName',
+			label: 'Registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvailDataSubmission}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(availDataSubmissions)}
 			{@const uniqueAvailDataSubmissions = [...new Map(availDataSubmissions.values.map((availDataSubmission) => [availDataSubmission[EntityMetaKey.SelectorKey], availDataSubmission])).values()]}
 			<EntitiesList

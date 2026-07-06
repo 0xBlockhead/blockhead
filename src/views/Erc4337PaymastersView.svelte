@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Erc4337Paymaster}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(erc4337Paymasters)}
 			{@const uniqueErc4337Paymasters = [...new Map(erc4337Paymasters.values.map((erc4337Paymaster) => [erc4337Paymaster[EntityMetaKey.SelectorKey], erc4337Paymaster])).values()]}
 			<EntitiesList

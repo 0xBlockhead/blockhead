@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'Lens',
-		typeAnnotationParagraphs = ['Lens is a social graph protocol. This hub shows bounded account and post windows from the configured Lens GraphQL source.'],
+		typeAnnotationParagraphs = ['Lens is a social graph protocol. This hub shows bounded account and post windows from the declared Lens GraphQL source.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LensNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(lensNetworks)}
 			{@const uniqueLensNetworks = [...new Map(lensNetworks.values.map((lensNetwork) => [lensNetwork[EntityMetaKey.SelectorKey], lensNetwork])).values()]}
 			<EntitiesList

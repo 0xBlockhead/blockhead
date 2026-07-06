@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiPackageVersion}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiPackageVersions)}
 			{@const uniqueSuiPackageVersions = [...new Map(suiPackageVersions.values.map((suiPackageVersion) => [suiPackageVersion[EntityMetaKey.SelectorKey], suiPackageVersion])).values()]}
 			<EntitiesList

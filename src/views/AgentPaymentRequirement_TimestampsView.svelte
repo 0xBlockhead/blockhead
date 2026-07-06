@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AgentPaymentRequirement_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(agentPaymentRequirementTimestamps)}
 			{@const uniqueAgentPaymentRequirementTimestamps = [...new Map(agentPaymentRequirementTimestamps.values.map((agentPaymentRequirementTimestamp) => [agentPaymentRequirementTimestamp[EntityMetaKey.SelectorKey], agentPaymentRequirementTimestamp])).values()]}
 			<EntitiesList

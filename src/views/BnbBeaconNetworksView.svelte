@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BnbBeaconNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bnbBeaconNetworks)}
 			{@const uniqueBnbBeaconNetworks = [...new Map(bnbBeaconNetworks.values.map((bnbBeaconNetwork) => [bnbBeaconNetwork[EntityMetaKey.SelectorKey], bnbBeaconNetwork])).values()]}
 			<EntitiesList

@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EvmCalldata}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(evmCalldatas)}
 			{@const uniqueEvmCalldatas = [...new Map(evmCalldatas.values.map((evmCalldata) => [evmCalldata[EntityMetaKey.SelectorKey], evmCalldata])).values()]}
 			<EntitiesList

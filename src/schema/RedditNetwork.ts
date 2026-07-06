@@ -11,7 +11,7 @@ export default {
 	entityType: EntityType.RedditNetwork,
 	label: 'Reddit network',
 	labelPlural: 'Reddit networks',
-	description: 'Reddit protocol catalog identity for public API and listing metadata. Product source windows live on the global Reddit hub.',
+	description: 'Reddit protocol catalog identity for public API and listing metadata. Product observeds live on the global Reddit hub.',
 	selectors: [
 		{
 			name: RedditNetworkSelector.Scope,
@@ -51,15 +51,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'Registry',
+			name: 'registryName',
+			label: 'Registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

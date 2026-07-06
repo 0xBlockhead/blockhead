@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StellarNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(stellarNetworkTimestamps)}
 			{@const uniqueStellarNetworkTimestamps = [...new Map(stellarNetworkTimestamps.values.map((stellarNetworkTimestamp) => [stellarNetworkTimestamp[EntityMetaKey.SelectorKey], stellarNetworkTimestamp])).values()]}
 			<EntitiesList

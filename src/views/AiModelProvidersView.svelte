@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiModelProvider}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiModelProviders)}
 			{@const uniqueAiModelProviders = [...new Map(aiModelProviders.values.map((aiModelProvider) => [aiModelProvider[EntityMetaKey.SelectorKey], aiModelProvider])).values()]}
 			<EntitiesList

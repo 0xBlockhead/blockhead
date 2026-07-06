@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadBitTorrentTransfer_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadBitTorrentTransferTimestamps)}
 			{@const uniqueBlockheadBitTorrentTransferTimestamps = [...new Map(blockheadBitTorrentTransferTimestamps.values.map((blockheadBitTorrentTransferTimestamp) => [blockheadBitTorrentTransferTimestamp[EntityMetaKey.SelectorKey], blockheadBitTorrentTransferTimestamp])).values()]}
 			<EntitiesList

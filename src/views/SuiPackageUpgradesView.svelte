@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiPackageUpgrade}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiPackageUpgrades)}
 			{@const uniqueSuiPackageUpgrades = [...new Map(suiPackageUpgrades.values.map((suiPackageUpgrade) => [suiPackageUpgrade[EntityMetaKey.SelectorKey], suiPackageUpgrade])).values()]}
 			<EntitiesList

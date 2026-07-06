@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.MoneroRingMember}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(moneroRingMembers)}
 			{@const uniqueMoneroRingMembers = [...new Map(moneroRingMembers.values.map((moneroRingMember) => [moneroRingMember[EntityMetaKey.SelectorKey], moneroRingMember])).values()]}
 			<EntitiesList

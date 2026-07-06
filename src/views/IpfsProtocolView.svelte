@@ -45,7 +45,7 @@
 		],
 		fields: {
 			protocolName: true,
-			topology: true,
+			relationshipModel: true,
 		},
 	}))
 	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'IPFS protocol')
@@ -84,12 +84,12 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={ipfsProtocol}>
 			{#snippet Pending()}
-				{[String((prefetched.topology) ?? '')].filter(Boolean).join(' ') || [String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'IPFS protocol'}
+				{[String((prefetched.relationshipModel) ?? '')].filter(Boolean).join(' ') || [String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'IPFS protocol'}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.topology) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[String((resolvedEntity.relationshipModel) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -127,29 +127,29 @@
 			</div>
 
 			<div>
-				<dt>Registry label</dt>
+				<dt>Registry name name</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
 							selection({
 								fields: {
-									registryLabel: true,
+									registryName: true,
 								},
 							})
 						}
 					>
 						{#snippet Pending()}
-							{@const registryLabel = prefetched.registryLabel}
-							{#if registryLabel !== undefined && registryLabel !== null}
-								{String((registryLabel) ?? '')}
+							{@const registryName = prefetched.registryName}
+							{#if registryName !== undefined && registryName !== null}
+								{String((registryName) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const registryLabel = resolvedEntity.registryLabel}
-							{#if registryLabel !== undefined && registryLabel !== null}
-								{String((registryLabel) ?? '')}
+							{@const registryName = resolvedEntity.registryName}
+							{#if registryName !== undefined && registryName !== null}
+								{String((registryName) ?? '')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -250,29 +250,29 @@
 			</ResourceBoundary>
 
 			<div>
-				<dt>Topology</dt>
+				<dt>Relationship model</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
 							selection({
 								fields: {
-									topology: true,
+									relationshipModel: true,
 								},
 							})
 						}
 					>
 						{#snippet Pending()}
-							{@const topology = prefetched.topology}
-							{#if topology !== undefined && topology !== null}
-								{String((topology) ?? '')}
+							{@const relationshipModel = prefetched.relationshipModel}
+							{#if relationshipModel !== undefined && relationshipModel !== null}
+								{String((relationshipModel) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const topology = resolvedEntity.topology}
-							{#if topology !== undefined && topology !== null}
-								{String((topology) ?? '')}
+							{@const relationshipModel = resolvedEntity.relationshipModel}
+							{#if relationshipModel !== undefined && relationshipModel !== null}
+								{String((relationshipModel) ?? '')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

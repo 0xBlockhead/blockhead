@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiProviderApiOperation}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiProviderApiOperations)}
 			{@const uniqueAiProviderApiOperations = [...new Map(aiProviderApiOperations.values.map((aiProviderApiOperation) => [aiProviderApiOperation[EntityMetaKey.SelectorKey], aiProviderApiOperation])).values()]}
 			<EntitiesList

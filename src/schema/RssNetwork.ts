@@ -52,15 +52,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'Registry',
+			name: 'registryName',
+			label: 'Registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -76,7 +76,7 @@ export default {
 			],
 		},
 		{
-			name: '$$sourceWindowItems',
+			name: '$$observedItems',
 			label: 'Items',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.RssItem,

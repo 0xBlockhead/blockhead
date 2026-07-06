@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CardanoDRep}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cardanoDReps)}
 			{@const uniqueCardanoDReps = [...new Map(cardanoDReps.values.map((cardanoDRep) => [cardanoDRep[EntityMetaKey.SelectorKey], cardanoDRep])).values()]}
 			<EntitiesList

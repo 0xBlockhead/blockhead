@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.QuilibriumFrame}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(quilibriumFrames)}
 			{@const uniqueQuilibriumFrames = [...new Map(quilibriumFrames.values.map((quilibriumFrame) => [quilibriumFrame[EntityMetaKey.SelectorKey], quilibriumFrame])).values()]}
 			<EntitiesList

@@ -58,11 +58,11 @@ export default {
 			resolve: {
 				[FarcasterUserSelector.Fid]: async ({ fid }, context) => {
 					const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
-					const bulkUsers = await getBulkUsers({
+					const users = await getBulkUsers({
 						publicEnv: context.publicEnv,
 						fids: [fid],
 					})
-					const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === fid)
+					const user = users.find((neynarUser) => neynarUser.fid === fid)
 					if (user == null) throw new Error('Neynar_Rest: user not found')
 					const bioRaw = user.profile?.bio
 					const ethAddresses = (
@@ -179,11 +179,11 @@ export default {
 				resolve: {
 					[FarcasterVerifiedAddressSelector.FidProtocolAddress]: async (verifiedAddress, context) => {
 						const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
-						const bulkUsers = await getBulkUsers({
+						const users = await getBulkUsers({
 							publicEnv: context.publicEnv,
 							fids: [verifiedAddress.fid],
 						})
-						const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === verifiedAddress.fid)
+						const user = users.find((neynarUser) => neynarUser.fid === verifiedAddress.fid)
 						if (user == null) throw new Error('Neynar_Rest: user not found')
 						const ethAddresses = (
 							[
@@ -263,11 +263,11 @@ export default {
 			resolve: {
 				[BlockheadFarcasterAccountConnectionSelector.Fid]: async ({ fid }, context) => {
 					const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
-					const bulkUsers = await getBulkUsers({
+					const users = await getBulkUsers({
 						publicEnv: context.publicEnv,
 						fids: [fid],
 					})
-					const user = bulkUsers?.users.find((neynarUser) => neynarUser.fid === fid)
+					const user = users.find((neynarUser) => neynarUser.fid === fid)
 					if (user == null) throw new Error('Neynar_Rest: Blockhead Farcaster connection user not found')
 					const bioRaw = user.profile?.bio
 					const ethList = (

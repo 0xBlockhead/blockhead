@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RadicleIdentityDocument}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(radicleIdentityDocuments)}
 			{@const uniqueRadicleIdentityDocuments = [...new Map(radicleIdentityDocuments.values.map((radicleIdentityDocument) => [radicleIdentityDocument[EntityMetaKey.SelectorKey], radicleIdentityDocument])).values()]}
 			<EntitiesList

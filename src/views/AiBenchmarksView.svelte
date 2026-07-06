@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiBenchmark}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiBenchmarks)}
 			{@const uniqueAiBenchmarks = [...new Map(aiBenchmarks.values.map((aiBenchmark) => [aiBenchmark[EntityMetaKey.SelectorKey], aiBenchmark])).values()]}
 			<EntitiesList

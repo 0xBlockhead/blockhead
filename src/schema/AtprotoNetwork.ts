@@ -11,7 +11,7 @@ export default {
 	entityType: EntityType.AtprotoNetwork,
 	label: 'AT Protocol',
 	labelPlural: 'AT Protocol',
-	description: 'AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product source windows live on the global AT Protocol hub.',
+	description: 'AT Protocol catalog identity for DID, repository, PDS, and appview protocol metadata. Product observeds live on the global AT Protocol hub.',
 	selectors: [
 		{
 			name: AtprotoNetworkSelector.Scope,
@@ -51,15 +51,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'Registry',
+			name: 'registryName',
+			label: 'Registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'topology',
-			label: 'Topology',
+			name: 'relationshipModel',
+			label: 'Relationship model',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

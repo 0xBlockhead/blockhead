@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpAgentProgramVersion}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpAgentProgramVersions)}
 			{@const uniqueAcpAgentProgramVersions = [...new Map(acpAgentProgramVersions.values.map((acpAgentProgramVersion) => [acpAgentProgramVersion[EntityMetaKey.SelectorKey], acpAgentProgramVersion])).values()]}
 			<EntitiesList

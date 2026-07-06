@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FedimintFederation_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(fedimintFederationTimestamps)}
 			{@const uniqueFedimintFederationTimestamps = [...new Map(fedimintFederationTimestamps.values.map((fedimintFederationTimestamp) => [fedimintFederationTimestamp[EntityMetaKey.SelectorKey], fedimintFederationTimestamp])).values()]}
 			<EntitiesList

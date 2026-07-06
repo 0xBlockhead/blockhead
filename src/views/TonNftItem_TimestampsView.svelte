@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TonNftItem_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tonNftItemTimestamps)}
 			{@const uniqueTonNftItemTimestamps = [...new Map(tonNftItemTimestamps.values.map((tonNftItemTimestamp) => [tonNftItemTimestamp[EntityMetaKey.SelectorKey], tonNftItemTimestamp])).values()]}
 			<EntitiesList

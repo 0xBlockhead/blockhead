@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidVault}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidVaults)}
 			{@const uniqueHyperliquidVaults = [...new Map(hyperliquidVaults.values.map((hyperliquidVault) => [hyperliquidVault[EntityMetaKey.SelectorKey], hyperliquidVault])).values()]}
 			<EntitiesList

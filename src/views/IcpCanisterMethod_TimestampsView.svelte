@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IcpCanisterMethod_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(icpCanisterMethodTimestamps)}
 			{@const uniqueIcpCanisterMethodTimestamps = [...new Map(icpCanisterMethodTimestamps.values.map((icpCanisterMethodTimestamp) => [icpCanisterMethodTimestamp[EntityMetaKey.SelectorKey], icpCanisterMethodTimestamp])).values()]}
 			<EntitiesList

@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ScalingDeploymentClaim}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(scalingDeploymentClaims)}
 			{@const uniqueScalingDeploymentClaims = [...new Map(scalingDeploymentClaims.values.map((scalingDeploymentClaim) => [scalingDeploymentClaim[EntityMetaKey.SelectorKey], scalingDeploymentClaim])).values()]}
 			<EntitiesList

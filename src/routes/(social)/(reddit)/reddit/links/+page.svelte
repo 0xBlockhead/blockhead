@@ -30,13 +30,13 @@
 		selection={
 			select(EntityType._GlobalRedditNetwork, {
 				scope: '_GlobalRedditNetwork',
-			})[EntityProxyField]<EntityType.RedditLink>('$$sourceWindowLinks', {
+			})[EntityProxyField]<EntityType.RedditLink>('$$observedLinks', {
 				sources: [
 					Source.Constants_Internal,
 					Source.Reddit_PublicJson,
 				],
 			})
 		}
-		id='source-window-links'
+		id='observed-links'
 	/>
 </Page>

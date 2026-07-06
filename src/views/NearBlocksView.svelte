@@ -80,6 +80,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearBlock}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearBlocks)}
 			{@const uniqueNearBlocks = [...new Map(nearBlocks.values.map((nearBlock) => [nearBlock[EntityMetaKey.SelectorKey], nearBlock])).values()]}
 			<EntitiesList

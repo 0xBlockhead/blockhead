@@ -535,7 +535,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowUsers: (users) => users,
+				$$observedUsers: (users) => users,
 			},
 		}),
 

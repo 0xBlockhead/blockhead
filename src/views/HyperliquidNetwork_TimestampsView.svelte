@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidNetworkTimestamps)}
 			{@const uniqueHyperliquidNetworkTimestamps = [...new Map(hyperliquidNetworkTimestamps.values.map((hyperliquidNetworkTimestamp) => [hyperliquidNetworkTimestamp[EntityMetaKey.SelectorKey], hyperliquidNetworkTimestamp])).values()]}
 			<EntitiesList

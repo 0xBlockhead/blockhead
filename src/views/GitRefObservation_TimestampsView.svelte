@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitRefObservation_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitRefObservationTimestamps)}
 			{@const uniqueGitRefObservationTimestamps = [...new Map(gitRefObservationTimestamps.values.map((gitRefObservationTimestamp) => [gitRefObservationTimestamp[EntityMetaKey.SelectorKey], gitRefObservationTimestamp])).values()]}
 			<EntitiesList

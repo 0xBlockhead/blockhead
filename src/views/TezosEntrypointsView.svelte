@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TezosEntrypoint}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tezosEntrypoints)}
 			{@const uniqueTezosEntrypoints = [...new Map(tezosEntrypoints.values.map((tezosEntrypoint) => [tezosEntrypoint[EntityMetaKey.SelectorKey], tezosEntrypoint])).values()]}
 			<EntitiesList

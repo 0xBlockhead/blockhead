@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandTransactions)}
 			{@const uniqueAlgorandTransactions = [...new Map(algorandTransactions.values.map((algorandTransaction) => [algorandTransaction[EntityMetaKey.SelectorKey], algorandTransaction])).values()]}
 			<EntitiesList

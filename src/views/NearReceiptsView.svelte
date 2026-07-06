@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearReceipt}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearReceipts)}
 			{@const uniqueNearReceipts = [...new Map(nearReceipts.values.map((nearReceipt) => [nearReceipt[EntityMetaKey.SelectorKey], nearReceipt])).values()]}
 			<EntitiesList

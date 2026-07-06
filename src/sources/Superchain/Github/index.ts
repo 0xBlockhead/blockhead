@@ -7,7 +7,7 @@ import { SourceProvider } from '$/sources/SourceProvider.ts'
 const superchainGithubSourceDefinition = {
 	provider: SourceProvider.Superchain,
 	source: Source.Superchain_Github,
-	label: 'Superchain Registry GitHub',
+	label: 'Superchain Registry name GitHub',
 } satisfies SourceDefinitionTemplate<SourceProvider, Source>
 
 export default superchainGithubSourceDefinition

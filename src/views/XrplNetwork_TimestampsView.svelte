@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.XrplNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(xrplNetworkTimestamps)}
 			{@const uniqueXrplNetworkTimestamps = [...new Map(xrplNetworkTimestamps.values.map((xrplNetworkTimestamp) => [xrplNetworkTimestamp[EntityMetaKey.SelectorKey], xrplNetworkTimestamp])).values()]}
 			<EntitiesList

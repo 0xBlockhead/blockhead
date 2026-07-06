@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadSocialPostSession}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadSocialPostSessions)}
 			{@const uniqueBlockheadSocialPostSessions = [...new Map(blockheadSocialPostSessions.values.map((blockheadSocialPostSession) => [blockheadSocialPostSession[EntityMetaKey.SelectorKey], blockheadSocialPostSession])).values()]}
 			<EntitiesList

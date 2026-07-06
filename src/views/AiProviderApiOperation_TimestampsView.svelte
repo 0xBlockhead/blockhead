@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AiProviderApiOperation_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aiProviderApiOperationTimestamps)}
 			{@const uniqueAiProviderApiOperationTimestamps = [...new Map(aiProviderApiOperationTimestamps.values.map((aiProviderApiOperationTimestamp) => [aiProviderApiOperationTimestamp[EntityMetaKey.SelectorKey], aiProviderApiOperationTimestamp])).values()]}
 			<EntitiesList

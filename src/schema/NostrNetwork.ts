@@ -11,7 +11,7 @@ export default {
 	entityType: EntityType.NostrNetwork,
 	label: 'Nostr network',
 	labelPlural: 'Nostr networks',
-	description: 'Compatibility protocol row for the Nostr network concept. The product-backed source window is modeled by _GlobalNostrNetwork.',
+	description: 'Compatibility protocol row for the Nostr network concept. The product-backed observed is modeled by _GlobalNostrNetwork.',
 	selectors: [
 		{
 			name: NostrNetworkSelector.Scope,
@@ -51,15 +51,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'registryLabel',
-			label: 'registry label',
+			name: 'registryName',
+			label: 'registry name',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'topology',
-			label: 'topology',
+			name: 'relationshipModel',
+			label: 'relationshipModel',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,

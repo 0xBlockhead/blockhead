@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EnsReverseRecord}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(ensReverseRecords)}
 			{@const uniqueEnsReverseRecords = [...new Map(ensReverseRecords.values.map((ensReverseRecord) => [ensReverseRecord[EntityMetaKey.SelectorKey], ensReverseRecord])).values()]}
 			<EntitiesList

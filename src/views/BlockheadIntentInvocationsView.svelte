@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadIntentInvocation}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadIntentInvocations)}
 			{@const uniqueBlockheadIntentInvocations = [...new Map(blockheadIntentInvocations.values.map((blockheadIntentInvocation) => [blockheadIntentInvocation[EntityMetaKey.SelectorKey], blockheadIntentInvocation])).values()]}
 			<EntitiesList

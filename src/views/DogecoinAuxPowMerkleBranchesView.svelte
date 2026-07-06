@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.DogecoinAuxPowMerkleBranch}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(dogecoinAuxPowMerkleBranches)}
 			{@const uniqueDogecoinAuxPowMerkleBranches = [...new Map(dogecoinAuxPowMerkleBranches.values.map((dogecoinAuxPowMerkleBranch) => [dogecoinAuxPowMerkleBranch[EntityMetaKey.SelectorKey], dogecoinAuxPowMerkleBranch])).values()]}
 			<EntitiesList

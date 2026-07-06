@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CctpAllowance}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cctpAllowances)}
 			{@const uniqueCctpAllowances = [...new Map(cctpAllowances.values.map((cctpAllowance) => [cctpAllowance[EntityMetaKey.SelectorKey], cctpAllowance])).values()]}
 			<EntitiesList

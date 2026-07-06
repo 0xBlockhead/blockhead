@@ -85,6 +85,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EvmNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : ModelTypeAnnotationTooltip}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(evmNetworks)}
 			{@const uniqueEvmNetworks = [...new Map(evmNetworks.values.map((evmNetwork) => [evmNetwork[EntityMetaKey.SelectorKey], evmNetwork])).values()]}
 			<EntitiesList

@@ -30,13 +30,13 @@
 		selection={
 			select(EntityType.RssNetwork, {
 				scope: 'RssNetwork',
-			})[EntityProxyField]<EntityType.RssItem>('$$sourceWindowItems', {
+			})[EntityProxyField]<EntityType.RssItem>('$$observedItems', {
 				sources: [
 					Source.Rss_Rest,
 					Source.Rss2Json_Rest,
 				],
 			})
 		}
-		id='source-window-items'
+		id='observed-items'
 	/>
 </Page>

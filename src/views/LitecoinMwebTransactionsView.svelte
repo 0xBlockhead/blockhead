@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.LitecoinMwebTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(litecoinMwebTransactions)}
 			{@const uniqueLitecoinMwebTransactions = [...new Map(litecoinMwebTransactions.values.map((litecoinMwebTransaction) => [litecoinMwebTransaction[EntityMetaKey.SelectorKey], litecoinMwebTransaction])).values()]}
 			<EntitiesList

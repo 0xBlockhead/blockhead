@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadLitecoinMwebOutputState_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadLitecoinMwebOutputStateTimestamps)}
 			{@const uniqueBlockheadLitecoinMwebOutputStateTimestamps = [...new Map(blockheadLitecoinMwebOutputStateTimestamps.values.map((blockheadLitecoinMwebOutputStateTimestamp) => [blockheadLitecoinMwebOutputStateTimestamp[EntityMetaKey.SelectorKey], blockheadLitecoinMwebOutputStateTimestamp])).values()]}
 			<EntitiesList

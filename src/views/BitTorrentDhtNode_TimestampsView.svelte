@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BitTorrentDhtNode_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bitTorrentDhtNodeTimestamps)}
 			{@const uniqueBitTorrentDhtNodeTimestamps = [...new Map(bitTorrentDhtNodeTimestamps.values.map((bitTorrentDhtNodeTimestamp) => [bitTorrentDhtNodeTimestamp[EntityMetaKey.SelectorKey], bitTorrentDhtNodeTimestamp])).values()]}
 			<EntitiesList

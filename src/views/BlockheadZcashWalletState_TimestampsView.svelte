@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadZcashWalletState_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadZcashWalletStateTimestamps)}
 			{@const uniqueBlockheadZcashWalletStateTimestamps = [...new Map(blockheadZcashWalletStateTimestamps.values.map((blockheadZcashWalletStateTimestamp) => [blockheadZcashWalletStateTimestamp[EntityMetaKey.SelectorKey], blockheadZcashWalletStateTimestamp])).values()]}
 			<EntitiesList

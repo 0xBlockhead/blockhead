@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadZcashViewingKey}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadZcashViewingKeys)}
 			{@const uniqueBlockheadZcashViewingKeys = [...new Map(blockheadZcashViewingKeys.values.map((blockheadZcashViewingKey) => [blockheadZcashViewingKey[EntityMetaKey.SelectorKey], blockheadZcashViewingKey])).values()]}
 			<EntitiesList

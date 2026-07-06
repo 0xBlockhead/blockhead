@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitTreePathResolution}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitTreePathResolutions)}
 			{@const uniqueGitTreePathResolutions = [...new Map(gitTreePathResolutions.values.map((gitTreePathResolution) => [gitTreePathResolution[EntityMetaKey.SelectorKey], gitTreePathResolution])).values()]}
 			<EntitiesList

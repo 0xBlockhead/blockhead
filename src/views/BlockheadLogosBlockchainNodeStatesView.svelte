@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadLogosBlockchainNodeState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadLogosBlockchainNodeStates)}
 			{@const uniqueBlockheadLogosBlockchainNodeStates = [...new Map(blockheadLogosBlockchainNodeStates.values.map((blockheadLogosBlockchainNodeState) => [blockheadLogosBlockchainNodeState[EntityMetaKey.SelectorKey], blockheadLogosBlockchainNodeState])).values()]}
 			<EntitiesList

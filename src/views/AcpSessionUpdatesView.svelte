@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpSessionUpdate}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpSessionUpdates)}
 			{@const uniqueAcpSessionUpdates = [...new Map(acpSessionUpdates.values.map((acpSessionUpdate) => [acpSessionUpdate[EntityMetaKey.SelectorKey], acpSessionUpdate])).values()]}
 			<EntitiesList

@@ -685,7 +685,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowProfiles: (network) => network,
+				$$observedProfiles: (network) => network,
 			},
 		}),
 

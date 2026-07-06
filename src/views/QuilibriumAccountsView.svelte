@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.QuilibriumAccount}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(quilibriumAccounts)}
 			{@const uniqueQuilibriumAccounts = [...new Map(quilibriumAccounts.values.map((quilibriumAccount) => [quilibriumAccount[EntityMetaKey.SelectorKey], quilibriumAccount])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadQuilibriumAccountState_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadQuilibriumAccountStateTimestamps)}
 			{@const uniqueBlockheadQuilibriumAccountStateTimestamps = [...new Map(blockheadQuilibriumAccountStateTimestamps.values.map((blockheadQuilibriumAccountStateTimestamp) => [blockheadQuilibriumAccountStateTimestamp[EntityMetaKey.SelectorKey], blockheadQuilibriumAccountStateTimestamp])).values()]}
 			<EntitiesList

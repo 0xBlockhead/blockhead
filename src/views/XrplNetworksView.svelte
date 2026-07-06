@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.XrplNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(xrplNetworks)}
 			{@const uniqueXrplNetworks = [...new Map(xrplNetworks.values.map((xrplNetwork) => [xrplNetwork[EntityMetaKey.SelectorKey], xrplNetwork])).values()]}
 			<EntitiesList

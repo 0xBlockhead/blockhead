@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvalancheDelegator}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(avalancheDelegators)}
 			{@const uniqueAvalancheDelegators = [...new Map(avalancheDelegators.values.map((avalancheDelegator) => [avalancheDelegator[EntityMetaKey.SelectorKey], avalancheDelegator])).values()]}
 			<EntitiesList

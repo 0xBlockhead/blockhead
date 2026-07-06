@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TezosContract_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tezosContractTimestamps)}
 			{@const uniqueTezosContractTimestamps = [...new Map(tezosContractTimestamps.values.map((tezosContractTimestamp) => [tezosContractTimestamp[EntityMetaKey.SelectorKey], tezosContractTimestamp])).values()]}
 			<EntitiesList

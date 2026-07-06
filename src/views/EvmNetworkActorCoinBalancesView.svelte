@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EvmNetworkActorCoinBalance}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(evmNetworkActorCoinBalances)}
 			{@const uniqueEvmNetworkActorCoinBalances = [...new Map(evmNetworkActorCoinBalances.values.map((evmNetworkActorCoinBalance) => [evmNetworkActorCoinBalance[EntityMetaKey.SelectorKey], evmNetworkActorCoinBalance])).values()]}
 			<EntitiesList

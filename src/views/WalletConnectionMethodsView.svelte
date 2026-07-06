@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.WalletConnectionMethod}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(walletConnectionMethods)}
 			{@const uniqueWalletConnectionMethods = [...new Map(walletConnectionMethods.values.map((walletConnectionMethod) => [walletConnectionMethod[EntityMetaKey.SelectorKey], walletConnectionMethod])).values()]}
 			<EntitiesList

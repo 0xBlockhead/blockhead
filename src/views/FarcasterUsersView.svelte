@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FarcasterUser}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(farcasterUsers)}
 			{@const uniqueFarcasterUsers = [...new Map(farcasterUsers.values.map((farcasterUser) => [farcasterUser[EntityMetaKey.SelectorKey], farcasterUser])).values()]}
 			<EntitiesList

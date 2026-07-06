@@ -128,5 +128,5 @@ export type NeynarFeedQuery =
 	}
 
 export type NeynarBulkUsersResponse = {
-	users: NeynarUser[]
+	users?: NeynarUser[]
 }

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StarknetTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(starknetTransactions)}
 			{@const uniqueStarknetTransactions = [...new Map(starknetTransactions.values.map((starknetTransaction) => [starknetTransaction[EntityMetaKey.SelectorKey], starknetTransaction])).values()]}
 			<EntitiesList

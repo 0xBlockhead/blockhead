@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aAgentService_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aAgentServiceTimestamps)}
 			{@const uniqueA2aAgentServiceTimestamps = [...new Map(a2aAgentServiceTimestamps.values.map((a2aAgentServiceTimestamp) => [a2aAgentServiceTimestamp[EntityMetaKey.SelectorKey], a2aAgentServiceTimestamp])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Erc4337Bundler}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(erc4337Bundlers)}
 			{@const uniqueErc4337Bundlers = [...new Map(erc4337Bundlers.values.map((erc4337Bundler) => [erc4337Bundler[EntityMetaKey.SelectorKey], erc4337Bundler])).values()]}
 			<EntitiesList

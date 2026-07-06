@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaContractState_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaContractStateTimestamps)}
 			{@const uniqueHederaContractStateTimestamps = [...new Map(hederaContractStateTimestamps.values.map((hederaContractStateTimestamp) => [hederaContractStateTimestamp[EntityMetaKey.SelectorKey], hederaContractStateTimestamp])).values()]}
 			<EntitiesList

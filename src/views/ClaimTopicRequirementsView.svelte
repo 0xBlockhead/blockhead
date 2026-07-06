@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ClaimTopicRequirement}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(claimTopicRequirements)}
 			{@const uniqueClaimTopicRequirements = [...new Map(claimTopicRequirements.values.map((claimTopicRequirement) => [claimTopicRequirement[EntityMetaKey.SelectorKey], claimTopicRequirement])).values()]}
 			<EntitiesList

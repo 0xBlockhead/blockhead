@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ArweaveNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(arweaveNetworkTimestamps)}
 			{@const uniqueArweaveNetworkTimestamps = [...new Map(arweaveNetworkTimestamps.values.map((arweaveNetworkTimestamp) => [arweaveNetworkTimestamp[EntityMetaKey.SelectorKey], arweaveNetworkTimestamp])).values()]}
 			<EntitiesList

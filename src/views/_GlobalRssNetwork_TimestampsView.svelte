@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalRssNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalRssNetworkTimestamps)}
 			{@const uniqueGlobalRssNetworkTimestamps = [...new Map(globalRssNetworkTimestamps.values.map((globalRssNetworkTimestamp) => [globalRssNetworkTimestamp[EntityMetaKey.SelectorKey], globalRssNetworkTimestamp])).values()]}
 			<EntitiesList

@@ -30,13 +30,13 @@
 		selection={
 			select(EntityType._GlobalYoutubeNetwork, {
 				scope: '_GlobalYoutubeNetwork',
-			})[EntityProxyField]<EntityType.YoutubeChannel>('$$sourceWindowChannels', {
+			})[EntityProxyField]<EntityType.YoutubeChannel>('$$observedChannels', {
 				sources: [
 					Source.Constants_Internal,
 					Source.Youtube_Rest,
 				],
 			})
 		}
-		id='source-window-channels'
+		id='observed-channels'
 	/>
 </Page>

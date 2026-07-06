@@ -132,31 +132,31 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ArweaveNetworksView
-				selection={selection[EntityProxyField]<EntityType.ArweaveNetwork>('$$sourceWindowNetworks')}
-				title='Source-window networks'
-				emptyText='No Arweave networks in this source window.'
-				id='ArweaveNetworksView-$$sourceWindowNetworks'
+				selection={selection[EntityProxyField]<EntityType.ArweaveNetwork>('$$observedNetworks')}
+				title='Observed networks'
+				emptyText='No Arweave networks in this observed.'
+				id='ArweaveNetworksView-$$observedNetworks'
 			/>
 
 			<ArweaveBlocksView
-				selection={selection[EntityProxyField]<EntityType.ArweaveBlock>('$$sourceWindowBlocks')}
-				title='Source-window blocks'
-				emptyText='No Arweave blocks in this source window.'
-				id='ArweaveBlocksView-$$sourceWindowBlocks'
+				selection={selection[EntityProxyField]<EntityType.ArweaveBlock>('$$observedBlocks')}
+				title='Observed blocks'
+				emptyText='No Arweave blocks in this observed.'
+				id='ArweaveBlocksView-$$observedBlocks'
 			/>
 
 			<ArweaveTransactionsView
-				selection={selection[EntityProxyField]<EntityType.ArweaveTransaction>('$$sourceWindowTransactions')}
-				title='Source-window transactions'
-				emptyText='No Arweave transactions in this source window.'
-				id='ArweaveTransactionsView-$$sourceWindowTransactions'
+				selection={selection[EntityProxyField]<EntityType.ArweaveTransaction>('$$observedTransactions')}
+				title='Observed transactions'
+				emptyText='No Arweave transactions in this observed.'
+				id='ArweaveTransactionsView-$$observedTransactions'
 			/>
 
 			<ArweaveResourcesView
-				selection={selection[EntityProxyField]<EntityType.ArweaveResource>('$$sourceWindowResources')}
-				title='Source-window resources'
-				emptyText='No Arweave resources in this source window.'
-				id='ArweaveResourcesView-$$sourceWindowResources'
+				selection={selection[EntityProxyField]<EntityType.ArweaveResource>('$$observedResources')}
+				title='Observed resources'
+				emptyText='No Arweave resources in this observed.'
+				id='ArweaveResourcesView-$$observedResources'
 			/>
 
 			<GlobalArweaveNetwork_TimestampsView

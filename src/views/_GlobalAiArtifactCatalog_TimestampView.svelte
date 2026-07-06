@@ -309,18 +309,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogArtifactCount: true,
+							seededArtifactCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogArtifactCount = prefetched.localCatalogArtifactCount}
-					{#if localCatalogArtifactCount !== undefined && localCatalogArtifactCount !== null}
+					{@const seededArtifactCount = prefetched.seededArtifactCount}
+					{#if seededArtifactCount !== undefined && seededArtifactCount !== null}
 						<div>
-							<dt>localCatalogArtifactCount</dt>
+							<dt>seededArtifactCount</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogArtifactCount)} />
+								<NumberValue value={Number(seededArtifactCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -328,12 +328,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogArtifactCount = resolvedEntity.localCatalogArtifactCount}
-					{#if localCatalogArtifactCount !== undefined && localCatalogArtifactCount !== null}
+					{@const seededArtifactCount = resolvedEntity.seededArtifactCount}
+					{#if seededArtifactCount !== undefined && seededArtifactCount !== null}
 						<div>
-							<dt>localCatalogArtifactCount</dt>
+							<dt>seededArtifactCount</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogArtifactCount)} />
+								<NumberValue value={Number(seededArtifactCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -379,18 +379,18 @@
 				resource={
 					selection({
 						fields: {
-							localCatalogDocumentCount: true,
+							seededDocumentCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const localCatalogDocumentCount = prefetched.localCatalogDocumentCount}
-					{#if localCatalogDocumentCount !== undefined && localCatalogDocumentCount !== null}
+					{@const seededDocumentCount = prefetched.seededDocumentCount}
+					{#if seededDocumentCount !== undefined && seededDocumentCount !== null}
 						<div>
-							<dt>localCatalogDocumentCount</dt>
+							<dt>seededDocumentCount</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogDocumentCount)} />
+								<NumberValue value={Number(seededDocumentCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -398,12 +398,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const localCatalogDocumentCount = resolvedEntity.localCatalogDocumentCount}
-					{#if localCatalogDocumentCount !== undefined && localCatalogDocumentCount !== null}
+					{@const seededDocumentCount = resolvedEntity.seededDocumentCount}
+					{#if seededDocumentCount !== undefined && seededDocumentCount !== null}
 						<div>
-							<dt>localCatalogDocumentCount</dt>
+							<dt>seededDocumentCount</dt>
 							<dd>
-								<NumberValue value={Number(localCatalogDocumentCount)} />
+								<NumberValue value={Number(seededDocumentCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -416,18 +416,18 @@
 				resource={
 					selection({
 						fields: {
-							configuredEndpointCount: true,
+							declaredEndpointCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const configuredEndpointCount = prefetched.configuredEndpointCount}
-					{#if configuredEndpointCount !== undefined && configuredEndpointCount !== null}
+					{@const declaredEndpointCount = prefetched.declaredEndpointCount}
+					{#if declaredEndpointCount !== undefined && declaredEndpointCount !== null}
 						<div>
-							<dt>configuredEndpointCount</dt>
+							<dt>declaredEndpointCount</dt>
 							<dd>
-								<NumberValue value={Number(configuredEndpointCount)} />
+								<NumberValue value={Number(declaredEndpointCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -435,12 +435,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const configuredEndpointCount = resolvedEntity.configuredEndpointCount}
-					{#if configuredEndpointCount !== undefined && configuredEndpointCount !== null}
+					{@const declaredEndpointCount = resolvedEntity.declaredEndpointCount}
+					{#if declaredEndpointCount !== undefined && declaredEndpointCount !== null}
 						<div>
-							<dt>configuredEndpointCount</dt>
+							<dt>declaredEndpointCount</dt>
 							<dd>
-								<NumberValue value={Number(configuredEndpointCount)} />
+								<NumberValue value={Number(declaredEndpointCount)} />
 							</dd>
 						</div>
 					{/if}

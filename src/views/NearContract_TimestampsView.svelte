@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearContract_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearContractTimestamps)}
 			{@const uniqueNearContractTimestamps = [...new Map(nearContractTimestamps.values.map((nearContractTimestamp) => [nearContractTimestamp[EntityMetaKey.SelectorKey], nearContractTimestamp])).values()]}
 			<EntitiesList

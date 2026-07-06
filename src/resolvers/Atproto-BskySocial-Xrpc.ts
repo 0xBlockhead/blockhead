@@ -217,7 +217,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowActors: (actors) => actors,
+				$$observedActors: (actors) => actors,
 			},
 		}),
 
@@ -244,7 +244,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowPosts: (posts) => posts,
+				$$observedPosts: (posts) => posts,
 			},
 		}),
 

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.FilecoinMessageReceipt}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(filecoinMessageReceipts)}
 			{@const uniqueFilecoinMessageReceipts = [...new Map(filecoinMessageReceipts.values.map((filecoinMessageReceipt) => [filecoinMessageReceipt[EntityMetaKey.SelectorKey], filecoinMessageReceipt])).values()]}
 			<EntitiesList

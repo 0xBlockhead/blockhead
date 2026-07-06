@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aAgentCard_Snapshot}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aAgentCardSnapshots)}
 			{@const uniqueA2aAgentCardSnapshots = [...new Map(a2aAgentCardSnapshots.values.map((a2aAgentCardSnapshot) => [a2aAgentCardSnapshot[EntityMetaKey.SelectorKey], a2aAgentCardSnapshot])).values()]}
 			<EntitiesList

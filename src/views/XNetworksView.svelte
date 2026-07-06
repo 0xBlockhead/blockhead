@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'X',
-		typeAnnotationParagraphs = ['X profiles and posts surfaced through configured public HTTP sources.'],
+		typeAnnotationParagraphs = ['X profiles and posts surfaced through declared public HTTP sources.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.XNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(xNetworks)}
 			{@const uniqueXNetworks = [...new Map(xNetworks.values.map((xNetwork) => [xNetwork[EntityMetaKey.SelectorKey], xNetwork])).values()]}
 			<EntitiesList

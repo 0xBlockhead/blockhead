@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadActionOutcome_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadActionOutcomeTimestamps)}
 			{@const uniqueBlockheadActionOutcomeTimestamps = [...new Map(blockheadActionOutcomeTimestamps.values.map((blockheadActionOutcomeTimestamp) => [blockheadActionOutcomeTimestamp[EntityMetaKey.SelectorKey], blockheadActionOutcomeTimestamp])).values()]}
 			<EntitiesList

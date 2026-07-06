@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadQuilibriumPendingTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadQuilibriumPendingTransactions)}
 			{@const uniqueBlockheadQuilibriumPendingTransactions = [...new Map(blockheadQuilibriumPendingTransactions.values.map((blockheadQuilibriumPendingTransaction) => [blockheadQuilibriumPendingTransaction[EntityMetaKey.SelectorKey], blockheadQuilibriumPendingTransaction])).values()]}
 			<EntitiesList

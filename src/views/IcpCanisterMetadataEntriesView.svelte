@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IcpCanisterMetadata}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(icpCanisterMetadataEntries)}
 			{@const uniqueIcpCanisterMetadataEntries = [...new Map(icpCanisterMetadataEntries.values.map((icpCanisterMetadata) => [icpCanisterMetadata[EntityMetaKey.SelectorKey], icpCanisterMetadata])).values()]}
 			<EntitiesList

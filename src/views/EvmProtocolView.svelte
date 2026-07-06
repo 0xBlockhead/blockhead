@@ -45,8 +45,8 @@
 		],
 		fields: {
 			protocolName: true,
-			registryLabel: true,
-			topology: true,
+			registryName: true,
+			relationshipModel: true,
 		},
 	}))
 	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || 'EVM protocol')
@@ -88,12 +88,12 @@
 	{#snippet Value()}
 		<ResourceBoundary resource={evmProtocol}>
 			{#snippet Pending()}
-				{[String((prefetched.registryLabel) ?? '')].filter(Boolean).join(' ') || [String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'EVM protocol'}
+				{[String((prefetched.registryName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || title || 'EVM protocol'}
 			{/snippet}
 
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
-				{[String((resolvedEntity.registryLabel) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
+				{[String((resolvedEntity.registryName) ?? '')].filter(Boolean).join(' ') || [String((resolvedEntity.protocolName) ?? '')].filter(Boolean).join(' ') || titleFallback}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -137,29 +137,29 @@
 			</div>
 
 			<div>
-				<dt>Registry label</dt>
+				<dt>Registry name name</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
 							selection({
 								fields: {
-									registryLabel: true,
+									registryName: true,
 								},
 							})
 						}
 					>
 						{#snippet Pending()}
-							{@const registryLabel = prefetched.registryLabel}
-							{#if registryLabel !== undefined && registryLabel !== null}
-								{String((registryLabel) ?? '')}
+							{@const registryName = prefetched.registryName}
+							{#if registryName !== undefined && registryName !== null}
+								{String((registryName) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const registryLabel = resolvedEntity.registryLabel}
-							{#if registryLabel !== undefined && registryLabel !== null}
-								{String((registryLabel) ?? '')}
+							{@const registryName = resolvedEntity.registryName}
+							{#if registryName !== undefined && registryName !== null}
+								{String((registryName) ?? '')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -167,29 +167,29 @@
 			</div>
 
 			<div>
-				<dt>Topology</dt>
+				<dt>Relationship model</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
 							selection({
 								fields: {
-									topology: true,
+									relationshipModel: true,
 								},
 							})
 						}
 					>
 						{#snippet Pending()}
-							{@const topology = prefetched.topology}
-							{#if topology !== undefined && topology !== null}
-								{String((topology) ?? '')}
+							{@const relationshipModel = prefetched.relationshipModel}
+							{#if relationshipModel !== undefined && relationshipModel !== null}
+								{String((relationshipModel) ?? '')}
 							{/if}
 						{/snippet}
 
 						{#snippet children(entity)}
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
-							{@const topology = resolvedEntity.topology}
-							{#if topology !== undefined && topology !== null}
-								{String((topology) ?? '')}
+							{@const relationshipModel = resolvedEntity.relationshipModel}
+							{#if relationshipModel !== undefined && relationshipModel !== null}
+								{String((relationshipModel) ?? '')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -297,7 +297,7 @@
 				selection={selection[EntityProxyField]<EntityType.EvmSelector>('$$evmSelectors')}
 				title='EVM selectors'
 				href={resolve('/(explore)/(evm)/evm/(selectors)/selectors')}
-				emptyText='No EVM selectors in this source window.'
+				emptyText='No EVM selectors in this observed.'
 				id='EvmSelectorsView-$$evmSelectors'
 			/>
 
@@ -305,7 +305,7 @@
 				selection={selection[EntityProxyField]<EntityType.EvmTopic>('$$evmTopics')}
 				title='EVM topics'
 				href={resolve('/(explore)/(evm)/evm/(topics)/topics')}
-				emptyText='No EVM topics in this source window.'
+				emptyText='No EVM topics in this observed.'
 				id='EvmTopicsView-$$evmTopics'
 			/>
 
@@ -313,7 +313,7 @@
 				selection={selection[EntityProxyField]<EntityType.EvmError>('$$evmErrors')}
 				title='EVM errors'
 				href={resolve('/(explore)/(evm)/evm/(errors)/errors')}
-				emptyText='No EVM errors in this source window.'
+				emptyText='No EVM errors in this observed.'
 				id='EvmErrorsView-$$evmErrors'
 			/>
 		{/if}

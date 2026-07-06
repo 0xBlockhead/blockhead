@@ -4,7 +4,7 @@ import { CoinId } from '$/constants/Coin.ts'
 import { ConsensusMechanismId } from '$/constants/ConsensusMechanism.ts'
 import { currencyCatalogSnapshotTimestampMs, Iso4217 } from '$/constants/Currency.ts'
 import { ExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
-import { localCatalogCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
+import { seededCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
 import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit, type MarketIdLabelInput } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
@@ -133,16 +133,16 @@ const TRANSFER_TOPIC = (
 export const ethUsdCatalogMarket = {
 	$base: {
 		kind: MarketAssetKind.Coin,
-		$coin: { coinId: localCatalogCoinSpotUsdMarketByCoinId[CoinId.ETH].baseCoinId },
+		$coin: { coinId: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].baseCoinId },
 	},
 	$quote: {
 		kind: MarketAssetKind.Currency,
-		$currency: { iso4217: localCatalogCoinSpotUsdMarketByCoinId[CoinId.ETH].quoteIso4217 },
+		$currency: { iso4217: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].quoteIso4217 },
 	},
 	$marketVenue: {
-		marketVenueId: localCatalogCoinSpotUsdMarketByCoinId[CoinId.ETH].marketVenueId,
+		marketVenueId: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].marketVenueId,
 	},
-	marketKind: localCatalogCoinSpotUsdMarketByCoinId[CoinId.ETH].marketKind,
+	marketKind: seededCoinSpotUsdMarketByCoinId[CoinId.ETH].marketKind,
 } satisfies MarketIdLabelInput
 
 const mainnetChainId = 1
@@ -1505,12 +1505,16 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		timestampMs: 1_700_000_000_000,
 	},
 
-	[EntityType.YouTubeNetwork]: { scope: 'YouTubeNetwork' },
-	[EntityType.YouTubeChannel]: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
-	[EntityType.YouTubeComment]: {
-		videoId: YOUTUBE_PROBE_VIDEO_ID,
-		commentId: YOUTUBE_PROBE_COMMENT_ID,
-	},
+		[EntityType.YouTubeNetwork]: { scope: 'YouTubeNetwork' },
+		[EntityType.YouTubeChannel]: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
+		[EntityType.YouTubeChannel_Timestamp]: {
+			$channel: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
+			timestampMs: 0,
+		},
+		[EntityType.YouTubeComment]: {
+			videoId: YOUTUBE_PROBE_VIDEO_ID,
+			commentId: YOUTUBE_PROBE_COMMENT_ID,
+		},
 	[EntityType.YouTubePlaylist]: {
 		playlistId: YOUTUBE_PROBE_PLAYLIST_ID,
 	},

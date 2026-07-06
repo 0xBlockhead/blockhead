@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalRedditNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalRedditNetworks)}
 			{@const uniqueGlobalRedditNetworks = [...new Map(globalRedditNetworks.values.map((globalRedditNetwork) => [globalRedditNetwork[EntityMetaKey.SelectorKey], globalRedditNetwork])).values()]}
 			<EntitiesList

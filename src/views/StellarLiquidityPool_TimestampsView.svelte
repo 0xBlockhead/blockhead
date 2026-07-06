@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StellarLiquidityPool_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(stellarLiquidityPoolTimestamps)}
 			{@const uniqueStellarLiquidityPoolTimestamps = [...new Map(stellarLiquidityPoolTimestamps.values.map((stellarLiquidityPoolTimestamp) => [stellarLiquidityPoolTimestamp[EntityMetaKey.SelectorKey], stellarLiquidityPoolTimestamp])).values()]}
 			<EntitiesList

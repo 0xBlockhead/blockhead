@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'ActivityPub instance moderated domains',
-		typeAnnotationParagraphs = ['A domain that a configured ActivityPub instance reports in its public moderation-domain list.'],
+		typeAnnotationParagraphs = ['A domain that a declared ActivityPub instance reports in its public moderation-domain list.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ActivityPubInstanceModeratedDomain}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(activityPubInstanceModeratedDomains)}
 			{@const uniqueActivityPubInstanceModeratedDomains = [...new Map(activityPubInstanceModeratedDomains.values.map((activityPubInstanceModeratedDomain) => [activityPubInstanceModeratedDomain[EntityMetaKey.SelectorKey], activityPubInstanceModeratedDomain])).values()]}
 			<EntitiesList

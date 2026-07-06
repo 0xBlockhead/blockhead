@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AvalanchePChainTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(avalanchePChainTransactions)}
 			{@const uniqueAvalanchePChainTransactions = [...new Map(avalanchePChainTransactions.values.map((avalanchePChainTransaction) => [avalanchePChainTransaction[EntityMetaKey.SelectorKey], avalanchePChainTransaction])).values()]}
 			<EntitiesList

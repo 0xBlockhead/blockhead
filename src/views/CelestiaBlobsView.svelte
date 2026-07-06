@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CelestiaBlob}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(celestiaBlobs)}
 			{@const uniqueCelestiaBlobs = [...new Map(celestiaBlobs.values.map((celestiaBlob) => [celestiaBlob[EntityMetaKey.SelectorKey], celestiaBlob])).values()]}
 			<EntitiesList

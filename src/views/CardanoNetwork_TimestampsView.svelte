@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CardanoNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cardanoNetworkTimestamps)}
 			{@const uniqueCardanoNetworkTimestamps = [...new Map(cardanoNetworkTimestamps.values.map((cardanoNetworkTimestamp) => [cardanoNetworkTimestamp[EntityMetaKey.SelectorKey], cardanoNetworkTimestamp])).values()]}
 			<EntitiesList

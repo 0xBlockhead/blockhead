@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BitTorrentTracker}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bitTorrentTrackers)}
 			{@const uniqueBitTorrentTrackers = [...new Map(bitTorrentTrackers.values.map((bitTorrentTracker) => [bitTorrentTracker[EntityMetaKey.SelectorKey], bitTorrentTracker])).values()]}
 			<EntitiesList

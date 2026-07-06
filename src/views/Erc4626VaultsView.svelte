@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Erc4626Vault}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(erc4626Vaults)}
 			{@const uniqueErc4626Vaults = [...new Map(erc4626Vaults.values.map((erc4626Vault) => [erc4626Vault[EntityMetaKey.SelectorKey], erc4626Vault])).values()]}
 			<EntitiesList

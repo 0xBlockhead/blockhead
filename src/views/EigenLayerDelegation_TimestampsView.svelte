@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.EigenLayerDelegation_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eigenLayerDelegationTimestamps)}
 			{@const uniqueEigenLayerDelegationTimestamps = [...new Map(eigenLayerDelegationTimestamps.values.map((eigenLayerDelegationTimestamp) => [eigenLayerDelegationTimestamp[EntityMetaKey.SelectorKey], eigenLayerDelegationTimestamp])).values()]}
 			<EntitiesList

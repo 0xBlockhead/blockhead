@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.DydxChainNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(dydxChainNetworkTimestamps)}
 			{@const uniqueDydxChainNetworkTimestamps = [...new Map(dydxChainNetworkTimestamps.values.map((dydxChainNetworkTimestamp) => [dydxChainNetworkTimestamp[EntityMetaKey.SelectorKey], dydxChainNetworkTimestamp])).values()]}
 			<EntitiesList

@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalLensNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalLensNetworkTimestamps)}
 			{@const uniqueGlobalLensNetworkTimestamps = [...new Map(globalLensNetworkTimestamps.values.map((globalLensNetworkTimestamp) => [globalLensNetworkTimestamp[EntityMetaKey.SelectorKey], globalLensNetworkTimestamp])).values()]}
 			<EntitiesList

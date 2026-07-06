@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ZeroGDataBlob}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(zeroGDataBlobs)}
 			{@const uniqueZeroGDataBlobs = [...new Map(zeroGDataBlobs.values.map((zeroGDataBlob) => [zeroGDataBlob[EntityMetaKey.SelectorKey], zeroGDataBlob])).values()]}
 			<EntitiesList

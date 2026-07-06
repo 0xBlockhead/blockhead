@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaScheduleSignature}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaScheduleSignatures)}
 			{@const uniqueHederaScheduleSignatures = [...new Map(hederaScheduleSignatures.values.map((hederaScheduleSignature) => [hederaScheduleSignature[EntityMetaKey.SelectorKey], hederaScheduleSignature])).values()]}
 			<EntitiesList

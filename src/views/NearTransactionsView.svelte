@@ -80,6 +80,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.NearTransaction}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(nearTransactions)}
 			{@const uniqueNearTransactions = [...new Map(nearTransactions.values.map((nearTransaction) => [nearTransaction[EntityMetaKey.SelectorKey], nearTransaction])).values()]}
 			<EntitiesList

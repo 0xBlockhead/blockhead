@@ -19,7 +19,7 @@
 	let {
 		selection,
 		title = 'Bittensor networks',
-		typeAnnotationParagraphs = ['Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from configured Bittensor JSON-RPC sources.'],
+		typeAnnotationParagraphs = ['Bittensor network-specific view over a canonical Network row, with runtime observations, finalized blocks, and subnets from declared Bittensor JSON-RPC sources.'],
 		placeholderText,
 		emptyText = undefined,
 		open = $bindable(true),
@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BittensorNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bittensorNetworks)}
 			{@const uniqueBittensorNetworks = [...new Map(bittensorNetworks.values.map((bittensorNetwork) => [bittensorNetwork[EntityMetaKey.SelectorKey], bittensorNetwork])).values()]}
 			<EntitiesList

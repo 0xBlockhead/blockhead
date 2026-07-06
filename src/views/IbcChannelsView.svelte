@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IbcChannel}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(ibcChannels)}
 			{@const uniqueIbcChannels = [...new Map(ibcChannels.values.map((ibcChannel) => [ibcChannel[EntityMetaKey.SelectorKey], ibcChannel])).values()]}
 			<EntitiesList

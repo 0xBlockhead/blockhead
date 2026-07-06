@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.YoutubeComment}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(youtubeComments)}
 			{@const uniqueYoutubeComments = [...new Map(youtubeComments.values.map((youtubeComment) => [youtubeComment[EntityMetaKey.SelectorKey], youtubeComment])).values()]}
 			<EntitiesList

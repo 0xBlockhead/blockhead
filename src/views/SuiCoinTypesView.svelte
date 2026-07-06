@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SuiCoinType}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(suiCoinTypes)}
 			{@const uniqueSuiCoinTypes = [...new Map(suiCoinTypes.values.map((suiCoinType) => [suiCoinType[EntityMetaKey.SelectorKey], suiCoinType])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RadicleCollaborationEvent}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(radicleCollaborationEvents)}
 			{@const uniqueRadicleCollaborationEvents = [...new Map(radicleCollaborationEvents.values.map((radicleCollaborationEvent) => [radicleCollaborationEvent[EntityMetaKey.SelectorKey], radicleCollaborationEvent])).values()]}
 			<EntitiesList

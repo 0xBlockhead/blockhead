@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BittensorNeuron}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(bittensorNeurons)}
 			{@const uniqueBittensorNeurons = [...new Map(bittensorNeurons.values.map((bittensorNeuron) => [bittensorNeuron[EntityMetaKey.SelectorKey], bittensorNeuron])).values()]}
 			<EntitiesList

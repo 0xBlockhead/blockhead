@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RadicleRepository}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(radicleRepositories)}
 			{@const uniqueRadicleRepositories = [...new Map(radicleRepositories.values.map((radicleRepository) => [radicleRepository[EntityMetaKey.SelectorKey], radicleRepository])).values()]}
 			<EntitiesList

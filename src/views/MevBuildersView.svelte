@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.MevBuilder}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(mevBuilders)}
 			{@const uniqueMevBuilders = [...new Map(mevBuilders.values.map((mevBuilder) => [mevBuilder[EntityMetaKey.SelectorKey], mevBuilder])).values()]}
 			<EntitiesList

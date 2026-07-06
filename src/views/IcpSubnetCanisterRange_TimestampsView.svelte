@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IcpSubnetCanisterRange_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(icpSubnetCanisterRangeTimestamps)}
 			{@const uniqueIcpSubnetCanisterRangeTimestamps = [...new Map(icpSubnetCanisterRangeTimestamps.values.map((icpSubnetCanisterRangeTimestamp) => [icpSubnetCanisterRangeTimestamp[EntityMetaKey.SelectorKey], icpSubnetCanisterRangeTimestamp])).values()]}
 			<EntitiesList

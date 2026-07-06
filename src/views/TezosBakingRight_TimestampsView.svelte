@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TezosBakingRight_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tezosBakingRightTimestamps)}
 			{@const uniqueTezosBakingRightTimestamps = [...new Map(tezosBakingRightTimestamps.values.map((tezosBakingRightTimestamp) => [tezosBakingRightTimestamp[EntityMetaKey.SelectorKey], tezosBakingRightTimestamp])).values()]}
 			<EntitiesList

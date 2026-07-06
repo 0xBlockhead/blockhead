@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitPackedObject}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitPackedObjects)}
 			{@const uniqueGitPackedObjects = [...new Map(gitPackedObjects.values.map((gitPackedObject) => [gitPackedObject[EntityMetaKey.SelectorKey], gitPackedObject])).values()]}
 			<EntitiesList

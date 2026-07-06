@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalYoutubeNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalYoutubeNetworks)}
 			{@const uniqueGlobalYoutubeNetworks = [...new Map(globalYoutubeNetworks.values.map((globalYoutubeNetwork) => [globalYoutubeNetwork[EntityMetaKey.SelectorKey], globalYoutubeNetwork])).values()]}
 			<EntitiesList

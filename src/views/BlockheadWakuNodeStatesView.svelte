@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadWakuNodeState}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadWakuNodeStates)}
 			{@const uniqueBlockheadWakuNodeStates = [...new Map(blockheadWakuNodeStates.values.map((blockheadWakuNodeState) => [blockheadWakuNodeState[EntityMetaKey.SelectorKey], blockheadWakuNodeState])).values()]}
 			<EntitiesList

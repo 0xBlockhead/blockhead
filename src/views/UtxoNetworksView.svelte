@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.UtxoNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(utxoNetworks)}
 			{@const uniqueUtxoNetworks = [...new Map(utxoNetworks.values.map((utxoNetwork) => [utxoNetwork[EntityMetaKey.SelectorKey], utxoNetwork])).values()]}
 			<EntitiesList

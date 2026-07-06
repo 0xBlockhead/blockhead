@@ -461,7 +461,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowChannels: (network) => network,
+				$$observedChannels: (network) => network,
 			},
 		}),
 
@@ -489,7 +489,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowVideos: (network) => network,
+				$$observedVideos: (network) => network,
 			},
 		}),
 
@@ -502,7 +502,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$sourceWindowPlaylists: (network) => network,
+				$$observedPlaylists: (network) => network,
 			},
 		}),
 

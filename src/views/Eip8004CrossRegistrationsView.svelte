@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Eip8004CrossRegistration}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eip8004CrossRegistrations)}
 			{@const uniqueEip8004CrossRegistrations = [...new Map(eip8004CrossRegistrations.values.map((eip8004CrossRegistration) => [eip8004CrossRegistration[EntityMetaKey.SelectorKey], eip8004CrossRegistration])).values()]}
 			<EntitiesList

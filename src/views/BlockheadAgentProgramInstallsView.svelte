@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadAgentProgramInstall}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadAgentProgramInstalls)}
 			{@const uniqueBlockheadAgentProgramInstalls = [...new Map(blockheadAgentProgramInstalls.values.map((blockheadAgentProgramInstall) => [blockheadAgentProgramInstall[EntityMetaKey.SelectorKey], blockheadAgentProgramInstall])).values()]}
 			<EntitiesList

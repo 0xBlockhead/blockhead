@@ -43,7 +43,7 @@
 				sources: [data.selector.source],
 				fields: {
 					reachable: true,
-					sourceWindowItemCount: true,
+					observedItemCount: true,
 					fetchWindowKind: true,
 				},
 			})

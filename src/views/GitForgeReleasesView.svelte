@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.GitForgeRelease}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(gitForgeReleases)}
 			{@const uniqueGitForgeReleases = [...new Map(gitForgeReleases.values.map((gitForgeRelease) => [gitForgeRelease[EntityMetaKey.SelectorKey], gitForgeRelease])).values()]}
 			<EntitiesList

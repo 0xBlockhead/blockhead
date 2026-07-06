@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CodexDataset}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(codexDatasets)}
 			{@const uniqueCodexDatasets = [...new Map(codexDatasets.values.map((codexDataset) => [codexDataset[EntityMetaKey.SelectorKey], codexDataset])).values()]}
 			<EntitiesList

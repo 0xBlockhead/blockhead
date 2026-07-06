@@ -173,18 +173,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowActorCount: true,
+							observedActorCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowActorCount = prefetched.sourceWindowActorCount}
-					{#if sourceWindowActorCount !== undefined && sourceWindowActorCount !== null}
+					{@const observedActorCount = prefetched.observedActorCount}
+					{#if observedActorCount !== undefined && observedActorCount !== null}
 						<div>
-							<dt>Source-window accounts</dt>
+							<dt>Observed accounts</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowActorCount)} />
+								<NumberValue value={Number(observedActorCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -192,12 +192,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowActorCount = resolvedEntity.sourceWindowActorCount}
-					{#if sourceWindowActorCount !== undefined && sourceWindowActorCount !== null}
+					{@const observedActorCount = resolvedEntity.observedActorCount}
+					{#if observedActorCount !== undefined && observedActorCount !== null}
 						<div>
-							<dt>Source-window accounts</dt>
+							<dt>Observed accounts</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowActorCount)} />
+								<NumberValue value={Number(observedActorCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -208,18 +208,18 @@
 				resource={
 					selection({
 						fields: {
-							sourceWindowPostCount: true,
+							observedPostCount: true,
 						},
 					})
 				}
 			>
 				{#snippet Pending()}
-					{@const sourceWindowPostCount = prefetched.sourceWindowPostCount}
-					{#if sourceWindowPostCount !== undefined && sourceWindowPostCount !== null}
+					{@const observedPostCount = prefetched.observedPostCount}
+					{#if observedPostCount !== undefined && observedPostCount !== null}
 						<div>
-							<dt>Source-window posts</dt>
+							<dt>Observed posts</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowPostCount)} />
+								<NumberValue value={Number(observedPostCount)} />
 							</dd>
 						</div>
 					{/if}
@@ -227,12 +227,12 @@
 
 				{#snippet children(entity)}
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const sourceWindowPostCount = resolvedEntity.sourceWindowPostCount}
-					{#if sourceWindowPostCount !== undefined && sourceWindowPostCount !== null}
+					{@const observedPostCount = resolvedEntity.observedPostCount}
+					{#if observedPostCount !== undefined && observedPostCount !== null}
 						<div>
-							<dt>Source-window posts</dt>
+							<dt>Observed posts</dt>
 							<dd>
-								<NumberValue value={Number(sourceWindowPostCount)} />
+								<NumberValue value={Number(observedPostCount)} />
 							</dd>
 						</div>
 					{/if}

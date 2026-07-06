@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadWalletRequest_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadWalletRequestTimestamps)}
 			{@const uniqueBlockheadWalletRequestTimestamps = [...new Map(blockheadWalletRequestTimestamps.values.map((blockheadWalletRequestTimestamp) => [blockheadWalletRequestTimestamp[EntityMetaKey.SelectorKey], blockheadWalletRequestTimestamp])).values()]}
 			<EntitiesList

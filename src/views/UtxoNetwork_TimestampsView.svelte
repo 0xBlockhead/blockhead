@@ -78,6 +78,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.UtxoNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(utxoNetworkTimestamps)}
 			{@const uniqueUtxoNetworkTimestamps = [...new Map(utxoNetworkTimestamps.values.map((utxoNetworkTimestamp) => [utxoNetworkTimestamp[EntityMetaKey.SelectorKey], utxoNetworkTimestamp])).values()]}
 			<EntitiesList

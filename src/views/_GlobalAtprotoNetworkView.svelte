@@ -88,7 +88,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from configured Bluesky-compatible appview sources, not a claim about every repository on the network.
+			AT Protocol is a DID-based social protocol. This hub shows bounded actor and post windows from declared Bluesky-compatible appview sources, not a claim about every repository on the network.
 		</p>
 	{/snippet}
 
@@ -129,18 +129,18 @@
 					resource={
 						selection({
 							fields: {
-								topology: true,
+								relationshipModel: true,
 							},
 						})
 					}
 				>
 					{#snippet Pending()}
-						{@const topology = prefetched.topology}
-						{#if topology !== undefined && topology !== null}
+						{@const relationshipModel = prefetched.relationshipModel}
+						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
-								<dt>Topology</dt>
+								<dt>Relationship model</dt>
 								<dd>
-									{String((topology) ?? '')}
+									{String((relationshipModel) ?? '')}
 								</dd>
 							</div>
 						{/if}
@@ -148,12 +148,12 @@
 
 					{#snippet children(entity)}
 						{@const resolvedEntity = { ...pendingEntity, ...entity }}
-						{@const topology = resolvedEntity.topology}
-						{#if topology !== undefined && topology !== null}
+						{@const relationshipModel = resolvedEntity.relationshipModel}
+						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
-								<dt>Topology</dt>
+								<dt>Relationship model</dt>
 								<dd>
-									{String((topology) ?? '')}
+									{String((relationshipModel) ?? '')}
 								</dd>
 							</div>
 						{/if}
@@ -288,7 +288,7 @@
 						<Tooltip contentProps={{ side: 'top' }}>
 							{#snippet Content()}
 								<p>
-									Bounded source windows and example routes from configured AT Protocol appviews.
+									Bounded observeds and example routes from declared AT Protocol appviews.
 								</p>
 							{/snippet}
 
@@ -303,7 +303,7 @@
 				{#snippet SectionAccounts({ id, label, open })}
 					<AtprotoActorsView
 						selection={
-							selection[EntityProxyField]<EntityType.AtprotoActor>('$$sourceWindowActors', {
+							selection[EntityProxyField]<EntityType.AtprotoActor>('$$observedActors', {
 								sources: [
 									Source.Constants_Internal,
 									Source.Atproto_Xrpc,
@@ -321,7 +321,7 @@
 				{#snippet SectionRecentPosts({ id, label, open })}
 					<AtprotoPostsView
 						selection={
-							selection[EntityProxyField]<EntityType.AtprotoPost>('$$sourceWindowPosts', {
+							selection[EntityProxyField]<EntityType.AtprotoPost>('$$observedPosts', {
 								sources: [
 									Source.Constants_Internal,
 									Source.Atproto_Xrpc,

@@ -41,8 +41,8 @@
 			select(EntityType._GlobalAtprotoNetwork_Timestamp, data.selector, {
 				sources: [data.selector.source],
 				fields: {
-					sourceWindowActorCount: true,
-					sourceWindowPostCount: true,
+					observedActorCount: true,
+					observedPostCount: true,
 					reachable: true,
 				},
 			})

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.TonWorkchain}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(tonWorkchains)}
 			{@const uniqueTonWorkchains = [...new Map(tonWorkchains.values.map((tonWorkchain) => [tonWorkchain[EntityMetaKey.SelectorKey], tonWorkchain])).values()]}
 			<EntitiesList

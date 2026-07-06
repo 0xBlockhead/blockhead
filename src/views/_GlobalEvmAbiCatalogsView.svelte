@@ -72,6 +72,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalEvmAbiCatalog}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalEvmAbiCatalogs)}
 			{@const uniqueGlobalEvmAbiCatalogs = [...new Map(globalEvmAbiCatalogs.values.map((globalEvmAbiCatalog) => [globalEvmAbiCatalog[EntityMetaKey.SelectorKey], globalEvmAbiCatalog])).values()]}
 			<EntitiesList

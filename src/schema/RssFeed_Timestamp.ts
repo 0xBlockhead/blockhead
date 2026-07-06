@@ -51,8 +51,8 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'sourceWindowItemCount',
-			label: 'Source window items',
+			name: 'observedItemCount',
+			label: 'Observed items',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -12,7 +12,7 @@ export default {
 	entityType: EntityType.ActivityPubInstance,
 	label: 'ActivityPub instance',
 	labelPlural: 'ActivityPub instances',
-	description: 'A configured Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.',
+	description: 'A declared Mastodon-compatible ActivityPub server observed through the shared Mastodon REST source.',
 	selectors: [
 		{
 			name: ActivityPubInstanceSelector.InstanceOriginSource,

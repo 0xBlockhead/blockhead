@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.YoutubePlaylist_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(youtubePlaylistTimestamps)}
 			{@const uniqueYoutubePlaylistTimestamps = [...new Map(youtubePlaylistTimestamps.values.map((youtubePlaylistTimestamp) => [youtubePlaylistTimestamp[EntityMetaKey.SelectorKey], youtubePlaylistTimestamp])).values()]}
 			<EntitiesList

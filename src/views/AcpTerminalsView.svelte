@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AcpTerminal}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(acpTerminals)}
 			{@const uniqueAcpTerminals = [...new Map(acpTerminals.values.map((acpTerminal) => [acpTerminal[EntityMetaKey.SelectorKey], acpTerminal])).values()]}
 			<EntitiesList

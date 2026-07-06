@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.XrplLedgerEntry}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(xrplLedgerEntries)}
 			{@const uniqueXrplLedgerEntries = [...new Map(xrplLedgerEntries.values.map((xrplLedgerEntry) => [xrplLedgerEntry[EntityMetaKey.SelectorKey], xrplLedgerEntry])).values()]}
 			<EntitiesList

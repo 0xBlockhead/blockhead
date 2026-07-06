@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CosmosNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cosmosNetworks)}
 			{@const uniqueCosmosNetworks = [...new Map(cosmosNetworks.values.map((cosmosNetwork) => [cosmosNetwork[EntityMetaKey.SelectorKey], cosmosNetwork])).values()]}
 			<EntitiesList

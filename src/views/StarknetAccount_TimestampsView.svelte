@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.StarknetAccount_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(starknetAccountTimestamps)}
 			{@const uniqueStarknetAccountTimestamps = [...new Map(starknetAccountTimestamps.values.map((starknetAccountTimestamp) => [starknetAccountTimestamp[EntityMetaKey.SelectorKey], starknetAccountTimestamp])).values()]}
 			<EntitiesList

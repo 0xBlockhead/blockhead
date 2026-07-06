@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.IbcConnection}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(ibcConnections)}
 			{@const uniqueIbcConnections = [...new Map(ibcConnections.values.map((ibcConnection) => [ibcConnection[EntityMetaKey.SelectorKey], ibcConnection])).values()]}
 			<EntitiesList

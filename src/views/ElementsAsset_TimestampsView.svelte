@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ElementsAsset_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(elementsAssetTimestamps)}
 			{@const uniqueElementsAssetTimestamps = [...new Map(elementsAssetTimestamps.values.map((elementsAssetTimestamp) => [elementsAssetTimestamp[EntityMetaKey.SelectorKey], elementsAssetTimestamp])).values()]}
 			<EntitiesList

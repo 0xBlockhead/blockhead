@@ -75,6 +75,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.McpResourceContent_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(mcpResourceContentTimestamps)}
 			{@const uniqueMcpResourceContentTimestamps = [...new Map(mcpResourceContentTimestamps.values.map((mcpResourceContentTimestamp) => [mcpResourceContentTimestamp[EntityMetaKey.SelectorKey], mcpResourceContentTimestamp])).values()]}
 			<EntitiesList

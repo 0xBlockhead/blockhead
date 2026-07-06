@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.KaspaAddressUtxo_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(kaspaAddressUtxoTimestamps)}
 			{@const uniqueKaspaAddressUtxoTimestamps = [...new Map(kaspaAddressUtxoTimestamps.values.map((kaspaAddressUtxoTimestamp) => [kaspaAddressUtxoTimestamp[EntityMetaKey.SelectorKey], kaspaAddressUtxoTimestamp])).values()]}
 			<EntitiesList

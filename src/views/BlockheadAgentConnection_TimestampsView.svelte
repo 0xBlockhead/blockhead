@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadAgentConnection_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadAgentConnectionTimestamps)}
 			{@const uniqueBlockheadAgentConnectionTimestamps = [...new Map(blockheadAgentConnectionTimestamps.values.map((blockheadAgentConnectionTimestamp) => [blockheadAgentConnectionTimestamp[EntityMetaKey.SelectorKey], blockheadAgentConnectionTimestamp])).values()]}
 			<EntitiesList

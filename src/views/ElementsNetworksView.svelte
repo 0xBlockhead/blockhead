@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ElementsNetwork}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(elementsNetworks)}
 			{@const uniqueElementsNetworks = [...new Map(elementsNetworks.values.map((elementsNetwork) => [elementsNetwork[EntityMetaKey.SelectorKey], elementsNetwork])).values()]}
 			<EntitiesList

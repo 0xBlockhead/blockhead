@@ -11,7 +11,7 @@ export default {
 	entityType: EntityType.ActivityPubInstancePeer,
 	label: 'ActivityPub instance peer',
 	labelPlural: 'ActivityPub instance peers',
-	description: 'A domain that a configured ActivityPub instance reports as a known connected domain.',
+	description: 'A domain that a declared ActivityPub instance reports as a known connected domain.',
 	selectors: [
 		{
 			name: ActivityPubInstancePeerSelector.InstanceOriginPeerDomainSource,

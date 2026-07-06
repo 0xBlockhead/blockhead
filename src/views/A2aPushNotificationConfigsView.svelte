@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.A2aPushNotificationConfig}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(a2aPushNotificationConfigs)}
 			{@const uniqueA2aPushNotificationConfigs = [...new Map(a2aPushNotificationConfigs.values.map((a2aPushNotificationConfig) => [a2aPushNotificationConfig[EntityMetaKey.SelectorKey], a2aPushNotificationConfig])).values()]}
 			<EntitiesList

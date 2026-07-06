@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HederaNetworkExchangeRate_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hederaNetworkExchangeRateTimestamps)}
 			{@const uniqueHederaNetworkExchangeRateTimestamps = [...new Map(hederaNetworkExchangeRateTimestamps.values.map((hederaNetworkExchangeRateTimestamp) => [hederaNetworkExchangeRateTimestamp[EntityMetaKey.SelectorKey], hederaNetworkExchangeRateTimestamp])).values()]}
 			<EntitiesList

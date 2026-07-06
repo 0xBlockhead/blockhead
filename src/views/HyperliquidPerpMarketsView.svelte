@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.HyperliquidPerpMarket}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(hyperliquidPerpMarkets)}
 			{@const uniqueHyperliquidPerpMarkets = [...new Map(hyperliquidPerpMarkets.values.map((hyperliquidPerpMarket) => [hyperliquidPerpMarket[EntityMetaKey.SelectorKey], hyperliquidPerpMarket])).values()]}
 			<EntitiesList

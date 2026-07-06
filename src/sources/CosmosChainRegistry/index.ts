@@ -7,7 +7,7 @@ import { SourceProvider } from '$/sources/SourceProvider.ts'
 const cosmosChainRegistryGithubSourceDefinition = {
 	provider: SourceProvider.CosmosChainRegistry,
 	source: Source.CosmosChainRegistry_Github,
-	label: 'Cosmos Chain Registry GitHub',
+	label: 'Cosmos Chain Registry name GitHub',
 } satisfies SourceDefinitionTemplate<SourceProvider, Source>
 
 export default cosmosChainRegistryGithubSourceDefinition

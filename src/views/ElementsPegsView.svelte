@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ElementsPeg}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(elementsPegs)}
 			{@const uniqueElementsPegs = [...new Map(elementsPegs.values.map((elementsPeg) => [elementsPeg[EntityMetaKey.SelectorKey], elementsPeg])).values()]}
 			<EntitiesList

@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AptosStateChange}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(aptosStateChanges)}
 			{@const uniqueAptosStateChanges = [...new Map(aptosStateChanges.values.map((aptosStateChange) => [aptosStateChange[EntityMetaKey.SelectorKey], aptosStateChange])).values()]}
 			<EntitiesList

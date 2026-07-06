@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.QuilibriumShard}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(quilibriumShards)}
 			{@const uniqueQuilibriumShards = [...new Map(quilibriumShards.values.map((quilibriumShard) => [quilibriumShard[EntityMetaKey.SelectorKey], quilibriumShard])).values()]}
 			<EntitiesList

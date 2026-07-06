@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType._GlobalFarcasterNetwork_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(globalFarcasterNetworkTimestamps)}
 			{@const uniqueGlobalFarcasterNetworkTimestamps = [...new Map(globalFarcasterNetworkTimestamps.values.map((globalFarcasterNetworkTimestamp) => [globalFarcasterNetworkTimestamp[EntityMetaKey.SelectorKey], globalFarcasterNetworkTimestamp])).values()]}
 			<EntitiesList

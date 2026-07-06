@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AssetSupply_LedgerCoordinate}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(assetSupplyLedgerCoordinates)}
 			{@const uniqueAssetSupplyLedgerCoordinates = [...new Map(assetSupplyLedgerCoordinates.values.map((assetSupplyLedgerCoordinate) => [assetSupplyLedgerCoordinate[EntityMetaKey.SelectorKey], assetSupplyLedgerCoordinate])).values()]}
 			<EntitiesList

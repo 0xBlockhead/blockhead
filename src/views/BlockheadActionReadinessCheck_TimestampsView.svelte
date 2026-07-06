@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadActionReadinessCheck_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadActionReadinessCheckTimestamps)}
 			{@const uniqueBlockheadActionReadinessCheckTimestamps = [...new Map(blockheadActionReadinessCheckTimestamps.values.map((blockheadActionReadinessCheckTimestamp) => [blockheadActionReadinessCheckTimestamp[EntityMetaKey.SelectorKey], blockheadActionReadinessCheckTimestamp])).values()]}
 			<EntitiesList

@@ -82,6 +82,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.SpecificationProposalKind}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(specificationProposalKinds)}
 			{@const uniqueSpecificationProposalKinds = [...new Map(specificationProposalKinds.values.map((specificationProposalKind) => [specificationProposalKind[EntityMetaKey.SelectorKey], specificationProposalKind])).values()]}
 			<EntitiesList

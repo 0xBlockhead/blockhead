@@ -73,6 +73,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.BlockheadAgentProviderCall}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(blockheadAgentProviderCalls)}
 			{@const uniqueBlockheadAgentProviderCalls = [...new Map(blockheadAgentProviderCalls.values.map((blockheadAgentProviderCall) => [blockheadAgentProviderCall[EntityMetaKey.SelectorKey], blockheadAgentProviderCall])).values()]}
 			<EntitiesList

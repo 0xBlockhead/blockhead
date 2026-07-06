@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.AlgorandBox_Round}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(algorandBoxRounds)}
 			{@const uniqueAlgorandBoxRounds = [...new Map(algorandBoxRounds.values.map((algorandBoxRound) => [algorandBoxRound[EntityMetaKey.SelectorKey], algorandBoxRound])).values()]}
 			<EntitiesList

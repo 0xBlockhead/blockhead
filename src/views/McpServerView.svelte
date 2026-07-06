@@ -46,7 +46,7 @@
 	const mcpServer = $derived(selection({
 		sources: [
 			Source.Eip8004Scan_Rest,
-			Source.McpConfigured_Protocol,
+			Source.McpDeclared_Protocol,
 		],
 		fields: {
 			transportKind: true,

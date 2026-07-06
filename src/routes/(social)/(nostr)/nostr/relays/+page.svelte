@@ -30,13 +30,13 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			})[EntityProxyField]<EntityType.NostrRelay>('$$sourceWindowRelays', {
+			})[EntityProxyField]<EntityType.NostrRelay>('$$observedRelays', {
 				sources: [
 					Source.Constants_Internal,
 					Source.NostrBand_Rest,
 				],
 			})
 		}
-		id='source-window-relays'
+		id='observed-relays'
 	/>
 </Page>

@@ -76,6 +76,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.ContractInterfaceMember}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(contractInterfaceMembers)}
 			{@const uniqueContractInterfaceMembers = [...new Map(contractInterfaceMembers.values.map((contractInterfaceMember) => [contractInterfaceMember[EntityMetaKey.SelectorKey], contractInterfaceMember])).values()]}
 			<EntitiesList

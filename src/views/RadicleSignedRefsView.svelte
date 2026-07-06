@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.RadicleSignedRef}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(radicleSignedRefs)}
 			{@const uniqueRadicleSignedRefs = [...new Map(radicleSignedRefs.values.map((radicleSignedRef) => [radicleSignedRef[EntityMetaKey.SelectorKey], radicleSignedRef])).values()]}
 			<EntitiesList

@@ -66,6 +66,20 @@
 		resource={selection}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.CardanoStakePool}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(cardanoStakePools)}
 			{@const uniqueCardanoStakePools = [...new Map(cardanoStakePools.values.map((cardanoStakePool) => [cardanoStakePool[EntityMetaKey.SelectorKey], cardanoStakePool])).values()]}
 			<EntitiesList

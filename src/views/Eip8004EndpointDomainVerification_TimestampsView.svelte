@@ -74,6 +74,20 @@
 		}
 		{placeholderText}
 	>
+		{#snippet Pending()}
+			<EntitiesList
+				{...EntitiesListProps}
+				entityType={EntityType.Eip8004EndpointDomainVerification_Timestamp}
+				{id}
+				{title}
+				bind:open
+				{collapsible}
+				{showTypeAnnotation}
+				TypeAnnotationTooltip={typeAnnotationParagraphs.length > 0 ? TypeAnnotationParagraphs : undefined}
+				placeholderText={placeholderText}
+			/>
+		{/snippet}
+
 		{#snippet children(eip8004EndpointDomainVerificationTimestamps)}
 			{@const uniqueEip8004EndpointDomainVerificationTimestamps = [...new Map(eip8004EndpointDomainVerificationTimestamps.values.map((eip8004EndpointDomainVerificationTimestamp) => [eip8004EndpointDomainVerificationTimestamp[EntityMetaKey.SelectorKey], eip8004EndpointDomainVerificationTimestamp])).values()]}
 			<EntitiesList
