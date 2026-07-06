@@ -22,12 +22,12 @@ import {
 	type MarketIdLabelInput,
 } from '$/constants/Market.ts'
 import {
-	catalogCoinSpotUsdMarkets,
-	catalogCoinSpotUsdMarketByCoinId,
-	catalogMarketsWithCoinAsQuoteByQuoteCoinId,
-	catalogMarketsWithCurrencyAsBaseByIso4217,
-	catalogSpotMarketsWithCoinAsQuote,
-	catalogSpotMarketsWithCurrencyAsBase,
+	localCatalogCoinSpotUsdMarkets,
+	localCatalogCoinSpotUsdMarketByCoinId,
+	localCatalogMarketsWithCoinAsQuoteByQuoteCoinId,
+	localCatalogMarketsWithCurrencyAsBaseByIso4217,
+	localCatalogSpotMarketsWithCoinAsQuote,
+	localCatalogSpotMarketsWithCurrencyAsBase,
 	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
@@ -658,10 +658,20 @@ export default {
 					}
 				},
 				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: async ({ $network, slug }) => {
-					const { networkConsensusUpgradeByChainIdAndRouteSegment } = await import(
+					const { networkConsensusUpgrades } = await import(
 						'$/constants/EthereumNetworkUpgrades.ts'
 					)
-					const networkConsensusUpgrade = networkConsensusUpgradeByChainIdAndRouteSegment[`${$network.caip2.reference}:${slug}`]
+					const networkConsensusUpgrade = networkConsensusUpgrades.find((candidate) => (
+						String(candidate.chainId) === $network.caip2.reference
+						&& [
+							candidate.upgradeId,
+							candidate.slug,
+							candidate.upgradeId.toLowerCase(),
+							candidate.slug.toLowerCase(),
+						].includes(slug)
+					))
+					if (networkConsensusUpgrade == null)
+						throw new Error(`Constants_Internal: ConsensusUpgrade ${$network.caip2.reference}:${slug} not found`)
 
 					return {
 						...networkConsensusUpgrade,
@@ -963,7 +973,7 @@ export default {
 						[EntityMetaKey.Selector]: EntitySelector<typeof schema, EntityType.Market>
 					}[] = []
 
-					for (const catalogMarket of catalogCoinSpotUsdMarkets) {
+					for (const catalogMarket of localCatalogCoinSpotUsdMarkets) {
 						if (marketReferences.length >= limit)
 							return marketReferences
 
@@ -973,7 +983,7 @@ export default {
 							})
 					}
 
-					for (const catalogMarket of catalogSpotMarketsWithCoinAsQuote) {
+					for (const catalogMarket of localCatalogSpotMarketsWithCoinAsQuote) {
 						if (marketReferences.length >= limit)
 							return marketReferences
 
@@ -983,7 +993,7 @@ export default {
 							})
 					}
 
-					for (const catalogMarket of catalogSpotMarketsWithCurrencyAsBase) {
+					for (const catalogMarket of localCatalogSpotMarketsWithCurrencyAsBase) {
 						if (marketReferences.length >= limit)
 							return marketReferences
 
@@ -2228,7 +2238,7 @@ export default {
 					return (
 						coins.map((coin) => (
 						{
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coin.id]),
+							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coin.id]),
 						}
 						))
 					)
@@ -2244,7 +2254,7 @@ export default {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async (_globalScopeEntitySelector: EntitySelector<typeof schema, EntityType._Global>, context) => (
-					catalogCoinSpotUsdMarkets.slice(0, resolverContextRowLimit(context)).map((catalogMarket) => (
+					localCatalogCoinSpotUsdMarkets.slice(0, resolverContextRowLimit(context)).map((catalogMarket) => (
 						{
 							[EntityMetaKey.Selector]: {
 								$market: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
@@ -2268,7 +2278,7 @@ export default {
 				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
 					[
 						{
-							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
+							[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId]),
 						},
 					]
 				)
@@ -2283,7 +2293,7 @@ export default {
 			entityType: EntityType.Coin,
 			resolve: {
 				[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => (
-					(catalogMarketsWithCoinAsQuoteByQuoteCoinId[coinId] ).map((catalogMarket) => ({
+					(localCatalogMarketsWithCoinAsQuoteByQuoteCoinId[coinId] ).map((catalogMarket) => ({
 						[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCoinMarket(catalogMarket),
 					}))
 				)
@@ -2298,7 +2308,7 @@ export default {
 			entityType: EntityType.Currency,
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => (
-					(catalogMarketsWithCurrencyAsBaseByIso4217[iso4217] ?? []).map((catalogMarket: CatalogCurrencyCurrencyMarket) => ({
+					(localCatalogMarketsWithCurrencyAsBaseByIso4217[iso4217] ?? []).map((catalogMarket: CatalogCurrencyCurrencyMarket) => ({
 						[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
 					}))
 				)
@@ -2315,13 +2325,13 @@ export default {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => [
 					...(
 						iso4217 === Iso4217.USD ?
-							catalogCoinSpotUsdMarkets.map((catalogMarket) => ({
+							localCatalogCoinSpotUsdMarkets.map((catalogMarket) => ({
 								[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogMarket),
 							}))
 						:
 							[]
 					),
-					...catalogSpotMarketsWithCurrencyAsBase
+					...localCatalogSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.quoteIso4217 === iso4217)
 						.map((catalogMarket) => ({
 							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
@@ -2410,7 +2420,7 @@ export default {
 				[MarketSelector.BaseQuoteMarketVenueKind]: async (entitySelector: EntitySelector<typeof schema, EntityType.Market>) => (
 					(
 						entitySelector.$base.kind === MarketAssetKind.Coin
-					&& catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector)
+					&& catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[entitySelector.$base.$coin.coinId], entitySelector)
 					) ?
 						[
 							{

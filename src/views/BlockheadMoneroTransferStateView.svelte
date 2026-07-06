@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || 'blockhead monero transfer state')
 	const viewDomId = $derived('blockhead-monero-transfer-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -168,7 +170,7 @@
 								<BlockheadWalletView
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -188,7 +190,7 @@
 								<MoneroNetworkView
 									selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
 									prefetched={moneroNetwork}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -208,7 +210,7 @@
 								<MoneroTransactionView
 									selection={select(EntityType.MoneroTransaction, moneroTransaction[EntityMetaKey.Selector])}
 									prefetched={moneroTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

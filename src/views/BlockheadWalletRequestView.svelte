@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.requestKind) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet request')
 	const viewDomId = $derived('blockhead-wallet-request-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -169,7 +171,7 @@
 								<BlockheadSessionActionView
 									selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionAction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -189,7 +191,7 @@
 								<BlockheadIntentOrderView
 									selection={select(EntityType.BlockheadIntentOrder, blockheadIntentOrder[EntityMetaKey.Selector])}
 									prefetched={blockheadIntentOrder}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -209,7 +211,7 @@
 								<BlockheadWalletConnectionView
 									selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletConnection}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

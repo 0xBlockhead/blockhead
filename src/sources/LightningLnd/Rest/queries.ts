@@ -1,6 +1,5 @@
 import { getJson } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/sources/$sources.ts'
-import { lightningLndOrigins } from '$/sources/LightningLnd/index.ts'
 import { lightningLndBindings } from '$/sources/LightningLnd/bindings.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import type {
@@ -12,6 +11,10 @@ import type {
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 const restBaseUrl = lightningLndBindings[1].endpoints[0].locator
+const lightningLndOrigins = lightningLndBindings[1].endpoints.map((endpoint) => ({
+	origin: endpoint.origin,
+	corsEnabled: endpoint.corsEnabled,
+}))
 
 const lndHeaders = (macaroonHex: string) => ({
 	'Grpc-Metadata-macaroon': macaroonHex,

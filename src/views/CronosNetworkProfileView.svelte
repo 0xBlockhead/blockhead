@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived('cronos network profile')
 	const viewDomId = $derived('cronos-network-profile-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IbcChannelsView from '$/views/IbcChannelsView.svelte'
@@ -155,7 +157,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -173,11 +175,11 @@
 									selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
 									prefetched={evmNetwork}
 									href={
-										(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2 !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.namespace !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2 !== undefined && ({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.namespace ?? '')}:${String(({ ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }).caip2.reference ?? '')}`,
+										(evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.namespace !== undefined && evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+											caip2: `${String(evmNetwork[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(evmNetwork[EntityMetaKey.Selector].caip2.reference ?? '')}`,
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -198,11 +200,11 @@
 									selection={select(EntityType.CosmosNetwork, cosmosNetwork[EntityMetaKey.Selector])}
 									prefetched={cosmosNetwork}
 									href={
-										(({ ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }).$network !== undefined && ({ ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }).$network.caip2 !== undefined && ({ ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }).$network.caip2.namespace !== undefined && ({ ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }).$network !== undefined && ({ ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }).$network.caip2 !== undefined && ({ ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }).$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
-											caip2: `${String(({ ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }).$network.caip2.namespace ?? '')}:${String(({ ...cosmosNetwork[EntityMetaKey.Selector], ...cosmosNetwork }).$network.caip2.reference ?? '')}`,
+										(cosmosNetwork[EntityMetaKey.Selector].$network !== undefined && cosmosNetwork[EntityMetaKey.Selector].$network.caip2 !== undefined && cosmosNetwork[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && cosmosNetwork[EntityMetaKey.Selector].$network !== undefined && cosmosNetwork[EntityMetaKey.Selector].$network.caip2 !== undefined && cosmosNetwork[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+											caip2: `${String(cosmosNetwork[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(cosmosNetwork[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

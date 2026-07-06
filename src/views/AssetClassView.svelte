@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? ''), String((selection.entitySelector.classKey ?? prefetched.classKey) ?? '')].filter(Boolean).join(' ') || 'asset class')
 	const viewDomId = $derived('asset-class-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -410,7 +412,7 @@
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

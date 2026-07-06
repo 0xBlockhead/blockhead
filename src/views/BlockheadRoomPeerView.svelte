@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || [String((prefetched.peerId) ?? '')].filter(Boolean).join(' ') || 'contact')
 	const viewDomId = $derived('blockhead-room-peer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -112,7 +114,7 @@
 								<BlockheadRoomView
 									selection={select(EntityType.BlockheadRoom, blockheadRoom[EntityMetaKey.Selector])}
 									prefetched={blockheadRoom}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

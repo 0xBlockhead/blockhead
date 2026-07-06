@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.ticker ?? prefetched.ticker) ?? '')].filter(Boolean).join(' ') || 'dydx chain market')
 	const viewDomId = $derived('dydx-chain-market-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import DydxChainMarket_TimestampsView from '$/views/DydxChainMarket_TimestampsView.svelte'
@@ -127,7 +129,7 @@
 				<dd>
 					<DydxChainNetworkView
 						selection={select(EntityType.DydxChainNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -44,6 +44,8 @@
 	const suiProgrammableTransactionCommand = $derived(selection({}))
 	const titleFallback = $derived('Sui programmable transaction command')
 	const viewDomId = $derived('sui-programmable-transaction-command-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SuiTransactionView from '$/views/SuiTransactionView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<SuiTransactionView
 						selection={select(EntityType.SuiTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

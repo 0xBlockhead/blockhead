@@ -44,6 +44,8 @@
 	const suiDynamicFieldEdgeTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Sui dynamic field edge timestamp')
 	const viewDomId = $derived('sui-dynamic-field-edge-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SuiDynamicFieldEdgeView from '$/views/SuiDynamicFieldEdgeView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<SuiDynamicFieldEdgeView
 						selection={select(EntityType.SuiDynamicFieldEdge, selection.entitySelector.$edge)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

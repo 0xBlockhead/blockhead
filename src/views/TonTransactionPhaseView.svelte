@@ -44,6 +44,8 @@
 	const tonTransactionPhase = $derived(selection({}))
 	const titleFallback = $derived('TON transaction phase')
 	const viewDomId = $derived('ton-transaction-phase-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TonTransactionView from '$/views/TonTransactionView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TonTransactionView
 						selection={select(EntityType.TonTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

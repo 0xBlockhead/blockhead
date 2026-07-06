@@ -22,8 +22,8 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
-import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-import { catalogCoinSpotUsdMarketByCoinId, type CatalogCoinCurrencyMarket } from '$/constants/MarketCatalog.ts'
+import { CoinInstanceType, EvmCoinInstanceSelector } from '$/schema/EvmCoinInstance.ts'
+import { localCatalogCoinSpotUsdMarketByCoinId, type CatalogCoinCurrencyMarket } from '$/constants/MarketCatalog.ts'
 import type {
 	BlockscoutInternalTransaction,
 	BlockscoutErc4337RegistryEntry,
@@ -1412,6 +1412,55 @@ export default {
 		}),
 
 		defineResolver(Source.Blockscout_Rest, {
+			entityType: EntityType.EvmCoinInstance,
+			resolve: {
+				[EvmCoinInstanceSelector.NetworkTypeContract]: async ({ $contract, $network, type }) => {
+					if (type !== CoinInstanceType.Erc20Token)
+						throw new Error('Blockscout_Rest: EvmCoinInstance requires ERC-20 token contract selector')
+					const origin = await requireBlockscoutV2ExplorerOrigin(chainIdFromEvmNetworkId($network))
+					const { getAddressDetails } = await import('$/sources/Blockscout/Rest/queries.ts')
+					const detail = await getAddressDetails({
+						explorerOrigin: origin,
+						address: $contract.address,
+					})
+					const token = detail.token
+					if (token == null)
+						throw new Error('Blockscout_Rest: address detail missing token metadata for EvmCoinInstance')
+					return {
+						[EntityMetaKey.Selector]: {
+							$network,
+							type,
+							$contract,
+						},
+						$network: {
+							[EntityMetaKey.Selector]: $network,
+						} satisfies Entity<typeof schema, EntityType.EvmNetwork>,
+						type,
+						$contract: {
+							[EntityMetaKey.Selector]: $contract,
+						} satisfies Entity<typeof schema, EntityType.EvmContract>,
+						coinId: `${$network.caip2.namespace}:${$network.caip2.reference}/erc20:${$contract.address}`,
+						name: token.name,
+						symbol: token.symbol ?? $contract.address,
+						decimals: Number(token.decimals ?? 0),
+						iconUrl: token.icon_url,
+					}
+				},
+			},
+		})({
+			fields: {
+				$network: (coinInstance) => coinInstance.$network,
+				type: (coinInstance) => coinInstance.type,
+				$contract: (coinInstance) => coinInstance.$contract,
+				coinId: (coinInstance) => coinInstance.coinId,
+				name: (coinInstance) => coinInstance.name,
+				symbol: (coinInstance) => coinInstance.symbol,
+				decimals: (coinInstance) => coinInstance.decimals,
+				iconUrl: (coinInstance) => coinInstance.iconUrl,
+			},
+		}),
+
+		defineResolver(Source.Blockscout_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: {
 				[EvmInternalTransferSelector.TransactionIndexInTransaction]: async (entitySelector) => {
@@ -1767,7 +1816,7 @@ export default {
 						throw new Error('Blockscout_Rest: market base is not a catalog coin')
 					if (feedKey !== coinId)
 						throw new Error('Blockscout_Rest: Market_Timestamp feedKey does not match catalog coin id')
-					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId], $market))
 						throw new Error('Blockscout_Rest: Market_Timestamp only supports catalog USD spot markets')
 					const stats = await blockscoutStatsForNativeCoinId(coinId)
 					const price = usdPriceStringToPrice1e8(stats?.coin_price)
@@ -2665,7 +2714,7 @@ export default {
 					)
 					if (coinId == null)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId], $market))
 						return []
 					const stats = await blockscoutStatsForNativeCoinId(coinId)
 					const price = usdPriceStringToPrice1e8(stats?.coin_price)

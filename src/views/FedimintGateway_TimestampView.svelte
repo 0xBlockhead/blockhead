@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Fedimint gateway timestamp')
 	const viewDomId = $derived('fedimint-gateway-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -129,7 +131,7 @@
 				<dd>
 					<FedimintGatewayView
 						selection={select(EntityType.FedimintGateway, selection.entitySelector.$gateway)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

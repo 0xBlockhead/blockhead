@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.applicationId ?? prefetched.applicationId) ?? '')].filter(Boolean).join(' ') || 'algorand application')
 	const viewDomId = $derived('algorand-application-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AlgorandBoxesView from '$/views/AlgorandBoxesView.svelte'
@@ -131,7 +133,7 @@
 				<dd>
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

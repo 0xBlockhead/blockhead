@@ -23,7 +23,12 @@ type GithubTreeResponse = {
 
 export const fetchChainsJson = async (): Promise<EthereumListsChainJson[]> => {
 	const url = `${origin}${chainsJsonPath}`
-	return getJson<EthereumListsChainJson[]>(url, { origins: ethereumListsOrigins })
+	return getJson<EthereumListsChainJson[]>(url, {
+		origins: ethereumListsOrigins,
+		init: {
+			cache: 'no-store',
+		},
+	})
 }
 
 

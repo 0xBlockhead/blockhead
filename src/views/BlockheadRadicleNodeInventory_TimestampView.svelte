@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle node inventory timestamp')
 	const viewDomId = $derived('blockhead-radicle-node-inventory-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -133,7 +135,7 @@
 				<dd>
 					<BlockheadRadicleNodeStateView
 						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$node)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

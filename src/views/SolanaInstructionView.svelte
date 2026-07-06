@@ -46,6 +46,8 @@
 	const solanaInstruction = $derived(selection({}))
 	const titleFallback = $derived('solana instruction')
 	const viewDomId = $derived('solana-instruction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -360,12 +362,12 @@
 									selection={select(EntityType.SolanaProgram, solanaProgram[EntityMetaKey.Selector])}
 									prefetched={solanaProgram}
 									href={
-										(({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).$network !== undefined && ({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).$network.caip2 !== undefined && ({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).$network.caip2.namespace !== undefined && ({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).$network !== undefined && ({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).$network.caip2 !== undefined && ({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).$network.caip2.reference !== undefined && ({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).programId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/program/[programId]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).$network.caip2.namespace) + ':' + String(({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).$network.caip2.reference))].slug ?? ''),
-											programId: String(({ ...solanaProgram[EntityMetaKey.Selector], ...solanaProgram }).programId ?? ''),
+										(solanaProgram[EntityMetaKey.Selector].$network !== undefined && solanaProgram[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaProgram[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && solanaProgram[EntityMetaKey.Selector].$network !== undefined && solanaProgram[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaProgram[EntityMetaKey.Selector].$network.caip2.reference !== undefined && solanaProgram[EntityMetaKey.Selector].programId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/program/[programId]', {
+											networkSlug: String(networkByCaip2[String(String(solanaProgram[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(solanaProgram[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											programId: String(solanaProgram[EntityMetaKey.Selector].programId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -385,7 +387,7 @@
 								signature: String(selection.entitySelector.$transaction.signature ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

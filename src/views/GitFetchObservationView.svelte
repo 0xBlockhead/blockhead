@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.remoteName ?? prefetched.remoteName) ?? '')].filter(Boolean).join(' ') || 'Git fetch observation')
 	const viewDomId = $derived('git-fetch-observation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -136,7 +138,7 @@
 				<dd>
 					<GitRepositoryView
 						selection={select(EntityType.GitRepository, selection.entitySelector.$repository)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

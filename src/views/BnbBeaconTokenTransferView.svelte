@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.symbol) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token transfer')
 	const viewDomId = $derived('bnb-beacon-token-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -131,7 +133,7 @@
 				<dd>
 					<BnbBeaconTransactionView
 						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.ticker) ?? ''), String((selection.entitySelector.assetId ?? prefetched.assetId) ?? '')].filter(Boolean).join(' ') || 'Elements asset')
 	const viewDomId = $derived('elements-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -129,7 +131,7 @@
 				<dd>
 					<ElementsNetworkView
 						selection={select(EntityType.ElementsNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

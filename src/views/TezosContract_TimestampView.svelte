@@ -44,6 +44,8 @@
 	const tezosContractTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tezos contract timestamp')
 	const viewDomId = $derived('tezos-contract-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TezosContractView
 						selection={select(EntityType.TezosContract, selection.entitySelector.$contract)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

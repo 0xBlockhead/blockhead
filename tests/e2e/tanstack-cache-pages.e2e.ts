@@ -10,7 +10,7 @@ import {
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
 /** `load` can exceed the default 15s navigation timeout after many client navigations. */
@@ -23,15 +23,7 @@ test.describe('TanStack query lifecycle + cache', () => {
 	let pageUrls: string[] = []
 
 	test.beforeAll(async () => {
-		const all = await discoverPathnamesFromRoutes()
-		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-		const limit = Number(limitRaw)
-		pageUrls = (
-			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-				all.slice(0, limit)
-			:
-				all
-		)
+		pageUrls = await discoverFilteredPathnamesFromRoutes()
 	})
 
 	test('networks: cold live collection load resolves provider-backed rows', async ({ page }) => {

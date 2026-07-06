@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived('Lens post observation')
 	const viewDomId = $derived('lens-post-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -120,7 +122,7 @@
 				<dd>
 					<LensPostView
 						selection={select(EntityType.LensPost, selection.entitySelector.$post)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

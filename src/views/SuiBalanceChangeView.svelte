@@ -44,6 +44,8 @@
 	const suiBalanceChange = $derived(selection({}))
 	const titleFallback = $derived('Sui balance change')
 	const viewDomId = $derived('sui-balance-change-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SuiTransactionView from '$/views/SuiTransactionView.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<SuiTransactionView
 						selection={select(EntityType.SuiTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -163,7 +165,7 @@
 								<SuiCoinTypeView
 									selection={select(EntityType.SuiCoinType, suiCoinType[EntityMetaKey.Selector])}
 									prefetched={suiCoinType}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

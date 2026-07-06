@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.peerId ?? prefetched.peerId) ?? '')].filter(Boolean).join(' ') || 'blockhead codex storage node state')
 	const viewDomId = $derived('blockhead-codex-storage-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

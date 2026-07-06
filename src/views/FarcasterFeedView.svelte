@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? ''), String((selection.entitySelector.variant ?? prefetched.variant) ?? '')].filter(Boolean).join(' ') || 'Farcaster feed')
 	const viewDomId = $derived('farcaster-feed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

@@ -5,6 +5,8 @@
  * ```
  * pnpm run test:e2e:failfast
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:failfast
+ * E2E_PATH_PATTERN='^/network/eip155:1(/|$)' pnpm run test:e2e:failfast
+ * E2E_PATH_SHARD_TOTAL=4 E2E_PATH_SHARD_INDEX=0 pnpm run test:e2e:failfast
  * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/route-errors-failfast.e2e.ts -g probe
  * E2E_START_PATH=/coins pnpm run test:e2e:failfast
  * ```
@@ -13,11 +15,12 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
+	clearOriginOpfs,
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../_e2eBrowserHelpers.ts'
 
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 import {
 	routeViewSmokeTimeoutsMs,
 	setupRouteViewSmokePage,
@@ -25,23 +28,9 @@ import {
 
 
 const probePath = process.env.E2E_PROBE_PATH?.trim()
-const startPath = process.env.E2E_START_PATH?.trim()
 
 const selectPathnames = async () => {
-	const all = await discoverPathnamesFromRoutes()
-	const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-	const limit = Number(limitRaw)
-	let pageUrls = (
-		limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-			all.slice(0, limit)
-		:
-			all
-	)
-	if (startPath) {
-		const index = pageUrls.indexOf(startPath)
-		pageUrls = index === -1 ? pageUrls : pageUrls.slice(index)
-	}
-	return pageUrls
+	return discoverFilteredPathnamesFromRoutes()
 }
 
 const withRouteTimeout = async (
@@ -66,6 +55,13 @@ const withRouteTimeout = async (
 const isTransientDevLoadFailure = (message: string) => (
 	message.includes('Failed to fetch dynamically imported module')
 	|| message.includes('[vite] Failed to reload')
+	|| (
+		message.includes('__sveltekit_dev')
+		&& (
+			message.includes('"mainCount":0')
+			|| message.includes('no-main')
+		)
+	)
 )
 
 const visitRouteFailFast = async (
@@ -119,6 +115,8 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 		test.skip(probePath == null || probePath === '', 'set E2E_PROBE_PATH')
 		testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 		page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
+		await page.goto('/')
+		await clearOriginOpfs(page)
 		await installChainlistRpcsJsonStub(page)
 		await visitRouteFailFast(page, testInfo, probePath!)
 	})
@@ -135,6 +133,8 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 				const page = await browser.newPage()
 				try {
 					page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
+					await page.goto('/')
+					await clearOriginOpfs(page)
 					await installChainlistRpcsJsonStub(page)
 					await withRouteTimeout(
 						pathname,

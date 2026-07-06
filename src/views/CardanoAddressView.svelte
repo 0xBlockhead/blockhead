@@ -44,6 +44,8 @@
 	const cardanoAddress = $derived(selection({}))
 	const titleFallback = $derived('Cardano address')
 	const viewDomId = $derived('cardano-address-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<CardanoNetworkView
 						selection={select(EntityType.CardanoNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -234,7 +236,7 @@
 								<CardanoStakeCredentialView
 									selection={select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector])}
 									prefetched={cardanoStakeCredential}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

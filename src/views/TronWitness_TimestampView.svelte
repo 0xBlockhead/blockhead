@@ -44,6 +44,8 @@
 	const tronWitnessTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tron witness timestamp')
 	const viewDomId = $derived('tron-witness-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TronWitnessView
 						selection={select(EntityType.TronWitness, selection.entitySelector.$witness)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.slot ?? prefetched.slot) ?? '') ? 'Slot #' + String((selection.entitySelector.slot ?? prefetched.slot) ?? '') : '') || 'solana block')
 	const viewDomId = $derived('solana-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -376,12 +378,12 @@
 									selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
 									prefetched={solanaBlock}
 									href={
-										(({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2 !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2.namespace !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2 !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2.reference !== undefined && ({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).slot !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/block/[slot]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2.namespace) + ':' + String(({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).$network.caip2.reference))].slug ?? ''),
-											slot: String(({ ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }).slot ?? ''),
+										(solanaBlock[EntityMetaKey.Selector].$network !== undefined && solanaBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && solanaBlock[EntityMetaKey.Selector].$network !== undefined && solanaBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && solanaBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && solanaBlock[EntityMetaKey.Selector].slot !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/block/[slot]', {
+											networkSlug: String(networkByCaip2[String(String(solanaBlock[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(solanaBlock[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											slot: String(solanaBlock[EntityMetaKey.Selector].slot ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -402,7 +404,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

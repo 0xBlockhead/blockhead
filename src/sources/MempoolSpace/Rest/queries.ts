@@ -1,5 +1,5 @@
 import { getJson } from '$/lib/http.ts'
-import { mempoolSpaceOrigins } from '$/sources/MempoolSpace/index.ts'
+import { mempoolSpaceBindings } from '$/sources/MempoolSpace/bindings.ts'
 import type {
 	MempoolSpaceAddress,
 	MempoolSpaceBlock,
@@ -7,6 +7,11 @@ import type {
 	MempoolSpaceRecommendedFees,
 	MempoolSpaceTransaction,
 } from '$/sources/MempoolSpace/Rest/types.ts'
+
+const mempoolSpaceOrigins = mempoolSpaceBindings[0].endpoints.map((endpoint) => ({
+	origin: endpoint.origin,
+	corsEnabled: endpoint.corsEnabled,
+}))
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
 
@@ -19,7 +24,7 @@ export const getBlock = ({
 }) => (
 	getJson<MempoolSpaceBlock>(
 		`${base(restBaseUrl)}/block/${blockHash}`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )
 
@@ -32,7 +37,7 @@ export const getBlockHashByHeight = ({
 }) => (
 	getJson<string>(
 		`${base(restBaseUrl)}/block-height/${height.toString()}`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )
 
@@ -45,7 +50,7 @@ export const getBlockTransactionIds = ({
 }) => (
 	getJson<string[]>(
 		`${base(restBaseUrl)}/block/${blockHash}/txids`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )
 
@@ -58,7 +63,7 @@ export const getTransaction = ({
 }) => (
 	getJson<MempoolSpaceTransaction>(
 		`${base(restBaseUrl)}/tx/${txId}`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )
 
@@ -74,7 +79,7 @@ export const getBlocks = ({
 			`${base(restBaseUrl)}/v1/blocks/${startHeight.toString()}`
 		:
 			`${base(restBaseUrl)}/v1/blocks`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )
 
@@ -85,7 +90,7 @@ export const getMempoolStats = ({
 }) => (
 	getJson<MempoolSpaceMempoolStats>(
 		`${base(restBaseUrl)}/mempool`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )
 
@@ -96,7 +101,7 @@ export const getMempoolTxids = ({
 }) => (
 	getJson<string[]>(
 		`${base(restBaseUrl)}/mempool/txids`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )
 
@@ -109,7 +114,7 @@ export const getAddress = ({
 }) => (
 	getJson<MempoolSpaceAddress>(
 		`${base(restBaseUrl)}/address/${address}`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )
 
@@ -120,6 +125,6 @@ export const getRecommendedFees = ({
 }) => (
 	getJson<MempoolSpaceRecommendedFees>(
 		`${base(restBaseUrl)}/v1/fees/recommended`,
-		{ origins: mempoolSpaceOrigins  }
+		{ origins: mempoolSpaceOrigins }
 	)
 )

@@ -44,6 +44,8 @@
 	const suiObject = $derived(selection({}))
 	const titleFallback = $derived('Sui object')
 	const viewDomId = $derived('sui-object-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SuiNetworkView from '$/views/SuiNetworkView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<SuiNetworkView
 						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

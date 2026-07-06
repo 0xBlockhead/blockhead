@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived('starknet network timestamp')
 	const viewDomId = $derived('starknet-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -145,7 +147,7 @@
 				<dd>
 					<StarknetNetworkView
 						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -44,6 +44,8 @@
 	const tonNetworkTimestamp = $derived(selection({}))
 	const titleFallback = $derived('TON network timestamp')
 	const viewDomId = $derived('ton-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TonNetworkView from '$/views/TonNetworkView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TonNetworkView
 						selection={select(EntityType.TonNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

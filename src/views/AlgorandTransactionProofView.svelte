@@ -45,6 +45,8 @@
 	const algorandTransactionProof = $derived(selection({}))
 	const titleFallback = $derived('algorand transaction proof')
 	const viewDomId = $derived('algorand-transaction-proof-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<AlgorandTransactionView
 						selection={select(EntityType.AlgorandTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

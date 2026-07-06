@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain subaccount timestamp')
 	const viewDomId = $derived('dydx-chain-subaccount-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -116,7 +118,7 @@
 				<dd>
 					<DydxChainSubaccountView
 						selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

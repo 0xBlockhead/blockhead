@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.localName) ?? ''), String((prefetched.address) ?? ''), String((prefetched.legacyProfileId) ?? '')].filter(Boolean).join(' ') || 'Lens account')
 	const viewDomId = $derived('lens-account-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'

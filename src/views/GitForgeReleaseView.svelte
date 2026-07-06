@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.releaseTagName ?? prefetched.releaseTagName) ?? '')].filter(Boolean).join(' ') || 'Git forge release')
 	const viewDomId = $derived('git-forge-release-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -100,7 +102,7 @@
 				<dd>
 					<GitForgeMirrorView
 						selection={select(EntityType.GitForgeMirror, selection.entitySelector.$forgeMirror)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

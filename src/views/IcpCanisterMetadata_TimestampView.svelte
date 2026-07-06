@@ -44,6 +44,8 @@
 	const icpCanisterMetadataTimestamp = $derived(selection({}))
 	const titleFallback = $derived('ICP canister metadata timestamp')
 	const viewDomId = $derived('icp-canister-metadata-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<IcpCanisterMetadataView
 						selection={select(EntityType.IcpCanisterMetadata, selection.entitySelector.$metadata)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -46,6 +46,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.canonicalSignature) ?? ''), String((selection.entitySelector.memberKey ?? prefetched.memberKey) ?? '')].filter(Boolean).join(' ') || 'contract interface member')
 	const viewDomId = $derived('contract-interface-member-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

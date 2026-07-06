@@ -45,6 +45,8 @@
 	const tronNetwork = $derived(selection({}))
 	const titleFallback = $derived('tron network')
 	const viewDomId = $derived('tron-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -88,7 +90,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

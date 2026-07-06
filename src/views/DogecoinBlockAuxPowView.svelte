@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived('dogecoin block aux pow')
 	const viewDomId = $derived('dogecoin-block-aux-pow-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
@@ -160,7 +162,7 @@
 								hash: String(selection.entitySelector.$block.hash ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -177,7 +179,7 @@
 								<DogecoinAuxPowParentBlockHeaderView
 									selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
 									prefetched={dogecoinAuxPowParentBlockHeader}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -197,7 +199,7 @@
 								<DogecoinAuxPowMerkleBranchView
 									selection={select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector])}
 									prefetched={dogecoinAuxPowMerkleBranch}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -217,7 +219,7 @@
 								<DogecoinAuxPowMerkleBranchView
 									selection={select(EntityType.DogecoinAuxPowMerkleBranch, dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector])}
 									prefetched={dogecoinAuxPowMerkleBranch}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

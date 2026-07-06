@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived('currency timestamp')
 	const viewDomId = $derived('currency-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -234,7 +236,7 @@
 								iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

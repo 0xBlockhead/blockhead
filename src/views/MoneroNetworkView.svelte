@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived('monero network')
 	const viewDomId = $derived('monero-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MoneroNetwork_TimestampsView from '$/views/MoneroNetwork_TimestampsView.svelte'
@@ -136,7 +138,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

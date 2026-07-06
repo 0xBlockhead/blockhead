@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.displayDenom) ?? ''), String((prefetched.baseDenom) ?? ''), String((selection.entitySelector.traceKey ?? prefetched.traceKey) ?? '')].filter(Boolean).join(' ') || 'IBC denom trace')
 	const viewDomId = $derived('ibc-denom-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -374,7 +376,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

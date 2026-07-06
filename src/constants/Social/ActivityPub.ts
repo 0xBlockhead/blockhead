@@ -1,4 +1,3 @@
-import { fediInstanceBySlug } from '$/constants/Fedi.ts'
 import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 
 
@@ -13,11 +12,11 @@ export const activityPubNetworkSeedActors = [
 		acct: 'mastodon@mastodon.social',
 	},
 	{
-		instanceOrigin: fediInstanceBySlug.fosstodon.origin,
+		instanceOrigin: mastodonInstanceByKey.fosstodon.origin,
 		acct: 'fosstodon@fosstodon.org',
 	},
 	{
-		instanceOrigin: fediInstanceBySlug.fosstodon.origin,
+		instanceOrigin: mastodonInstanceByKey.fosstodon.origin,
 		acct: 'matt@fosstodon.org',
 	},
 ] as const satisfies readonly {

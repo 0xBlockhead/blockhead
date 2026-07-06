@@ -44,6 +44,8 @@
 	const tonTraceTimestamp = $derived(selection({}))
 	const titleFallback = $derived('TON trace timestamp')
 	const viewDomId = $derived('ton-trace-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TonTraceView from '$/views/TonTraceView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TonTraceView
 						selection={select(EntityType.TonTrace, selection.entitySelector.$trace)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

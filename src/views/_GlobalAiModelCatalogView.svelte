@@ -40,6 +40,8 @@
 	const globalAiModelCatalog = $derived(selection({}))
 	const titleFallback = $derived('global AI model catalog')
 	const viewDomId = $derived('-global-ai-model-catalog-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AiModelProvidersView from '$/views/AiModelProvidersView.svelte'

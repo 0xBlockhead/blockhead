@@ -44,6 +44,8 @@
 	const icpSubnetCanisterRangeTimestamp = $derived(selection({}))
 	const titleFallback = $derived('ICP subnet canister range timestamp')
 	const viewDomId = $derived('icp-subnet-canister-range-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpSubnetView from '$/views/IcpSubnetView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<IcpSubnetView
 						selection={select(EntityType.IcpSubnet, selection.entitySelector.$subnet)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

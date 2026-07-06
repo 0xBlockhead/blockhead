@@ -44,6 +44,8 @@
 	const stellarAccountSignerTimestamp = $derived(selection({}))
 	const titleFallback = $derived('stellar account signer timestamp')
 	const viewDomId = $derived('stellar-account-signer-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StellarAccountSignerView from '$/views/StellarAccountSignerView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<StellarAccountSignerView
 						selection={select(EntityType.StellarAccountSigner, selection.entitySelector.$signer)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

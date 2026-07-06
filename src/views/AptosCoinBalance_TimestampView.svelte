@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.assetType ?? prefetched.assetType) ?? '')].filter(Boolean).join(' ') || 'aptos coin balance timestamp')
 	const viewDomId = $derived('aptos-coin-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -129,7 +131,7 @@
 				<dd>
 					<AptosAccountView
 						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

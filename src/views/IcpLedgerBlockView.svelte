@@ -44,6 +44,8 @@
 	const icpLedgerBlock = $derived(selection({}))
 	const titleFallback = $derived('ICP ledger block')
 	const viewDomId = $derived('icp-ledger-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<IcpLedgerCanisterView
 						selection={select(EntityType.IcpLedgerCanister, selection.entitySelector.$ledger)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

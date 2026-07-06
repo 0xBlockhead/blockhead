@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.tagName) ?? ''), String((selection.entitySelector.objectId ?? prefetched.objectId) ?? '')].filter(Boolean).join(' ') || 'Git tag')
 	const viewDomId = $derived('git-tag-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -168,7 +170,7 @@
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

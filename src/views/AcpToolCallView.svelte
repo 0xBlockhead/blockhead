@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.toolCallId ?? prefetched.toolCallId) ?? '')].filter(Boolean).join(' ') || 'ACP tool call')
 	const viewDomId = $derived('acp-tool-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -129,7 +131,7 @@
 				<dd>
 					<AcpPromptTurnView
 						selection={select(EntityType.AcpPromptTurn, selection.entitySelector.$promptTurn)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

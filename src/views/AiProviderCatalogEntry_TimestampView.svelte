@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived('AI provider catalog entry timestamp')
 	const viewDomId = $derived('ai-provider-catalog-entry-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -140,7 +142,7 @@
 				<dd>
 					<AiProviderCatalogEntryView
 						selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

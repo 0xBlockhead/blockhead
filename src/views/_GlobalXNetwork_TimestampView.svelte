@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived('global X network timestamp')
 	const viewDomId = $derived('-global-xnetwork-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -115,7 +117,7 @@
 				<dd>
 					<GlobalXNetworkView
 						selection={select(EntityType._GlobalXNetwork, selection.entitySelector.$hub)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'mcp prompt result')
 	const viewDomId = $derived('mcp-prompt-result-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -141,7 +143,7 @@
 				<dd>
 					<McpPromptView
 						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

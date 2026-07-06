@@ -44,6 +44,8 @@
 	const radicleSignedRefTimestamp = $derived(selection({}))
 	const titleFallback = $derived('radicle signed ref timestamp')
 	const viewDomId = $derived('radicle-signed-ref-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<RadicleSignedRefView
 						selection={select(EntityType.RadicleSignedRef, selection.entitySelector.$signedRef)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

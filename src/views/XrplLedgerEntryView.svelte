@@ -44,6 +44,8 @@
 	const xrplLedgerEntry = $derived(selection({}))
 	const titleFallback = $derived('XRPL ledger entry')
 	const viewDomId = $derived('xrpl-ledger-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<XrplLedgerView
 						selection={select(EntityType.XrplLedger, selection.entitySelector.$ledger)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

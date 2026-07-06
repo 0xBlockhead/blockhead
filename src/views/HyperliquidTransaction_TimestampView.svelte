@@ -44,6 +44,8 @@
 	const hyperliquidTransactionTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hyperliquid transaction timestamp')
 	const viewDomId = $derived('hyperliquid-transaction-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HyperliquidTransactionView from '$/views/HyperliquidTransactionView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HyperliquidTransactionView
 						selection={select(EntityType.HyperliquidTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

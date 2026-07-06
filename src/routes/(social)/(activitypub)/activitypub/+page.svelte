@@ -19,26 +19,18 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ActivityPubNetworkView from '$/views/ActivityPubNetworkView.svelte'
+	import GlobalActivityPubNetworkView from '$/views/_GlobalActivityPubNetworkView.svelte'
 </script>
 
 
 <svelte:head>
-	<title>ActivityPub • Blockhead</title>
+	<title>global ActivityPub network • Blockhead</title>
 </svelte:head>
 
 
 <Page>
-	<ActivityPubNetworkView
+	<GlobalActivityPubNetworkView
 		href={resolve('/(social)/(activitypub)/activitypub')}
-		selection={
-			select(EntityType.ActivityPubNetwork, data.selector, {
-				fields: {
-					protocolName: true,
-					homeUrl: true,
-					docsUrl: true,
-				},
-			})
-		}
+		selection={select(EntityType._GlobalActivityPubNetwork, data.selector)}
 	/>
 </Page>

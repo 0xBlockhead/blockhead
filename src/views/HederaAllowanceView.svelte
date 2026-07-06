@@ -44,6 +44,8 @@
 	const hederaAllowance = $derived(selection({}))
 	const titleFallback = $derived('hedera allowance')
 	const viewDomId = $derived('hedera-allowance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HederaAccountView from '$/views/HederaAccountView.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<HederaAccountView
 						selection={select(EntityType.HederaAccount, selection.entitySelector.$owner)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -93,7 +95,7 @@
 				<dd>
 					<HederaAccountView
 						selection={select(EntityType.HederaAccount, selection.entitySelector.$spender)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -210,7 +212,7 @@
 								<HederaTokenView
 									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
 									prefetched={hederaToken}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -230,7 +232,7 @@
 								<HederaNftView
 									selection={select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector])}
 									prefetched={hederaNft}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

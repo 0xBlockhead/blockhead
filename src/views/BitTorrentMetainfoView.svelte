@@ -44,6 +44,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.infoHash ?? prefetched.infoHash) ?? '')].filter(Boolean).join(' ') || 'bit torrent metainfo')
 	const viewDomId = $derived('bit-torrent-metainfo-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

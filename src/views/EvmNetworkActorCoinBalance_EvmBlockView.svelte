@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived('EVM network actor coin balance EVM block')
 	const viewDomId = $derived('evm-network-actor-coin-balance-evm-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
@@ -151,7 +153,7 @@
 								blockNumber: String(selection.entitySelector.$block.blockNumber ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -162,7 +164,7 @@
 				<dd>
 					<EvmNetworkActorCoinBalanceView
 						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

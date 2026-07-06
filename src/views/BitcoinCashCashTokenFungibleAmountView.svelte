@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.amount) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken fungible amount')
 	const viewDomId = $derived('bitcoin-cash-cash-token-fungible-amount-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -125,9 +127,9 @@
 								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 								prefetched={bitcoinCashCashTokenCategory}
 								href={
-									(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.namespace !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.reference !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-										networkSlug: String(networkByCaip2[String(String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.namespace) + ':' + String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.reference))].slug ?? ''),
-										categoryId: String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).categoryId ?? ''),
+									(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
+										networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+										categoryId: String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -149,9 +151,9 @@
 								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 								prefetched={bitcoinCashCashTokenCategory}
 								href={
-									(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.namespace !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.reference !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-										networkSlug: String(networkByCaip2[String(String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.namespace) + ':' + String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.reference))].slug ?? ''),
-										categoryId: String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).categoryId ?? ''),
+									(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
+										networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+										categoryId: String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -208,12 +210,12 @@
 									selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenCategory}
 									href={
-										(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.namespace !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.reference !== undefined && ({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.namespace) + ':' + String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).$network.caip2.reference))].slug ?? ''),
-											categoryId: String(({ ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }).categoryId ?? ''),
+										(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
+											networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											categoryId: String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -234,7 +236,7 @@
 								outputIndex: String(selection.entitySelector.$output.indexInTransaction ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

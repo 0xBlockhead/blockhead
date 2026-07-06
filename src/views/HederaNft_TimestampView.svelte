@@ -44,6 +44,8 @@
 	const hederaNftTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hedera NFT timestamp')
 	const viewDomId = $derived('hedera-nft-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<HederaNftView
 						selection={select(EntityType.HederaNft, selection.entitySelector.$nft)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -159,7 +161,7 @@
 								<HederaAccountView
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

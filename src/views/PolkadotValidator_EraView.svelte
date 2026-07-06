@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.eraIndex ?? prefetched.eraIndex) ?? '')].filter(Boolean).join(' ') || 'polkadot validator era')
 	const viewDomId = $derived('polkadot-validator-era-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import PolkadotValidatorView from '$/views/PolkadotValidatorView.svelte'
@@ -129,7 +131,7 @@
 								stashAccountId: String(selection.entitySelector.$validator.stashAccountId ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -207,12 +209,12 @@
 									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
 									prefetched={polkadotAccount}
 									href={
-										(({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2 !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2.namespace !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2 !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2.reference !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2.namespace) + ':' + String(({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2.reference))].slug ?? ''),
-											accountId: String(({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).accountId ?? ''),
+										(polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2.reference !== undefined && polkadotAccount[EntityMetaKey.Selector].accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
+											networkSlug: String(networkByCaip2[String(String(polkadotAccount[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(polkadotAccount[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											accountId: String(polkadotAccount[EntityMetaKey.Selector].accountId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

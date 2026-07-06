@@ -44,6 +44,8 @@
 	const xrplAccountTimestamp = $derived(selection({}))
 	const titleFallback = $derived('XRPL account timestamp')
 	const viewDomId = $derived('xrpl-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<XrplAccountView
 						selection={select(EntityType.XrplAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

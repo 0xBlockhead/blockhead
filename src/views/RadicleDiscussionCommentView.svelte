@@ -44,6 +44,8 @@
 	const radicleDiscussionComment = $derived(selection({}))
 	const titleFallback = $derived('radicle discussion comment')
 	const viewDomId = $derived('radicle-discussion-comment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import GitObjectView from '$/views/GitObjectView.svelte'
@@ -326,7 +328,7 @@
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -45,6 +45,8 @@
 	const tronTransaction = $derived(selection({}))
 	const titleFallback = $derived('tron transaction')
 	const viewDomId = $derived('tron-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -93,7 +95,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -150,7 +152,7 @@
 								<TronBlockView
 									selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector])}
 									prefetched={tronBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -423,7 +425,7 @@
 								<TronAccountView
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									prefetched={tronAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -452,7 +454,7 @@
 								<TronAccountView
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									prefetched={tronAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -481,7 +483,7 @@
 								<TronContractView
 									selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector])}
 									prefetched={tronContract}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -666,7 +668,7 @@
 								<TronTransactionReceiptView
 									selection={select(EntityType.TronTransactionReceipt, tronTransactionReceipt[EntityMetaKey.Selector])}
 									prefetched={tronTransactionReceipt}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

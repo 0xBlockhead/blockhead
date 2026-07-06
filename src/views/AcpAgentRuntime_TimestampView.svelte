@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'ACP agent runtime timestamp')
 	const viewDomId = $derived('acp-agent-runtime-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -132,7 +134,7 @@
 				<dd>
 					<AcpAgentRuntimeView
 						selection={select(EntityType.AcpAgentRuntime, selection.entitySelector.$runtime)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

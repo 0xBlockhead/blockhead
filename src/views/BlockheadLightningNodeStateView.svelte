@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.alias) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.connectionId ?? prefetched.connectionId) ?? '')].filter(Boolean).join(' ') || 'blockhead Lightning node state')
 	const viewDomId = $derived('blockhead-lightning-node-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BlockheadLightningNodeState_TimestampsView from '$/views/BlockheadLightningNodeState_TimestampsView.svelte'
@@ -125,9 +127,9 @@
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
 									href={
-										(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network !== undefined && ({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network.slug !== undefined && ({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-											networkSlug: String(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network.slug ?? ''),
-											pubkey: String(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).publicKey ?? ''),
+										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
+											networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -151,9 +153,9 @@
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
 									href={
-										(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network !== undefined && ({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network.slug !== undefined && ({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-											networkSlug: String(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network.slug ?? ''),
-											pubkey: String(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).publicKey ?? ''),
+										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
+											networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -204,7 +206,7 @@
 				<dd>
 					<LightningNetworkView
 						selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -292,12 +294,12 @@
 									selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
 									prefetched={lightningNode}
 									href={
-										(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network !== undefined && ({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network.slug !== undefined && ({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
-											networkSlug: String(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).$network.slug ?? ''),
-											pubkey: String(({ ...lightningNode[EntityMetaKey.Selector], ...lightningNode }).publicKey ?? ''),
+										(lightningNode[EntityMetaKey.Selector].$network !== undefined && lightningNode[EntityMetaKey.Selector].$network.slug !== undefined && lightningNode[EntityMetaKey.Selector].publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
+											networkSlug: String(lightningNode[EntityMetaKey.Selector].$network.slug ?? ''),
+											pubkey: String(lightningNode[EntityMetaKey.Selector].publicKey ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

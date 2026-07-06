@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.transactionId ?? prefetched.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave transaction')
 	const viewDomId = $derived('arweave-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -192,7 +194,7 @@
 				<dd>
 					<ArweaveNetworkView
 						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -239,7 +241,7 @@
 								<ArweaveBlockView
 									selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
 									prefetched={arweaveBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -259,7 +261,7 @@
 								<ArweaveResourceView
 									selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
 									prefetched={arweaveResource}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

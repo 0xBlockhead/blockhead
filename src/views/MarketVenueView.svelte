@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.marketVenueId ?? prefetched.marketVenueId) ?? '')].filter(Boolean).join(' ') || 'Market venue')
 	const viewDomId = $derived('market-venue-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'

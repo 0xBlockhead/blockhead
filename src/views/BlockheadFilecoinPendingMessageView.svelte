@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.messageCid ?? prefetched.messageCid) ?? '')].filter(Boolean).join(' ') || 'blockhead filecoin pending message')
 	const viewDomId = $derived('blockhead-filecoin-pending-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -236,7 +238,7 @@
 								<FilecoinNetworkView
 									selection={select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector])}
 									prefetched={filecoinNetwork}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -256,7 +258,7 @@
 								<FilecoinMessageView
 									selection={select(EntityType.FilecoinMessage, filecoinMessage[EntityMetaKey.Selector])}
 									prefetched={filecoinMessage}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -276,7 +278,7 @@
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -296,7 +298,7 @@
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

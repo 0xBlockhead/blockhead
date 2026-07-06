@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? ''), String((selection.entitySelector.feedUrl ?? prefetched.feedUrl) ?? '')].filter(Boolean).join(' ') || 'RSS feed')
 	const viewDomId = $derived('rss-feed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'

@@ -28,14 +28,14 @@
 		href={resolve('/(social)/(activitypub)/activitypub/actors')}
 		title='ActivityPub actors'
 		selection={
-			select(EntityType.ActivityPubNetwork, {
-				scope: 'ActivityPubNetwork',
-			})[EntityProxyField]<EntityType.ActivityPubActor>('$$activityPubActors', {
+			select(EntityType._GlobalActivityPubNetwork, {
+				scope: '_GlobalActivityPubNetwork',
+			})[EntityProxyField]<EntityType.ActivityPubActor>('$$sourceWindowActors', {
 				sources: [
-					Source.Constants_Internal,
+					Source.Mastodon_Rest,
 				],
 			})
 		}
-		id='activity-pub-actors'
+		id='source-window-actors'
 	/>
 </Page>

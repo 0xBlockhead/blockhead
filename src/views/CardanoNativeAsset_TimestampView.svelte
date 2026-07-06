@@ -44,6 +44,8 @@
 	const cardanoNativeAssetTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Cardano native asset timestamp')
 	const viewDomId = $derived('cardano-native-asset-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<CardanoNativeAssetView
 						selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

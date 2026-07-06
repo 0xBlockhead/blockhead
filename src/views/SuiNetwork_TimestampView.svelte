@@ -44,6 +44,8 @@
 	const suiNetworkTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Sui network timestamp')
 	const viewDomId = $derived('sui-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<SuiNetworkView
 						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

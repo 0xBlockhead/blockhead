@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived('litecoin MWEB block')
 	const viewDomId = $derived('litecoin-mweb-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import LitecoinMwebTransactionsView from '$/views/LitecoinMwebTransactionsView.svelte'
@@ -157,7 +159,7 @@
 								hash: String(selection.entitySelector.$block.hash ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

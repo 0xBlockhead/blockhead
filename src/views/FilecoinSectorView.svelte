@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.sectorNumber ?? prefetched.sectorNumber) ?? '')].filter(Boolean).join(' ') || 'filecoin sector')
 	const viewDomId = $derived('filecoin-sector-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -139,7 +141,7 @@
 				<dd>
 					<FilecoinMinerView
 						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

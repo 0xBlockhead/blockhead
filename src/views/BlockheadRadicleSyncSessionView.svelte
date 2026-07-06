@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.sessionId ?? prefetched.sessionId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle sync session')
 	const viewDomId = $derived('blockhead-radicle-sync-session-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -166,7 +168,7 @@
 								<BlockheadRadicleNodeStateView
 									selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
 									prefetched={blockheadRadicleNodeState}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -216,7 +218,7 @@
 								<RadicleRepositoryView
 									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
 									prefetched={radicleRepository}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

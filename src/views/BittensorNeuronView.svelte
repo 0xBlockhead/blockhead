@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.uid ?? prefetched.uid) ?? '')].filter(Boolean).join(' ') || 'Bittensor neuron')
 	const viewDomId = $derived('bittensor-neuron-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -113,7 +115,7 @@
 				<dd>
 					<BittensorSubnetView
 						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

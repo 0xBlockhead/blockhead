@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived('Lens account observation')
 	const viewDomId = $derived('lens-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -121,7 +123,7 @@
 				<dd>
 					<LensAccountView
 						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

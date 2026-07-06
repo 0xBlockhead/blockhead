@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.dataRoot ?? prefetched.dataRoot) ?? '')].filter(Boolean).join(' ') || 'blockhead zero g stored chunk')
 	const viewDomId = $derived('blockhead-zero-gstored-chunk-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -135,7 +137,7 @@
 				<dd>
 					<BlockheadZeroGStorageNodeStateView
 						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -212,7 +214,7 @@
 								<ZeroGDataBlobView
 									selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
 									prefetched={zeroGDataBlob}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -232,7 +234,7 @@
 								<ZeroGDataChunkView
 									selection={select(EntityType.ZeroGDataChunk, zeroGDataChunk[EntityMetaKey.Selector])}
 									prefetched={zeroGDataChunk}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

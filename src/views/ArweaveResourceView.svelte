@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.canonicalUri) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.transactionId ?? prefetched.transactionId) ?? '')].filter(Boolean).join(' ') || 'arweave resource')
 	const viewDomId = $derived('arweave-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -209,7 +211,7 @@
 								<ArweaveTransactionView
 									selection={select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector])}
 									prefetched={arweaveTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

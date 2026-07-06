@@ -68,7 +68,6 @@ const resolverModuleByPath = import.meta.glob<SourceResolverModule<typeof schema
 		'./LitecoinLips-Github.ts',
 		'./Local.ts',
 		'./Mastodon-Rest.ts',
-		'./Fedi-Rest.ts',
 		'./Farcaster-Rest.ts',
 		'./MevRelay-Rest.ts',
 		'./MoneroDaemonRpc-JsonRpc.ts',

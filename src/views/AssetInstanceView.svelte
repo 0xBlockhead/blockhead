@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Asset instance')
 	const viewDomId = $derived('asset-instance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TokenMetadataDocumentsView from '$/views/TokenMetadataDocumentsView.svelte'
@@ -323,7 +325,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -341,11 +343,11 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(({ ...media[EntityMetaKey.Selector], ...media }).url !== undefined ? resolve('/(explore)/media/[url]', {
-											url: String(({ ...media[EntityMetaKey.Selector], ...media }).url ?? ''),
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+											url: String(media[EntityMetaKey.Selector].url ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

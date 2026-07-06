@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.skillId ?? prefetched.skillId) ?? '')].filter(Boolean).join(' ') || 'A2A agent skill')
 	const viewDomId = $derived('a2a-agent-skill-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import A2aAgentCard_SnapshotView from '$/views/A2aAgentCard_SnapshotView.svelte'
@@ -109,7 +111,7 @@
 				<dd>
 					<A2aAgentCard_SnapshotView
 						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

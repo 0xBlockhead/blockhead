@@ -44,6 +44,8 @@
 	const radicleIssue = $derived(selection({}))
 	const titleFallback = $derived('radicle issue')
 	const viewDomId = $derived('radicle-issue-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RadicleRepositoryView from '$/views/RadicleRepositoryView.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<RadicleRepositoryView
 						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -333,7 +335,7 @@
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived('global EVM ABI catalog timestamp')
 	const viewDomId = $derived('-global-evm-abi-catalog-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -114,7 +116,7 @@
 				<dd>
 					<GlobalEvmAbiCatalogView
 						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead wallet request timestamp')
 	const viewDomId = $derived('blockhead-wallet-request-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -134,7 +136,7 @@
 				<dd>
 					<BlockheadWalletRequestView
 						selection={select(EntityType.BlockheadWalletRequest, selection.entitySelector.$walletRequest)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived('starknet account timestamp')
 	const viewDomId = $derived('starknet-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -141,7 +143,7 @@
 				<dd>
 					<StarknetContractView
 						selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

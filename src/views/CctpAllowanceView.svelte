@@ -45,6 +45,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.apiHost ?? prefetched.apiHost) ?? '')].filter(Boolean).join(' ') || 'CCTP allowance')
 	const viewDomId = $derived('cctp-allowance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'

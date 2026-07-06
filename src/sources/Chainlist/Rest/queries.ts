@@ -10,5 +10,10 @@ import type { ChainlistRpcsJsonChain } from '$/sources/Chainlist/Rest/types.ts'
 
 export const fetchRpcsJson = async (): Promise<ChainlistRpcsJsonChain[]> => {
 	const url = `${origin}/rpcs.json`
-	return getJson<ChainlistRpcsJsonChain[]>(url, { origins: chainlistOrigins })
+	return getJson<ChainlistRpcsJsonChain[]>(url, {
+		origins: chainlistOrigins,
+		init: {
+			cache: 'no-store',
+		},
+	})
 }

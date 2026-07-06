@@ -46,6 +46,8 @@
 	const algorandAssetTimestamp = $derived(selection({}))
 	const titleFallback = $derived('algorand asset timestamp')
 	const viewDomId = $derived('algorand-asset-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<AlgorandAssetView
 						selection={select(EntityType.AlgorandAsset, selection.entitySelector.$asset)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

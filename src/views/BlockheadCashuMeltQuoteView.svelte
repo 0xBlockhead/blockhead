@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.quoteId ?? prefetched.quoteId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu melt quote')
 	const viewDomId = $derived('blockhead-cashu-melt-quote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -102,7 +104,7 @@
 				<dd>
 					<CashuMintView
 						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -209,7 +211,7 @@
 								<BlockheadCashuWalletStateView
 									selection={select(EntityType.BlockheadCashuWalletState, blockheadCashuWalletState[EntityMetaKey.Selector])}
 									prefetched={blockheadCashuWalletState}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

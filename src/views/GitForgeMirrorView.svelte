@@ -45,6 +45,8 @@
 	const gitForgeMirror = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.owner ?? prefetched.owner) ?? ''), String((selection.entitySelector.repositoryName ?? prefetched.repositoryName) ?? '')].filter(Boolean).join(' ') || 'Git forge mirror')
 	const viewDomId = $derived('git-forge-mirror-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -191,7 +193,7 @@
 								<GitRepositoryView
 									selection={select(EntityType.GitRepository, gitRepository[EntityMetaKey.Selector])}
 									prefetched={gitRepository}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

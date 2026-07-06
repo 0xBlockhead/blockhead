@@ -44,6 +44,8 @@
 	const tezosInternalOperation = $derived(selection({}))
 	const titleFallback = $derived('tezos internal operation')
 	const viewDomId = $derived('tezos-internal-operation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TezosOperationView
 						selection={select(EntityType.TezosOperation, selection.entitySelector.$parentOperation)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

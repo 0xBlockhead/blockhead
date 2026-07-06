@@ -44,6 +44,8 @@
 	const kaspaAcceptedTransaction = $derived(selection({}))
 	const titleFallback = $derived('kaspa accepted transaction')
 	const viewDomId = $derived('kaspa-accepted-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<KaspaBlockView
 						selection={select(EntityType.KaspaBlock, selection.entitySelector.$acceptingBlock)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -94,7 +96,7 @@
 				<dd>
 					<KaspaTransactionView
 						selection={select(EntityType.KaspaTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

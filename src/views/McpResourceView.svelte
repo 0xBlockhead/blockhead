@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? ''), String((selection.entitySelector.uri ?? prefetched.uri) ?? '')].filter(Boolean).join(' ') || 'mcp resource')
 	const viewDomId = $derived('mcp-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -130,7 +132,7 @@
 				<dd>
 					<McpServerView
 						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

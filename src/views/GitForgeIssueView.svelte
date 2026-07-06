@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.issueNumber ?? prefetched.issueNumber) ?? '')].filter(Boolean).join(' ') || 'Git forge issue')
 	const viewDomId = $derived('git-forge-issue-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -100,7 +102,7 @@
 				<dd>
 					<GitForgeMirrorView
 						selection={select(EntityType.GitForgeMirror, selection.entitySelector.$forgeMirror)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

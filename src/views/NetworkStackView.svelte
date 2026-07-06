@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.networkStackId ?? prefetched.networkStackId) ?? '')].filter(Boolean).join(' ') || 'network stack')
 	const viewDomId = $derived('network-stack-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>

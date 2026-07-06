@@ -46,6 +46,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.providerId) ?? ''), String((prefetched.domain) ?? '')].filter(Boolean).join(' ') || 'AI model provider')
 	const viewDomId = $derived('ai-model-provider-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

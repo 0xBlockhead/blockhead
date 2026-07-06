@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.fullname ?? prefetched.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit submission')
 	const viewDomId = $derived('reddit-link-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -298,7 +300,7 @@
 									<RedditSubredditView
 										selection={select(EntityType.RedditSubreddit, redditSubreddit[EntityMetaKey.Selector])}
 										prefetched={redditSubreddit}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>

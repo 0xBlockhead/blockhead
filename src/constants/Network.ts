@@ -32,6 +32,7 @@ export enum Caip2Namespace {
 }
 
 export enum Caip2Reference {
+	Arbitrum = '42161',
 	Bitcoin = '000000000019d6689c085ae165831e93',
 	BitcoinCash = '000000000000000000651ef99cb9fcbe',
 	CosmosHub = 'cosmoshub-4',
@@ -77,6 +78,16 @@ export const networks = [
 		slug: '0g',
 		name: '0G',
 		namespace: NetworkNamespace.ZeroG,
+		environment: NetworkEnvironment.Mainnet,
+	},
+	{
+		slug: 'arbitrum',
+		name: 'Arbitrum One',
+		caip2: {
+			namespace: 'eip155',
+			reference: '42161',
+		},
+		namespace: NetworkNamespace.Evm,
 		environment: NetworkEnvironment.Mainnet,
 	},
 	{
@@ -260,6 +271,16 @@ export const networks = [
 
 export const networkResourceUrls = [
 	{
+		networkSlug: '0g',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://chainscan-galileo.0g.ai/',
+	},
+	{
+		networkSlug: 'arbitrum',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://arbiscan.io/',
+	},
+	{
 		networkSlug: 'bitcoin',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://mempool.space/',
@@ -338,11 +359,6 @@ export const networkResourceUrls = [
 		networkSlug: 'zcash',
 		kind: NetworkResourceKind.BlockExplorer,
 		url: 'https://zcashblockexplorer.com/',
-	},
-	{
-		networkSlug: '0g',
-		kind: NetworkResourceKind.BlockExplorer,
-		url: 'https://chainscan-galileo.0g.ai/',
 	},
 ] as const satisfies readonly {
 	networkSlug: string

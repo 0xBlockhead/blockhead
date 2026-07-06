@@ -44,6 +44,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.trackerUrl ?? prefetched.trackerUrl) ?? '')].filter(Boolean).join(' ') || 'bit torrent tracker')
 	const viewDomId = $derived('bit-torrent-tracker-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

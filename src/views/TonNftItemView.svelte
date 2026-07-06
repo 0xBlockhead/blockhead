@@ -44,6 +44,8 @@
 	const tonNftItem = $derived(selection({}))
 	const titleFallback = $derived('TON NFT item')
 	const viewDomId = $derived('ton-nft-item-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -89,7 +91,7 @@
 								<TonNetworkView
 									selection={select(EntityType.TonNetwork, tonNetwork[EntityMetaKey.Selector])}
 									prefetched={tonNetwork}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -144,7 +146,7 @@
 								<TonNftCollectionView
 									selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
 									prefetched={tonNftCollection}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -199,7 +201,7 @@
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

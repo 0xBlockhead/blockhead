@@ -46,6 +46,8 @@
 	const kaspaAddressUtxoTimestamp = $derived(selection({}))
 	const titleFallback = $derived('kaspa address UTXO timestamp')
 	const viewDomId = $derived('kaspa-address-utxo-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -87,7 +89,7 @@
 				<dd>
 					<KaspaAddressView
 						selection={select(EntityType.KaspaAddress, selection.entitySelector.$address)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -332,13 +334,13 @@
 									selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
 									prefetched={utxoOutput}
 									href={
-										(({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.$network !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.$network.caip2 !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.$network.caip2.namespace !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.$network !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.$network.caip2 !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.$network.caip2.reference !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.txId !== undefined && ({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.$network.caip2.namespace) + ':' + String(({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.$network.caip2.reference))].slug ?? ''),
-											txId: String(({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).$transaction.txId ?? ''),
-											outputIndex: String(({ ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }).indexInTransaction ?? ''),
+										(utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2.namespace !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2.reference !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction !== undefined && utxoOutput[EntityMetaKey.Selector].$transaction.txId !== undefined && utxoOutput[EntityMetaKey.Selector].indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
+											networkSlug: String(networkByCaip2[String(String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2.namespace) + ':' + String(utxoOutput[EntityMetaKey.Selector].$transaction.$network.caip2.reference))].slug ?? ''),
+											txId: String(utxoOutput[EntityMetaKey.Selector].$transaction.txId ?? ''),
+											outputIndex: String(utxoOutput[EntityMetaKey.Selector].indexInTransaction ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -358,7 +360,7 @@
 								<KaspaTransactionView
 									selection={select(EntityType.KaspaTransaction, kaspaTransaction[EntityMetaKey.Selector])}
 									prefetched={kaspaTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

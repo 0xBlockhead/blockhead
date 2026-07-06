@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.artifactType) ?? '')].filter(Boolean).join(' ') || [String((prefetched.ociDigest) ?? ''), String((prefetched.ipfsCid) ?? ''), String((prefetched.arweaveId) ?? ''), String((prefetched.gitObject) ?? ''), String((prefetched.digest) ?? '')].filter(Boolean).join(' ') || 'AI artifact')
 	const viewDomId = $derived('ai-artifact-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

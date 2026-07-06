@@ -22,21 +22,21 @@ export default {
 	],
 	fields: [
 		{
-				name: '$keyImage',
-				label: 'Key image',
-				type: EntityFieldType.EntityReference,
-				entityType: EntityType.MoneroKeyImage,
-				cardinality: EntityFieldCardinality.One,
+			name: '$keyImage',
+			label: 'Key image',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MoneroKeyImage,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
-				name: '$$members',
-				label: 'Members',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.MoneroRingMember,
-				cardinality: EntityFieldCardinality.Many,
-				defaultSources: [
-					Source.MoneroDaemonRpc_JsonRpc,
-				],
+			name: '$$members',
+			label: 'Members',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MoneroRingMember,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.MoneroDaemonRpc_JsonRpc,
+			],
 		},
 	],
 } as const satisfies EntityDefinition

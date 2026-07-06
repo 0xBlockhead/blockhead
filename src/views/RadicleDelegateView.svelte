@@ -44,6 +44,8 @@
 	const radicleDelegate = $derived(selection({}))
 	const titleFallback = $derived('radicle delegate')
 	const viewDomId = $derived('radicle-delegate-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RadicleRepositoryView from '$/views/RadicleRepositoryView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<RadicleRepositoryView
 						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

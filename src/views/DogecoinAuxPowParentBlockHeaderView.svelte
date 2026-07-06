@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived('dogecoin aux pow parent block header')
 	const viewDomId = $derived('dogecoin-aux-pow-parent-block-header-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -111,7 +113,7 @@
 				<dd>
 					<DogecoinBlockAuxPowView
 						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

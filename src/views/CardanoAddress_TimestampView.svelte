@@ -44,6 +44,8 @@
 	const cardanoAddressTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Cardano address timestamp')
 	const viewDomId = $derived('cardano-address-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<CardanoAddressView
 						selection={select(EntityType.CardanoAddress, selection.entitySelector.$address)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

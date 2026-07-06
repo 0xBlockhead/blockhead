@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.logIndex ?? prefetched.logIndex) ?? '')].filter(Boolean).join(' ') || 'blockhead session simulation log')
 	const viewDomId = $derived('blockhead-session-simulation-log-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -140,7 +142,7 @@
 								<BlockheadSessionSimulationView
 									selection={select(EntityType.BlockheadSessionSimulation, blockheadSessionSimulation[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionSimulation}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

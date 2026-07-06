@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.programHash ?? prefetched.programHash) ?? '')].filter(Boolean).join(' ') || 'algorand teal program')
 	const viewDomId = $derived('algorand-teal-program-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -126,7 +128,7 @@
 				<dd>
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

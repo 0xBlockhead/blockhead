@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.submissionKey ?? prefetched.submissionKey) ?? '')].filter(Boolean).join(' ') || 'avail data submission')
 	const viewDomId = $derived('avail-data-submission-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -130,7 +132,7 @@
 				<dd>
 					<AvailNetworkView
 						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -207,7 +209,7 @@
 								<AvailBlockView
 									selection={select(EntityType.AvailBlock, availBlock[EntityMetaKey.Selector])}
 									prefetched={availBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -227,7 +229,7 @@
 								<AvailAppIdView
 									selection={select(EntityType.AvailAppId, availAppId[EntityMetaKey.Selector])}
 									prefetched={availAppId}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Ethereum network upgrade')
 	const viewDomId = $derived('ethereum-network-upgrade-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -233,12 +235,12 @@
 										selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector])}
 										prefetched={ethereumExecutionUpgrade}
 										href={
-											(({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2 !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2.namespace !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2 !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2.reference !== undefined && ({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {
-												caip2: `${String(({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2.namespace ?? '')}:${String(({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).$network.caip2.reference ?? '')}`,
-												upgradeSlug: String(({ ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }).slug ?? ''),
+											(ethereumExecutionUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.caip2.reference !== undefined && ethereumExecutionUpgrade[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {
+												caip2: `${String(ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(ethereumExecutionUpgrade[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+												upgradeSlug: String(ethereumExecutionUpgrade[EntityMetaKey.Selector].slug ?? ''),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								{/if}
@@ -267,12 +269,12 @@
 										selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector])}
 										prefetched={ethereumConsensusUpgrade}
 										href={
-											(({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2 !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2.namespace !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2 !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2.reference !== undefined && ({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {
-												caip2: `${String(({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2.namespace ?? '')}:${String(({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).$network.caip2.reference ?? '')}`,
-												upgradeSlug: String(({ ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }).slug ?? ''),
+											(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2.reference !== undefined && ethereumConsensusUpgrade[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {
+												caip2: `${String(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(ethereumConsensusUpgrade[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+												upgradeSlug: String(ethereumConsensusUpgrade[EntityMetaKey.Selector].slug ?? ''),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>

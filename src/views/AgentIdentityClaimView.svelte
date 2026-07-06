@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.identityKind ?? prefetched.identityKind) ?? '')].filter(Boolean).join(' ') || 'agent identity claim')
 	const viewDomId = $derived('agent-identity-claim-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -355,7 +357,7 @@
 								<AiDocumentView
 									selection={select(EntityType.AiDocument, aiDocument[EntityMetaKey.Selector])}
 									prefetched={aiDocument}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

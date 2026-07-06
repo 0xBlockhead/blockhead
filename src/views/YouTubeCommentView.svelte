@@ -61,6 +61,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.text) ?? '')].filter(Boolean).join(' ') || 'YouTube comment')
 	const viewDomId = $derived('youtube-comment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -263,7 +265,7 @@
 									<YoutubeChannelView
 										selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
 										prefetched={youtubeChannel}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -286,11 +288,11 @@
 										selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector])}
 										prefetched={youtubeVideo}
 										href={
-											(({ ...youtubeVideo[EntityMetaKey.Selector], ...youtubeVideo }).videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-												videoId: encodeURIComponent(String(({ ...youtubeVideo[EntityMetaKey.Selector], ...youtubeVideo }).videoId ?? '')),
+											(youtubeVideo[EntityMetaKey.Selector].videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {
+												videoId: encodeURIComponent(String(youtubeVideo[EntityMetaKey.Selector].videoId ?? '')),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -312,7 +314,7 @@
 									<YoutubeCommentView
 										selection={select(EntityType.YoutubeComment, youtubeComment[EntityMetaKey.Selector])}
 										prefetched={youtubeComment}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>

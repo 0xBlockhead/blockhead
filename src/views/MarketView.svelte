@@ -52,6 +52,8 @@
 	const market = $derived(selection({}))
 	const titleFallback = $derived('Market')
 	const viewDomId = $derived('market-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

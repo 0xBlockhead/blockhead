@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.sessionId ?? prefetched.sessionId) ?? '')].filter(Boolean).join(' ') || 'blockhead payjoin session')
 	const viewDomId = $derived('blockhead-payjoin-session-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -227,11 +229,11 @@
 									selection={select(EntityType.UtxoNetwork, utxoNetwork[EntityMetaKey.Selector])}
 									prefetched={utxoNetwork}
 									href={
-										(({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2 !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2.namespace !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2 !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-											networkSlug: String(networkByCaip2[String(String(({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2.namespace) + ':' + String(({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2.reference))].slug ?? ''),
+										(utxoNetwork[EntityMetaKey.Selector].$network !== undefined && utxoNetwork[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoNetwork[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && utxoNetwork[EntityMetaKey.Selector].$network !== undefined && utxoNetwork[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoNetwork[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+											networkSlug: String(networkByCaip2[String(String(utxoNetwork[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(utxoNetwork[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -253,7 +255,7 @@
 								<PayjoinDirectoryView
 									selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
 									prefetched={payjoinDirectory}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -273,7 +275,7 @@
 								<PayjoinEndpointView
 									selection={select(EntityType.PayjoinEndpoint, payjoinEndpoint[EntityMetaKey.Selector])}
 									prefetched={payjoinEndpoint}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -713,12 +715,12 @@
 									selection={select(EntityType.UtxoTransaction, utxoTransaction[EntityMetaKey.Selector])}
 									prefetched={utxoTransaction}
 									href={
-										(({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).$network !== undefined && ({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).$network.caip2 !== undefined && ({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).$network.caip2.namespace !== undefined && ({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).$network !== undefined && ({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).$network.caip2 !== undefined && ({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).$network.caip2.reference !== undefined && ({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).$network.caip2.namespace) + ':' + String(({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).$network.caip2.reference))].slug ?? ''),
-											txId: String(({ ...utxoTransaction[EntityMetaKey.Selector], ...utxoTransaction }).txId ?? ''),
+										(utxoTransaction[EntityMetaKey.Selector].$network !== undefined && utxoTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoTransaction[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && utxoTransaction[EntityMetaKey.Selector].$network !== undefined && utxoTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoTransaction[EntityMetaKey.Selector].$network.caip2.reference !== undefined && utxoTransaction[EntityMetaKey.Selector].txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
+											networkSlug: String(networkByCaip2[String(String(utxoTransaction[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(utxoTransaction[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											txId: String(utxoTransaction[EntityMetaKey.Selector].txId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

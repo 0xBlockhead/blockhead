@@ -44,6 +44,8 @@
 	const radicleSignedRef = $derived(selection({}))
 	const titleFallback = $derived('radicle signed ref')
 	const viewDomId = $derived('radicle-signed-ref-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<RadicleRepositoryView
 						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -225,7 +227,7 @@
 								<GitRefView
 									selection={select(EntityType.GitRef, gitRef[EntityMetaKey.Selector])}
 									prefetched={gitRef}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -245,7 +247,7 @@
 								<GitRefObservation_TimestampView
 									selection={select(EntityType.GitRefObservation_Timestamp, gitRefObservationTimestamp[EntityMetaKey.Selector])}
 									prefetched={gitRefObservationTimestamp}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

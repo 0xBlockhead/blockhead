@@ -44,6 +44,8 @@
 	const cardanoGovernanceVote = $derived(selection({}))
 	const titleFallback = $derived('Cardano governance vote')
 	const viewDomId = $derived('cardano-governance-vote-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -84,7 +86,7 @@
 				<dd>
 					<CardanoGovernanceProposalView
 						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -221,7 +223,7 @@
 								<CardanoDRepView
 									selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
 									prefetched={cardanoDRep}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -241,7 +243,7 @@
 								<CardanoStakePoolView
 									selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
 									prefetched={cardanoStakePool}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -261,7 +263,7 @@
 								<CardanoTransactionView
 									selection={select(EntityType.CardanoTransaction, cardanoTransaction[EntityMetaKey.Selector])}
 									prefetched={cardanoTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

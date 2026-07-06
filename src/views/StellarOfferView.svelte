@@ -44,6 +44,8 @@
 	const stellarOffer = $derived(selection({}))
 	const titleFallback = $derived('stellar offer')
 	const viewDomId = $derived('stellar-offer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<StellarNetworkView
 						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -129,7 +131,7 @@
 								<StellarAccountView
 									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 									prefetched={stellarAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -149,7 +151,7 @@
 								<StellarAssetView
 									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									prefetched={stellarAsset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -169,7 +171,7 @@
 								<StellarAssetView
 									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									prefetched={stellarAsset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

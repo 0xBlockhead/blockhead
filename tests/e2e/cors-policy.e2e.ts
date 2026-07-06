@@ -7,6 +7,7 @@
  * pnpm run test:e2e:cors
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:cors
  * E2E_PATH_PATTERN='^/farcaster(/|$)' pnpm run test:e2e:cors
+ * E2E_PATH_SHARD_TOTAL=4 E2E_PATH_SHARD_INDEX=0 pnpm run test:e2e:cors
  * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts -g probe
  * E2E_START_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts
  * ```
@@ -21,7 +22,7 @@ import {
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
 
 
@@ -42,8 +43,6 @@ const corsQuietMs = (() => {
 })()
 
 const probePath = process.env.E2E_PROBE_PATH?.trim()
-const startPath = process.env.E2E_START_PATH?.trim()
-const pathPattern = process.env.E2E_PATH_PATTERN?.trim()
 
 const browserNetworkActivityCounter = (page: Page) => {
 	let count = 0
@@ -160,29 +159,7 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 	test('every +page URL', async ({ browser }, testInfo) => {
 		test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
 
-		const all = await discoverPathnamesFromRoutes()
-		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-		const limit = Number(limitRaw)
-		let pageUrls = (
-			pathPattern ?
-				all.filter((path) => new RegExp(pathPattern).test(path))
-			:
-				all
-		)
-		pageUrls = (
-			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-				pageUrls.slice(0, limit)
-			:
-				pageUrls
-		)
-		if (startPath) {
-			const index = pageUrls.indexOf(startPath)
-			pageUrls = index === -1 ? pageUrls : pageUrls.slice(index)
-		}
-		expect(
-			pageUrls,
-			`No discovered routes matched E2E_PATH_PATTERN=${pathPattern ?? '<unset>'} E2E_START_PATH=${startPath ?? '<unset>'}`
-		).not.toEqual([])
+		const pageUrls = await discoverFilteredPathnamesFromRoutes()
 
 		testInfo.setTimeout(pageUrls.length * (settleTimeoutMs + gotoLoadTimeoutMs + corsQuietMs + 30_000) + 60_000)
 

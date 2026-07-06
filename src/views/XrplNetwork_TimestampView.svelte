@@ -44,6 +44,8 @@
 	const xrplNetworkTimestamp = $derived(selection({}))
 	const titleFallback = $derived('XRPL network timestamp')
 	const viewDomId = $derived('xrpl-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XrplNetworkView from '$/views/XrplNetworkView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<XrplNetworkView
 						selection={select(EntityType.XrplNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

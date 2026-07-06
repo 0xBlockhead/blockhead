@@ -44,6 +44,8 @@
 	const tezosMichelsonScript = $derived(selection({}))
 	const titleFallback = $derived('tezos michelson script')
 	const viewDomId = $derived('tezos-michelson-script-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TezosNetworkView
 						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived('Elements network')
 	const viewDomId = $derived('elements-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -143,7 +145,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -167,11 +169,11 @@
 									selection={select(EntityType.UtxoNetwork, utxoNetwork[EntityMetaKey.Selector])}
 									prefetched={utxoNetwork}
 									href={
-										(({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2 !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2.namespace !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2 !== undefined && ({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
-											networkSlug: String(networkByCaip2[String(String(({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2.namespace) + ':' + String(({ ...utxoNetwork[EntityMetaKey.Selector], ...utxoNetwork }).$network.caip2.reference))].slug ?? ''),
+										(utxoNetwork[EntityMetaKey.Selector].$network !== undefined && utxoNetwork[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoNetwork[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && utxoNetwork[EntityMetaKey.Selector].$network !== undefined && utxoNetwork[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoNetwork[EntityMetaKey.Selector].$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+											networkSlug: String(networkByCaip2[String(String(utxoNetwork[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(utxoNetwork[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -311,7 +313,7 @@
 								<ElementsAssetView
 									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 									prefetched={elementsAsset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

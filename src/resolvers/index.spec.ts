@@ -1723,14 +1723,6 @@ describe('resolver registry live resolver architecture', () => {
 				getAccountByActivityStreamsUri: vi.fn(async () => account),
 				getStatusByActivityStreamsUri: vi.fn(async () => status),
 			},
-			{
-				source: Source.Fedi_Rest,
-				modulePath: '$/sources/Fedi/Rest/queries.ts',
-				getAccountByLocalAccountId: vi.fn(async () => account),
-				getAccountByAcct: vi.fn(async () => account),
-				getAccountByActivityStreamsUri: vi.fn(async () => account),
-				getStatusByActivityStreamsUri: vi.fn(async () => status),
-			},
 		].filter(({ source }) => (
 			allSourceResolverDefinitions.some((resolver) => (
 				resolver.source === source
@@ -1798,9 +1790,9 @@ describe('resolver registry live resolver architecture', () => {
 				activityStreamsUri: 'https://mastodon.social/users/Gargron/statuses/116539053870420123',
 			})
 			expect(getAccountByLocalAccountId).toHaveBeenCalledTimes(1)
-			expect(getAccountByLocalAccountId).toHaveBeenCalledWith({}, '13179')
+			expect(getAccountByLocalAccountId).toHaveBeenCalledWith({}, 'https://mastodon.social', '13179')
 			expect(getAccountByAcct).toHaveBeenCalledTimes(1)
-			expect(getAccountByAcct).toHaveBeenCalledWith({}, 'Gargron')
+			expect(getAccountByAcct).toHaveBeenCalledWith({}, 'https://mastodon.social', 'Gargron')
 			expect(getAccountByActivityStreamsUri).toHaveBeenCalledTimes(1)
 			expect(getAccountByActivityStreamsUri).toHaveBeenCalledWith({}, 'https://mastodon.social/users/Gargron')
 			expect(getStatusByActivityStreamsUri).toHaveBeenCalledTimes(1)

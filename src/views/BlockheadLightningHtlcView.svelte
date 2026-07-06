@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([(String((selection.entitySelector.htlcIndex ?? prefetched.htlcIndex) ?? '') ? 'HTLC ' + String((selection.entitySelector.htlcIndex ?? prefetched.htlcIndex) ?? '') : '')].filter(Boolean).join(' ') || 'blockhead Lightning htlc')
 	const viewDomId = $derived('blockhead-lightning-htlc-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -99,9 +101,9 @@
 							selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 							prefetched={lightningChannel}
 							href={
-								(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network !== undefined && ({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network.slug !== undefined && ({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-									networkSlug: String(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network.slug ?? ''),
-									channelId: String(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).channelId ?? ''),
+								(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
+									networkSlug: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
 								}) : undefined)
 							}
 							layout={EntityLayout.Value}
@@ -121,9 +123,9 @@
 							selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 							prefetched={lightningChannel}
 							href={
-								(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network !== undefined && ({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network.slug !== undefined && ({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-									networkSlug: String(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network.slug ?? ''),
-									channelId: String(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).channelId ?? ''),
+								(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
+									networkSlug: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+									channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
 								}) : undefined)
 							}
 							layout={EntityLayout.Value}
@@ -165,7 +167,7 @@
 				<dd>
 					<BlockheadLightningChannelStateView
 						selection={select(EntityType.BlockheadLightningChannelState, selection.entitySelector.$channelState)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -183,12 +185,12 @@
 									selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
 									prefetched={lightningChannel}
 									href={
-										(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network !== undefined && ({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network.slug !== undefined && ({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
-											networkSlug: String(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).$network.slug ?? ''),
-											channelId: String(({ ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }).channelId ?? ''),
+										(lightningChannel[EntityMetaKey.Selector].$network !== undefined && lightningChannel[EntityMetaKey.Selector].$network.slug !== undefined && lightningChannel[EntityMetaKey.Selector].channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
+											networkSlug: String(lightningChannel[EntityMetaKey.Selector].$network.slug ?? ''),
+											channelId: String(lightningChannel[EntityMetaKey.Selector].channelId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

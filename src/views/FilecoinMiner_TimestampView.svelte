@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin miner timestamp')
 	const viewDomId = $derived('filecoin-miner-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -141,7 +143,7 @@
 				<dd>
 					<FilecoinMinerView
 						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -288,7 +290,7 @@
 								<FilecoinTipsetView
 									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 									prefetched={filecoinTipset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -314,7 +316,7 @@
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -340,7 +342,7 @@
 								<FilecoinActorView
 									selection={select(EntityType.FilecoinActor, filecoinActor[EntityMetaKey.Selector])}
 									prefetched={filecoinActor}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

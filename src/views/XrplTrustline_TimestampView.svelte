@@ -44,6 +44,8 @@
 	const xrplTrustlineTimestamp = $derived(selection({}))
 	const titleFallback = $derived('XRPL trustline timestamp')
 	const viewDomId = $derived('xrpl-trustline-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XrplTrustlineView from '$/views/XrplTrustlineView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<XrplTrustlineView
 						selection={select(EntityType.XrplTrustline, selection.entitySelector.$trustline)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

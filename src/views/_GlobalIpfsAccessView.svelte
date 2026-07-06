@@ -46,6 +46,8 @@
 	}))
 	const titleFallback = $derived('global IPFS access')
 	const viewDomId = $derived('-global-ipfs-access-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IpfsResourcesView from '$/views/IpfsResourcesView.svelte'

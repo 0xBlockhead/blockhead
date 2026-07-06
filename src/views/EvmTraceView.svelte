@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived((String((prefetched.index) ?? '') ? 'Trace #' + String((prefetched.index) ?? '') : '') || [String((selection.entitySelector.traceAddress ?? prefetched.traceAddress) ?? '')].filter(Boolean).join(' ') || 'EVM trace')
 	const viewDomId = $derived('evm-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -559,7 +561,7 @@
 								transactionId: String(selection.entitySelector.$transaction.txHash ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

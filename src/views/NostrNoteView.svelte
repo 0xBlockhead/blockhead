@@ -57,6 +57,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.content) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.eventId ?? prefetched.eventId) ?? '')].filter(Boolean).join(' ') || 'Nostr note')
 	const viewDomId = $derived('nostr-note-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -289,7 +291,7 @@
 									<NostrProfileView
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>

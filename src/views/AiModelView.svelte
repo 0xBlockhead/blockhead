@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.providerModelId ?? prefetched.providerModelId) ?? '')].filter(Boolean).join(' ') || 'AI model')
 	const viewDomId = $derived('ai-model-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -138,7 +140,7 @@
 				<dd>
 					<AiModelProviderView
 						selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

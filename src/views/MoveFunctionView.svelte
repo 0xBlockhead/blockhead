@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.functionName ?? prefetched.functionName) ?? '')].filter(Boolean).join(' ') || 'move function')
 	const viewDomId = $derived('move-function-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MoveModuleView from '$/views/MoveModuleView.svelte'
@@ -122,7 +124,7 @@
 				<dd>
 					<MoveModuleView
 						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

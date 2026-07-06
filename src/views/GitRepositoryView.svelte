@@ -45,6 +45,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.repositoryId) ?? ''), String((prefetched.canonicalRemoteUrl) ?? '')].filter(Boolean).join(' ') || 'Git repository')
 	const viewDomId = $derived('git-repository-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

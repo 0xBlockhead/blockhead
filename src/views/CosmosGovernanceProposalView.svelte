@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? ''), (String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') ? 'Proposal ' + String((selection.entitySelector.proposalId ?? prefetched.proposalId) ?? '') : '')].filter(Boolean).join(' ') || 'Cosmos governance proposal')
 	const viewDomId = $derived('cosmos-governance-proposal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import CosmosGovernanceProposal_TimestampsView from '$/views/CosmosGovernanceProposal_TimestampsView.svelte'
@@ -250,7 +252,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

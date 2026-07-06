@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.display) ?? ''), String((selection.entitySelector.denom ?? prefetched.denom) ?? '')].filter(Boolean).join(' ') || 'Cosmos denom')
 	const viewDomId = $derived('cosmos-denom-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -285,7 +287,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

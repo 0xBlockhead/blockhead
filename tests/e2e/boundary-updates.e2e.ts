@@ -9,7 +9,6 @@
  * E2E_PATH_PATTERN='^/(activitypub|atproto|farcaster|lens|nostr|reddit|rss|x|xmtp|youtube)(/|$)' pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts
  * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts -g probe
  * E2E_BOUNDARY_SLOW_MS=30000 pnpm run test:e2e:boundaries
- * E2E_BOUNDARY_REPORT_ONLY=1 pnpm run test:e2e:boundaries
  * ```
  */
 import { expect, test } from '@playwright/test'
@@ -27,7 +26,7 @@ import {
 } from '../_e2eBrowserHelpers.ts'
 
 import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
@@ -54,17 +53,7 @@ const slowThresholdMs = (() => {
 	return Number.isFinite(parsed) ? parsed : 30_000
 })()
 
-const reportOnly = process.env.E2E_BOUNDARY_REPORT_ONLY === '1'
 const probePath = process.env.E2E_PROBE_PATH?.trim()
-const startPath = process.env.E2E_START_PATH?.trim()
-const pathPattern = (
-	((raw) => (
-		raw == null || raw === '' ?
-			undefined
-		:
-			new RegExp(raw)
-	))(process.env.E2E_PATH_PATTERN?.trim())
-)
 
 type RoutePageDiagnostics = NonNullable<RouteBoundaryReport['diagnostics']> & {
 	flush: () => Promise<void>
@@ -367,23 +356,7 @@ const routePathnames = await (async () => {
 	if (probePath != null && probePath !== '')
 		return []
 
-	const all = (
-		(await discoverPathnamesFromRoutes())
-			.filter((pathname) => pathPattern?.test(pathname) ?? true)
-	)
-	const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-	const limit = Number(limitRaw)
-	let pathnames = (
-		limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-			all.slice(0, limit)
-		:
-			all
-	)
-	if (startPath) {
-		const index = pathnames.indexOf(startPath)
-		pathnames = index === -1 ? pathnames : pathnames.slice(index)
-	}
-	return pathnames
+	return discoverFilteredPathnamesFromRoutes()
 })()
 
 test.describe('boundary updates (every +page route)', () => {
@@ -422,8 +395,7 @@ test.describe('boundary updates (every +page route)', () => {
 		const report = await collectRouteBoundaryReport(page, probePath!, diagnostics)
 		await attachClientTraceArtifact(page, testInfo, probePath!, report)
 		await attachBoundaryArtifacts(testInfo, [report])
-		if (!reportOnly)
-			assertBoundaryReports([report])
+		assertBoundaryReports([report])
 	})
 
 	for (const [index, pathname] of routePathnames.entries()) {
@@ -461,8 +433,7 @@ test.describe('boundary updates (every +page route)', () => {
 			const report = await collectRouteBoundaryReport(page, pathname, diagnostics)
 			await attachClientTraceArtifact(page, testInfo, pathname, report)
 			await attachBoundaryArtifacts(testInfo, [report])
-			if (!reportOnly)
-				assertBoundaryReports([report])
+			assertBoundaryReports([report])
 		})
 	}
 

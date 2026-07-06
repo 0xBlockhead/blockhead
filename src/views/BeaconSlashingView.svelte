@@ -45,6 +45,8 @@
 	const beaconSlashing = $derived(selection({}))
 	const titleFallback = $derived((String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') ? 'Slashing #' + String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') : '') || 'beacon slashing')
 	const viewDomId = $derived('beacon-slashing-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -223,7 +225,7 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

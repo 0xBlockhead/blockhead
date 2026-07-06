@@ -60,6 +60,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.username) ?? ''), String((prefetched.id) ?? '')].filter(Boolean).join(' ') || 'X user')
 	const viewDomId = $derived('xuser-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

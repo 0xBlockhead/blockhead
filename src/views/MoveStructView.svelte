@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.structName ?? prefetched.structName) ?? '')].filter(Boolean).join(' ') || 'move struct')
 	const viewDomId = $derived('move-struct-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MoveModuleView from '$/views/MoveModuleView.svelte'
@@ -123,7 +125,7 @@
 				<dd>
 					<MoveModuleView
 						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

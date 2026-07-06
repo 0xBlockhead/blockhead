@@ -44,6 +44,8 @@
 	const suiRegulatedCoinStateTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Sui regulated coin state timestamp')
 	const viewDomId = $derived('sui-regulated-coin-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<SuiCoinTypeView
 						selection={select(EntityType.SuiCoinType, selection.entitySelector.$coinType)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

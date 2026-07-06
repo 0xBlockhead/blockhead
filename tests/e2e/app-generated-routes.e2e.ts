@@ -64,6 +64,23 @@ const appGeneratedRoutes: AppGeneratedRouteCheck[] = [
 	{ label: 'proposals document', path: `/proposals/ethereum/eip/${PROPOSAL_REF}`, expectEntityRows: false, skipSettle: true },
 ]
 
+const appGeneratedRoutePattern = process.env.E2E_APP_ROUTE_PATTERN ?
+	new RegExp(process.env.E2E_APP_ROUTE_PATTERN)
+: undefined
+const appGeneratedRouteLabelPattern = process.env.E2E_APP_ROUTE_LABEL_PATTERN ?
+	new RegExp(process.env.E2E_APP_ROUTE_LABEL_PATTERN)
+: undefined
+const filteredAppGeneratedRoutes = appGeneratedRoutes.filter((route) => (
+	(!appGeneratedRoutePattern || appGeneratedRoutePattern.test(route.path))
+	&& (!appGeneratedRouteLabelPattern || appGeneratedRouteLabelPattern.test(route.label))
+))
+
+if (
+	(appGeneratedRoutePattern || appGeneratedRouteLabelPattern)
+	&& filteredAppGeneratedRoutes.length === 0
+)
+	throw new Error('E2E app-generated route filters matched no routes')
+
 const slopPatterns = [
 	/\bEntityType\.Unknown\b/,
 	/<title>\{'Entity'\}<\/title>/,
@@ -88,7 +105,7 @@ const checkPageSlop = async (page: import('@playwright/test').Page) => (
 test.describe('APP-generated routes spot check', () => {
 	test.describe.configure({ mode: 'serial' })
 
-	for (const route of appGeneratedRoutes) {
+	for (const route of filteredAppGeneratedRoutes) {
 		test(`${route.label}: ${route.path}`, async ({ page }, testInfo) => {
 			testInfo.setTimeout(180_000)
 			const corsViolations = collectBrowserCorsPolicyViolations(page)

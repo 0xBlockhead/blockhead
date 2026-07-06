@@ -1,7 +1,6 @@
-import { getJson } from '$/lib/http.ts'
+import { corsFetch, getJson } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/sources/$sources.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 import { mastodonOrigins } from '$/sources/Mastodon/index.ts'
 
 const qs = (o: Record<string, string | undefined>) => {
@@ -26,11 +25,25 @@ const authHeaders = (publicEnv: SourcePublicEnv): Record<string, string> => {
 
 export const mastodonGet = async <T>(
 	publicEnv: SourcePublicEnv,
+	instanceOrigin: string,
 	path: string,
 	search?: Record<string, string | undefined>,
 	apiVersion = 'v1'
 ) => (
-	getJson<T>(`${mastodonInstanceByKey.mastodon_social.origin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
+	getJson<T>(`${instanceOrigin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
+		origins: mastodonOrigins,
+		init: { headers: authHeaders(publicEnv) },
+	})
+)
+
+export const mastodonFetch = async (
+	publicEnv: SourcePublicEnv,
+	instanceOrigin: string,
+	path: string,
+	search?: Record<string, string | undefined>,
+	apiVersion = 'v1'
+) => (
+	corsFetch(`${instanceOrigin}/api/${apiVersion}${path}${qs(search ?? {})}`, {
 		origins: mastodonOrigins,
 		init: { headers: authHeaders(publicEnv) },
 	})

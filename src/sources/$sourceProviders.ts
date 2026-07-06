@@ -5,75 +5,124 @@ import a2aWellKnownHttpSourceDefinition from '$/sources/A2a/index.ts'
 import acpRegistryRestSourceDefinition from '$/sources/Acp/AcpRegistry/Rest/index.ts'
 import acpLocalJsonRpcSourceDefinition from '$/sources/Acp/index.ts'
 import checkedInAcrossSourceProviderDefinition from '$/sources/Across/index.ts'
+import acrossRestSourceDefinition from '$/sources/Across/Rest/index.ts'
 import checkedInAlgodSourceProviderDefinition from '$/sources/Algod/index.ts'
+import algodRestSourceDefinition from '$/sources/Algod/Rest/index.ts'
 import checkedInAlgorandIndexerSourceProviderDefinition from '$/sources/AlgorandIndexer/index.ts'
+import algorandIndexerRestSourceDefinition from '$/sources/AlgorandIndexer/Rest/index.ts'
 import checkedInAlgorandWalletSourceProviderDefinition from '$/sources/AlgorandWallet/index.ts'
+import algorandWalletWalletApiSourceDefinition from '$/sources/AlgorandWallet/WalletApi/index.ts'
 import alliumRestSourceDefinition from '$/sources/Allium/Rest/index.ts'
 import ambossGraphqlSourceDefinition from '$/sources/Amboss/Graphql/index.ts'
 import anthropicRestSourceDefinition from '$/sources/Anthropic/index.ts'
 import checkedInAptosAip62SourceProviderDefinition from '$/sources/AptosAip62/index.ts'
+import aptosAip62WalletApiSourceDefinition from '$/sources/AptosAip62/WalletApi/index.ts'
 import checkedInAptosFullnodeSourceProviderDefinition from '$/sources/AptosFullnode/index.ts'
+import aptosFullnodeRestSourceDefinition from '$/sources/AptosFullnode/Rest/index.ts'
+import aptosIndexerGraphqlSourceDefinition from '$/sources/AptosIndexer/Graphql/index.ts'
 import checkedInAptosIndexerSourceProviderDefinition from '$/sources/AptosIndexer/index.ts'
+import arweaveGraphqlSourceDefinition from '$/sources/Arweave/Graphql/index.ts'
 import checkedInArweaveSourceProviderDefinition from '$/sources/Arweave/index.ts'
+import arweaveRestSourceDefinition from '$/sources/Arweave/Rest/index.ts'
 import atprotoXrpcSourceDefinition from '$/sources/AtprotoBsky/Rest/index.ts'
 import atprotoBskySocialXrpcSourceDefinition from '$/sources/AtprotoBskySocial/Rest/index.ts'
 import atprotoSyncXrpcSourceDefinition from '$/sources/AtprotoSync/index.ts'
 import checkedInAvailSourceProviderDefinition from '$/sources/Avail/index.ts'
+import availJsonRpcSourceDefinition from '$/sources/Avail/JsonRpc/index.ts'
 import checkedInAvailExplorerSourceProviderDefinition from '$/sources/AvailExplorer/index.ts'
+import availExplorerRestSourceDefinition from '$/sources/AvailExplorer/Rest/index.ts'
 import checkedInAvalancheInfoSourceProviderDefinition from '$/sources/AvalancheInfo/index.ts'
+import avalancheInfoJsonRpcSourceDefinition from '$/sources/AvalancheInfo/JsonRpc/index.ts'
 import checkedInAvalanchePlatformVmSourceProviderDefinition from '$/sources/AvalanchePlatformVm/index.ts'
+import avalanchePlatformVmJsonRpcSourceDefinition from '$/sources/AvalanchePlatformVm/JsonRpc/index.ts'
 import checkedInAvascanSourceProviderDefinition from '$/sources/Avascan/index.ts'
+import avascanRestSourceDefinition from '$/sources/Avascan/Rest/index.ts'
 import checkedInAwsBedrockSourceProviderDefinition from '$/sources/AwsBedrock/index.ts'
+import awsBedrockRestSourceDefinition from '$/sources/AwsBedrock/Rest/index.ts'
 import checkedInAxelarscanSourceProviderDefinition from '$/sources/Axelarscan/index.ts'
+import axelarscanRestSourceDefinition from '$/sources/Axelarscan/Rest/index.ts'
 import checkedInAzureAiFoundrySourceProviderDefinition from '$/sources/AzureAiFoundry/index.ts'
+import azureAiFoundryRestSourceDefinition from '$/sources/AzureAiFoundry/Rest/index.ts'
 import beaconRestSourceDefinition from '$/sources/Beacon/Rest/index.ts'
 import beaconchaInRestSourceDefinition from '$/sources/BeaconchaIn/Rest/index.ts'
 import betterCallDevRestSourceDefinition from '$/sources/BetterCallDev/index.ts'
 import checkedInBigDipperSourceProviderDefinition from '$/sources/BigDipper/index.ts'
+import bigDipperRestSourceDefinition from '$/sources/BigDipper/Rest/index.ts'
 import checkedInBinanceChainApiSourceProviderDefinition from '$/sources/BinanceChainApi/index.ts'
+import binanceChainApiRestSourceDefinition from '$/sources/BinanceChainApi/Rest/index.ts'
 import checkedInBinanceChainExplorerSourceProviderDefinition from '$/sources/BinanceChainExplorer/index.ts'
+import binanceChainExplorerRestSourceDefinition from '$/sources/BinanceChainExplorer/Rest/index.ts'
 import bitcoinBipsGithubSourceDefinition from '$/sources/BitcoinBips/index.ts'
 import bitcoinCashBcmrGithubSourceDefinition from '$/sources/BitcoinCashBcmr/Github/index.ts'
 import bitcoinCashChipsGitlabSourceDefinition from '$/sources/BitcoinCashChips/index.ts'
 import bitcoinCashNodeJsonRpcSourceDefinition from '$/sources/BitcoinCashNode/JsonRpc/index.ts'
 import bitcoinCoreJsonRpcSourceDefinition from '$/sources/BitcoinCore/JsonRpc/index.ts'
 import checkedInBithompSourceProviderDefinition from '$/sources/Bithomp/index.ts'
+import bithompRestSourceDefinition from '$/sources/Bithomp/Rest/index.ts'
 import bittensorJsonRpcSourceDefinition from '$/sources/Bittensor/JsonRpc/index.ts'
+import bitTorrentMetainfoFileSourceDefinition from '$/sources/BitTorrent/BitTorrentMetainfo/File/index.ts'
+import bitTorrentHttpTrackerSourceDefinition from '$/sources/BitTorrent/HttpTracker/index.ts'
 import checkedInBitTorrentSourceProviderDefinition from '$/sources/BitTorrent/index.ts'
+import bitTorrentMainlineDhtSourceDefinition from '$/sources/BitTorrent/MainlineDht/index.ts'
+import bitTorrentMetadataExchangeSourceDefinition from '$/sources/BitTorrent/MetadataExchange/index.ts'
+import bitTorrentPeerWireSourceDefinition from '$/sources/BitTorrent/PeerWire/index.ts'
+import bitTorrentUdpTrackerSourceDefinition from '$/sources/BitTorrent/UdpTracker/index.ts'
 import blobscanRestSourceDefinition from '$/sources/Blobscan/Rest/index.ts'
 import blockchairRestSourceDefinition from '$/sources/Blockchair/Rest/index.ts'
 import checkedInBlockfrostSourceProviderDefinition from '$/sources/Blockfrost/index.ts'
+import blockfrostRestSourceDefinition from '$/sources/Blockfrost/Rest/index.ts'
 import blockscoutRestSourceDefinition from '$/sources/Blockscout/Rest/index.ts'
 import checkedInBnbBeaconArchiveSourceProviderDefinition from '$/sources/BnbBeaconArchive/index.ts'
+import bnbBeaconArchiveRestSourceDefinition from '$/sources/BnbBeaconArchive/Rest/index.ts'
 import checkedInBnbChainFusionSourceProviderDefinition from '$/sources/BnbChainFusion/index.ts'
+import bnbChainFusionRestSourceDefinition from '$/sources/BnbChainFusion/Rest/index.ts'
 import caipsGithubSourceDefinition from '$/sources/Caips/Github/index.ts'
+import caipNamespacesGithubSourceDefinition from '$/sources/Caips/Namespaces/Github/index.ts'
 import checkedInCardanoBlockfrostSourceProviderDefinition from '$/sources/CardanoBlockfrost/index.ts'
+import cardanoBlockfrostRestSourceDefinition from '$/sources/CardanoBlockfrost/Rest/index.ts'
 import checkedInCardanoCip30SourceProviderDefinition from '$/sources/CardanoCip30/index.ts'
+import cardanoCip30WalletApiSourceDefinition from '$/sources/CardanoCip30/WalletApi/index.ts'
 import checkedInCardanoDbSyncSourceProviderDefinition from '$/sources/CardanoDbSync/index.ts'
+import cardanoDbSyncPostgresSourceDefinition from '$/sources/CardanoDbSync/Postgres/index.ts'
 import checkedInCardanoKoiosSourceProviderDefinition from '$/sources/CardanoKoios/index.ts'
+import cardanoKoiosRestSourceDefinition from '$/sources/CardanoKoios/Rest/index.ts'
 import checkedInCardanoNodeSourceProviderDefinition from '$/sources/CardanoNode/index.ts'
+import cardanoNodeLocalStateQuerySourceDefinition from '$/sources/CardanoNode/LocalStateQuery/index.ts'
 import checkedInCardanoscanSourceProviderDefinition from '$/sources/Cardanoscan/index.ts'
+import cardanoscanRestSourceDefinition from '$/sources/Cardanoscan/Rest/index.ts'
 import cashuMintRestSourceDefinition from '$/sources/Cashu/Mint/Rest/index.ts'
 import checkedInCeleniumSourceProviderDefinition from '$/sources/Celenium/index.ts'
+import celeniumRestSourceDefinition from '$/sources/Celenium/Rest/index.ts'
 import checkedInCelestiaSourceProviderDefinition from '$/sources/Celestia/index.ts'
+import celestiaJsonRpcSourceDefinition from '$/sources/Celestia/JsonRpc/index.ts'
+import chainlinkDataFeedsAddressCatalogSourceDefinition from '$/sources/ChainlinkDataFeeds/AddressCatalog/index.ts'
+import chainlinkDataFeedsContractsSourceDefinition from '$/sources/ChainlinkDataFeeds/Contracts/index.ts'
 import checkedInChainlinkDataFeedsSourceProviderDefinition from '$/sources/ChainlinkDataFeeds/index.ts'
 import chainlistRestSourceDefinition from '$/sources/Chainlist/Rest/index.ts'
 import circleCctpContractsEvmSourceDefinition from '$/sources/CircleCctp/CircleCctpContracts/Evm/index.ts'
+import circleCctpContractsSolanaSourceDefinition from '$/sources/CircleCctp/CircleCctpContracts/Solana/index.ts'
+import circleCctpContractsStellarSourceDefinition from '$/sources/CircleCctp/CircleCctpContracts/Stellar/index.ts'
 import circleCctpIrisApiSourceDefinition from '$/sources/CircleCctp/index.ts'
+import codexNetworkPresetsGithubSourceDefinition from '$/sources/CodexNetworkPresets/Github/index.ts'
 import checkedInCodexNetworkPresetsSourceProviderDefinition from '$/sources/CodexNetworkPresets/index.ts'
 import checkedInCodexNodeSourceProviderDefinition from '$/sources/CodexNode/index.ts'
+import codexNodeRestSourceDefinition from '$/sources/CodexNode/Rest/index.ts'
 import checkedInCohereSourceProviderDefinition from '$/sources/Cohere/index.ts'
+import cohereRestSourceDefinition from '$/sources/Cohere/Rest/index.ts'
 import coingeckoOpenApiSourceDefinition from '$/sources/Coingecko/OpenApi/index.ts'
 import coingeckoRestSourceDefinition from '$/sources/Coingecko/Rest/index.ts'
 import coinMarketCapRestSourceDefinition from '$/sources/CoinMarketCap/Rest/index.ts'
 import coinpaprikaOpenApiSourceDefinition from '$/sources/Coinpaprika/OpenApi/index.ts'
 import cometBftRestSourceDefinition from '$/sources/CometBft/Rest/index.ts'
 import checkedInConseilSourceProviderDefinition from '$/sources/Conseil/index.ts'
+import conseilPostgresSourceDefinition from '$/sources/Conseil/Postgres/index.ts'
 import constantsInternalSourceDefinition from '$/sources/Constants/Internal/index.ts'
 import cosmosAdrsGithubSourceDefinition from '$/sources/CosmosAdrs/index.ts'
 import cosmosChainRegistryGithubSourceDefinition from '$/sources/CosmosChainRegistry/index.ts'
 import cosmosSdkRestSourceDefinition from '$/sources/CosmosSdk/Rest/index.ts'
 import checkedInCronosExplorerSourceProviderDefinition from '$/sources/CronosExplorer/index.ts'
+import cronosExplorerRestSourceDefinition from '$/sources/CronosExplorer/Rest/index.ts'
+import cycloneDxDocumentLocalSourceDefinition from '$/sources/CycloneDx/CycloneDxDocument/Local/index.ts'
 import checkedInCycloneDxSourceProviderDefinition from '$/sources/CycloneDx/index.ts'
 import defillamaOpenApiSourceDefinition from '$/sources/Defillama/OpenApi/index.ts'
 import defillamaRestSourceDefinition from '$/sources/Defillama/Rest/index.ts'
@@ -91,53 +140,95 @@ import eigenLayerSubgraphGraphqlSourceDefinition from '$/sources/EigenLayerSubgr
 import eip8004ScanRestSourceDefinition from '$/sources/Eip8004Scan/Rest/index.ts'
 import ensipsGithubSourceDefinition from '$/sources/Ensips/Github/index.ts'
 import checkedInEnsMetadataServiceSourceProviderDefinition from '$/sources/EnsMetadataService/index.ts'
+import ensMetadataServiceRestSourceDefinition from '$/sources/EnsMetadataService/Rest/index.ts'
 import checkedInErigonSourceProviderDefinition from '$/sources/Erigon/index.ts'
+import erigonJsonRpcSourceDefinition from '$/sources/Erigon/JsonRpc/index.ts'
 import esploraRestSourceDefinition from '$/sources/Esplora/Rest/index.ts'
 import ethereumEipsGithubSourceDefinition from '$/sources/EthereumEips/Github/index.ts'
 import ethereumListsRestSourceDefinition from '$/sources/EthereumLists/Rest/index.ts'
 import ethereumSpecsGithubSourceDefinition from '$/sources/EthereumSpecs/Github/index.ts'
 import etherscanRestSourceDefinition from '$/sources/Etherscan/Rest/index.ts'
 import checkedInEthForksSourceProviderDefinition from '$/sources/EthForks/index.ts'
+import ethForksRestSourceDefinition from '$/sources/EthForks/Rest/index.ts'
 import farcasterRestSourceDefinition from '$/sources/Farcaster/Rest/index.ts'
+import checkedInFediSourceProviderDefinition from '$/sources/Fedi/index.ts'
 import fediRestSourceDefinition from '$/sources/Fedi/Rest/index.ts'
 import checkedInFedimintClientSourceProviderDefinition from '$/sources/FedimintClient/index.ts'
+import fedimintClientRpcSourceDefinition from '$/sources/FedimintClient/Rpc/index.ts'
 import checkedInFedimintGatewaydSourceProviderDefinition from '$/sources/FedimintGatewayd/index.ts'
+import fedimintGatewaydRestSourceDefinition from '$/sources/FedimintGatewayd/Rest/index.ts'
 import filecoinFipsGithubSourceDefinition from '$/sources/FilecoinFips/index.ts'
 import filfoxRestSourceDefinition from '$/sources/Filfox/Rest/index.ts'
+import forgejoIssuesRestSourceDefinition from '$/sources/Forgejo/ForgejoIssues/Rest/index.ts'
+import forgejoPullsRestSourceDefinition from '$/sources/Forgejo/ForgejoPulls/Rest/index.ts'
+import forgejoReleasesRestSourceDefinition from '$/sources/Forgejo/ForgejoReleases/Rest/index.ts'
+import forgejoReposRestSourceDefinition from '$/sources/Forgejo/ForgejoRepos/Rest/index.ts'
 import checkedInForgejoSourceProviderDefinition from '$/sources/Forgejo/index.ts'
 import checkedInFreighterSourceProviderDefinition from '$/sources/Freighter/index.ts'
+import freighterWalletApiSourceDefinition from '$/sources/Freighter/WalletApi/index.ts'
 import xFxEmbedRestSourceDefinition from '$/sources/FxEmbed/Rest/index.ts'
 import checkedInGitSourceProviderDefinition from '$/sources/Git/index.ts'
+import gitLocalSourceDefinition from '$/sources/Git/Local/index.ts'
+import gitRemoteSourceDefinition from '$/sources/Git/Remote/index.ts'
+import githubGitSourceDefinition from '$/sources/Github/Git/index.ts'
 import checkedInGithubSourceProviderDefinition from '$/sources/Github/index.ts'
+import githubRestSourceDefinition from '$/sources/Github/Rest/index.ts'
 import checkedInGitlabSourceProviderDefinition from '$/sources/Gitlab/index.ts'
+import gitlabRestSourceDefinition from '$/sources/Gitlab/Rest/index.ts'
 import checkedInGoogleAiSourceProviderDefinition from '$/sources/GoogleAi/index.ts'
+import googleAiRestSourceDefinition from '$/sources/GoogleAi/Rest/index.ts'
 import checkedInHashConnectSourceProviderDefinition from '$/sources/HashConnect/index.ts'
+import hashConnectWalletApiSourceDefinition from '$/sources/HashConnect/WalletApi/index.ts'
 import checkedInHederaMirrorNodeSourceProviderDefinition from '$/sources/HederaMirrorNode/index.ts'
+import hederaMirrorNodeRestSourceDefinition from '$/sources/HederaMirrorNode/Rest/index.ts'
+import hederaSdkGrpcSourceDefinition from '$/sources/HederaSdk/Grpc/index.ts'
 import checkedInHederaSdkSourceProviderDefinition from '$/sources/HederaSdk/index.ts'
 import checkedInHederaWalletConnectSourceProviderDefinition from '$/sources/HederaWalletConnect/index.ts'
+import hederaWalletConnectSignClientSourceDefinition from '$/sources/HederaWalletConnect/SignClient/index.ts'
 import heliusRestSourceDefinition from '$/sources/Helius/index.ts'
+import huggingFaceHubRestSourceDefinition from '$/sources/HuggingFace/HuggingFaceHub/Rest/index.ts'
 import checkedInHuggingFaceSourceProviderDefinition from '$/sources/HuggingFace/index.ts'
 import hyperliquidJsonRpcSourceDefinition from '$/sources/Hyperliquid/JsonRpc/index.ts'
 import hyperliquidRestSourceDefinition from '$/sources/Hyperliquid/Rest/index.ts'
 import hyperliquidDocsRestSourceDefinition from '$/sources/HyperliquidDocs/index.ts'
+import internetComputerCanisterSourceDefinition from '$/sources/InternetComputer/Canister/index.ts'
+import internetComputerHttpSourceDefinition from '$/sources/InternetComputer/Http/index.ts'
+import icDashboardCanisterSourceDefinition from '$/sources/InternetComputer/IcDashboard/Canister/index.ts'
 import checkedInInternetComputerSourceProviderDefinition from '$/sources/InternetComputer/index.ts'
+import internetComputerRosettaApiSourceDefinition from '$/sources/InternetComputer/RosettaApi/index.ts'
+import internetComputerWalletApiSourceDefinition from '$/sources/InternetComputer/WalletApi/index.ts'
+import internetIdentityDelegationSourceDefinition from '$/sources/InternetIdentity/Delegation/index.ts'
 import checkedInInternetIdentitySourceProviderDefinition from '$/sources/InternetIdentity/index.ts'
 import ipfsRestSourceDefinition from '$/sources/Ipfs/Rest/index.ts'
 import junoJsonRpcSourceDefinition from '$/sources/Juno/index.ts'
 import checkedInKabilaSourceProviderDefinition from '$/sources/Kabila/index.ts'
+import kabilaWalletConnectSourceDefinition from '$/sources/Kabila/WalletConnect/index.ts'
 import checkedInKaspaExplorerSourceProviderDefinition from '$/sources/KaspaExplorer/index.ts'
+import kaspaExplorerRestSourceDefinition from '$/sources/KaspaExplorer/Rest/index.ts'
+import kaspaNodeGrpcSourceDefinition from '$/sources/KaspaNode/Grpc/index.ts'
 import checkedInKaspaNodeSourceProviderDefinition from '$/sources/KaspaNode/index.ts'
+import kaspaNodeRestSourceDefinition from '$/sources/KaspaNode/Rest/index.ts'
+import kaspaNodeWrpcSourceDefinition from '$/sources/KaspaNode/Wrpc/index.ts'
 import checkedInKaspaWalletCliSourceProviderDefinition from '$/sources/KaspaWalletCli/index.ts'
+import kaspaWalletCliWalletApiSourceDefinition from '$/sources/KaspaWalletCli/WalletApi/index.ts'
 import checkedInKaspaWalletSdkSourceProviderDefinition from '$/sources/KaspaWalletSdk/index.ts'
+import kaspaWalletSdkWalletApiSourceDefinition from '$/sources/KaspaWalletSdk/WalletApi/index.ts'
 import checkedInKaswareWalletSourceProviderDefinition from '$/sources/KaswareWallet/index.ts'
+import kaswareWalletWalletApiSourceDefinition from '$/sources/KaswareWallet/WalletApi/index.ts'
 import checkedInKeplrSourceProviderDefinition from '$/sources/Keplr/index.ts'
+import keplrWalletApiSourceDefinition from '$/sources/Keplr/WalletApi/index.ts'
 import checkedInKoiosSourceProviderDefinition from '$/sources/Koios/index.ts'
+import koiosRestSourceDefinition from '$/sources/Koios/Rest/index.ts'
 import l2BeatRestSourceDefinition from '$/sources/L2Beat/Rest/index.ts'
 import checkedInLayerZeroScanSourceProviderDefinition from '$/sources/LayerZeroScan/index.ts'
+import layerZeroScanRestSourceDefinition from '$/sources/LayerZeroScan/Rest/index.ts'
 import checkedInLeapSourceProviderDefinition from '$/sources/Leap/index.ts'
+import leapWalletApiSourceDefinition from '$/sources/Leap/WalletApi/index.ts'
 import checkedInLedgerFilecoinSourceProviderDefinition from '$/sources/LedgerFilecoin/index.ts'
+import ledgerFilecoinWalletApiSourceDefinition from '$/sources/LedgerFilecoin/WalletApi/index.ts'
 import lensGraphqlSourceDefinition from '$/sources/Lens/Graphql/index.ts'
 import checkedInLibtorrentSessionSourceProviderDefinition from '$/sources/LibtorrentSession/index.ts'
+import libtorrentSessionRestSourceDefinition from '$/sources/LibtorrentSession/Rest/index.ts'
 import lifiStatusRestSourceDefinition from '$/sources/Lifi/index.ts'
 import lifiRestSourceDefinition from '$/sources/Lifi/Rest/index.ts'
 import lightningLndGrpcSourceDefinition from '$/sources/LightningLnd/index.ts'
@@ -146,56 +237,86 @@ import lightningMempoolSpaceRestSourceDefinition from '$/sources/LightningMempoo
 import litecoinCoreJsonRpcSourceDefinition from '$/sources/LitecoinCore/JsonRpc/index.ts'
 import litecoinLipsGithubSourceDefinition from '$/sources/LitecoinLips/index.ts'
 import checkedInLitecoinWalletRpcSourceProviderDefinition from '$/sources/LitecoinWalletRpc/index.ts'
+import litecoinWalletRpcJsonRpcSourceDefinition from '$/sources/LitecoinWalletRpc/JsonRpc/index.ts'
 import localInternalSourceDefinition from '$/sources/Local/Internal/index.ts'
 import logosBlockchainNodeRestSourceDefinition from '$/sources/LogosBlockchainNode/index.ts'
 import logosDocsRestSourceDefinition from '$/sources/LogosDocs/Rest/index.ts'
 import lotusJsonRpcSourceDefinition from '$/sources/Lotus/JsonRpc/index.ts'
+import magicHederaWalletApiSourceDefinition from '$/sources/Magic/HederaWalletApi/index.ts'
 import checkedInMagicSourceProviderDefinition from '$/sources/Magic/index.ts'
 import checkedInMagnetUriSourceProviderDefinition from '$/sources/MagnetUri/index.ts'
+import magnetUriUriSourceDefinition from '$/sources/MagnetUri/Uri/index.ts'
 import checkedInMartianSourceProviderDefinition from '$/sources/Martian/index.ts'
+import martianWalletApiSourceDefinition from '$/sources/Martian/WalletApi/index.ts'
 import mastodonRestSourceDefinition from '$/sources/Mastodon/Rest/index.ts'
 import mcpConfiguredProtocolSourceDefinition from '$/sources/Mcp/index.ts'
 import mcpPackageRegistryRestSourceDefinition from '$/sources/Mcp/McpPackageRegistry/Rest/index.ts'
 import mempoolSpaceRestSourceDefinition from '$/sources/MempoolSpace/index.ts'
 import metadataVisionRestSourceDefinition from '$/sources/MetadataVision/Rest/index.ts'
 import checkedInMetaplexDASSourceProviderDefinition from '$/sources/MetaplexDAS/index.ts'
+import metaplexDASRestSourceDefinition from '$/sources/MetaplexDAS/Rest/index.ts'
 import mevRelayRestSourceDefinition from '$/sources/MevRelay/Rest/index.ts'
 import checkedInMintscanSourceProviderDefinition from '$/sources/Mintscan/index.ts'
+import mintscanRestSourceDefinition from '$/sources/Mintscan/Rest/index.ts'
 import checkedInMistralAiSourceProviderDefinition from '$/sources/MistralAi/index.ts'
+import mistralAiRestSourceDefinition from '$/sources/MistralAi/Rest/index.ts'
+import croissantDocumentLocalSourceDefinition from '$/sources/MlCommons/CroissantDocument/Local/index.ts'
 import checkedInMlCommonsSourceProviderDefinition from '$/sources/MlCommons/index.ts'
 import checkedInMlflowSourceProviderDefinition from '$/sources/Mlflow/index.ts'
+import mlflowRestSourceDefinition from '$/sources/Mlflow/Rest/index.ts'
 import moneroDaemonRpcJsonRpcSourceDefinition from '$/sources/MoneroDaemonRpc/JsonRpc/index.ts'
 import checkedInMoneroWalletRpcSourceProviderDefinition from '$/sources/MoneroWalletRpc/index.ts'
+import moneroWalletRpcJsonRpcSourceDefinition from '$/sources/MoneroWalletRpc/JsonRpc/index.ts'
 import nearBlocksRestSourceDefinition from '$/sources/NearBlocks/Rest/index.ts'
 import checkedInNearConnectSourceProviderDefinition from '$/sources/NearConnect/index.ts'
+import nearConnectWalletApiSourceDefinition from '$/sources/NearConnect/WalletApi/index.ts'
 import nearNepsGithubSourceDefinition from '$/sources/NearNeps/index.ts'
 import nearRpcJsonRpcSourceDefinition from '$/sources/NearRpc/JsonRpc/index.ts'
 import checkedInNearWalletSelectorSourceProviderDefinition from '$/sources/NearWalletSelector/index.ts'
+import nearWalletSelectorWalletApiSourceDefinition from '$/sources/NearWalletSelector/WalletApi/index.ts'
 import neynarRestSourceDefinition from '$/sources/Neynar/Rest/index.ts'
 import checkedInNfidSourceProviderDefinition from '$/sources/Nfid/index.ts'
+import nfidWalletApiSourceDefinition from '$/sources/Nfid/WalletApi/index.ts'
+import nitroClientStoreSourceDefinition from '$/sources/Nitro/ClientStore/index.ts'
 import checkedInNitroSourceProviderDefinition from '$/sources/Nitro/index.ts'
+import nitroNodeRpcSourceDefinition from '$/sources/Nitro/NodeRpc/index.ts'
+import nodelyAlgodRestSourceDefinition from '$/sources/Nodely/Algod/Rest/index.ts'
+import nodelyAlgorandIndexerRestSourceDefinition from '$/sources/Nodely/AlgorandIndexer/Rest/index.ts'
 import checkedInNodelySourceProviderDefinition from '$/sources/Nodely/index.ts'
 import nostrBandRestSourceDefinition from '$/sources/NostrBand/Rest/index.ts'
 import nostrRelayNip11HttpSourceDefinition from '$/sources/NostrRelay/index.ts'
 import nostrRelayWebSocketSourceDefinition from '$/sources/NostrRelay/WebSocket/index.ts'
+import ociRegistryDistributionSourceDefinition from '$/sources/OciRegistry/Distribution/index.ts'
 import checkedInOciRegistrySourceProviderDefinition from '$/sources/OciRegistry/index.ts'
 import checkedInOgmiosSourceProviderDefinition from '$/sources/Ogmios/index.ts'
+import ogmiosJsonRpcSourceDefinition from '$/sources/Ogmios/JsonRpc/index.ts'
 import checkedInOneInchSwapSourceProviderDefinition from '$/sources/OneInchSwap/index.ts'
+import oneInchSwapRestSourceDefinition from '$/sources/OneInchSwap/Rest/index.ts'
 import checkedInOnnxSourceProviderDefinition from '$/sources/Onnx/index.ts'
+import onnxArtifactLocalSourceDefinition from '$/sources/Onnx/OnnxArtifact/Local/index.ts'
 import openAIRestSourceDefinition from '$/sources/OpenAI/index.ts'
 import openchainRestSourceDefinition from '$/sources/Openchain/Rest/index.ts'
 import checkedInOpenSeaSourceProviderDefinition from '$/sources/OpenSea/index.ts'
+import openSeaRestSourceDefinition from '$/sources/OpenSea/Rest/index.ts'
 import checkedInOsmosisLCDSourceProviderDefinition from '$/sources/OsmosisLCD/index.ts'
+import osmosisLCDRestSourceDefinition from '$/sources/OsmosisLCD/Osmosis/LCD/Rest/index.ts'
 import checkedInParaswapSourceProviderDefinition from '$/sources/Paraswap/index.ts'
+import paraswapRestSourceDefinition from '$/sources/Paraswap/Rest/index.ts'
 import pathfinderJsonRpcSourceDefinition from '$/sources/Pathfinder/index.ts'
 import payjoinDirectoryRestSourceDefinition from '$/sources/Payjoin/Directory/Rest/index.ts'
+import payjoinOhttpRelayHttpSourceDefinition from '$/sources/Payjoin/PayjoinOhttpRelay/Http/index.ts'
+import payjoinReceiverHttpSourceDefinition from '$/sources/Payjoin/PayjoinReceiver/Http/index.ts'
 import checkedInPetraSourceProviderDefinition from '$/sources/Petra/index.ts'
+import petraWalletApiSourceDefinition from '$/sources/Petra/WalletApi/index.ts'
 import pipedRestSourceDefinition from '$/sources/Piped/Rest/index.ts'
 import checkedInPlugWalletSourceProviderDefinition from '$/sources/PlugWallet/index.ts'
+import plugWalletWalletApiSourceDefinition from '$/sources/PlugWallet/WalletApi/index.ts'
 import polkadotJsonRpcSourceDefinition from '$/sources/Polkadot/index.ts'
 import checkedInPolkadotInjectedWeb3SourceProviderDefinition from '$/sources/PolkadotInjectedWeb3/index.ts'
+import polkadotInjectedWeb3WalletApiSourceDefinition from '$/sources/PolkadotInjectedWeb3/WalletApi/index.ts'
 import polkadotRfcsGithubSourceDefinition from '$/sources/PolkadotRfcs/index.ts'
 import checkedInPontemSourceProviderDefinition from '$/sources/Pontem/index.ts'
+import pontemWalletApiSourceDefinition from '$/sources/Pontem/WalletApi/index.ts'
 import primalRestSourceDefinition from '$/sources/Primal/Rest/index.ts'
 import pythEvmContractSourceDefinition from '$/sources/Pyth/index.ts'
 import pythBenchmarksRestSourceDefinition from '$/sources/Pyth/PythBenchmarks/Rest/index.ts'
@@ -203,39 +324,57 @@ import pythHermesRestSourceDefinition from '$/sources/Pyth/PythHermes/Rest/index
 import pythPriceFeedsCatalogRestSourceDefinition from '$/sources/Pyth/PythPriceFeedsCatalog/Rest/index.ts'
 import pythSolanaProgramSourceDefinition from '$/sources/Pyth/SolanaProgram/index.ts'
 import checkedInqBittorrentWebUiSourceProviderDefinition from '$/sources/qBittorrentWebUi/index.ts'
+import qBittorrentWebUiRestSourceDefinition from '$/sources/qBittorrentWebUi/Rest/index.ts'
 import quilibriumDocsRestSourceDefinition from '$/sources/QuilibriumDocs/index.ts'
 import quilibriumNodeGrpcSourceDefinition from '$/sources/QuilibriumNode/index.ts'
 import quilibriumNodeMetricsPrometheusSourceDefinition from '$/sources/QuilibriumNodeMetrics/index.ts'
 import quilibriumNodeRpcGrpcSourceDefinition from '$/sources/QuilibriumNodeRpc/Grpc/index.ts'
 import checkedInRadicleSourceProviderDefinition from '$/sources/Radicle/index.ts'
+import radicleLocalSourceDefinition from '$/sources/Radicle/Local/index.ts'
+import radicleRemoteSourceDefinition from '$/sources/Radicle/Remote/index.ts'
 import checkedInRadicleCliSourceProviderDefinition from '$/sources/RadicleCli/index.ts'
+import radicleCliLocalSourceDefinition from '$/sources/RadicleCli/Local/index.ts'
+import radicleNodeControlSourceDefinition from '$/sources/RadicleNode/Control/index.ts'
 import checkedInRadicleNodeSourceProviderDefinition from '$/sources/RadicleNode/index.ts'
 import redditRestSourceDefinition from '$/sources/Reddit/Rest/index.ts'
 import redditPublicJsonSourceDefinition from '$/sources/RedditPublic/Rest/index.ts'
 import checkedInReservoirSourceProviderDefinition from '$/sources/Reservoir/index.ts'
+import reservoirRestSourceDefinition from '$/sources/Reservoir/Rest/index.ts'
 import checkedInRethSourceProviderDefinition from '$/sources/Reth/index.ts'
+import rethJsonRpcSourceDefinition from '$/sources/Reth/JsonRpc/index.ts'
 import rssRestSourceDefinition from '$/sources/Rss/Rest/index.ts'
 import rss2JsonRestSourceDefinition from '$/sources/Rss2Json/Rest/index.ts'
 import checkedInSigstoreRekorSourceProviderDefinition from '$/sources/SigstoreRekor/index.ts'
+import sigstoreRekorRestSourceDefinition from '$/sources/SigstoreRekor/Rest/index.ts'
 import snapchainRestSourceDefinition from '$/sources/Snapchain/Rest/index.ts'
 import solanaJsonRpcSourceDefinition from '$/sources/Solana/JsonRpc/index.ts'
 import checkedInSolanaMobileWalletAdapterSourceProviderDefinition from '$/sources/SolanaMobileWalletAdapter/index.ts'
+import solanaMobileWalletAdapterWalletApiSourceDefinition from '$/sources/SolanaMobileWalletAdapter/WalletApi/index.ts'
 import solanaSimdsGithubSourceDefinition from '$/sources/SolanaSimds/index.ts'
 import { Source } from '$/sources/Source.ts'
 import { ApiFamily, SourceArtifactKind, SourceCredentialScope, SourceDelivery, SourceEndpointKind, SourceOperationGroup, SourceTargetKind, WireProtocol } from '$/sources/SourceBinding.ts'
 import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 import sourcifyRestSourceDefinition from '$/sources/Sourcify/Rest/index.ts'
 import checkedInSpdxSourceProviderDefinition from '$/sources/Spdx/index.ts'
+import spdxDocumentLocalSourceDefinition from '$/sources/Spdx/SpdxDocument/Local/index.ts'
 import starknetJsonRpcSourceDefinition from '$/sources/Starknet/index.ts'
 import starkscanRestSourceDefinition from '$/sources/Starkscan/index.ts'
 import checkedInStellarExpertSourceProviderDefinition from '$/sources/StellarExpert/index.ts'
+import stellarExpertRestSourceDefinition from '$/sources/StellarExpert/Rest/index.ts'
 import checkedInStellarHorizonSourceProviderDefinition from '$/sources/StellarHorizon/index.ts'
+import stellarHorizonRestSourceDefinition from '$/sources/StellarHorizon/Rest/index.ts'
 import checkedInStellarRpcSourceProviderDefinition from '$/sources/StellarRpc/index.ts'
+import stellarRpcJsonRpcSourceDefinition from '$/sources/StellarRpc/JsonRpc/index.ts'
 import checkedInStellarTomlSourceProviderDefinition from '$/sources/StellarToml/index.ts'
+import stellarTomlRestSourceDefinition from '$/sources/StellarToml/Rest/index.ts'
 import checkedInStoicWalletSourceProviderDefinition from '$/sources/StoicWallet/index.ts'
+import stoicWalletWalletApiSourceDefinition from '$/sources/StoicWallet/WalletApi/index.ts'
 import subscanRestSourceDefinition from '$/sources/Subscan/Rest/index.ts'
 import substrateSidecarRestSourceDefinition from '$/sources/SubstrateSidecar/Rest/index.ts'
+import suiGraphqlSourceDefinition from '$/sources/Sui/Graphql/index.ts'
+import suiGrpcSourceDefinition from '$/sources/Sui/Grpc/index.ts'
 import checkedInSuiSourceProviderDefinition from '$/sources/Sui/index.ts'
+import suiJsonRpcSourceDefinition from '$/sources/Sui/JsonRpc/index.ts'
 import superchainGithubSourceDefinition from '$/sources/Superchain/Github/index.ts'
 import swarmRestSourceDefinition from '$/sources/Swarm/Rest/index.ts'
 import tezosDappetizerPostgresSourceDefinition from '$/sources/TezosDappetizer/index.ts'
@@ -243,36 +382,61 @@ import tezosNodeRpcSourceDefinition from '$/sources/TezosNode/index.ts'
 import theGraphGraphqlSourceDefinition from '$/sources/TheGraph/Graphql/index.ts'
 import threeXplRestSourceDefinition from '$/sources/ThreeXpl/Rest/index.ts'
 import checkedInTonApiSourceProviderDefinition from '$/sources/TonApi/index.ts'
+import tonApiRestSourceDefinition from '$/sources/TonApi/Rest/index.ts'
 import checkedInTonCenterSourceProviderDefinition from '$/sources/TonCenter/index.ts'
+import tonCenterV2RestSourceDefinition from '$/sources/TonCenter/V2/Rest/index.ts'
+import tonCenterV3RestSourceDefinition from '$/sources/TonCenter/V3/Rest/index.ts'
 import checkedInTonConnectSourceProviderDefinition from '$/sources/TonConnect/index.ts'
+import tonConnectWalletApiSourceDefinition from '$/sources/TonConnect/WalletApi/index.ts'
 import checkedInTonlibSourceProviderDefinition from '$/sources/Tonlib/index.ts'
+import tonlibJsonRpcSourceDefinition from '$/sources/Tonlib/JsonRpc/index.ts'
+import tonLiteServerAdnlSourceDefinition from '$/sources/TonLiteServer/Adnl/index.ts'
 import checkedInTonLiteServerSourceProviderDefinition from '$/sources/TonLiteServer/index.ts'
 import checkedInTonVerifierSourceProviderDefinition from '$/sources/TonVerifier/index.ts'
+import tonVerifierRestSourceDefinition from '$/sources/TonVerifier/Rest/index.ts'
 import tradingViewRestSourceDefinition from '$/sources/TradingView/Rest/index.ts'
 import checkedInTransmissionSourceProviderDefinition from '$/sources/Transmission/index.ts'
+import transmissionRpcJsonRpcSourceDefinition from '$/sources/Transmission/TransmissionRpc/JsonRpc/index.ts'
 import tronFullNodeRestSourceDefinition from '$/sources/TronFullNode/Rest/index.ts'
 import tronGridRestSourceDefinition from '$/sources/TronGrid/Rest/index.ts'
 import checkedInTronLinkSourceProviderDefinition from '$/sources/TronLink/index.ts'
+import tronLinkWalletApiSourceDefinition from '$/sources/TronLink/WalletApi/index.ts'
 import tronScanRestSourceDefinition from '$/sources/TronScan/Rest/index.ts'
 import tronSolidityNodeRestSourceDefinition from '$/sources/TronSolidityNode/Rest/index.ts'
 import checkedInTronTip1193SourceProviderDefinition from '$/sources/TronTip1193/index.ts'
+import tronTip1193WalletApiSourceDefinition from '$/sources/TronTip1193/WalletApi/index.ts'
 import checkedInTronTip6963SourceProviderDefinition from '$/sources/TronTip6963/index.ts'
+import tronTip6963WalletApiSourceDefinition from '$/sources/TronTip6963/WalletApi/index.ts'
 import trustWalletAssetsGithubSourceDefinition from '$/sources/TrustWalletAssets/Github/index.ts'
 import tzktRestSourceDefinition from '$/sources/Tzkt/index.ts'
 import voltaireJsonRpcSourceDefinition from '$/sources/Voltaire/JsonRpc/index.ts'
 import voyagerRestSourceDefinition from '$/sources/Voyager/index.ts'
 import checkedInWakuNodeSourceProviderDefinition from '$/sources/WakuNode/index.ts'
+import wakuNodeRestSourceDefinition from '$/sources/WakuNode/Rest/index.ts'
 import checkedInWalletConnectSourceProviderDefinition from '$/sources/WalletConnect/index.ts'
+import walletConnectSignClientSourceDefinition from '$/sources/WalletConnect/SignClient/index.ts'
 import checkedInWalletStandardSourceProviderDefinition from '$/sources/WalletStandard/index.ts'
+import walletStandardWalletApiSourceDefinition from '$/sources/WalletStandard/WalletApi/index.ts'
+import webTorrentClientSourceDefinition from '$/sources/WebTorrent/Client/index.ts'
+import webTorrentDhtSourceDefinition from '$/sources/WebTorrent/Dht/index.ts'
 import checkedInWebTorrentSourceProviderDefinition from '$/sources/WebTorrent/index.ts'
+import webTorrentTrackerSourceDefinition from '$/sources/WebTorrent/Tracker/index.ts'
 import checkedInWormholescanSourceProviderDefinition from '$/sources/Wormholescan/index.ts'
+import wormholescanRestSourceDefinition from '$/sources/Wormholescan/Rest/index.ts'
 import xRestSourceDefinition from '$/sources/X/Rest/index.ts'
+import x402HttpSourceDefinition from '$/sources/X402/Http/index.ts'
 import checkedInX402SourceProviderDefinition from '$/sources/X402/index.ts'
+import xamanApiSourceDefinition from '$/sources/Xaman/Api/index.ts'
 import checkedInXamanSourceProviderDefinition from '$/sources/Xaman/index.ts'
+import xmtpBrowserSdkSourceDefinition from '$/sources/Xmtp/BrowserSdk/index.ts'
 import checkedInXmtpSourceProviderDefinition from '$/sources/Xmtp/index.ts'
+import xmtpNodeSdkSourceDefinition from '$/sources/Xmtp/NodeSdk/index.ts'
 import checkedInXrplSourceProviderDefinition from '$/sources/Xrpl/index.ts'
+import xrplRippledSourceDefinition from '$/sources/Xrpl/Rippled/index.ts'
 import checkedInXrplClioSourceProviderDefinition from '$/sources/XrplClio/index.ts'
+import xrplClioJsonRpcSourceDefinition from '$/sources/XrplClio/JsonRpc/index.ts'
 import checkedInXrpScanSourceProviderDefinition from '$/sources/XrpScan/index.ts'
+import xrpScanRestSourceDefinition from '$/sources/XrpScan/Rest/index.ts'
 import youtubeRestSourceDefinition from '$/sources/Youtube/Rest/index.ts'
 import zcashClientBackendLocalSourceDefinition from '$/sources/ZcashClientBackend/index.ts'
 import zcashdJsonRpcSourceDefinition from '$/sources/Zcashd/JsonRpc/index.ts'
@@ -281,6 +445,7 @@ import zcashLightwalletdGrpcSourceDefinition from '$/sources/ZcashLightwalletd/i
 import zcashZipsGithubSourceDefinition from '$/sources/ZcashZips/index.ts'
 import zebraJsonRpcSourceDefinition from '$/sources/Zebra/index.ts'
 import checkedInZeroExSwapSourceProviderDefinition from '$/sources/ZeroExSwap/index.ts'
+import zeroExSwapRestSourceDefinition from '$/sources/ZeroExSwap/Rest/index.ts'
 import zeroGChainJsonRpcSourceDefinition from '$/sources/ZeroG/Chain/JsonRpc/index.ts'
 import zeroGChainScanRestSourceDefinition from '$/sources/ZeroG/ChainScan/Rest/index.ts'
 import zeroGStorageNodeJsonRpcSourceDefinition from '$/sources/ZeroG/StorageNode/JsonRpc/index.ts'
@@ -2142,6 +2307,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		label: 'CAIPs',
 		sources: [
 			caipsGithubSourceDefinition,
+			caipNamespacesGithubSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2150,6 +2316,39 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				target: {
 					kind: SourceTargetKind.GitRepository,
 					key: 'ChainAgnostic/CAIPs@main:CAIPs',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://api.github.com',
+						origin: 'https://api.github.com',
+						corsEnabled: true,
+					},
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://raw.githubusercontent.com',
+						origin: 'https://raw.githubusercontent.com',
+						corsEnabled: true,
+					},
+				],
+				wireProtocol: WireProtocol.HttpRest,
+				apiFamily: ApiFamily.GithubContentsApi,
+				operationGroups: [
+					SourceOperationGroup.GithubRepositoryContents,
+				],
+				delivery: SourceDelivery.BrowserDirect,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Caips,
+				source: Source.CaipNamespaces_Github,
+				target: {
+					kind: SourceTargetKind.GitRepository,
+					key: 'ChainAgnostic/namespaces@main:namespaces',
 				},
 				endpoints: [
 					{
@@ -2293,6 +2492,8 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		sources: [
 			circleCctpIrisApiSourceDefinition,
 			circleCctpContractsEvmSourceDefinition,
+			circleCctpContractsSolanaSourceDefinition,
+			circleCctpContractsStellarSourceDefinition,
 		],
 		bindings: [
 			{
@@ -2333,6 +2534,56 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					{
 						endpointKind: SourceEndpointKind.InProcess,
 						locator: 'circle-cctp-evm-contract-catalog',
+					},
+				],
+				wireProtocol: WireProtocol.InProcess,
+				apiFamily: ApiFamily.CatalogRows,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.BrowserDirect,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.CircleCctp,
+				source: Source.CircleCctpContracts_Solana,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'solana',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.InProcess,
+						locator: 'circle-cctp-solana-program-catalog',
+					},
+				],
+				wireProtocol: WireProtocol.InProcess,
+				apiFamily: ApiFamily.CatalogRows,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.BrowserDirect,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.CircleCctp,
+				source: Source.CircleCctpContracts_Stellar,
+				target: {
+					kind: SourceTargetKind.Caip2Network,
+					key: 'stellar',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.InProcess,
+						locator: 'circle-cctp-stellar-contract-catalog',
 					},
 				],
 				wireProtocol: WireProtocol.InProcess,
@@ -5569,7 +5820,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				source: Source.Mastodon_Rest,
 				target: {
 					kind: SourceTargetKind.Global,
-					key: 'mastodon-social',
+					key: 'mastodon-compatible-activitypub',
 				},
 				endpoints: [
 					{
@@ -5578,49 +5829,6 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						origin: 'https://mastodon.social',
 						corsEnabled: false,
 					},
-				],
-				wireProtocol: WireProtocol.HttpRest,
-				apiFamily: ApiFamily.RestJson,
-				operationGroups: [
-					SourceOperationGroup.GenericRead,
-				],
-				delivery: SourceDelivery.HttpProxy,
-				credentials: [
-					{
-						scope: SourceCredentialScope.None,
-					},
-				],
-				artifacts: [
-					{
-						kind: SourceArtifactKind.HandwrittenTypes,
-						path: 'src/sources/Mastodon/Rest/types.ts',
-						generated: false,
-					},
-				],
-			},
-		],
-		origins: [
-			{
-				origin: 'https://mastodon.social',
-				corsEnabled: false,
-			},
-		],
-	},
-	{
-		provider: SourceProvider.Fedi,
-		label: 'Fedi',
-		sources: [
-			fediRestSourceDefinition,
-		],
-		bindings: [
-			{
-				provider: SourceProvider.Fedi,
-				source: Source.Fedi_Rest,
-				target: {
-					kind: SourceTargetKind.Global,
-					key: 'fosstodon',
-				},
-				endpoints: [
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://fosstodon.org/api/v1',
@@ -5649,6 +5857,10 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 			},
 		],
 		origins: [
+			{
+				origin: 'https://mastodon.social',
+				corsEnabled: false,
+			},
 			{
 				origin: 'https://fosstodon.org',
 				corsEnabled: false,
@@ -5880,9 +6092,65 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		provider: SourceProvider.Payjoin,
 		label: 'Payjoin',
 		sources: [
+			payjoinOhttpRelayHttpSourceDefinition,
+			payjoinReceiverHttpSourceDefinition,
 			payjoinDirectoryRestSourceDefinition,
 		],
 		bindings: [
+			{
+				provider: SourceProvider.Payjoin,
+				source: Source.PayjoinOhttpRelay_Http,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'ohttp-relay',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{payjoin-ohttp-relay-host}',
+						origin: 'https://{payjoin-ohttp-relay-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.RawHttp,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
+			{
+				provider: SourceProvider.Payjoin,
+				source: Source.PayjoinReceiver_Http,
+				target: {
+					kind: SourceTargetKind.Global,
+					key: 'receiver',
+				},
+				endpoints: [
+					{
+						endpointKind: SourceEndpointKind.HttpUrl,
+						locator: 'https://{payjoin-receiver-host}',
+						origin: 'https://{payjoin-receiver-host}',
+						corsEnabled: false,
+					},
+				],
+				wireProtocol: WireProtocol.RawHttp,
+				apiFamily: ApiFamily.RestJson,
+				operationGroups: [
+					SourceOperationGroup.GenericRead,
+				],
+				delivery: SourceDelivery.RemoteQuery,
+				credentials: [
+					{
+						scope: SourceCredentialScope.None,
+					},
+				],
+			},
 			{
 				provider: SourceProvider.Payjoin,
 				source: Source.PayjoinDirectory_Rest,
@@ -5931,6 +6199,14 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 			},
 		],
 		origins: [
+			{
+				origin: 'https://{payjoin-ohttp-relay-host}',
+				corsEnabled: false,
+			},
+			{
+				origin: 'https://{payjoin-receiver-host}',
+				corsEnabled: false,
+			},
 			{
 				origin: 'https://payjo.in',
 				corsEnabled: false,
@@ -8540,6 +8816,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 	checkedInEnsMetadataServiceSourceProviderDefinition,
 	checkedInErigonSourceProviderDefinition,
 	checkedInEthForksSourceProviderDefinition,
+	checkedInFediSourceProviderDefinition,
 	checkedInFedimintClientSourceProviderDefinition,
 	checkedInFedimintGatewaydSourceProviderDefinition,
 	checkedInForgejoSourceProviderDefinition,

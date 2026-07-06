@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.userPrompt) ?? '')].filter(Boolean).join(' ') || 'agent conversation turn')
 	const viewDomId = $derived('blockhead-agent-conversation-turn-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -131,7 +133,7 @@
 								<BlockheadAgentConversationView
 									selection={select(EntityType.BlockheadAgentConversation, blockheadAgentConversation[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConversation}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

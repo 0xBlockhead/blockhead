@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([(String((selection.entitySelector.slot ?? prefetched.slot) ?? '') ? 'Slot ' + String((selection.entitySelector.slot ?? prefetched.slot) ?? '') : ''), (String((prefetched.value) ?? '') ? String((prefetched.value) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV relay proposer payload delivered')
 	const viewDomId = $derived('mev-relay-proposer-payload-delivered-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -127,9 +129,9 @@
 									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 									prefetched={mevBuilder}
 									href={
-										(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2 !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.namespace !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2 !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.reference !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
-											caip2: `${String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.namespace ?? '')}:${String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.reference ?? '')}`,
-											builderPubkey: String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).builderPubkey ?? ''),
+										(mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2.reference !== undefined && mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
+											caip2: `${String(mevBuilder[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(mevBuilder[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -153,9 +155,9 @@
 									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 									prefetched={mevBuilder}
 									href={
-										(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2 !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.namespace !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2 !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.reference !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
-											caip2: `${String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.namespace ?? '')}:${String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.reference ?? '')}`,
-											builderPubkey: String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).builderPubkey ?? ''),
+										(mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2.reference !== undefined && mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
+											caip2: `${String(mevBuilder[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(mevBuilder[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -384,12 +386,12 @@
 									selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
 									prefetched={mevBuilder}
 									href={
-										(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2 !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.namespace !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2 !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.reference !== undefined && ({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
-											caip2: `${String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.namespace ?? '')}:${String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).$network.caip2.reference ?? '')}`,
-											builderPubkey: String(({ ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }).builderPubkey ?? ''),
+										(mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && mevBuilder[EntityMetaKey.Selector].$network !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2 !== undefined && mevBuilder[EntityMetaKey.Selector].$network.caip2.reference !== undefined && mevBuilder[EntityMetaKey.Selector].builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
+											caip2: `${String(mevBuilder[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(mevBuilder[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											builderPubkey: String(mevBuilder[EntityMetaKey.Selector].builderPubkey ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -410,12 +412,12 @@
 									selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 									prefetched={evmBlock}
 									href={
-										(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-											caip2: `${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace ?? '')}:${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference ?? '')}`,
-											blockNumber: String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber ?? ''),
+										(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+											caip2: `${String(evmBlock[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmBlock[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -436,7 +438,7 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -8,6 +8,8 @@ const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..')
 
 const routesDir = join(repoRoot, 'src', 'routes')
 
+const includeTestRoutes = process.env.E2E_INCLUDE_TEST_ROUTES === '1'
+
 const getRouteParamFixtures = () => {
 	return routeParamFixtures
 }
@@ -85,12 +87,17 @@ const dynamicFixture = (
 	staticSegments: readonly string[]
 ) => {
 	if (paramKey.startsWith('...'))
-		return getRouteParamFixtures().e2eRouteRestSegmentFixtures[paramKey.slice(3)] ?? 'index.html'
+		return (
+			getRouteParamFixtures().e2eRouteRestSegmentFixtures[paramKey.slice(3)]
+			?? getRouteParamFixtures().e2eRouteParamFixtureForContext(paramKey.slice(3), staticSegments)
+		)
 
 	if (matcherKey === 'eip155Caip2Namespace') return 'eip155'
 	if (matcherKey === 'eip155Caip2Reference') return '1'
-	if (matcherKey === 'eip155NetworkCaip2') return 'eip155:1'
-	if (matcherKey === 'networkCaip2') return 'bip122:000000000019d6689c085ae165831e93'
+	if (matcherKey === 'eip155NetworkCaip2')
+		return paramKey === 'toCaip2' && staticSegments.includes('bridges') ? 'eip155:42161' : 'eip155:1'
+	if (matcherKey === 'networkCaip2')
+		return staticSegments.includes('cosmos') ? 'cosmos:cosmoshub-4' : 'bip122:000000000019d6689c085ae165831e93'
 
 	const contextual = getRouteParamFixtures().e2eRouteParamFixtureForContext(paramKey, staticSegments)
 	return (
@@ -127,10 +134,20 @@ const expandMixedSegment = (
 					['1']
 	:
 		matcherKey === 'eip155NetworkCaip2' ?
-					['eip155:1']
+					[
+						paramKey === 'toCaip2' && expandedContext.context.staticSegments.includes('bridges') ?
+							'eip155:42161'
+						:
+							'eip155:1',
+					]
 	:
-		matcherKey === 'networkCaip2' ?
-					['bip122:000000000019d6689c085ae165831e93']
+				matcherKey === 'networkCaip2' ?
+					[
+						expandedContext.context.staticSegments.includes('cosmos') ?
+							'cosmos:cosmoshub-4'
+						:
+							'bip122:000000000019d6689c085ae165831e93',
+					]
 				:
 					getRouteParamFixtures().e2eRouteParamFixtureVariantsForContext(
 						paramKey,
@@ -218,11 +235,31 @@ const pageFileToPathname = (absPath: string) => {
 				paramKey === 'networkSlug' && routeStaticSegments.includes('solana') ?
 					['solana']
 			:
+				paramKey === 'networkSlug' && routeStaticSegments.includes('shielded-action') ?
+					['zcash']
+			:
+				paramKey === 'networkSlug' && (
+					routeStaticSegments.includes('channels')
+					|| routeStaticSegments.includes('invoices')
+					|| routeStaticSegments.includes('payments')
+					|| routeStaticSegments.includes('nodes')
+				) ?
+					['lightning']
+			:
 				paramKey === 'networkSlug' && routeStaticSegments.includes('cash-token') ?
 					['bitcoin-cash']
 			:
 				paramKey === 'txId' && routeStaticSegments.includes('cash-token') ?
 					['9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a']
+			:
+				paramKey === 'txId' && routeStaticSegments.includes('shielded-action') ?
+					['7fb6c4d3e2a1908070605040302010ffeeddccbbaa99887766554433221100ff']
+			:
+				paramKey === 'txId' && routeStaticSegments.includes('utxo') ?
+					['4d3e4007c50313d031ffb3f180d0bd6b37192e1c852ec9f9a16ad1db957707c6']
+			:
+				paramKey === 'txId' && routeStaticSegments.includes('transactions') ?
+					['4d3e4007c50313d031ffb3f180d0bd6b37192e1c852ec9f9a16ad1db957707c6']
 			:
 				matcherKey === 'eip155Caip2Namespace' ?
 					['eip155']
@@ -230,11 +267,21 @@ const pageFileToPathname = (absPath: string) => {
 		matcherKey === 'eip155Caip2Reference' ?
 					['1']
 	:
-		matcherKey === 'eip155NetworkCaip2' ?
-					['eip155:1']
+				matcherKey === 'eip155NetworkCaip2' ?
+					[
+						paramKey === 'toCaip2' && context.staticSegments.includes('bridges') ?
+							'eip155:42161'
+						:
+							'eip155:1',
+					]
 	:
 		matcherKey === 'networkCaip2' ?
-					['bip122:000000000019d6689c085ae165831e93']
+					[
+						routeStaticSegments.includes('cosmos') ?
+							'cosmos:cosmoshub-4'
+						:
+							'bip122:000000000019d6689c085ae165831e93',
+					]
 				:
 					getRouteParamFixtures().e2eRouteParamFixtureVariantsForContext(
 						paramKey,
@@ -285,6 +332,7 @@ const walkFiles = async function* (dir: string): AsyncGenerator<string> {
 	for (const ent of await readdir(dir, { withFileTypes: true })) {
 		const p = join(dir, ent.name)
 		if (ent.isDirectory() && p === join(routesDir, 'demo')) continue
+		if (!includeTestRoutes && ent.isDirectory() && p === join(routesDir, 'test')) continue
 		if (ent.isDirectory())
 			yield* walkFiles(p)
 		else if (ent.name === '+page.svelte')
@@ -305,4 +353,79 @@ export const discoverPathnamesFromRoutes = async () => {
 	}
 
 	return out.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+}
+
+const envPositiveInteger = (
+	name: string,
+	fallback: number
+) => {
+	const raw = process.env[name]?.trim()
+	if (!raw) return fallback
+	const parsed = Number(raw)
+	if (
+		!Number.isInteger(parsed)
+		|| parsed <= 0
+	)
+		throw new Error(`${name} must be a positive integer`)
+	return parsed
+}
+
+const envNonnegativeInteger = (
+	name: string,
+	fallback: number
+) => {
+	const raw = process.env[name]?.trim()
+	if (!raw) return fallback
+	const parsed = Number(raw)
+	if (
+		!Number.isInteger(parsed)
+		|| parsed < 0
+	)
+		throw new Error(`${name} must be a non-negative integer`)
+	return parsed
+}
+
+export const discoverFilteredPathnamesFromRoutes = async () => {
+	const pathPattern = process.env.E2E_PATH_PATTERN?.trim()
+	const startPath = process.env.E2E_START_PATH?.trim()
+	const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
+	const limit = envPositiveInteger('E2E_PATH_LIMIT', Number.POSITIVE_INFINITY)
+	const shardTotal = envPositiveInteger('E2E_PATH_SHARD_TOTAL', 1)
+	const shardIndex = envNonnegativeInteger('E2E_PATH_SHARD_INDEX', 0)
+	if (shardIndex >= shardTotal)
+		throw new Error('E2E_PATH_SHARD_INDEX must be less than E2E_PATH_SHARD_TOTAL')
+
+	let pageUrls = (
+		pathPattern ?
+			(await discoverPathnamesFromRoutes()).filter((pathname) => new RegExp(pathPattern).test(pathname))
+		:
+			await discoverPathnamesFromRoutes()
+	)
+	if (startPath) {
+		const index = pageUrls.indexOf(startPath)
+		if (index === -1)
+			throw new Error(`E2E_START_PATH=${startPath} did not match a discovered route`)
+
+		pageUrls = pageUrls.slice(index)
+	}
+	pageUrls = (
+		shardTotal > 1 ?
+			pageUrls.filter((_, index) => index % shardTotal === shardIndex)
+		:
+			pageUrls
+	)
+	pageUrls = (
+		limitRaw !== '' ?
+			pageUrls.slice(0, limit)
+		:
+			pageUrls
+	)
+	if (pageUrls.length === 0)
+		throw new Error([
+			`No discovered routes matched E2E_PATH_PATTERN=${pathPattern ?? '<unset>'}`,
+			`E2E_START_PATH=${startPath ?? '<unset>'}`,
+			`E2E_PATH_SHARD_INDEX=${shardIndex}`,
+			`E2E_PATH_SHARD_TOTAL=${shardTotal}`,
+		].join(' '))
+	return pageUrls
 }

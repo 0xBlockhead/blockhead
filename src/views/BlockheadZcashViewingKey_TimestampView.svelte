@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash viewing key timestamp')
 	const viewDomId = $derived('blockhead-zcash-viewing-key-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -141,7 +143,7 @@
 				<dd>
 					<BlockheadZcashViewingKeyView
 						selection={select(EntityType.BlockheadZcashViewingKey, selection.entitySelector.$viewingKey)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

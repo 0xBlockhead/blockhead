@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'arweave resource timestamp')
 	const viewDomId = $derived('arweave-resource-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -133,7 +135,7 @@
 				<dd>
 					<ArweaveResourceView
 						selection={select(EntityType.ArweaveResource, selection.entitySelector.$resource)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -569,11 +571,11 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(({ ...media[EntityMetaKey.Selector], ...media }).url !== undefined ? resolve('/(explore)/media/[url]', {
-											url: String(({ ...media[EntityMetaKey.Selector], ...media }).url ?? ''),
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+											url: String(media[EntityMetaKey.Selector].url ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

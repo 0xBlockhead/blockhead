@@ -47,6 +47,8 @@
 	}))
 	const titleFallback = $derived('global Arweave network')
 	const viewDomId = $derived('-global-arweave-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ArweaveNetworksView from '$/views/ArweaveNetworksView.svelte'

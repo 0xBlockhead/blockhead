@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.refName ?? prefetched.refName) ?? '')].filter(Boolean).join(' ') || 'Git ref update')
 	const viewDomId = $derived('git-ref-update-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -125,7 +127,7 @@
 				<dd>
 					<GitRepositoryView
 						selection={select(EntityType.GitRepository, selection.entitySelector.$repository)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -297,7 +299,7 @@
 								<GitSignatureView
 									selection={select(EntityType.GitSignature, gitSignature[EntityMetaKey.Selector])}
 									prefetched={gitSignature}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

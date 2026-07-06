@@ -44,6 +44,8 @@
 	const tezosBigMapDiff = $derived(selection({}))
 	const titleFallback = $derived('tezos big map diff')
 	const viewDomId = $derived('tezos-big-map-diff-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<TezosOperationView
 						selection={select(EntityType.TezosOperation, selection.entitySelector.$operation)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -189,7 +191,7 @@
 								<TezosBigMapView
 									selection={select(EntityType.TezosBigMap, tezosBigMap[EntityMetaKey.Selector])}
 									prefetched={tezosBigMap}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

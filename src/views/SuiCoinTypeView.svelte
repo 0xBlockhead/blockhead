@@ -45,6 +45,8 @@
 	const suiCoinType = $derived(selection({}))
 	const titleFallback = $derived('Sui coin type')
 	const viewDomId = $derived('sui-coin-type-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -85,7 +87,7 @@
 				<dd>
 					<SuiNetworkView
 						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -132,7 +134,7 @@
 								<MoveStructView
 									selection={select(EntityType.MoveStruct, moveStruct[EntityMetaKey.Selector])}
 									prefetched={moveStruct}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -152,7 +154,7 @@
 								<SuiObjectView
 									selection={select(EntityType.SuiObject, suiObject[EntityMetaKey.Selector])}
 									prefetched={suiObject}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -173,13 +175,13 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2 !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.namespace !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2 !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.reference !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).kind !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
-											caip2: `${String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.namespace ?? '')}:${String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.reference ?? '')}`,
-											kind: String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).kind ?? ''),
-											assetKey: String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).assetKey ?? ''),
+										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+											caip2: `${String(assetInstance[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(assetInstance[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
+											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

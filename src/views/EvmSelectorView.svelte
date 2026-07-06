@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived('EVM selector')
 	const viewDomId = $derived('evm-selector-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

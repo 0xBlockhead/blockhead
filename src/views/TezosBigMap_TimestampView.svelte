@@ -44,6 +44,8 @@
 	const tezosBigMapTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tezos big map timestamp')
 	const viewDomId = $derived('tezos-big-map-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TezosBigMapView from '$/views/TezosBigMapView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TezosBigMapView
 						selection={select(EntityType.TezosBigMap, selection.entitySelector.$bigMap)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

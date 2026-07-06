@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([(String((prefetched.deliveredPayloadCount) ?? '') ? String((prefetched.deliveredPayloadCount) ?? '') + ' payloads' : ''), (String((prefetched.deliveredValueWei) ?? '') ? String((prefetched.deliveredValueWei) ?? '') + ' wei' : '')].filter(Boolean).join(' ') || 'MEV builder timestamp')
 	const viewDomId = $derived('mev-builder-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -439,7 +441,7 @@
 								builderPubkey: String(selection.entitySelector.$builder.builderPubkey ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

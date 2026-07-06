@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.memberIndex ?? prefetched.memberIndex) ?? '')].filter(Boolean).join(' ') || 'monero ring member')
 	const viewDomId = $derived('monero-ring-member-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -114,7 +116,7 @@
 				<dd>
 					<MoneroRingView
 						selection={select(EntityType.MoneroRing, selection.entitySelector.$ring)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

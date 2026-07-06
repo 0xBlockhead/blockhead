@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'filecoin deal timestamp')
 	const viewDomId = $derived('filecoin-deal-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -130,7 +132,7 @@
 				<dd>
 					<FilecoinDealView
 						selection={select(EntityType.FilecoinDeal, selection.entitySelector.$deal)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -277,7 +279,7 @@
 								<FilecoinTipsetView
 									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 									prefetched={filecoinTipset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

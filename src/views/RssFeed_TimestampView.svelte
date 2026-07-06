@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('RSS feed observation')
 	const viewDomId = $derived('rss-feed-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -122,7 +124,7 @@
 				<dd>
 					<RssFeedView
 						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

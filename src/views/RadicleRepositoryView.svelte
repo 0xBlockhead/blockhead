@@ -44,6 +44,8 @@
 	const radicleRepository = $derived(selection({}))
 	const titleFallback = $derived('radicle repository')
 	const viewDomId = $derived('radicle-repository-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import GitRepositoryView from '$/views/GitRepositoryView.svelte'
@@ -116,7 +118,7 @@
 								<GitRepositoryView
 									selection={select(EntityType.GitRepository, gitRepository[EntityMetaKey.Selector])}
 									prefetched={gitRepository}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

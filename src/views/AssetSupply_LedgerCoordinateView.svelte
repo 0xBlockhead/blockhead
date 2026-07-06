@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.supplyScopeKey ?? prefetched.supplyScopeKey) ?? '')].filter(Boolean).join(' ') || 'asset supply ledger coordinate')
 	const viewDomId = $derived('asset-supply-ledger-coordinate-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -136,7 +138,7 @@
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -184,15 +186,15 @@
 									selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
 									prefetched={assetClass}
 									href={
-										(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2 !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2.namespace !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2 !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2.reference !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.kind !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.assetKey !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).classKind !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).classKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/class/[classKind]/[classKey]', {
-											caip2: `${String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2.namespace ?? '')}:${String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2.reference ?? '')}`,
-											kind: String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.kind ?? ''),
-											assetKey: String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.assetKey ?? ''),
-											classKind: String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).classKind ?? ''),
-											classKey: String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).classKey ?? ''),
+										(assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2 !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.namespace !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2 !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.reference !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.kind !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.assetKey !== undefined && assetClass[EntityMetaKey.Selector].classKind !== undefined && assetClass[EntityMetaKey.Selector].classKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/class/[classKind]/[classKey]', {
+											caip2: `${String(assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.namespace ?? '')}:${String(assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.reference ?? '')}`,
+											kind: String(assetClass[EntityMetaKey.Selector].$assetInstance.kind ?? ''),
+											assetKey: String(assetClass[EntityMetaKey.Selector].$assetInstance.assetKey ?? ''),
+											classKind: String(assetClass[EntityMetaKey.Selector].classKind ?? ''),
+											classKey: String(assetClass[EntityMetaKey.Selector].classKey ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

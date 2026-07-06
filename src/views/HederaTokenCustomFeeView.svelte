@@ -44,6 +44,8 @@
 	const hederaTokenCustomFee = $derived(selection({}))
 	const titleFallback = $derived('hedera token custom fee')
 	const viewDomId = $derived('hedera-token-custom-fee-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<HederaToken_TimestampView
 						selection={select(EntityType.HederaToken_Timestamp, selection.entitySelector.$tokenTimestamp)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -475,7 +477,7 @@
 								<HederaAccountView
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -495,7 +497,7 @@
 								<HederaTokenView
 									selection={select(EntityType.HederaToken, hederaToken[EntityMetaKey.Selector])}
 									prefetched={hederaToken}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

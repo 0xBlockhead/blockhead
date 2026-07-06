@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.paymentHash ?? prefetched.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning payment')
 	const viewDomId = $derived('blockhead-lightning-payment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -163,7 +165,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -287,7 +289,7 @@
 								<BlockheadLightningNodeStateView
 									selection={select(EntityType.BlockheadLightningNodeState, blockheadLightningNodeState[EntityMetaKey.Selector])}
 									prefetched={blockheadLightningNodeState}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -308,12 +310,12 @@
 									selection={select(EntityType.BlockheadLightningInvoice, blockheadLightningInvoice[EntityMetaKey.Selector])}
 									prefetched={blockheadLightningInvoice}
 									href={
-										(({ ...blockheadLightningInvoice[EntityMetaKey.Selector], ...blockheadLightningInvoice }).$network !== undefined && ({ ...blockheadLightningInvoice[EntityMetaKey.Selector], ...blockheadLightningInvoice }).$network.slug !== undefined && ({ ...blockheadLightningInvoice[EntityMetaKey.Selector], ...blockheadLightningInvoice }).paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/invoices/[paymentHash]', {
-											networkSlug: String(({ ...blockheadLightningInvoice[EntityMetaKey.Selector], ...blockheadLightningInvoice }).$network.slug ?? ''),
-											paymentHash: String(({ ...blockheadLightningInvoice[EntityMetaKey.Selector], ...blockheadLightningInvoice }).paymentHash ?? ''),
+										(blockheadLightningInvoice[EntityMetaKey.Selector].$network !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug !== undefined && blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/invoices/[paymentHash]', {
+											networkSlug: String(blockheadLightningInvoice[EntityMetaKey.Selector].$network.slug ?? ''),
+											paymentHash: String(blockheadLightningInvoice[EntityMetaKey.Selector].paymentHash ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

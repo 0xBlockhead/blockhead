@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived('EVM selector observation')
 	const viewDomId = $derived('evm-selector-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -144,7 +146,7 @@
 								hex: String(selection.entitySelector.$selector.hex ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

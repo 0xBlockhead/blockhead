@@ -45,7 +45,6 @@
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const globalActivityPubNetworkTimestamp = $derived(selection({
 		sources: [
-			Source.Fedi_Rest,
 			Source.Mastodon_Rest,
 		],
 		fields: {
@@ -56,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.instanceTitle) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'global ActivityPub network timestamp')
 	const viewDomId = $derived('-global-activity-pub-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -131,7 +132,7 @@
 				<dd>
 					<GlobalActivityPubNetworkView
 						selection={select(EntityType._GlobalActivityPubNetwork, selection.entitySelector.$hub)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -524,6 +525,78 @@
 							<dt>Local catalog instances</dt>
 							<dd>
 								<NumberValue value={Number(localCatalogInstanceCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							knownPeerDomainCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const knownPeerDomainCount = prefetched.knownPeerDomainCount}
+					{#if knownPeerDomainCount !== undefined && knownPeerDomainCount !== null}
+						<div>
+							<dt>Known peer domains</dt>
+							<dd>
+								<NumberValue value={Number(knownPeerDomainCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const knownPeerDomainCount = resolvedEntity.knownPeerDomainCount}
+					{#if knownPeerDomainCount !== undefined && knownPeerDomainCount !== null}
+						<div>
+							<dt>Known peer domains</dt>
+							<dd>
+								<NumberValue value={Number(knownPeerDomainCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							moderatedDomainCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const moderatedDomainCount = prefetched.moderatedDomainCount}
+					{#if moderatedDomainCount !== undefined && moderatedDomainCount !== null}
+						<div>
+							<dt>Moderated domains</dt>
+							<dd>
+								<NumberValue value={Number(moderatedDomainCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const moderatedDomainCount = resolvedEntity.moderatedDomainCount}
+					{#if moderatedDomainCount !== undefined && moderatedDomainCount !== null}
+						<div>
+							<dt>Moderated domains</dt>
+							<dd>
+								<NumberValue value={Number(moderatedDomainCount)} />
 							</dd>
 						</div>
 					{/if}

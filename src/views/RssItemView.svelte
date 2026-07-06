@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? ''), String((selection.entitySelector.guid ?? prefetched.guid) ?? '')].filter(Boolean).join(' ') || 'RSS item')
 	const viewDomId = $derived('rss-item-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -142,7 +144,7 @@
 								<RssFeedView
 									selection={select(EntityType.RssFeed, rssFeed[EntityMetaKey.Selector])}
 									prefetched={rssFeed}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

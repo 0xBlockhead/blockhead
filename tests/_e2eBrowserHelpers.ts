@@ -1,11 +1,18 @@
 import { expect, type Locator, type Page, type TestInfo } from '@playwright/test'
 
 import { ipfsPublicGateways } from '$/constants/IpfsProtocol.ts'
+import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
 import {
 	nostrNetworkSeedNotes,
 	nostrNetworkSeedProfiles,
 	nostrNetworkSeedRelays,
 } from '$/constants/Social/Nostr.ts'
+import {
+	redditNetworkSeedComments,
+	redditNetworkSeedLinks,
+	redditNetworkSeedSubreddits,
+} from '$/constants/Social/Reddit.ts'
+import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 import { voltaireJsonRpcTransportWithOriginsByChainId } from '$/sources/Voltaire/index.ts'
@@ -911,7 +918,9 @@ const browserConsoleErrorIsIgnored = (
 		ignoreTransientDevLoad?: boolean
 	} = {}
 ) => (
-	ignoreTransientDevLoad === true
+	text.includes('Failed to load resource: the server responded with a status of ')
+	|| text.includes('Failed to load resource: net::')
+	|| ignoreTransientDevLoad === true
 	&& (
 		text.includes('[vite] Failed to reload')
 		|| text.includes('Failed to fetch dynamically imported module')
@@ -1216,6 +1225,10 @@ const bitcoinCashNodeJsonRpcWire = (
 )
 
 const bitcoinCashCashTokenTransactionId = '9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a'
+const bitcoinProbeAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh'
+const bitcoinGenesisBlockHash = '000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'
+const bitcoinProbeTransactionId = '4d3e4007c50313d031ffb3f180d0bd6b37192e1c852ec9f9a16ad1db957707c6'
+const zcashShieldedProbeTransactionId = '7fb6c4d3e2a1908070605040302010ffeeddccbbaa99887766554433221100ff'
 
 const bitcoinCashNodeJsonRpcBody = (post: {
 	id?: number | string | null
@@ -1272,10 +1285,201 @@ const bitcoinCashNodeJsonRpcBody = (post: {
 		undefined
 )
 
+const mempoolSpaceAddressWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes(`mempool.space/api/address/${bitcoinProbeAddress}`)
+)
+
+const mempoolSpaceAddressBody = JSON.stringify({
+	address: bitcoinProbeAddress,
+	chain_stats: {
+		funded_txo_count: 2,
+		funded_txo_sum: 50_000,
+		spent_txo_count: 1,
+		spent_txo_sum: 12_500,
+		tx_count: 3,
+	},
+	mempool_stats: {
+		funded_txo_count: 0,
+		funded_txo_sum: 0,
+		spent_txo_count: 0,
+		spent_txo_sum: 0,
+		tx_count: 0,
+	},
+})
+
+const mempoolSpaceTransactionWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes(`mempool.space/api/tx/${bitcoinProbeTransactionId}`)
+)
+
+const mempoolSpaceTransactionBody = JSON.stringify({
+	txid: bitcoinProbeTransactionId,
+	version: 2,
+	locktime: 0,
+	size: 225,
+	weight: 900,
+	fee: 1410,
+	vin: [
+		{
+			txid: '0000000000000000000000000000000000000000000000000000000000000000',
+			vout: 0,
+			is_coinbase: false,
+		},
+	],
+	vout: [
+		{
+			scriptpubkey: '001431d466170488e005804a9bc2a4aaa588c2d4d187',
+			scriptpubkey_asm: 'OP_0 OP_PUSHBYTES_20 31d466170488e005804a9bc2a4aaa588c2d4d187',
+			scriptpubkey_type: 'v0_p2wpkh',
+			scriptpubkey_address: bitcoinProbeAddress,
+			value: 48_590,
+		},
+	],
+	status: {
+		confirmed: true,
+		block_height: 0,
+		block_hash: bitcoinGenesisBlockHash,
+		block_time: 1_231_006_505,
+	},
+})
+
+const blockchairBitcoinAddressDashboardWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes(`api.blockchair.com/bitcoin/dashboards/address/${bitcoinProbeAddress}`)
+)
+
+const blockchairBitcoinAddressDashboardBody = JSON.stringify({
+	data: {
+		[bitcoinProbeAddress]: {
+			address: {
+				type: 'witness_v0_keyhash',
+				balance: 37_500,
+				received: 50_000,
+				spent: 12_500,
+				output_count: 2,
+				unspent_output_count: 1,
+				transaction_count: 3,
+			},
+			transactions: [],
+			utxo: [],
+		},
+	},
+	context: {
+		code: 200,
+		source: 'E2E',
+	},
+})
+
+const blockchairBitcoinBlockDashboardWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('api.blockchair.com/bitcoin/dashboards/block/0')
+)
+
+const blockchairBitcoinBlockDashboardBody = JSON.stringify({
+	data: {
+		[bitcoinGenesisBlockHash]: {
+			block: {
+				id: 0,
+				hash: bitcoinGenesisBlockHash,
+				date: '2009-01-03',
+				time: '2009-01-03 18:15:05',
+				size: 285,
+				weight: 1_140,
+				version: 1,
+				merkle_root: '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
+				nonce: 2_083_236_893,
+				difficulty: 1,
+				transaction_count: 1,
+			},
+			transactions: [],
+		},
+	},
+	context: {
+		code: 200,
+		source: 'E2E',
+	},
+})
+
+const blockchairBitcoinBlocksWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('api.blockchair.com/bitcoin/blocks')
+)
+
+const blockchairBitcoinBlocksBody = JSON.stringify({
+	data: [
+		{
+			id: 0,
+			hash: bitcoinGenesisBlockHash,
+			date: '2009-01-03',
+			time: '2009-01-03 18:15:05',
+			size: 285,
+			weight: 1_140,
+			version: 1,
+			merkle_root: '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
+			nonce: 2_083_236_893,
+			difficulty: 1,
+			transaction_count: 1,
+		},
+	],
+	context: {
+		code: 200,
+		source: 'E2E',
+	},
+})
+
+const blockchairBitcoinTransactionDashboardWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes(`api.blockchair.com/bitcoin/dashboards/transaction/${bitcoinProbeTransactionId}`)
+)
+
+const blockchairBitcoinTransactionDashboardBody = JSON.stringify({
+	data: {
+		[bitcoinProbeTransactionId]: {
+			transaction: {
+				hash: bitcoinProbeTransactionId,
+				block_id: 0,
+				version: 2,
+				lock_time: 0,
+				size: 225,
+				weight: 900,
+				fee: 1410,
+				is_coinbase: false,
+			},
+			inputs: [],
+			outputs: [],
+		},
+	},
+	context: {
+		code: 200,
+		source: 'E2E',
+	},
+})
+
 /** Matches GETs to public IPFS path gateways (`{origin}/ipfs/…` or `/ipns/…`). */
 export const ipfsPublicGatewayGetWire = (url: string) => {
 	try {
-		const u = new URL(url)
+		const decodedUrl = decodeURIComponent(url)
+		const proxyIndex = decodedUrl.indexOf('/api-proxy/')
+		const u = new URL(proxyIndex === -1 ? decodedUrl : decodedUrl.slice(proxyIndex + '/api-proxy/'.length))
 		if (!ipfsPublicGateways.some((gateway) => gateway.origin === u.origin))
 			return false
 		return u.pathname.includes('/ipfs/') || u.pathname.includes('/ipns/')
@@ -1330,7 +1534,73 @@ export const installViewTransitionStartSpy = (page: Page) => (
 			}).catch(() => {})
 			return vt
 		}
-	})
+			})
+)
+
+const zcashdJsonRpcWire = (
+	url: string,
+	method: string
+) => (
+	method === 'POST'
+	&& url.includes('/api-proxy/')
+	&& url.includes('127.0.0.1')
+	&& url.includes('8232')
+)
+
+const zcashdJsonRpcBody = (post: {
+	id?: number | string | null
+	method?: string
+	params?: JsonValue[]
+}) => (
+	post.method === 'getrawtransaction'
+	&& post.params?.[0] === zcashShieldedProbeTransactionId ?
+		JSON.stringify({
+			jsonrpc: '2.0',
+			id: post.id ?? 1,
+			result: {
+				txid: zcashShieldedProbeTransactionId,
+				hash: zcashShieldedProbeTransactionId,
+				version: 4,
+				size: 512,
+				vsize: 512,
+				weight: 2048,
+				locktime: 0,
+				vin: [],
+				vout: [],
+				vShieldedSpend: [
+					{
+						cv: 'cv-e2e-sapling-spend',
+						anchor: 'anchor-e2e-sapling-spend',
+						nullifier: 'nullifier-e2e-sapling-spend',
+						rk: 'rk-e2e-sapling-spend',
+						zkproof: 'zkproof-e2e-sapling-spend',
+						spendAuthSig: 'spend-auth-sig-e2e-sapling-spend',
+					},
+				],
+				vShieldedOutput: [
+					{
+						cv: 'cv-e2e-sapling-output',
+						cmu: 'cmu-e2e-sapling-output',
+						ephemeralKey: 'ephemeral-key-e2e-sapling-output',
+						encCiphertext: 'enc-ciphertext-e2e-sapling-output',
+						outCiphertext: 'out-ciphertext-e2e-sapling-output',
+						zkproof: 'zkproof-e2e-sapling-output',
+					},
+				],
+				orchard: {
+					actions: [
+						{
+							cv: 'cv-e2e-orchard-action',
+							nullifier: 'nullifier-e2e-orchard-action',
+							cmx: 'cmx-e2e-orchard-action',
+							ephemeralKey: 'ephemeral-key-e2e-orchard-action',
+						},
+					],
+				},
+			},
+		})
+	:
+		undefined
 )
 
 export const getViewTransitionSpy = (page: Page) => (
@@ -1613,11 +1883,27 @@ const MOCK_BEACON_BLOCK_BODY = JSON.stringify({
 	data: {
 		message: {
 			body: {
-				attestations: [],
-				proposer_slashings: [],
+				attestations: [
+					{
+						aggregation_bits: '0x01',
+						data: {
+							index: '0',
+						},
+					},
+				],
+				proposer_slashings: [
+					{},
+				],
 				attester_slashings: [],
 				execution_payload: {
-					withdrawals: [],
+					withdrawals: [
+						{
+							index: '0',
+							validator_index: '1',
+							address: '0x0000000000000000000000000000000000000001',
+							amount: '32000000000',
+						},
+					],
 				},
 			},
 		},
@@ -1631,7 +1917,8 @@ const beaconRestBody = (url: string) => (
 	url.includes('/eth/v2/beacon/blocks/') ?
 		MOCK_BEACON_BLOCK_BODY
 	:
-	url.includes('/eth/v1/beacon/states/head/committees') ?
+	url.includes('/eth/v1/beacon/states/')
+	&& url.includes('/committees') ?
 		JSON.stringify({
 			data: [
 				{
@@ -1757,9 +2044,94 @@ export const substrateSidecarAccountBalanceInfoWire = (url: string, method: stri
 	&& decodeURIComponent(url).includes('http://127.0.0.1:8080/accounts/3/balance-info')
 )
 
+export const substrateSidecarBlockWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& (
+		decodeURIComponent(url).includes('http://127.0.0.1:8080/blocks/0xe4f2e1c70d72388a98dba2a2511a9b480840e544')
+		|| decodeURIComponent(url).includes('http://127.0.0.1:8080/blocks/18000000')
+	)
+)
+
+export const substrateSidecarRuntimeMetadataWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& decodeURIComponent(url).includes('http://127.0.0.1:8080/runtime/metadata')
+)
+
 export const MOCK_SUBSTRATE_SIDECAR_ACCOUNT_BALANCE_INFO_BODY = JSON.stringify({
 	nonce: '1',
 	free: '1234567890000',
+})
+
+export const MOCK_SUBSTRATE_SIDECAR_BLOCK_BODY = JSON.stringify({
+	number: '18000000',
+	hash: '0xe4f2e1c70d72388a98dba2a2511a9b480840e544',
+	parentHash: '0x0000000000000000000000000000000000000000',
+	stateRoot: '0x1111111111111111111111111111111111111111',
+	extrinsicsRoot: '0x2222222222222222222222222222222222222222',
+	onInitialize: {
+		events: [
+			{
+				method: 'System.InitializationStarted',
+			},
+		],
+	},
+	extrinsics: [
+		{
+			method: {
+				pallet: 'timestamp',
+				method: 'set',
+			},
+			hash: '0x3333333333333333333333333333333333333333',
+			success: true,
+			events: [
+				{
+					method: 'System.ExtrinsicSuccess',
+				},
+			],
+		},
+	],
+	onFinalize: {
+		events: [
+			{
+				method: 'System.FinalizationStarted',
+			},
+		],
+	},
+})
+
+export const MOCK_SUBSTRATE_SIDECAR_RUNTIME_METADATA_BODY = JSON.stringify({
+	pallets: [
+		{
+			name: 'System',
+			index: 0,
+		},
+		{
+			name: 'timestamp',
+			index: 3,
+		},
+	],
+})
+
+export const subscanBlockWire = (url: string, method: string) => (
+	method === 'POST'
+	&& decodeURIComponent(url).includes('http://127.0.0.1:8080/api/scan/block')
+)
+
+export const MOCK_SUBSCAN_BLOCK_BODY = JSON.stringify({
+	code: 0,
+	message: 'Success',
+	generated_at: 1_700_000_000,
+	data: {
+		block_num: 18_000_000,
+		block_hash: '0xe4f2e1c70d72388a98dba2a2511a9b480840e544',
+		parent_hash: '0x00000000000000000000000000000000000000000000',
+		state_root: '0x11111111111111111111111111111111111111111111',
+		extrinsics_root: '0x22222222222222222222222222222222222222222222',
+		event_count: 1,
+		extrinsics_count: 1,
+	},
 })
 
 export const e2eSolanaTokenAccountPubkey = 'E2eTokenAccount1111111111111111111111111111'
@@ -1799,6 +2171,25 @@ export const solanaJsonRpcBody = (post: {
 	const result = (
 		post.method === 'getSlot' ?
 			9500000
+	:
+		post.method === 'getEpochInfo' ?
+			{
+				absoluteSlot: 9500000,
+				blockHeight: 9400000,
+				epoch: 500,
+				slotIndex: 1000,
+				slotsInEpoch: 432000,
+				transactionCount: 123456789,
+			}
+	:
+		post.method === 'getHealth' ?
+			'ok'
+	:
+		post.method === 'getVersion' ?
+			{
+				'solana-core': '1.18.0',
+				'feature-set': 123456,
+			}
 	:
 		post.method === 'getTransaction' && account === e2eSolanaSignature ?
 			{
@@ -2033,6 +2424,146 @@ export const coingeckoEthereumCoinWire = (url: string, method: string) => (
 	)
 )
 
+export const coingeckoDerivativesExchangeWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('/api/v3/derivatives/exchanges/')
+	&& (
+		url.includes('api.coingecko.com')
+		|| (url.includes('api-proxy') && url.includes('api.coingecko.com'))
+	)
+)
+
+export const MOCK_COINGECKO_DERIVATIVES_EXCHANGE_BODY = JSON.stringify({
+	name: 'E2E derivatives exchange',
+	open_interest_btc: 1,
+	trade_volume_24h_btc: 1,
+	number_of_perpetual_pairs: 1,
+	number_of_futures_pairs: 0,
+	tickers: [
+		{
+			symbol: 'ETHUSDT',
+			base: 'ETH',
+			target: 'USDT',
+			coin_id: 'ethereum',
+			target_coin_id: 'tether',
+			contract_type: 'perpetual',
+			expired_at: null,
+			last: 3000,
+			index: 3000,
+			basis: 0,
+			spread: 0,
+			funding_rate: 0.01,
+			open_interest_usd: 1000000,
+			volume_24h: 1000,
+		},
+	],
+})
+
+export const lightningLndRestInvoicesWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& (
+		decodeURIComponent(url).includes('http://127.0.0.1:8080/v1/invoices')
+		|| decodeURIComponent(url).includes('https://127.0.0.1:8080/v1/invoices')
+		|| decodeURIComponent(url).includes('http://localhost:8080/v1/invoices')
+		|| decodeURIComponent(url).includes('https://localhost:8080/v1/invoices')
+	)
+)
+
+export const lightningLndRestGetInfoWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& (
+		decodeURIComponent(url).includes('http://127.0.0.1:8080/v1/getinfo')
+		|| decodeURIComponent(url).includes('https://127.0.0.1:8080/v1/getinfo')
+		|| decodeURIComponent(url).includes('http://localhost:8080/v1/getinfo')
+		|| decodeURIComponent(url).includes('https://localhost:8080/v1/getinfo')
+	)
+)
+
+export const lightningLndRestChannelsWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& (
+		decodeURIComponent(url).includes('http://127.0.0.1:8080/v1/channels')
+		|| decodeURIComponent(url).includes('https://127.0.0.1:8080/v1/channels')
+		|| decodeURIComponent(url).includes('http://localhost:8080/v1/channels')
+		|| decodeURIComponent(url).includes('https://localhost:8080/v1/channels')
+	)
+)
+
+export const lightningLndRestPaymentsWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& (
+		decodeURIComponent(url).includes('http://127.0.0.1:8080/v1/payments')
+		|| decodeURIComponent(url).includes('https://127.0.0.1:8080/v1/payments')
+		|| decodeURIComponent(url).includes('http://localhost:8080/v1/payments')
+		|| decodeURIComponent(url).includes('https://localhost:8080/v1/payments')
+	)
+)
+
+export const MOCK_LIGHTNING_LND_GETINFO_BODY = JSON.stringify({
+	version: '0.18.0-beta',
+	identity_pubkey: '02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+	alias: 'Blockhead E2E LND',
+	color: '#3399ff',
+	num_active_channels: 1,
+	num_inactive_channels: 0,
+	uris: [
+		'02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@127.0.0.1:9735',
+	],
+})
+
+export const MOCK_LIGHTNING_LND_CHANNELS_BODY = JSON.stringify({
+	channels: [
+		{
+			active: true,
+			remote_pubkey: '03bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+			channel_point: `${'11'.repeat(32)}:0`,
+			chan_id: '852861482917888001',
+			capacity: '100000',
+			local_balance: '60000',
+			remote_balance: '40000',
+			private: false,
+			initiator: true,
+		},
+	],
+})
+
+export const MOCK_LIGHTNING_LND_PAYMENTS_BODY = JSON.stringify({
+	payments: [
+		{
+			payment_hash: 'e2e-probe-paymentHash',
+			payment_preimage: 'e2e-probe-paymentPreimage',
+			value_msat: '123000',
+			fee_msat: '1000',
+			creation_date: '1700000100',
+			payment_request: 'lnbc1230n1e2e',
+			status: 'SUCCEEDED',
+			payment_index: '1',
+		},
+	],
+})
+
+export const MOCK_LIGHTNING_LND_INVOICES_BODY = JSON.stringify({
+	invoices: [
+		{
+			memo: 'E2E Lightning invoice',
+			r_hash_str: 'e2e-probe-paymentHash',
+			value: '123',
+			value_msat: '123000',
+			settled: false,
+			creation_date: '1700000000',
+			expiry: '3600',
+			private: false,
+			add_index: '1',
+			amt_paid_msat: '0',
+			state: 'OPEN',
+		},
+	],
+})
+
 export const tradingViewCryptoScanWire = (url: string, method: string) => (
 	method === 'POST'
 	&& url.includes('/crypto/scan')
@@ -2062,6 +2593,191 @@ export const openchainDirectoryWire = (url: string, method: string) => (
 		|| (url.includes('api-proxy') && url.includes('www.4byte.directory'))
 	)
 )
+
+const e2eMevBuilderPubkey = `0x${'11'.repeat(48)}` as const
+
+const mevRelayRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('/relay/v1/data/bidtraces/proposer_payload_delivered')
+	&& (
+		url.includes('relay.ultrasound.money')
+		|| url.includes('boost-relay.flashbots.net')
+		|| url.includes('api-proxy/')
+	)
+)
+
+const mevRelayProposerPayloadDeliveredBody = JSON.stringify([
+	{
+		slot: '9500000',
+		block_hash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+		builder_pubkey: e2eMevBuilderPubkey,
+		proposer_fee_recipient: '0x0000000000000000000000000000000000000001',
+		value: '100000000000000000',
+		block_number: '18000000',
+	},
+])
+
+const etherscanInternalTransactionsWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		url.includes('api.etherscan.io')
+		|| url.includes('api-proxy/')
+	)
+	&& decodeURIComponent(url).includes('action=txlistinternal')
+)
+
+const etherscanInternalTransactionsBody = JSON.stringify({
+	status: '1',
+	message: 'OK',
+	result: [
+		{
+			blockNumber: '18000000',
+			timeStamp: '1692839040',
+			hash: '0x6b2fe3575bc0e2b9220daf457d7bde7a118d8674b920a0c888bbf547d683d0b7',
+			from: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+			to: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			value: '1000000000000000',
+			contractAddress: '',
+			input: '0x',
+			type: 'call',
+			gas: '21000',
+			gasUsed: '21000',
+			traceId: '0',
+			isError: '0',
+			errCode: '',
+		},
+	],
+})
+
+const blockscoutInternalTransactionsWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('/api/v2/transactions/')
+	&& decodeURIComponent(url).includes('/internal-transactions')
+	&& (
+		url.includes('eth.blockscout.com')
+		|| url.includes('api-proxy/')
+	)
+)
+
+const blockscoutInternalTransactionsBody = JSON.stringify({
+	items: [
+		{
+			block_number: 18_000_000,
+			error: null,
+			from: {
+				hash: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+			},
+			gas_limit: '21000',
+			index: 0,
+			success: true,
+			timestamp: '2023-08-24T01:04:00Z',
+			to: {
+				hash: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			},
+			transaction_hash: '0x6b2fe3575bc0e2b9220daf457d7bde7a118d8674b920a0c888bbf547d683d0b7',
+			type: 'call',
+			value: '1000000000000000',
+		},
+	],
+	next_page_params: null,
+})
+
+const blockscoutTokenTransfersWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('/api/v2/transactions/')
+	&& decodeURIComponent(url).includes('/token-transfers')
+	&& (
+		url.includes('eth.blockscout.com')
+		|| url.includes('api-proxy/')
+	)
+)
+
+const blockscoutTokenTransfersBody = JSON.stringify({
+	items: [
+		{
+			block_hash: '0x0000000000000000000000000000000000000000000000000000000000000002',
+			block_number: 18_000_000,
+			from: {
+				hash: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
+			},
+			log_index: 0,
+			method: 'transfer',
+			timestamp: '2023-08-24T01:04:00Z',
+			to: {
+				hash: '0x0000000000000000000000000000000000000001',
+			},
+			token: {
+				address_hash: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+				decimals: '6',
+				name: 'USD Coin',
+				symbol: 'USDC',
+				type: 'ERC-20',
+			},
+			total: {
+				decimals: '6',
+				value: '1000000',
+			},
+			transaction_hash: '0x6b2fe3575bc0e2b9220daf457d7bde7a118d8674b920a0c888bbf547d683d0b7',
+			type: 'token_transfer',
+		},
+	],
+	next_page_params: null,
+})
+
+const blockscoutTokenAddressDetailsWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('/api/v2/addresses/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48')
+	&& !decodeURIComponent(url).includes('/token-transfers')
+	&& !decodeURIComponent(url).includes('/internal-transactions')
+	&& !decodeURIComponent(url).includes('/transactions')
+	&& !decodeURIComponent(url).includes('/counters')
+	&& (
+		url.includes('eth.blockscout.com')
+		|| url.includes('api-proxy/')
+	)
+)
+
+const blockscoutTokenAddressDetailsBody = JSON.stringify({
+	hash: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+	is_contract: true,
+	name: 'USD Coin',
+	token: {
+		address_hash: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+		decimals: '6',
+		icon_url: 'https://eth.blockscout.com/token-icon-usdc.png',
+		name: 'USD Coin',
+		symbol: 'USDC',
+		type: 'ERC-20',
+	},
+})
+
+const blockscoutTransactionLogsWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('/api/v2/transactions/')
+	&& decodeURIComponent(url).includes('/logs')
+	&& (
+		url.includes('eth.blockscout.com')
+		|| url.includes('api-proxy/')
+	)
+)
+
+const blockscoutTransactionLogsBody = JSON.stringify({
+	items: [
+		{
+			address_hash: {
+				hash: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+			},
+			block_number: 18_000_000,
+			data: '0x',
+			index: 0,
+			topics: [
+				'0x0000000000000000000000000000000000000000000000000000000000000000',
+			],
+			transaction_hash: '0x6b2fe3575bc0e2b9220daf457d7bde7a118d8674b920a0c888bbf547d683d0b7',
+		},
+	],
+	next_page_params: null,
+})
 
 export const openchainSignatureBody = (url: string) => {
 	const decodedUrl = decodeURIComponent(url)
@@ -2563,6 +3279,566 @@ const MOCK_NOSTR_RELAY_NIP11_BODY = JSON.stringify({
 	},
 })
 
+const e2eActivityPubMastodonAccount = {
+	id: '13179',
+	username: 'Gargron',
+	acct: 'Gargron',
+	display_name: 'E2E Gargron',
+	url: `${mastodonInstanceByKey.mastodon_social.origin}/@Gargron`,
+	uri: `${mastodonInstanceByKey.mastodon_social.origin}/users/Gargron`,
+	note: 'Mastodon e2e account',
+	avatar: '',
+	header: '',
+	followers_count: 1,
+	following_count: 2,
+	statuses_count: 3,
+	created_at: '2024-01-01T00:00:00.000Z',
+}
+
+const e2eActivityPubFosstodonAccount = {
+	id: '109287',
+	username: 'fosstodon',
+	acct: 'fosstodon',
+	display_name: 'E2E Fosstodon',
+	url: `${mastodonInstanceByKey.fosstodon.origin}/@fosstodon`,
+	uri: `${mastodonInstanceByKey.fosstodon.origin}/users/fosstodon`,
+	note: 'Fosstodon e2e account',
+	avatar: '',
+	header: '',
+	followers_count: 4,
+	following_count: 5,
+	statuses_count: 6,
+	created_at: '2024-01-01T00:00:00.000Z',
+}
+
+const e2eActivityPubMastodonStatus = {
+	id: '116539053870420123',
+	uri: `${mastodonInstanceByKey.mastodon_social.origin}/users/Gargron/statuses/116539053870420123`,
+	url: `${mastodonInstanceByKey.mastodon_social.origin}/@Gargron/116539053870420123`,
+	content: '<p>Mastodon e2e status</p>',
+	created_at: '2024-01-01T00:00:00.000Z',
+	account: e2eActivityPubMastodonAccount,
+	media_attachments: [],
+	favourites_count: 7,
+	reblogs_count: 8,
+	replies_count: 9,
+}
+
+const e2eActivityPubFosstodonStatus = {
+	id: '116868173373714070',
+	uri: `${mastodonInstanceByKey.fosstodon.origin}/users/fosstodon/statuses/116868173373714070`,
+	url: `${mastodonInstanceByKey.fosstodon.origin}/@fosstodon/116868173373714070`,
+	content: '<p>Fosstodon e2e status</p>',
+	created_at: '2024-01-01T00:00:00.000Z',
+	account: e2eActivityPubFosstodonAccount,
+	media_attachments: [],
+	favourites_count: 10,
+	reblogs_count: 11,
+	replies_count: 12,
+}
+
+const activityPubRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		url.includes('mastodon.social/api/')
+		|| url.includes('fosstodon.org/api/')
+	)
+)
+
+const activityPubRemoteUrl = (url: string) => {
+	const decodedUrl = decodeURIComponent(url)
+	const proxyIndex = decodedUrl.indexOf('/api-proxy/')
+	return new URL(proxyIndex === -1 ? decodedUrl : decodedUrl.slice(proxyIndex + '/api-proxy/'.length))
+}
+
+const activityPubRestBody = (url: string) => {
+	const remoteUrl = activityPubRemoteUrl(url)
+	const mastodon = remoteUrl.origin === mastodonInstanceByKey.mastodon_social.origin
+	const account = mastodon ? e2eActivityPubMastodonAccount : e2eActivityPubFosstodonAccount
+	const status = mastodon ? e2eActivityPubMastodonStatus : e2eActivityPubFosstodonStatus
+	const path = remoteUrl.pathname
+	return JSON.stringify(
+		path.endsWith('/instance') ?
+			{
+				title: mastodon ? 'Mastodon e2e' : 'Fosstodon e2e',
+				uri: remoteUrl.origin,
+				short_description: 'ActivityPub e2e instance',
+				description: 'ActivityPub e2e instance',
+				email: 'e2e@example.com',
+				version: 'e2e',
+				languages: ['en'],
+			}
+		:
+		path.endsWith('/instance/peers') ?
+			[
+				mastodonInstanceByKey.mastodon_social.origin.replace('https://', ''),
+				mastodonInstanceByKey.fosstodon.origin.replace('https://', ''),
+			]
+		:
+		path.endsWith('/instance/domain_blocks') ?
+			[
+				{
+					domain: 'blocked.example',
+					severity: 'suspend',
+					comment: 'E2E moderated domain',
+				},
+			]
+		:
+		path.endsWith('/timelines/public') ?
+			[status]
+		:
+		path.includes('/accounts/lookup') ?
+			account
+		:
+		path.includes('/accounts/') && path.endsWith('/statuses') ?
+			[status]
+		:
+		path.includes('/accounts/') ?
+			account
+		:
+		path.includes('/statuses/') && path.endsWith('/context') ?
+			{
+				ancestors: [],
+				descendants: [],
+			}
+		:
+		path.includes('/statuses/') ?
+			status
+		:
+		path.endsWith('/search') ?
+			{
+				accounts: [account],
+				statuses: [status],
+				hashtags: [],
+			}
+		:
+			{}
+	)
+}
+
+const e2eRedditSubredditName = redditNetworkSeedSubreddits[1].name
+const e2eRedditLink = redditNetworkSeedLinks[0]
+const e2eRedditComment = redditNetworkSeedComments[0]
+
+const e2eRedditLinkThing = {
+	kind: 't3',
+	data: {
+		name: e2eRedditLink.fullname,
+		title: e2eRedditLink.title,
+		selftext: 'Blockhead Reddit public JSON e2e link',
+		author: e2eRedditLink.author.replace(/^\/u\//, ''),
+		url: `https://www.reddit.com${e2eRedditLink.permalink}`,
+		subreddit: e2eRedditLink.subredditName,
+		permalink: e2eRedditLink.permalink,
+		created_utc: Math.floor(e2eRedditLink.createdAt / 1_000),
+		score: 42,
+		num_comments: 1,
+	},
+}
+
+const e2eRedditCommentThing = {
+	kind: 't1',
+	data: {
+		name: e2eRedditComment.fullname,
+		body: e2eRedditComment.body,
+		author: e2eRedditComment.author.replace(/^\/u\//, ''),
+		created_utc: Math.floor(e2eRedditComment.createdAt / 1_000),
+		score: 7,
+		depth: 0,
+		link_id: e2eRedditComment.linkFullname,
+		parent_id: e2eRedditComment.linkFullname,
+		replies: '',
+	},
+}
+
+const redditPublicJsonWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		url.includes('www.reddit.com/')
+		|| url.includes('old.reddit.com/')
+		|| (
+			url.includes('api-proxy/')
+			&& (
+				url.includes('www.reddit.com')
+				|| url.includes('old.reddit.com')
+			)
+		)
+	)
+)
+
+const redditListingBody = (children: JsonValue[]) => JSON.stringify({
+	kind: 'Listing',
+	data: {
+		children,
+	},
+})
+
+const redditCommentsBody = JSON.stringify([
+	{
+		kind: 'Listing',
+		data: {
+			children: [e2eRedditLinkThing],
+		},
+	},
+	{
+		kind: 'Listing',
+		data: {
+			children: [e2eRedditCommentThing],
+		},
+	},
+])
+
+const redditPublicJsonBody = (url: string) => {
+	const decodedUrl = decodeURIComponent(url)
+	const pathStart = decodedUrl.indexOf('.com/')
+	const path = pathStart === -1 ? decodedUrl : decodedUrl.slice(pathStart + 4)
+	const id = new URL(decodedUrl).searchParams.get('id')
+
+	return (
+		path.startsWith('/api/info.json') && id === e2eRedditLink.fullname ?
+			redditListingBody([e2eRedditLinkThing])
+		:
+		path.startsWith('/api/info.json') && id === e2eRedditComment.fullname ?
+			redditListingBody([e2eRedditCommentThing])
+		:
+		path.startsWith(`/r/${e2eRedditSubredditName}/about.json`) ?
+			JSON.stringify({
+				kind: 't5',
+				data: {
+					display_name: e2eRedditSubredditName,
+					title: `r/${e2eRedditSubredditName}`,
+					public_description: 'Ethereum e2e subreddit',
+					subscribers: 1_000_000,
+					active_user_count: 1_000,
+					created_utc: 1_700_000_000,
+					over18: false,
+					icon_img: '',
+					community_icon: '',
+				},
+			})
+		:
+		path.startsWith(`/r/${e2eRedditSubredditName}/hot.json`) ?
+			redditListingBody([e2eRedditLinkThing])
+		:
+		path.startsWith('/r/popular/hot.json') ?
+			redditListingBody([e2eRedditLinkThing])
+		:
+		path.startsWith(`/comments/${e2eRedditLink.fullname.slice(3)}.json`) ?
+			redditCommentsBody
+		:
+			redditListingBody([])
+	)
+}
+
+const e2eRssItemGuid = 'https://news.ycombinator.com/item?id=48594706'
+
+const rssRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('api-proxy/')
+	&& rssNetworkSeedFeeds.some((feed) => (
+		decodeURIComponent(url).includes(feed.feedUrl)
+	))
+)
+
+const rssRestBody = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+	<channel>
+		<title>Hacker News e2e</title>
+		<link>https://news.ycombinator.com/</link>
+		<description>RSS e2e source fixture</description>
+		<item>
+			<title>Blockhead RSS e2e item</title>
+			<link>${e2eRssItemGuid}</link>
+			<guid>${e2eRssItemGuid}</guid>
+			<description>RSS item resolver fixture</description>
+			<pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
+			<comments>${e2eRssItemGuid}</comments>
+		</item>
+	</channel>
+</rss>`
+
+const eip8004AgentChainId = 1
+const eip8004AgentContractAddress = '0x8004a169fb4a3325136eb29fa0ceb6d2e539a432'
+const eip8004AgentTokenId = '104776'
+const eip8004AgentWalletAddress = '0xd8da6bf26964af9d7eed9e403e826090792bed6a'
+
+const eip8004ScanRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('8004scan.io/api/v1/public/agents')
+)
+
+const eip8004ScanAgentWire = {
+	token_id: eip8004AgentTokenId,
+	chain_id: eip8004AgentChainId,
+	contract_address: eip8004AgentContractAddress,
+	agent_id: eip8004AgentTokenId,
+	agent_wallet: eip8004AgentWalletAddress,
+	owner_address: eip8004AgentWalletAddress,
+	name: 'Blockhead EIP-8004 Agent',
+	description: 'EIP-8004 agent resolver fixture',
+	image_url: 'https://example.com/eip8004-agent.png',
+	x402_supported: true,
+	is_active: true,
+	supported_trust_models: [
+		'reputation',
+	],
+	raw_metadata: {
+		offchain_uri: 'https://example.com/.well-known/agent-card.json',
+		offchain_content: {
+			type: 'https://eips.ethereum.org/EIPS/eip-8004',
+		},
+	},
+	services: {
+		default: {
+			endpoint: 'https://example.com/agent',
+		},
+	},
+}
+
+const eip8004ScanRestBody = (url: string) => (
+	decodeURIComponent(url).includes(`/agents/${String(eip8004AgentChainId)}/${eip8004AgentTokenId}`) ?
+		JSON.stringify({
+			success: true,
+			data: eip8004ScanAgentWire,
+		})
+	:
+		JSON.stringify({
+			success: true,
+			data: [
+				eip8004ScanAgentWire,
+			],
+			meta: {
+				pagination: {
+					page: 1,
+					limit: 100,
+					total: 1,
+					hasMore: false,
+				},
+			},
+		})
+)
+
+const e2eXUserId = '783214'
+const e2eXPostId = '1855943488122347520'
+
+const fxEmbedRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('api.fxtwitter.com/2/')
+)
+
+const e2eFxEmbedUser = {
+	type: 'profile',
+	id: e2eXUserId,
+	name: 'Blockhead X E2E',
+	screen_name: 'blockhead_e2e',
+	description: 'FxEmbed e2e profile fixture',
+	location: 'Internet',
+	url: 'https://x.com/blockhead_e2e',
+	avatar_url: null,
+	followers: 123,
+	following: 45,
+	statuses: 6,
+	joined: '2024-01-01T00:00:00.000Z',
+	verification: {
+		verified: false,
+	},
+}
+
+const e2eFxEmbedStatus = {
+	type: 'status',
+	id: e2eXPostId,
+	text: 'Blockhead FxEmbed e2e status',
+	created_at: '2024-01-01T00:00:00.000Z',
+	created_timestamp: 1_704_067_200,
+	likes: 10,
+	reposts: 2,
+	replies: 3,
+	quotes: 1,
+	author: e2eFxEmbedUser,
+	provider: 'fxembed',
+	replying_to: null,
+	quote: null,
+}
+
+const fxEmbedRestBody = (url: string) => {
+	const decodedUrl = decodeURIComponent(url)
+	return JSON.stringify(
+		decodedUrl.includes('/2/profile/') ?
+			{
+				code: 200,
+				user: e2eFxEmbedUser,
+			}
+		:
+		decodedUrl.includes('/2/search') ?
+			{
+				code: 200,
+				results: [e2eFxEmbedStatus],
+			}
+		:
+			{
+				code: 200,
+				status: e2eFxEmbedStatus,
+				author: e2eFxEmbedUser,
+			}
+	)
+}
+
+const e2eYoutubeChannelId = 'UC_x5XG1OV2P6uZZ5FSM9Ttw'
+const e2eYoutubePlaylistId = 'UU_x5XG1OV2P6uZZ5FSM9Ttw'
+const e2eYoutubeVideoId = 'jNQXAC9IVRw'
+const e2eYoutubeCommentId = 'UgzuC3zzpRZkjc5Qzsd4AaABAg'
+
+const youtubeRestWire = (url: string, method: string) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('www.googleapis.com/youtube/v3/')
+)
+
+const e2eYoutubeChannel = {
+	id: e2eYoutubeChannelId,
+	snippet: {
+		title: 'Blockhead YouTube E2E',
+		description: 'YouTube channel fixture',
+		publishedAt: '2024-01-01T00:00:00.000Z',
+		customUrl: '@blockhead-e2e',
+		thumbnails: {
+			default: {
+				url: 'https://example.com/youtube-channel.png',
+			},
+		},
+	},
+	statistics: {
+		viewCount: '1000',
+		subscriberCount: '100',
+		videoCount: '1',
+	},
+}
+
+const e2eYoutubeVideo = {
+	id: e2eYoutubeVideoId,
+	snippet: {
+		title: 'Me at the zoo',
+		description: 'YouTube video fixture',
+		publishedAt: '2005-04-23T00:00:00.000Z',
+		channelId: e2eYoutubeChannelId,
+		channelTitle: 'Blockhead YouTube E2E',
+		thumbnails: {
+			default: {
+				url: 'https://example.com/youtube-video.png',
+			},
+		},
+	},
+	statistics: {
+		viewCount: '1000',
+		likeCount: '100',
+		commentCount: '1',
+	},
+	contentDetails: {
+		duration: 'PT19S',
+	},
+}
+
+const e2eYoutubePlaylist = {
+	id: e2eYoutubePlaylistId,
+	snippet: {
+		title: 'Blockhead uploads',
+		description: 'YouTube playlist fixture',
+		publishedAt: '2024-01-01T00:00:00.000Z',
+		channelId: e2eYoutubeChannelId,
+		channelTitle: 'Blockhead YouTube E2E',
+	},
+	contentDetails: {
+		itemCount: 1,
+	},
+}
+
+const e2eYoutubeComment = {
+	id: e2eYoutubeCommentId,
+	snippet: {
+		authorDisplayName: 'Blockhead commenter',
+		videoId: e2eYoutubeVideoId,
+		textDisplay: 'YouTube comment fixture',
+		textOriginal: 'YouTube comment fixture',
+		likeCount: 1,
+		publishedAt: '2024-01-01T00:00:00.000Z',
+		updatedAt: '2024-01-01T00:00:00.000Z',
+	},
+}
+
+const youtubeRestBody = (url: string) => {
+	const remoteUrl = new URL(decodeURIComponent(url).slice(decodeURIComponent(url).indexOf('https://www.googleapis.com/youtube/v3/')))
+	return JSON.stringify(
+		remoteUrl.pathname.endsWith('/channels') ?
+			{
+				items: [e2eYoutubeChannel],
+			}
+		:
+		remoteUrl.pathname.endsWith('/videos') ?
+			{
+				items: [e2eYoutubeVideo],
+			}
+		:
+		remoteUrl.pathname.endsWith('/playlists') ?
+			{
+				items: [e2eYoutubePlaylist],
+			}
+		:
+		remoteUrl.pathname.endsWith('/playlistItems') ?
+			{
+				items: [
+					{
+						id: 'e2e-playlist-item',
+						snippet: {
+							...e2eYoutubeVideo.snippet,
+							playlistId: e2eYoutubePlaylistId,
+							position: 0,
+							resourceId: {
+								kind: 'youtube#video',
+								videoId: e2eYoutubeVideoId,
+							},
+						},
+						contentDetails: {
+							videoId: e2eYoutubeVideoId,
+							videoPublishedAt: '2005-04-23T00:00:00.000Z',
+						},
+					},
+				],
+			}
+		:
+		remoteUrl.pathname.endsWith('/commentThreads') ?
+			{
+				items: [
+					{
+						id: e2eYoutubeCommentId,
+						snippet: {
+							channelId: e2eYoutubeChannelId,
+							videoId: e2eYoutubeVideoId,
+							topLevelComment: e2eYoutubeComment,
+						},
+					},
+				],
+			}
+		:
+		remoteUrl.pathname.endsWith('/comments') ?
+			{
+				items: [e2eYoutubeComment],
+			}
+		:
+			{
+				items: [
+					{
+						id: {
+							kind: 'youtube#video',
+							videoId: e2eYoutubeVideoId,
+							channelId: e2eYoutubeChannelId,
+							playlistId: e2eYoutubePlaylistId,
+						},
+						snippet: e2eYoutubeVideo.snippet,
+					},
+				],
+			}
+	)
+}
+
 /**
 	* Stubs Chainlist `rpcs.json`, ethereum-lists `chains.json`, Coingecko asset platforms, L2Beat scaling summary, TradingView crypto scan, Openchain signature lookups, Farcaster/Snapchain public reads, and public IPFS gateway GETs.
 	* One-off real catalog runs: `E2E_USE_E2E_HTTP_STUBS=0 pnpm exec playwright test …` (OPFS / warm-reload tests may need the stub).
@@ -2589,6 +3865,38 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 			})
 			return
 		}
+		if (rssRestWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/rss+xml; charset=utf-8',
+				body: rssRestBody,
+			})
+			return
+		}
+		if (eip8004ScanRestWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: eip8004ScanRestBody(url),
+			})
+			return
+		}
+		if (fxEmbedRestWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: fxEmbedRestBody(url),
+			})
+			return
+		}
+		if (youtubeRestWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: youtubeRestBody(url),
+			})
+			return
+		}
 		if (chainlistRpcsWire(url)) {
 			await route.fulfill({
 				status: 200,
@@ -2607,6 +3915,65 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				})
 				return
 			}
+		}
+		if (zcashdJsonRpcWire(url, method)) {
+			const body = zcashdJsonRpcBody(route.request().postDataJSON())
+			if (body != null) {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body,
+				})
+				return
+			}
+		}
+		if (mempoolSpaceAddressWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: mempoolSpaceAddressBody,
+			})
+			return
+		}
+		if (mempoolSpaceTransactionWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: mempoolSpaceTransactionBody,
+			})
+			return
+		}
+		if (blockchairBitcoinAddressDashboardWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockchairBitcoinAddressDashboardBody,
+			})
+			return
+		}
+		if (blockchairBitcoinBlockDashboardWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockchairBitcoinBlockDashboardBody,
+			})
+			return
+		}
+		if (blockchairBitcoinBlocksWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockchairBitcoinBlocksBody,
+			})
+			return
+		}
+		if (blockchairBitcoinTransactionDashboardWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockchairBitcoinTransactionDashboardBody,
+			})
+			return
 		}
 		if (ethereumListsChainsJsonWire(url, method)) {
 			await route.fulfill({
@@ -2640,6 +4007,30 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 			})
 			return
 		}
+		if (substrateSidecarBlockWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_SUBSTRATE_SIDECAR_BLOCK_BODY,
+			})
+			return
+		}
+		if (substrateSidecarRuntimeMetadataWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_SUBSTRATE_SIDECAR_RUNTIME_METADATA_BODY,
+			})
+			return
+		}
+		if (subscanBlockWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_SUBSCAN_BLOCK_BODY,
+			})
+			return
+		}
 		if (solanaJsonRpcWire(url, method)) {
 			const body = solanaJsonRpcBody(route.request().postDataJSON())
 			if (body != null) {
@@ -2664,6 +4055,46 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				status: 200,
 				contentType: 'application/json',
 				body: MOCK_COINGECKO_ETHEREUM_COIN_BODY,
+			})
+			return
+		}
+		if (coingeckoDerivativesExchangeWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_COINGECKO_DERIVATIVES_EXCHANGE_BODY,
+			})
+			return
+		}
+		if (lightningLndRestInvoicesWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_LIGHTNING_LND_INVOICES_BODY,
+			})
+			return
+		}
+		if (lightningLndRestGetInfoWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_LIGHTNING_LND_GETINFO_BODY,
+			})
+			return
+		}
+		if (lightningLndRestChannelsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_LIGHTNING_LND_CHANNELS_BODY,
+			})
+			return
+		}
+		if (lightningLndRestPaymentsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_LIGHTNING_LND_PAYMENTS_BODY,
 			})
 			return
 		}
@@ -2705,6 +4136,54 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				status: 200,
 				contentType: 'application/json',
 				body: MOCK_OPENCHAIN_DIRECTORY_BODY,
+			})
+			return
+		}
+		if (mevRelayRestWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: mevRelayProposerPayloadDeliveredBody,
+			})
+			return
+		}
+		if (etherscanInternalTransactionsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: etherscanInternalTransactionsBody,
+			})
+			return
+		}
+		if (blockscoutInternalTransactionsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockscoutInternalTransactionsBody,
+			})
+			return
+		}
+		if (blockscoutTokenTransfersWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockscoutTokenTransfersBody,
+			})
+			return
+		}
+		if (blockscoutTokenAddressDetailsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockscoutTokenAddressDetailsBody,
+			})
+			return
+		}
+		if (blockscoutTransactionLogsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockscoutTransactionLogsBody,
 			})
 			return
 		}
@@ -2791,17 +4270,33 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 			})
 			return
 		}
-		if (nostrRelayNip11Wire(url, method)) {
+		if (activityPubRestWire(url, method)) {
 			await route.fulfill({
 				status: 200,
-				contentType: 'application/nostr+json',
-				body: MOCK_NOSTR_RELAY_NIP11_BODY,
+				contentType: 'application/json',
+				body: activityPubRestBody(url),
 			})
 			return
 		}
-		await route.continue()
-	})
-}
+			if (nostrRelayNip11Wire(url, method)) {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/nostr+json',
+					body: MOCK_NOSTR_RELAY_NIP11_BODY,
+				})
+				return
+			}
+			if (redditPublicJsonWire(url, method)) {
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: redditPublicJsonBody(url),
+				})
+				return
+			}
+			await route.continue()
+		})
+	}
 
 export const assertMainSettled = async (
 	page: Page,

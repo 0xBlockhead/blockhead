@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.documentKind) ?? '')].filter(Boolean).join(' ') || 'AI document')
 	const viewDomId = $derived('ai-document-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -250,7 +252,7 @@
 								<AiArtifactView
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

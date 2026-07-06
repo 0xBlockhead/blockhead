@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('ENS record observation')
 	const viewDomId = $derived('ens-record-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -123,7 +125,7 @@
 				<dd>
 					<EnsRecordView
 						selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

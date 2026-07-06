@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.moniker) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.operatorAddress ?? prefetched.operatorAddress) ?? '')].filter(Boolean).join(' ') || 'bnb validator')
 	const viewDomId = $derived('bnb-validator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -100,7 +102,7 @@
 				<dd>
 					<BnbBeaconNetworkView
 						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

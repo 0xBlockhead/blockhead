@@ -45,6 +45,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.registryAgentId) ?? ''), String((prefetched.packageName) ?? ''), String((prefetched.repositoryUrl) ?? '')].filter(Boolean).join(' ') || 'ACP agent program')
 	const viewDomId = $derived('acp-agent-program-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

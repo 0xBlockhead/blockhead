@@ -57,6 +57,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.transactionHash ?? prefetched.transactionHash) ?? '')].filter(Boolean).join(' ') || 'starknet transaction')
 	const viewDomId = $derived('starknet-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -223,7 +225,7 @@
 								<StarknetBlockView
 									selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
 									prefetched={starknetBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

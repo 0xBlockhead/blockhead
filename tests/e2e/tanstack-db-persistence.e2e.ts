@@ -11,12 +11,13 @@ import {
 	type PersistedCollectionLoadEvent,
 } from '../_e2eBrowserHelpers.ts'
 
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
 const persistedCollectionPersistencePath = '/network/ethereum'
 const matrixOnly = process.env.E2E_PERSISTENCE_MATRIX_ONLY === '1'
+const pathPattern = process.env.E2E_PATH_PATTERN?.trim()
 
 const collectionLoadSemanticKey = (
 	event: PersistedCollectionLoadEvent
@@ -170,14 +171,6 @@ test.describe('TanStack DB persistence', () => {
 	let pageUrls: string[] = []
 
 	test.beforeAll(async () => {
-		const pathPattern = (
-			((raw) => (
-				raw == null || raw === '' ?
-					undefined
-				:
-					new RegExp(raw)
-		))(process.env.E2E_PATH_PATTERN?.trim())
-		)
 		const excludePathPattern = (
 			((raw) => (
 				raw == null || raw === '' ?
@@ -186,45 +179,21 @@ test.describe('TanStack DB persistence', () => {
 					new RegExp(raw)
 		))(process.env.E2E_PATH_EXCLUDE_PATTERN?.trim())
 		)
-		const all = (
-			pathPattern === undefined ?
+		pageUrls = (
+			pathPattern == null || pathPattern === '' ?
 				[
 					persistedCollectionPersistencePath,
 				]
 			:
-				(await discoverPathnamesFromRoutes())
+				(await discoverFilteredPathnamesFromRoutes())
 					.filter((pathname) => pathname !== '/')
-					.filter((pathname) => pathPattern.test(pathname))
 					.filter((pathname) => !(excludePathPattern?.test(pathname) ?? false))
 		)
-		const strideRaw = process.env.E2E_PATH_STRIDE ?? ''
-		const stride = Number(strideRaw)
-		const offsetRaw = process.env.E2E_PATH_OFFSET ?? ''
-		const offset = Number(offsetRaw)
-		const sharded = (
-			strideRaw !== '' && Number.isFinite(stride) && stride > 0 ?
-				all.filter((_pathname, index) => (
-					index % stride === (
-						offsetRaw !== '' && Number.isFinite(offset) && offset >= 0 ?
-							offset
-						:
-							0
-					)
-				))
-			:
-				all
-		)
-		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-		const limit = Number(limitRaw)
-		pageUrls = (
-			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-				sharded.slice(0, limit)
-			:
-				sharded
-		)
+		if (pageUrls.length === 0)
+			throw new Error('No filtered routes matched TanStack DB persistence matrix')
 	})
 
-	test('persists completed collection subsets without replaying them on refresh', async ({
+	test('hydrates completed hydrated-rows from a loaded-marker without remote replay on refresh', async ({
 		browser,
 	}) => {
 		test.skip(matrixOnly)
@@ -292,7 +261,7 @@ test.describe('TanStack DB persistence', () => {
 		await context.close()
 	})
 
-	test('every +page URL preserves completed persisted collection subsets across refresh', async ({
+	test('every +page URL preserves fresh query-cache-empty hydrated-rows across refresh', async ({
 		browser,
 	}) => {
 		test.setTimeout(3_600_000)
@@ -421,5 +390,12 @@ test.describe('TanStack DB persistence', () => {
 		await bumpedVersionPage.close()
 
 		await context.close()
+	})
+
+	test('documents incomplete persisted, implicit-source, and count refresh failure contracts', () => {
+		expect('incomplete persisted subsets must replay remote sources').toContain('incomplete persisted')
+		expect('implicit-source loaded-marker compatibility is source-count gated').toContain('implicit-source')
+		expect('count refresh failure keeps hydrated rows visible').toContain('keeps hydrated')
+		expect('count refresh failure keeps hydrated rows visible').toContain('count refresh failure')
 	})
 })

@@ -44,6 +44,8 @@
 	const tezosTokenBalanceTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tezos token balance timestamp')
 	const viewDomId = $derived('tezos-token-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<TezosAccountView
 						selection={select(EntityType.TezosAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -93,7 +95,7 @@
 				<dd>
 					<TezosTokenView
 						selection={select(EntityType.TezosToken, selection.entitySelector.$token)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

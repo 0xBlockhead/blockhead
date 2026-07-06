@@ -44,6 +44,8 @@
 	const hyperliquidSpotAssetTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hyperliquid spot asset timestamp')
 	const viewDomId = $derived('hyperliquid-spot-asset-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HyperliquidSpotAssetView from '$/views/HyperliquidSpotAssetView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HyperliquidSpotAssetView
 						selection={select(EntityType.HyperliquidSpotAsset, selection.entitySelector.$spotAsset)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

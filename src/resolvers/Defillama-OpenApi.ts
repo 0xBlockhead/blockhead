@@ -6,10 +6,10 @@ import {
 } from '$/constants/Market.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import {
-	catalogCoinSpotUsdMarkets,
-	catalogCoinSpotUsdMarketByCoinId,
-	catalogSpotMarketsWithCoinAsQuote,
-	catalogSpotMarketsWithCurrencyAsBase,
+	localCatalogCoinSpotUsdMarkets,
+	localCatalogCoinSpotUsdMarketByCoinId,
+	localCatalogSpotMarketsWithCoinAsQuote,
+	localCatalogSpotMarketsWithCurrencyAsBase,
 	type CatalogCoinCoinMarket,
 	type CatalogCoinCurrencyMarket,
 	type CatalogCurrencyCurrencyMarket,
@@ -104,7 +104,7 @@ export default {
 						throw new Error('Defillama_OpenApi: Market_Timestamp is spot-only')
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						throw new Error('Market source: market base must be catalog coin')
-					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						throw new Error('Defillama_OpenApi: Market_Timestamp is catalog coin USD market only')
 					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 					const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
@@ -142,7 +142,7 @@ export default {
 							defillamaCurrentPriceIdByCoinId[coinId] != null ?
 								[
 									{
-										[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
+										[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId]),
 									},
 								]
 							:
@@ -164,7 +164,7 @@ export default {
 						return (
 							[
 								{
-									[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(catalogCoinSpotUsdMarketByCoinId[coinId]),
+									[EntityMetaKey.Selector]: marketSelectorFromCatalogCoinCurrencyMarket(localCatalogCoinSpotUsdMarketByCoinId[coinId]),
 								},
 							]
 						)
@@ -182,7 +182,7 @@ export default {
 					[CoinSelector.CoinId]: async ({ coinId }: EntitySelector<typeof schema, EntityType.Coin>) => {
 						const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 						return (
-							catalogSpotMarketsWithCoinAsQuote
+							localCatalogSpotMarketsWithCoinAsQuote
 							.filter((catalogMarket) => catalogMarket.quoteCoinId === coinId)
 							.map(marketSelectorFromCatalogCoinCoinMarket)
 							.filter((marketId) => (
@@ -210,7 +210,7 @@ export default {
 					return (
 						(
 						iso4217 === Iso4217.USD ?
-							catalogCoinSpotUsdMarkets.filter((catalogMarket) => (
+							localCatalogCoinSpotUsdMarkets.filter((catalogMarket) => (
 								defillamaCurrentPriceIdByCoinId[catalogMarket.baseCoinId] != null
 							))
 						:
@@ -231,7 +231,7 @@ export default {
 			entityType: EntityType.Currency,
 			resolve: {
 				[CurrencySelector.Iso4217]: async ({ iso4217 }: EntitySelector<typeof schema, EntityType.Currency>) => {
-					const markets = catalogSpotMarketsWithCurrencyAsBase
+					const markets = localCatalogSpotMarketsWithCurrencyAsBase
 						.filter((catalogMarket) => catalogMarket.baseIso4217 === iso4217)
 						.map((catalogMarket) => ({
 							[EntityMetaKey.Selector]: marketSelectorFromCatalogCurrencyCurrencyMarket(catalogMarket),
@@ -255,7 +255,7 @@ export default {
 						return []
 					if ($market.$base.kind !== MarketAssetKind.Coin)
 						return []
-					if (!catalogCoinCurrencyMarketMatchesMarket(catalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
+					if (!catalogCoinCurrencyMarketMatchesMarket(localCatalogCoinSpotUsdMarketByCoinId[$market.$base.$coin.coinId], $market))
 						return []
 					const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 					const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')

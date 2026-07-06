@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.reachable) ?? ''), String((prefetched.statusCode) ?? ''), String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'MEV relay timestamp')
 	const viewDomId = $derived('mev-relay-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -495,7 +497,7 @@
 								host: String(selection.entitySelector.$relay.host ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

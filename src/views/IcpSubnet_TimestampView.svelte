@@ -44,6 +44,8 @@
 	const icpSubnetTimestamp = $derived(selection({}))
 	const titleFallback = $derived('ICP subnet timestamp')
 	const viewDomId = $derived('icp-subnet-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<IcpSubnetView
 						selection={select(EntityType.IcpSubnet, selection.entitySelector.$subnet)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

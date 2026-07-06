@@ -44,6 +44,8 @@
 	const tonNftCollectionTimestamp = $derived(selection({}))
 	const titleFallback = $derived('TON NFT collection timestamp')
 	const viewDomId = $derived('ton-nft-collection-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TonNftCollectionView
 						selection={select(EntityType.TonNftCollection, selection.entitySelector.$collection)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

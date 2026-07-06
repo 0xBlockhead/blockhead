@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.traceId ?? prefetched.traceId) ?? '')].filter(Boolean).join(' ') || 'zero g settlement trace')
 	const viewDomId = $derived('zero-gsettlement-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -136,7 +138,7 @@
 				<dd>
 					<ZeroGServiceRequestView
 						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

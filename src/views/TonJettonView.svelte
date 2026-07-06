@@ -44,6 +44,8 @@
 	const tonJetton = $derived(selection({}))
 	const titleFallback = $derived('TON jetton')
 	const viewDomId = $derived('ton-jetton-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<TonNetworkView
 						selection={select(EntityType.TonNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -129,7 +131,7 @@
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -57,6 +57,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.actionType) ?? '')].filter(Boolean).join(' ') || 'blockhead session action')
 	const viewDomId = $derived('blockhead-session-action-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -143,7 +145,7 @@
 								<BlockheadSessionView
 									selection={select(EntityType.BlockheadSession, blockheadSession[EntityMetaKey.Selector])}
 									prefetched={blockheadSession}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -350,7 +352,7 @@
 								<BlockheadIntentInvocationView
 									selection={select(EntityType.BlockheadIntentInvocation, blockheadIntentInvocation[EntityMetaKey.Selector])}
 									prefetched={blockheadIntentInvocation}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

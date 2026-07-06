@@ -44,6 +44,8 @@
 	const tonTrace = $derived(selection({}))
 	const titleFallback = $derived('TON trace')
 	const viewDomId = $derived('ton-trace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TonNetworkView from '$/views/TonNetworkView.svelte'
@@ -87,7 +89,7 @@
 								<TonNetworkView
 									selection={select(EntityType.TonNetwork, tonNetwork[EntityMetaKey.Selector])}
 									prefetched={tonNetwork}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -142,7 +144,7 @@
 								<TonMessageView
 									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
 									prefetched={tonMessage}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

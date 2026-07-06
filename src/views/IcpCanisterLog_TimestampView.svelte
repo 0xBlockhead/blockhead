@@ -44,6 +44,8 @@
 	const icpCanisterLogTimestamp = $derived(selection({}))
 	const titleFallback = $derived('ICP canister log timestamp')
 	const viewDomId = $derived('icp-canister-log-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpCanisterView from '$/views/IcpCanisterView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<IcpCanisterView
 						selection={select(EntityType.IcpCanister, selection.entitySelector.$canister)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

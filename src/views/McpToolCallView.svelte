@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.callId ?? prefetched.callId) ?? '')].filter(Boolean).join(' ') || 'mcp tool call')
 	const viewDomId = $derived('mcp-tool-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -156,7 +158,7 @@
 				<dd>
 					<McpServerView
 						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -203,7 +205,7 @@
 								<McpToolView
 									selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
 									prefetched={mcpTool}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

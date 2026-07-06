@@ -59,6 +59,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'X post')
 	const viewDomId = $derived('xpost-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -146,7 +148,7 @@
 								<XUserView
 									selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector])}
 									prefetched={xUser}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -256,7 +258,7 @@
 								<XPostView
 									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
 									prefetched={xPost}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -278,7 +280,7 @@
 								<XPostView
 									selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
 									prefetched={xPost}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

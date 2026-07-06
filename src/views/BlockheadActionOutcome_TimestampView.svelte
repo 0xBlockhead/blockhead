@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead action outcome timestamp')
 	const viewDomId = $derived('blockhead-action-outcome-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -133,7 +135,7 @@
 				<dd>
 					<BlockheadActionOutcomeView
 						selection={select(EntityType.BlockheadActionOutcome, selection.entitySelector.$outcome)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

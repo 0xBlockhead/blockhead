@@ -44,6 +44,8 @@
 	const hederaTopic = $derived(selection({}))
 	const titleFallback = $derived('hedera topic')
 	const viewDomId = $derived('hedera-topic-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HederaNetworkView from '$/views/HederaNetworkView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HederaNetworkView
 						selection={select(EntityType.HederaNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

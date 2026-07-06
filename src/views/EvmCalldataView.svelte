@@ -42,6 +42,8 @@
 	const evmCalldata = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.hex ?? prefetched.hex) ?? '')].filter(Boolean).join(' ') || 'EVM calldata')
 	const viewDomId = $derived('evm-calldata-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

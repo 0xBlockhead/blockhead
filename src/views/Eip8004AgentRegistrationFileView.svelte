@@ -45,6 +45,8 @@
 	const eip8004AgentRegistrationFile = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.fileUrl ?? prefetched.fileUrl) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration file')
 	const viewDomId = $derived('eip8004agent-registration-file-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -103,7 +105,7 @@
 				<dd>
 					<Eip8004AgentRegistrationView
 						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

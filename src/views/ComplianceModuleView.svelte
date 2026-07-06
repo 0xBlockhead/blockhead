@@ -44,6 +44,8 @@
 	const complianceModule = $derived(selection({}))
 	const titleFallback = $derived('compliance module')
 	const viewDomId = $derived('compliance-module-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RegulatedAssetProfileView from '$/views/RegulatedAssetProfileView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<RegulatedAssetProfileView
 						selection={select(EntityType.RegulatedAssetProfile, selection.entitySelector.$profile)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

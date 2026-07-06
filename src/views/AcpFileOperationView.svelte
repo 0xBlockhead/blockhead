@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.operationId ?? prefetched.operationId) ?? '')].filter(Boolean).join(' ') || 'ACP file operation')
 	const viewDomId = $derived('acp-file-operation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -129,7 +131,7 @@
 				<dd>
 					<AcpSessionView
 						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

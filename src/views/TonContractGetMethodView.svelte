@@ -44,6 +44,8 @@
 	const tonContractGetMethod = $derived(selection({}))
 	const titleFallback = $derived('TON contract get method')
 	const viewDomId = $derived('ton-contract-get-method-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TonContractView from '$/views/TonContractView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TonContractView
 						selection={select(EntityType.TonContract, selection.entitySelector.$contract)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived('AI provider API operation timestamp')
 	const viewDomId = $derived('ai-provider-api-operation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -135,7 +137,7 @@
 				<dd>
 					<AiProviderApiOperationView
 						selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

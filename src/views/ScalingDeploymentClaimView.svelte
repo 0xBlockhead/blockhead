@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.sourceProjectId ?? prefetched.sourceProjectId) ?? ''), String((prefetched.scalingDeploymentClaimId) ?? '')].filter(Boolean).join(' ') || 'scaling deployment claim')
 	const viewDomId = $derived('scaling-deployment-claim-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ScalingDeploymentClaim_TimestampsView from '$/views/ScalingDeploymentClaim_TimestampsView.svelte'
@@ -161,7 +163,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -276,12 +278,12 @@
 									selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector])}
 									prefetched={evmRollup}
 									href={
-										(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2 !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.namespace !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2 !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.reference !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-											caip2: `${String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.namespace ?? '')}:${String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.reference ?? '')}`,
-											projectId: String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).projectId ?? ''),
+										(evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2 !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2 !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmRollup[EntityMetaKey.Selector].projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
+											caip2: `${String(evmRollup[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmRollup[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											projectId: String(evmRollup[EntityMetaKey.Selector].projectId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

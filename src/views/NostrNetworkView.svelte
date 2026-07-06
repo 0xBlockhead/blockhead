@@ -45,6 +45,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.protocolName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.scope ?? prefetched.scope) ?? '')].filter(Boolean).join(' ') || 'Nostr network')
 	const viewDomId = $derived('nostr-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

@@ -44,6 +44,8 @@
 	const sorobanContractTimestamp = $derived(selection({}))
 	const titleFallback = $derived('soroban contract timestamp')
 	const viewDomId = $derived('soroban-contract-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<SorobanContractView
 						selection={select(EntityType.SorobanContract, selection.entitySelector.$contract)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -229,7 +231,7 @@
 								<SorobanWasmView
 									selection={select(EntityType.SorobanWasm, sorobanWasm[EntityMetaKey.Selector])}
 									prefetched={sorobanWasm}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

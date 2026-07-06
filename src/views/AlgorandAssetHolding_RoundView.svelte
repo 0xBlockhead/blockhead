@@ -44,6 +44,8 @@
 	const algorandAssetHoldingRound = $derived(selection({}))
 	const titleFallback = $derived('algorand asset holding round')
 	const viewDomId = $derived('algorand-asset-holding-round-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<AlgorandAccountView
 						selection={select(EntityType.AlgorandAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -93,7 +95,7 @@
 				<dd>
 					<AlgorandAssetView
 						selection={select(EntityType.AlgorandAsset, selection.entitySelector.$asset)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

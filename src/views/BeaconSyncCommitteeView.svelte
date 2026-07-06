@@ -45,6 +45,8 @@
 	const beaconSyncCommittee = $derived(selection({}))
 	const titleFallback = $derived((String((selection.entitySelector.period ?? prefetched.period) ?? '') ? 'Sync committee #' + String((selection.entitySelector.period ?? prefetched.period) ?? '') : '') || 'beacon sync committee')
 	const viewDomId = $derived('beacon-sync-committee-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -196,7 +198,7 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

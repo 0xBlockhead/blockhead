@@ -45,6 +45,8 @@
 	const algorandRound = $derived(selection({}))
 	const titleFallback = $derived('algorand round')
 	const viewDomId = $derived('algorand-round-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

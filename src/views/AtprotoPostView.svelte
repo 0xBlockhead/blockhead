@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.text) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.uri ?? prefetched.uri) ?? '')].filter(Boolean).join(' ') || 'AT Protocol post')
 	const viewDomId = $derived('atproto-post-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -173,11 +175,11 @@
 										selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector])}
 										prefetched={atprotoActor}
 										href={
-											(({ ...atprotoActor[EntityMetaKey.Selector], ...atprotoActor }).did !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]', {
-												did: encodeURIComponent(String(({ ...atprotoActor[EntityMetaKey.Selector], ...atprotoActor }).did ?? '')),
+											(atprotoActor[EntityMetaKey.Selector].did !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]', {
+												did: encodeURIComponent(String(atprotoActor[EntityMetaKey.Selector].did ?? '')),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -200,11 +202,11 @@
 										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
 										prefetched={atprotoPost}
 										href={
-											(({ ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }).uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-												uri: encodeURIComponent(String(({ ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }).uri ?? '')),
+											(atprotoPost[EntityMetaKey.Selector].uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
+												uri: encodeURIComponent(String(atprotoPost[EntityMetaKey.Selector].uri ?? '')),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -227,11 +229,11 @@
 										selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
 										prefetched={atprotoPost}
 										href={
-											(({ ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }).uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
-												uri: encodeURIComponent(String(({ ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }).uri ?? '')),
+											(atprotoPost[EntityMetaKey.Selector].uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {
+												uri: encodeURIComponent(String(atprotoPost[EntityMetaKey.Selector].uri ?? '')),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>

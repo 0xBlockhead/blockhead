@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived((String((prefetched.height) ?? '') ? 'Block #' + String((prefetched.height) ?? '') : '') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'Cosmos block')
 	const viewDomId = $derived('cosmos-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -302,7 +304,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived(['Nostr'].filter(Boolean).join(' ') || 'Nostr')
 	const viewDomId = $derived('-global-nostr-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

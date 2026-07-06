@@ -40,6 +40,8 @@
 	const globalAgentNetwork = $derived(selection({}))
 	const titleFallback = $derived('global agent network')
 	const viewDomId = $derived('-global-agent-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import GlobalAgentNetwork_TimestampsView from '$/views/_GlobalAgentNetwork_TimestampsView.svelte'

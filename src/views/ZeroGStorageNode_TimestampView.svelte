@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived('zero g storage node timestamp')
 	const viewDomId = $derived('zero-gstorage-node-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -114,7 +116,7 @@
 				<dd>
 					<ZeroGStorageNodeView
 						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

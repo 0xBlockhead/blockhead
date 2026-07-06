@@ -24,6 +24,19 @@ import {
 } from './_routeViewDiagnostics.ts'
 
 
+const routeViewSmokeEntries = Object.entries(routeViewSmokePathByLabel)
+	.filter(([label, pathname]) => (
+		(!process.env.E2E_ROUTE_VIEW_PATTERN || new RegExp(process.env.E2E_ROUTE_VIEW_PATTERN).test(pathname))
+		&& (!process.env.E2E_ROUTE_VIEW_LABEL_PATTERN || new RegExp(process.env.E2E_ROUTE_VIEW_LABEL_PATTERN).test(label))
+	))
+
+if (
+	(process.env.E2E_ROUTE_VIEW_PATTERN || process.env.E2E_ROUTE_VIEW_LABEL_PATTERN)
+	&& routeViewSmokeEntries.length === 0
+)
+	throw new Error('No route view smoke rows matched E2E_ROUTE_VIEW_PATTERN / E2E_ROUTE_VIEW_LABEL_PATTERN')
+
+
 const collectRouteBoundaryReport = async (
 	page: Page,
 	pathname: string,
@@ -121,7 +134,7 @@ const assertNoBrokenBoundaryReports = (
 test.describe('full-page boundary failures (canonical smoke routes)', () => {
 	test.describe.configure({ mode: 'serial' })
 
-	for (const [label, pathname] of Object.entries(routeViewSmokePathByLabel)) {
+	for (const [label, pathname] of routeViewSmokeEntries) {
 		test(`${label}: ${pathname}`, async ({ page }, testInfo) => {
 			testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
 			const {

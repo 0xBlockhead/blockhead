@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.slot ?? prefetched.slot) ?? '') ? 'Slot #' + String((selection.entitySelector.slot ?? prefetched.slot) ?? '') : '') || 'beacon slot')
 	const viewDomId = $derived('beacon-slot-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -110,9 +112,9 @@
 								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 								prefetched={beaconEpoch}
 								href={
-									(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-										caip2: `${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace ?? '')}:${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference ?? '')}`,
-										epoch: String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch ?? ''),
+									(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+										caip2: `${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -134,9 +136,9 @@
 								selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 								prefetched={beaconEpoch}
 								href={
-									(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-										caip2: `${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace ?? '')}:${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference ?? '')}`,
-										epoch: String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch ?? ''),
+									(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+										caip2: `${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+										epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -198,12 +200,12 @@
 									selection={select(EntityType.BeaconEpoch, beaconEpoch[EntityMetaKey.Selector])}
 									prefetched={beaconEpoch}
 									href={
-										(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-											caip2: `${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace ?? '')}:${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference ?? '')}`,
-											epoch: String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch ?? ''),
+										(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+											caip2: `${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

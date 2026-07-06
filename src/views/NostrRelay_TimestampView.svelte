@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? ''), String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'Nostr relay timestamp')
 	const viewDomId = $derived('nostr-relay-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -771,7 +773,7 @@
 				<dd>
 					<NostrRelayView
 						selection={select(EntityType.NostrRelay, selection.entitySelector.$relay)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

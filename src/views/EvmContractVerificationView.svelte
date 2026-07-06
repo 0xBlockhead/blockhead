@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.match) ?? ''), String((prefetched.runtimeMatch) ?? '')].filter(Boolean).join(' ') || 'EVM contract verification')
 	const viewDomId = $derived('evm-contract-verification-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -327,7 +329,7 @@
 								address: String(selection.entitySelector.$contract.address ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -344,7 +346,7 @@
 								<EvmContractCompilationView
 									selection={select(EntityType.EvmContractCompilation, evmContractCompilation[EntityMetaKey.Selector])}
 									prefetched={evmContractCompilation}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -364,7 +366,7 @@
 								<EvmContractSourceBundleView
 									selection={select(EntityType.EvmContractSourceBundle, evmContractSourceBundle[EntityMetaKey.Selector])}
 									prefetched={evmContractSourceBundle}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

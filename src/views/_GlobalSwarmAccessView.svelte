@@ -46,6 +46,8 @@
 	}))
 	const titleFallback = $derived('global Swarm access')
 	const viewDomId = $derived('-global-swarm-access-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SwarmResourcesView from '$/views/SwarmResourcesView.svelte'

@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.memo) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.paymentHash ?? prefetched.paymentHash) ?? '')].filter(Boolean).join(' ') || 'Lightning invoice')
 	const viewDomId = $derived('blockhead-lightning-invoice-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -157,7 +159,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -353,7 +355,7 @@
 								<BlockheadLightningNodeStateView
 									selection={select(EntityType.BlockheadLightningNodeState, blockheadLightningNodeState[EntityMetaKey.Selector])}
 									prefetched={blockheadLightningNodeState}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

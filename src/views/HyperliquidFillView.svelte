@@ -44,6 +44,8 @@
 	const hyperliquidFill = $derived(selection({}))
 	const titleFallback = $derived('hyperliquid fill')
 	const viewDomId = $derived('hyperliquid-fill-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<HyperliquidAccountView
 						selection={select(EntityType.HyperliquidAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -575,7 +577,7 @@
 								<HyperliquidOrderView
 									selection={select(EntityType.HyperliquidOrder, hyperliquidOrder[EntityMetaKey.Selector])}
 									prefetched={hyperliquidOrder}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -595,7 +597,7 @@
 								<HyperliquidTransactionView
 									selection={select(EntityType.HyperliquidTransaction, hyperliquidTransaction[EntityMetaKey.Selector])}
 									prefetched={hyperliquidTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

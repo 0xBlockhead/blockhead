@@ -28,6 +28,12 @@ export const ipfsBindings = [
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
+				locator: 'https://dweb.link',
+				origin: 'https://dweb.link',
+				corsEnabled: true,
+			},
+			{
+				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: 'https://cloudflare-ipfs.com',
 				origin: 'https://cloudflare-ipfs.com',
 				corsEnabled: false,

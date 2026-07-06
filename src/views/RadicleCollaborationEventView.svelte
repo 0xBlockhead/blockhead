@@ -44,6 +44,8 @@
 	const radicleCollaborationEvent = $derived(selection({}))
 	const titleFallback = $derived('radicle collaboration event')
 	const viewDomId = $derived('radicle-collaboration-event-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<RadicleRepositoryView
 						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -300,7 +302,7 @@
 								<GitCommitView
 									selection={select(EntityType.GitCommit, gitCommit[EntityMetaKey.Selector])}
 									prefetched={gitCommit}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -320,7 +322,7 @@
 								<GitObjectView
 									selection={select(EntityType.GitObject, gitObject[EntityMetaKey.Selector])}
 									prefetched={gitObject}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

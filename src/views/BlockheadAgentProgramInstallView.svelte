@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.installId ?? prefetched.installId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent program install')
 	const viewDomId = $derived('blockhead-agent-program-install-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -165,7 +167,7 @@
 								<BlockheadSourceView
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

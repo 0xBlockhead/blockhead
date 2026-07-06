@@ -203,7 +203,6 @@ export enum RouteId {
 	AccountsWatchedAccounts = 'accounts-watched-accounts',
 	AccountsBalances = 'accounts-balances',
 	AccountsAllowances = 'accounts-allowances',
-	AccountsPositions = 'accounts-positions',
 	AccountsTransactions = 'accounts-transactions',
 	Agents = 'agents',
 	AgentsConversations = 'agents-conversations',
@@ -686,7 +685,6 @@ export const routeFileConventions = [
 			'src/routes/(social)/(youtube)/youtube/channels/+page.svelte',
 			'src/routes/(social)/(youtube)/youtube/videos/+page.svelte',
 			'src/routes/(social)/(nostr)/nostr/profiles/+page.svelte',
-			'src/routes/~/(accounts)/accounts/positions/+page.svelte',
 		],
 		notes: 'Plural visible paths are collection/list pages. Their section chrome is a navigation/layout axis, not evidence that child entity detail pages belong under the plural page.',
 	},
@@ -3403,14 +3401,6 @@ export const routeEntityViewComponents = {
 		detail: '$/views-new/LiquidityPool_TimestampView.svelte',
 		list: '$/views-new/LiquidityPool_TimestampsView.svelte',
 	},
-	[EntityType.LiquidityPosition]: {
-		detail: '$/views-new/LiquidityPositionView.svelte',
-		list: '$/views-new/LiquidityPositionsView.svelte',
-	},
-	[EntityType.LiquidityPosition_Block]: {
-		detail: '$/views-new/LiquidityPosition_BlockView.svelte',
-		list: '$/views-new/LiquidityPosition_BlocksView.svelte',
-	},
 	[EntityType.LitecoinMwebBlock]: {
 		detail: '$/views-new/LitecoinMwebBlockView.svelte',
 	},
@@ -5322,7 +5312,6 @@ export const routeEntityFields = {
 		'$$markets',
 		'$$currencies',
 		'$$liquidityPools',
-		'$$liquidityPositions',
 	],
 	EvmNetworkSummary: [
 		'caip2',
@@ -5683,11 +5672,6 @@ export const routeParams = [
 		name: 'playlistId',
 		fixture: 'PL123',
 		entityField: 'YoutubePlaylist.playlistId',
-	},
-	{
-		name: 'positionId',
-		fixture: 'position-1',
-		entityField: 'LiquidityPosition.id',
 	},
 	{
 		name: 'postId',
@@ -6703,8 +6687,6 @@ export const routeTopologyContract = [
 			{ path: '/vault/[chainId=eip155ChainId]/[vaultId]', surface: RouteSurface.Detail, entity: EntityType.Erc4626Vault, selector: '$network+address' },
 			{ path: '/channels', surface: RouteSurface.List, entity: EntityType._Global, selector: 'scope' },
 			{ path: '/channel/[channelId]', surface: RouteSurface.Detail, selector: 'channelId' },
-			{ path: '/leverage', surface: RouteSurface.List, entity: EntityType._Global, selector: 'scope' },
-			{ path: '/position/[positionId]', surface: RouteSurface.Detail, entity: EntityType.LiquidityPosition, selector: 'id' },
 		],
 	},
 	{
@@ -6836,8 +6818,6 @@ export const routeTopologyContract = [
 			{ path: '/~/accounts/balance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]', surface: RouteSurface.Detail, entity: EntityType.EvmNetworkActorCoinBalance, selector: '$actor+$contract' },
 			{ path: '/~/accounts/allowances', surface: RouteSurface.List, entity: EntityType._Global, selector: 'scope' },
 			{ path: '/~/accounts/allowance/[chainId=eip155ChainId]/[owner=evmAddress]/[coin=evmAddress]/[spender=evmAddress]', surface: RouteSurface.Detail, entity: EntityType.EvmActorCoinAllowance, selector: '$actor+$contract+$spender+interopAddress' },
-			{ path: '/~/accounts/positions', surface: RouteSurface.List, entity: EntityType._Global, selector: 'scope' },
-			{ path: '/~/accounts/position/[chainId=eip155ChainId]/[positionId]', surface: RouteSurface.Detail, entity: EntityType.LiquidityPosition, selector: 'chainId+positionId' },
 			{ path: '/~/accounts/transactions', surface: RouteSurface.List, entity: EntityType._Global, selector: 'scope' },
 			{ path: '/~/accounts/transaction/[chainId=eip155ChainId]/[address=evmAddress]/[sourceTxHash]/[createdAt]', surface: RouteSurface.Detail, entity: EntityType.BlockheadBridgeTransaction, selector: '$account+$sourceTx+createdAt' },
 			{ path: '/~/agents', surface: RouteSurface.Hub, entity: EntityType._Global, selector: 'scope' },
@@ -6989,23 +6969,6 @@ export const staticParentPageLayoutRoutes = [
 		},
 		id: {
 			value: 'currencies',
-		},
-	},
-	{
-		file: 'src/routes/(assets)/(leverage)/+layout.svelte',
-		title: 'Leverage',
-		href: {
-			path: '/leverage',
-		},
-	},
-	{
-		file: 'src/routes/(assets)/(leverage)/position/[positionId]/(position)/+layout.svelte',
-		title: 'Leverage',
-		href: {
-			path: '/leverage',
-		},
-		id: {
-			value: 'leverage',
 		},
 	},
 	{
@@ -7273,13 +7236,6 @@ export const staticParentPageLayoutRoutes = [
 		title: 'Balances',
 		href: {
 			path: '/~/accounts/balances',
-		},
-	},
-	{
-		file: 'src/routes/~/(accounts)/accounts/(positions)/+layout.svelte',
-		title: 'Positions',
-		href: {
-			path: '/~/accounts/positions',
 		},
 	},
 	{
@@ -8655,7 +8611,6 @@ export const routes = [
 				'$$blockheadWallets',
 				'$$blockheadWalletConnections',
 				'$$blockheadWalletAccounts',
-				'$$liquidityPositions',
 				'$$bridgeTransfers',
 			],
 			view: routeEntityViewComponents[EntityType._Global],
@@ -8671,7 +8626,6 @@ export const routes = [
 			'accounts-watched-accounts',
 			'accounts-balances',
 			'accounts-allowances',
-			'accounts-positions',
 			'accounts-transactions',
 		],
 		probe: '/~/accounts',

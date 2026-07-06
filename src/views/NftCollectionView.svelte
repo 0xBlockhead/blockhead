@@ -45,6 +45,8 @@
 	const nftCollection = $derived(selection({}))
 	const titleFallback = $derived('NFT collection')
 	const viewDomId = $derived('nft-collection-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NftTokensView from '$/views/NftTokensView.svelte'
@@ -90,7 +92,7 @@
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

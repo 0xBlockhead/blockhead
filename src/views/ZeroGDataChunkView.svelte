@@ -44,6 +44,8 @@
 	const zeroGDataChunk = $derived(selection({}))
 	const titleFallback = $derived('zero g data chunk')
 	const viewDomId = $derived('zero-gdata-chunk-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ZeroGDataBlobView from '$/views/ZeroGDataBlobView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<ZeroGDataBlobView
 						selection={select(EntityType.ZeroGDataBlob, selection.entitySelector.$dataBlob)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

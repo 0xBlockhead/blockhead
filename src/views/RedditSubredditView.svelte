@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [(String((selection.entitySelector.name ?? prefetched.name) ?? '') ? 'r/' + String((selection.entitySelector.name ?? prefetched.name) ?? '') : '')].filter(Boolean).join(' ') || 'Reddit subreddit')
 	const viewDomId = $derived('reddit-subreddit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

@@ -122,6 +122,8 @@
 			String((selection.entitySelector.number ?? prefetched.number) ?? ''),
 		].filter(Boolean).join('-')].filter(Boolean).join(' ') || 'Specification proposal')
 	const viewDomId = $derived('specification-proposal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

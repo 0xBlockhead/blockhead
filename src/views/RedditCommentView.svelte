@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.body) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.fullname ?? prefetched.fullname) ?? '')].filter(Boolean).join(' ') || 'Reddit comment')
 	const viewDomId = $derived('reddit-comment-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -268,7 +270,7 @@
 									<RedditLinkView
 										selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector])}
 										prefetched={redditLink}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -290,7 +292,7 @@
 									<RedditCommentView
 										selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector])}
 										prefetched={redditComment}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>

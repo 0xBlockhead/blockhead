@@ -45,6 +45,8 @@
 	const hyperliquidOrderbookTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hyperliquid orderbook timestamp')
 	const viewDomId = $derived('hyperliquid-orderbook-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -90,7 +92,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -197,7 +199,7 @@
 								<HyperliquidPerpMarketView
 									selection={select(EntityType.HyperliquidPerpMarket, hyperliquidPerpMarket[EntityMetaKey.Selector])}
 									prefetched={hyperliquidPerpMarket}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -217,7 +219,7 @@
 								<HyperliquidSpotPairView
 									selection={select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector])}
 									prefetched={hyperliquidSpotPair}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.changeKind) ?? '')].filter(Boolean).join(' ') || 'aptos state change')
 	const viewDomId = $derived('aptos-state-change-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -132,7 +134,7 @@
 				<dd>
 					<AptosTransactionView
 						selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -316,7 +318,7 @@
 								<AptosAccountResourceView
 									selection={select(EntityType.AptosAccountResource, aptosAccountResource[EntityMetaKey.Selector])}
 									prefetched={aptosAccountResource}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -408,7 +410,7 @@
 								<MoveModuleView
 									selection={select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector])}
 									prefetched={moveModule}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

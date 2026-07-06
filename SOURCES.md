@@ -45,7 +45,6 @@ export enum SourceBinding {
 	TradingView_Rest = 'TradingView_Rest',
 	X402_Http = 'X402_Http',
 	ZcashZips_Github = 'ZcashZips_Github',
-	Fedi_Rest = 'Fedi_Rest',
 	Mastodon_Rest = 'Mastodon_Rest',
 	Arweave_Graphql = 'Arweave_Graphql',
 	Arweave_Rest = 'Arweave_Rest',
@@ -330,9 +329,7 @@ export enum SourceBinding {
 | `X402_Http` | `X402_Http` | _Global |
 | `ZcashZips_Github` | `ZcashZips_Github` | _Global |
 | `Constants_Internal` | `Constants_Internal` | _GlobalActivityPubNetwork |
-| `Fedi_Rest` | `Fedi_Rest` | _GlobalActivityPubNetwork |
 | `Mastodon_Rest` | `Mastodon_Rest` | _GlobalActivityPubNetwork |
-| `Fedi_Rest` | `Fedi_Rest` | _GlobalActivityPubNetwork_Timestamp |
 | `Mastodon_Rest` | `Mastodon_Rest` | _GlobalActivityPubNetwork_Timestamp |
 | `Arweave_Graphql` | `Arweave_Graphql` | _GlobalArweaveNetwork |
 | `Arweave_Rest` | `Arweave_Rest` | _GlobalArweaveNetwork |
@@ -429,14 +426,10 @@ export enum SourceBinding {
 | `TronGrid_Rest` | `TronGrid_Rest` | Account |
 | `TronScan_Rest` | `TronScan_Rest` | Account |
 | `Voltaire_JsonRpc` | `Voltaire_JsonRpc` | Account |
-| `Fedi_Rest` | `Fedi_Rest` | ActivityPubActor |
 | `Mastodon_Rest` | `Mastodon_Rest` | ActivityPubActor |
-| `Fedi_Rest` | `Fedi_Rest` | ActivityPubActor_Timestamp |
 | `Mastodon_Rest` | `Mastodon_Rest` | ActivityPubActor_Timestamp |
 | `Constants_Internal` | `Constants_Internal` | ActivityPubNetwork |
-| `Fedi_Rest` | `Fedi_Rest` | ActivityPubNote |
 | `Mastodon_Rest` | `Mastodon_Rest` | ActivityPubNote |
-| `Fedi_Rest` | `Fedi_Rest` | ActivityPubNote_Timestamp |
 | `Mastodon_Rest` | `Mastodon_Rest` | ActivityPubNote_Timestamp |
 | `Algod_Rest` | `Algod_Rest` | AlgorandAccount |
 | `AlgorandIndexer_Rest` | `AlgorandIndexer_Rest` | AlgorandAccount |
@@ -3403,7 +3396,6 @@ export enum SourceBinding {
 | `Esplora` | Esplora |
 | `EthForks` | EthForks |
 | `Farcaster` | Farcaster |
-| `Fedi` | Fedi |
 | `FedimintClient` | FedimintClient |
 | `FedimintGatewayd` | FedimintGatewayd |
 | `FilecoinFips` | FilecoinFips |
@@ -3688,7 +3680,6 @@ export enum SourceBinding {
 | `Esplora_Rest` | `Esplora` | Esplora_Rest |
 | `EthForks_Rest` | `EthForks` | EthForks_Rest |
 | `Farcaster_Rest` | `Farcaster` | Farcaster_Rest |
-| `Fedi_Rest` | `Fedi` | Fedi_Rest |
 | `FedimintClient_Rpc` | `FedimintClient` | FedimintClient_Rpc |
 | `FedimintGatewayd_Rest` | `FedimintGatewayd` | FedimintGatewayd_Rest |
 | `FilecoinFips_Github` | `FilecoinFips` | FilecoinFips_Github |
@@ -4028,7 +4019,6 @@ export enum SourceBinding {
 | `EthereumSpecs_Github` | `EthereumSpecs` | GitRepository:ethereum/* | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
 | `Etherscan_Rest` | `Etherscan` | Global:etherscan-v2 | HttpRest | EtherscanModuleAction | HttpProxy | EtherscanAccountModule, EtherscanContractModule, EvmRpcCore | 1 | 1 |
 | `Farcaster_Rest` | `Farcaster` | Global:client-api | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 3 |
-| `Fedi_Rest` | `Fedi` | Global:fosstodon | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
 | `FedimintClient_Rpc` | `FedimintClient` | LocalDevice:configured-fedimint-client | JsonRpc2 | JsonRpcApi | LocalOnly | GenericRead | 0 | 1 |
 | `FedimintGatewayd_Rest` | `FedimintGatewayd` | LocalDevice:configured-fedimint-gatewayd | HttpRest | FedimintGatewaydApi | ServerOnly | GenericRead | 0 | 1 |
 | `FilecoinFips_Github` | `FilecoinFips` | GitRepository:filecoin-project/FIPs@master:FIPS | HttpRest | GithubContentsApi | BrowserDirect | GithubRepositoryContents | 0 | 2 |
@@ -4094,7 +4084,7 @@ export enum SourceBinding {
 | `Magic_HederaWalletApi` | `Magic` | LocalDevice:magic-hedera | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
 | `MagnetUri_Uri` | `MagnetUri` | TorrentSwarm:magnet-uri | Uri | UriScheme | BrowserDirect | BitTorrentDhtLookup | 0 | 1 |
 | `Martian_WalletApi` | `Martian` | LocalDevice:martian | WalletProvider | WalletApi | BrowserDirect | WalletAccountRead, WalletSign | 0 | 1 |
-| `Mastodon_Rest` | `Mastodon` | Global:mastodon-social | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 1 |
+| `Mastodon_Rest` | `Mastodon` | Global:mastodon-compatible-activitypub | HttpRest | RestJson | HttpProxy | GenericRead | 1 | 2 |
 | `McpConfigured_Protocol` | `Mcp` | LocalDevice:mcp-configured | JsonRpc2 | McpProtocol | LocalOnly | AgentCapabilityCatalog, AgentRuntimeInvocation | 0 | 1 |
 | `McpPackageRegistry_Rest` | `Mcp` | Global:mcp-package-registry | HttpRest | RestJson | RemoteQuery | AgentCapabilityCatalog, AiArtifactCatalog, RepositoryMetadata | 0 | 1 |
 | `MempoolSpace_Rest` | `MempoolSpace` | Caip2Network:bip122:000000000019d6689c085ae165831e93 | HttpRest | RestJson | BrowserDirect | GenericRead | 0 | 1 |
@@ -4389,7 +4379,6 @@ export enum SourceBinding {
 | `EthereumLists_Rest` | HandwrittenTypes | `src/sources/EthereumLists/Rest/types.ts` | no |
 | `Etherscan_Rest` | HandwrittenTypes | `src/sources/Etherscan/Rest/types.ts` | no |
 | `Farcaster_Rest` | HandwrittenTypes | `src/sources/Farcaster/Rest/types.ts` | no |
-| `Fedi_Rest` | HandwrittenTypes | `src/sources/Mastodon/Rest/types.ts` | no |
 | `Filfox_Rest` | HandwrittenTypes | `src/sources/Filfox/Rest/types.ts` | no |
 | `X_FxEmbed_Rest` | HandwrittenTypes | `src/sources/FxEmbed/Rest/types.ts` | no |
 | `HederaSdk_Grpc` | Proto | `src/sources/HederaSdk/Grpc/proto` | no |

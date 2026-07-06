@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.accountAddress ?? prefetched.accountAddress) ?? '')].filter(Boolean).join(' ') || 'blockhead quilibrium account state')
 	const viewDomId = $derived('blockhead-quilibrium-account-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -191,7 +193,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -208,7 +210,7 @@
 								<QuilibriumAccountView
 									selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
 									prefetched={quilibriumAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

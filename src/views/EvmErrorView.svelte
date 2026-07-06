@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -50,10 +50,11 @@
 	}))
 	const titleFallback = $derived('EVM error')
 	const viewDomId = $derived('evm-error-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EvmError_TimestampsView from '$/views/EvmError_TimestampsView.svelte'
 </script>
 
 
@@ -153,16 +154,5 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<EvmError_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.EvmError_Timestamp>('$$timestamps')}
-				title='Observations'
-				emptyText='No Openchain observations for this error.'
-				id='EvmError_TimestampsView-$$timestamps'
-			/>
-		{/if}
 	{/snippet}
 </EntityView>

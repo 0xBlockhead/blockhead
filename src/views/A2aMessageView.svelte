@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.messageId ?? prefetched.messageId) ?? '')].filter(Boolean).join(' ') || 'A2A message')
 	const viewDomId = $derived('a2a-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -127,7 +129,7 @@
 				<dd>
 					<A2aTaskView
 						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

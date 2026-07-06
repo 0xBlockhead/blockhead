@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.orderId) ?? '')].filter(Boolean).join(' ') || 'blockhead intent order')
 	const viewDomId = $derived('blockhead-intent-order-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -228,7 +230,7 @@
 								<BlockheadIntentQuoteView
 									selection={select(EntityType.BlockheadIntentQuote, blockheadIntentQuote[EntityMetaKey.Selector])}
 									prefetched={blockheadIntentQuote}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -248,7 +250,7 @@
 								<BlockheadSessionActionView
 									selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
 									prefetched={blockheadSessionAction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

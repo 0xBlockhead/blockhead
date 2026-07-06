@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [prefetched.caip2 == null ? '' : String((`${(prefetched.caip2).namespace}:${(prefetched.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'EVM network')
 	const viewDomId = $derived('evm-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -237,9 +239,9 @@
 										})
 									}
 									href={
-										(({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2 !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2.namespace !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2 !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2.reference !== undefined && ({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
-											caip2: `${String(({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2.namespace ?? '')}:${String(({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).$network.caip2.reference ?? '')}`,
-											upgradeSlug: String(({ ...ethereumNetworkUpgrade[EntityMetaKey.Selector], ...ethereumNetworkUpgrade }).slug ?? ''),
+										(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2 !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2.reference !== undefined && ethereumNetworkUpgrade[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/upgrade/[upgradeSlug]', {
+											caip2: `${String(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(ethereumNetworkUpgrade[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											upgradeSlug: String(ethereumNetworkUpgrade[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									prefetched={{ ...ethereumNetworkUpgradeSelector, ...ethereumNetworkUpgrade }}
@@ -282,9 +284,9 @@
 										})
 									}
 									href={
-										(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-											caip2: `${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace ?? '')}:${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference ?? '')}`,
-											blockNumber: String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber ?? ''),
+										(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+											caip2: `${String(evmBlock[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmBlock[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
 										}) : undefined)
 									}
 									prefetched={{ ...evmBlockSelector, ...evmBlock }}
@@ -338,9 +340,9 @@
 													})
 												}
 												href={
-													(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2 !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference !== undefined && ({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
-														caip2: `${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.namespace ?? '')}:${String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).$network.caip2.reference ?? '')}`,
-														epoch: String(({ ...beaconEpoch[EntityMetaKey.Selector], ...beaconEpoch }).epoch ?? ''),
+													(beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconEpoch[EntityMetaKey.Selector].$network !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconEpoch[EntityMetaKey.Selector].epoch !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epoch/[epoch=nonNegativeInteger]', {
+														caip2: `${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconEpoch[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+														epoch: String(beaconEpoch[EntityMetaKey.Selector].epoch ?? ''),
 													}) : undefined)
 												}
 												prefetched={{ ...beaconEpochSelector, ...beaconEpoch }}
@@ -397,9 +399,9 @@
 													})
 												}
 												href={
-													(({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2 !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2.namespace !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2 !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2.reference !== undefined && ({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).slot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]', {
-														caip2: `${String(({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2.namespace ?? '')}:${String(({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).$network.caip2.reference ?? '')}`,
-														slot: String(({ ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }).slot ?? ''),
+													(beaconSlot[EntityMetaKey.Selector].$network !== undefined && beaconSlot[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconSlot[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconSlot[EntityMetaKey.Selector].$network !== undefined && beaconSlot[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconSlot[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconSlot[EntityMetaKey.Selector].slot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]', {
+														caip2: `${String(beaconSlot[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconSlot[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+														slot: String(beaconSlot[EntityMetaKey.Selector].slot ?? ''),
 													}) : undefined)
 												}
 												prefetched={{ ...beaconSlotSelector, ...beaconSlot }}
@@ -503,12 +505,12 @@
 										selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 										prefetched={evmCoinInstance}
 										href={
-											(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2 !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? true : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
-												chainId: String(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference ?? ''),
-												coinInstanceSlug: String((({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? 'native' : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address)),
+											(evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? true : evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+												chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+												coinInstanceSlug: String((evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? 'native' : evmCoinInstance[EntityMetaKey.Selector].$contract.address)),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -531,13 +533,13 @@
 										selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 										prefetched={network}
 										href={
-											(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-												caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
-											}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-												networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
+											(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+												caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+											}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -560,13 +562,13 @@
 										selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 										prefetched={network}
 										href={
-											(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-												caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
-											}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-												networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
+											(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+												caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+											}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -810,9 +812,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blocks', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blocks', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -832,9 +834,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/transactions', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/transactions', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -854,9 +856,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mempool', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mempool', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -876,9 +878,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/fee-market', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/fee-market', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -899,9 +901,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/gas-estimates', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/gas-estimates', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -923,9 +925,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rpc-urls', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rpc-urls', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1056,9 +1058,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/finality', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/finality', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1078,9 +1080,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/committees', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/committees', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1100,9 +1102,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/sync-committees', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/sync-committees', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1122,9 +1124,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/attestations', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/attestations', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1144,9 +1146,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/withdrawals', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/withdrawals', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1166,9 +1168,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slashings', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slashings', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1188,9 +1190,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validators', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validators', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1210,9 +1212,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epochs', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/epochs', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1232,9 +1234,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slots', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slots', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1254,9 +1256,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relays', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relays', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1276,9 +1278,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builders', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builders', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1298,9 +1300,9 @@
 										})
 									}
 									href={
-										resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/payloads', {
+										(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/payloads', {
 											caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-										})
+										}) : undefined)
 									}
 									CollapsibleProps={{ canToggle: false }}
 									open={open}
@@ -1395,9 +1397,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blobs', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/blobs', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1514,9 +1516,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-accounts', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/smart-accounts', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1536,9 +1538,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundlers', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundlers', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1558,9 +1560,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymasters', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymasters', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1580,9 +1582,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/user-operations', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/user-operations', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1602,9 +1604,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factories', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factories', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1678,8 +1680,8 @@
 									selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
 									prefetched={coin}
 									href={
-										(({ ...coin[EntityMetaKey.Selector], ...coin }).coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
-											coinId: String(({ ...coin[EntityMetaKey.Selector], ...coin }).coinId ?? ''),
+										(coin[EntityMetaKey.Selector].coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
+											coinId: String(coin[EntityMetaKey.Selector].coinId ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -1711,9 +1713,9 @@
 									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
 									prefetched={evmCoinInstance}
 									href={
-										(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2 !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type !== undefined && (({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? true : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract !== undefined && ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
-											chainId: String(({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$network.caip2.reference ?? ''),
-											coinInstanceSlug: String((({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).type === 'NativeCurrency' ? 'native' : ({ ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }).$contract.address)),
+										(evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? true : evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
+											chainId: String(evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+											coinInstanceSlug: String((evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? 'native' : evmCoinInstance[EntityMetaKey.Selector].$contract.address)),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -1757,9 +1759,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/bridges', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/bridges', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1779,9 +1781,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-20-transfers', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-20-transfers', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1801,9 +1803,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/nft-transfers', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/nft-transfers', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1852,9 +1854,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/faucets', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/faucets', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No faucet URLs listed for this network yet.'
@@ -1876,9 +1878,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/block-explorers', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/block-explorers', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No block explorer URLs listed for this network yet.'
@@ -1952,9 +1954,9 @@
 							})
 						}
 						href={
-							resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/upgrades', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/upgrades', {
 								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -1983,10 +1985,10 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
-										}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Summary}
@@ -2015,9 +2017,9 @@
 									selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector])}
 									prefetched={evmRollup}
 									href={
-										(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2 !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.namespace !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2 !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.reference !== undefined && ({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
-											caip2: `${String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.namespace ?? '')}:${String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).$network.caip2.reference ?? '')}`,
-											projectId: String(({ ...evmRollup[EntityMetaKey.Selector], ...evmRollup }).projectId ?? ''),
+										(evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2 !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2 !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmRollup[EntityMetaKey.Selector].projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
+											caip2: `${String(evmRollup[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmRollup[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											projectId: String(evmRollup[EntityMetaKey.Selector].projectId ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Summary}
@@ -2087,10 +2089,10 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
-										}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Summary}

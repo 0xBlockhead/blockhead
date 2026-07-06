@@ -44,6 +44,8 @@
 	const cardanoStakePoolTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Cardano stake pool timestamp')
 	const viewDomId = $derived('cardano-stake-pool-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<CardanoStakePoolView
 						selection={select(EntityType.CardanoStakePool, selection.entitySelector.$pool)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

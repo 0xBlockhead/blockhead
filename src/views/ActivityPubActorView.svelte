@@ -46,7 +46,6 @@
 	const activityPubActor = $derived(selection({
 		sources: [
 			Source.Mastodon_Rest,
-			Source.Fedi_Rest,
 		],
 		fields: {
 			displayName: true,
@@ -58,6 +57,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.displayName) ?? ''), String((prefetched.acct) ?? ''), String((prefetched.username) ?? ''), String((prefetched.localAccountId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub actor')
 	const viewDomId = $derived('activity-pub-actor-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

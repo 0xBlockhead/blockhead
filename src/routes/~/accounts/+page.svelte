@@ -10,7 +10,6 @@
 	import BlockheadBridgeTransactionsView from '$/views/BlockheadBridgeTransactionsView.svelte'
 	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
 	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
-	import LiquidityPositionsView from '$/views/LiquidityPositionsView.svelte'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -38,7 +37,6 @@
 			{ id: 'watched-accounts', label: 'Watched accounts' },
 			{ id: 'balances', label: 'Balances' },
 			{ id: 'allowances', label: 'Allowances' },
-			{ id: 'positions', label: 'Positions' },
 			{ id: 'transactions', label: 'Transactions' },
 		]}
 		data-card
@@ -94,15 +92,6 @@
 			<p data-text='muted'>
 				Check ERC-20 allowances from known owner, token, and spender addresses.
 			</p>
-		{/snippet}
-
-		{#snippet SectionPositions()}
-			<LiquidityPositionsView
-				href={resolve('/~/accounts/positions')}
-				selection={select(EntityType._Global, { scope: '$$liquidityPositions' })[EntityProxyField]<EntityType.LiquidityPosition>('$$liquidityPositions')}
-				id='positions'
-				open={true}
-			/>
 		{/snippet}
 
 		{#snippet SectionTransactions()}

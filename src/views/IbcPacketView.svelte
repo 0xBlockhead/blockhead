@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '') ? 'Packet #' + String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '') : '') || 'IBC packet')
 	const viewDomId = $derived('ibc-packet-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -686,7 +688,7 @@
 				<dd>
 					<IbcChannelView
 						selection={select(EntityType.IbcChannel, selection.entitySelector.$channel)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

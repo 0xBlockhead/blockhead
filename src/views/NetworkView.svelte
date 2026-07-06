@@ -61,6 +61,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [prefetched.caip2 == null ? '' : String((`${(prefetched.caip2).namespace}:${(prefetched.caip2).reference}`) ?? '')].filter(Boolean).join(' ') || 'Network')
 	const viewDomId = $derived('network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -227,7 +229,7 @@
 								<NetworkStackView
 									selection={select(EntityType.NetworkStack, networkStack[EntityMetaKey.Selector])}
 									prefetched={networkStack}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -305,16 +307,29 @@
 
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
-			<Network_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.Network_Timestamp>('$$timestamps')}
-				title='Observations'
-				href={
-						resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/observations', {
-							caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
+			<ResourceBoundary
+				resource={
+						selection({
+							fields: {
+								caip2: true,
+							},
 						})
 					}
-				id='Network_TimestampsView-$$timestamps'
-			/>
+			>
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					<Network_TimestampsView
+						selection={selection[EntityProxyField]<EntityType.Network_Timestamp>('$$timestamps')}
+						title='Observations'
+						href={
+								(entity.caip2 !== undefined && entity.caip2.namespace !== undefined && entity.caip2 !== undefined && entity.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/observations', {
+									caip2: `${String(entity.caip2.namespace ?? '')}:${String(entity.caip2.reference ?? '')}`,
+								}) : undefined)
+							}
+						id='Network_TimestampsView-$$timestamps'
+					/>
+				{/snippet}
+			</ResourceBoundary>
 
 			<AssetInstancesView
 				selection={selection[EntityProxyField]<EntityType.AssetInstance>('$$nativeAssets')}

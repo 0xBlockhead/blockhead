@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '')].filter(Boolean).join(' ') || 'liquidity pool block')
 	const viewDomId = $derived('liquidity-pool-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -164,7 +166,7 @@
 								poolId: String(selection.entitySelector.$liquidityPool.id ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -218,12 +220,12 @@
 									selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
 									prefetched={liquidityPool}
 									href={
-										(({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).$network !== undefined && ({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).$network.caip2 !== undefined && ({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).$network.caip2.reference !== undefined && ({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
-											chainId: String(({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).$network.caip2.reference ?? ''),
-											poolId: String(({ ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }).id ?? ''),
+										(liquidityPool[EntityMetaKey.Selector].$network !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2 !== undefined && liquidityPool[EntityMetaKey.Selector].$network.caip2.reference !== undefined && liquidityPool[EntityMetaKey.Selector].id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
+											chainId: String(liquidityPool[EntityMetaKey.Selector].$network.caip2.reference ?? ''),
+											poolId: String(liquidityPool[EntityMetaKey.Selector].id ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

@@ -44,6 +44,8 @@
 	const stellarOfferTimestamp = $derived(selection({}))
 	const titleFallback = $derived('stellar offer timestamp')
 	const viewDomId = $derived('stellar-offer-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StellarOfferView from '$/views/StellarOfferView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<StellarOfferView
 						selection={select(EntityType.StellarOffer, selection.entitySelector.$offer)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

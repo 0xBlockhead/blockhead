@@ -46,6 +46,8 @@
 	}))
 	const titleFallback = $derived('Reddit')
 	const viewDomId = $derived('-global-reddit-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RedditSubredditsView from '$/views/RedditSubredditsView.svelte'

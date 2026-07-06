@@ -44,6 +44,8 @@
 	const hederaContractStateTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hedera contract state timestamp')
 	const viewDomId = $derived('hedera-contract-state-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HederaContractView from '$/views/HederaContractView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HederaContractView
 						selection={select(EntityType.HederaContract, selection.entitySelector.$contract)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

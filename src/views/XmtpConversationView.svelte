@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.topic) ?? ''), String((prefetched.peerInboxId) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'XMTP conversation')
 	const viewDomId = $derived('xmtp-conversation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'

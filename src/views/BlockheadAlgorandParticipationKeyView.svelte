@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.participationId ?? prefetched.participationId) ?? '')].filter(Boolean).join(' ') || 'blockhead algorand participation key')
 	const viewDomId = $derived('blockhead-algorand-participation-key-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -194,7 +196,7 @@
 								<AlgorandAccountView
 									selection={select(EntityType.AlgorandAccount, algorandAccount[EntityMetaKey.Selector])}
 									prefetched={algorandAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -214,7 +216,7 @@
 								<AlgorandNetworkView
 									selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector])}
 									prefetched={algorandNetwork}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

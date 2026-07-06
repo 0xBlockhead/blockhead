@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.taskId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.providerTaskId) ?? '')].filter(Boolean).join(' ') || 'A2A task')
 	const viewDomId = $derived('a2a-task-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -172,7 +174,7 @@
 								<A2aAgentServiceView
 									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
 									prefetched={a2aAgentService}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

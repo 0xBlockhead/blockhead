@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.agentId ?? prefetched.agentId) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 agent registration')
 	const viewDomId = $derived('eip8004agent-registration-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -256,13 +258,13 @@
 									selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector])}
 									prefetched={evmNft}
 									href={
-										(({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).$contract !== undefined && ({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).$contract.$network !== undefined && ({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).$contract.$network.caip2 !== undefined && ({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).$contract.$network.caip2.reference !== undefined && ({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).$contract !== undefined && ({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).$contract.address !== undefined && ({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).tokenId !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {
-											chainId: String(({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).$contract.$network.caip2.reference ?? ''),
-											contractAddress: String(({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).$contract.address ?? ''),
-											tokenId: String(({ ...evmNft[EntityMetaKey.Selector], ...evmNft }).tokenId ?? ''),
+										(evmNft[EntityMetaKey.Selector].$contract !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network.caip2 !== undefined && evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference !== undefined && evmNft[EntityMetaKey.Selector].$contract !== undefined && evmNft[EntityMetaKey.Selector].$contract.address !== undefined && evmNft[EntityMetaKey.Selector].tokenId !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {
+											chainId: String(evmNft[EntityMetaKey.Selector].$contract.$network.caip2.reference ?? ''),
+											contractAddress: String(evmNft[EntityMetaKey.Selector].$contract.address ?? ''),
+											tokenId: String(evmNft[EntityMetaKey.Selector].tokenId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

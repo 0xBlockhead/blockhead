@@ -1,5 +1,7 @@
+import { execFile } from 'node:child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { promisify } from 'node:util'
 
 import { parse as parseSvelte } from 'svelte/compiler'
 import ts from 'typescript'
@@ -63,12 +65,12 @@ type GeneratedFile =
 			path: string
 			kind: 'ts'
 			ast: TsFileAst
-	  }
+		}
 	| {
 			path: string
 			kind: 'svelte'
 			ast: SvelteFileAst
-	  }
+		}
 type RouteEntry = {
 	routePath: string
 	files: RouteFile[]
@@ -139,6 +141,7 @@ type SourceDefinitionModule = {
 }
 
 const repoRoot = process.cwd()
+const execFileAsync = promisify(execFile)
 const generatedRoot = path.join(repoRoot, 'src')
 const routeRoot = path.join(generatedRoot, 'routes')
 const protectedRouteFiles = new Set([
@@ -314,6 +317,11 @@ const localIdentifier = (name: string) => {
 	return javascriptReservedWords.has(identifier) ? `${identifier}Value` : identifier
 }
 
+const appOrderCompare = (left: string, right: string) => left.localeCompare(right, 'en', {
+	sensitivity: 'base',
+	numeric: true,
+})
+
 const singularComponentName = (entityType: string) => `${entityType}View`
 
 const pluralComponentName = (entity: Entity) => {
@@ -324,6 +332,42 @@ const pluralComponentName = (entity: Entity) => {
 }
 
 const componentIdentifier = (componentName: string) => componentName.replace(/^_+/, '')
+
+const generatedModuleName = (name: string) => name
+
+const schemaModulePath = (entityType: string) => `$/schema/${generatedModuleName(entityType)}.ts`
+
+const viewModulePath = (componentName: string) => `$/views/${generatedModuleName(componentName)}.svelte`
+
+const generatedImportFrom = (from: string) => {
+	const schemaMatch = from.match(/^\$\/schema\/([^/]+)\.ts$/)
+	if (schemaMatch?.[1] != null)
+		return schemaModulePath(schemaMatch[1])
+
+	const viewMatch = from.match(/^\$\/views\/([^/]+)\.svelte$/)
+	if (viewMatch?.[1] != null)
+		return viewModulePath(viewMatch[1])
+
+	return from
+}
+
+const generatedImportSpecFrom = (spec: Pick<
+	ImportSpec,
+	| 'defaultName'
+	| 'from'
+	| 'names'
+	| 'typeNames'
+>) => {
+	const schemaMatch = spec.from.match(/^\$\/schema\/([^/]+)\.ts$/)
+	if (schemaMatch?.[1] != null && [
+		spec.defaultName,
+		...(spec.names ?? []),
+		...(spec.typeNames ?? []),
+	].some((name) => name?.startsWith(`_${schemaMatch[1]}`)))
+		return schemaModulePath(`_${schemaMatch[1]}`)
+
+	return generatedImportFrom(spec.from)
+}
 
 const pluralViewName = (entity: Entity) => componentIdentifier(pluralComponentName(entity)).replace(/View$/, '')
 
@@ -484,7 +528,7 @@ const renderImport = (spec: ImportSpec) => {
 			ts.factory.createImportDeclaration(
 				undefined,
 				importClause,
-				ts.factory.createStringLiteral(spec.from, true)
+				ts.factory.createStringLiteral(generatedImportSpecFrom(spec), true)
 			),
 			ts.createSourceFile('generated.ts', '', ts.ScriptTarget.ESNext)
 		)
@@ -494,10 +538,12 @@ const renderImport = (spec: ImportSpec) => {
 const mergeImports = (imports: readonly ImportSpec[]) => {
 	const merged = new Map<string, ImportSpec>()
 	for (const spec of imports) {
-		const existing = merged.get(spec.from)
+		const from = generatedImportSpecFrom(spec)
+		const existing = merged.get(from)
 		if (existing == null) {
-			merged.set(spec.from, {
+			merged.set(from, {
 				...spec,
+				from,
 				names: unique(spec.names ?? []).sort(),
 				typeNames: unique(spec.typeNames ?? []).sort(),
 			})
@@ -579,14 +625,18 @@ const dedupeScriptImports = (script: readonly string[]) => {
 			continue
 		}
 
-		const key = importSpec.from
+		const key = generatedImportSpecFrom(importSpec)
 		const existing = imports.get(key)
 		if (existing == null) {
+			const normalizedImportSpec = {
+				...importSpec,
+				from: key,
+			}
 			imports.set(key, {
 				index: output.length,
-				importSpec,
+				importSpec: normalizedImportSpec,
 			})
-			output.push(renderImport(importSpec))
+			output.push(renderImport(normalizedImportSpec))
 			continue
 		}
 
@@ -804,7 +854,12 @@ const renderGeneratedValue = (value: unknown): string => {
 
 const renderImportObject = (imports: readonly _Import[] | undefined): ImportSpec[] => (imports ?? [])
 	.map((importSpec) => ({
-		from: importSpec.from,
+		from: generatedImportSpecFrom({
+			from: importSpec.from,
+			defaultName: importSpec.default,
+			names: importSpec.names,
+			typeNames: importSpec.typeNames,
+		}),
 		defaultName: importSpec.default,
 		names: importSpec.names,
 		typeNames: importSpec.typeNames,
@@ -1632,6 +1687,7 @@ const deriveFiles = (
 	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[],
 	sourceDefinitionModules: readonly SourceDefinitionModule[]
 ): GeneratedFile[] => {
+	const relationshipListViews = namedRelationshipListViews(indexes)
 	const files = [
 		renderEntityTypeFile(indexes.entityTypes),
 		...indexes.activeEntities.map((entity) => renderEntitySchemaFile(entity, indexes)),
@@ -1650,7 +1706,7 @@ const deriveFiles = (
 			renderSingularViewFile(entity, indexes),
 			renderPluralViewFile(entity, indexes),
 		]),
-		...namedRelationshipListViews(indexes).map((view) => renderNamedRelationshipListViewFile(view)),
+		...relationshipListViews.map((view) => renderNamedRelationshipListViewFile(view)),
 		renderViewsIndexFile(indexes.activeEntities),
 		...indexes.routeEntries.flatMap((entry) => renderRouteFiles(entry, indexes)),
 	]
@@ -1714,7 +1770,7 @@ const renderEntitySchemaFile = (entity: Entity, indexes: AppIndexes) => {
 		:
 			renderImportObject(indexes.valueTypeById.get(field.valueType)?.imports)
 				.filter((importSpec) => (
-					importSpec.from !== `$/schema/${entity.entityType}.ts`
+					importSpec.from !== schemaModulePath(entity.entityType)
 					|| [
 						...(importSpec.names ?? []),
 						...(importSpec.typeNames ?? []),
@@ -1775,7 +1831,7 @@ const renderEntitySchemaFile = (entity: Entity, indexes: AppIndexes) => {
 	]
 
 	return tsFile(
-		`src/schema/${entity.entityType}.ts`,
+		schemaModulePath(entity.entityType).replace(/^\$\//, 'src/'),
 		{
 			imports,
 			body,
@@ -1823,7 +1879,7 @@ const renderSchemaField = (fieldDefinition: EntityField, indexes: AppIndexes) =>
 
 	return [
 		'{',
-		...renderObject(entries).split('\n').slice(1, -1).map((line) => indent(line)),
+		...renderObject(entries).split('\n').slice(1, -1),
 		'},',
 	]
 }
@@ -1864,7 +1920,7 @@ const renderSchemaIndexFile = (indexes: AppIndexes) => {
 					],
 				},
 				...entityTypes.map((entityType) => ({
-					from: `$/schema/${entityType}.ts`,
+					from: schemaModulePath(entityType),
 					defaultName: `${entityType}Schema`,
 				})),
 			],
@@ -2059,12 +2115,14 @@ const renderSourceDefinitionFile = (module: SourceDefinitionModule) => tsFile(
 				names: ['SourceProvider'],
 			},
 			{
-				from: '$/sources/index.ts',
-				typeNames: ['SourceDefinition'],
+				from: '$/sources/$sources.ts',
+				typeNames: ['SourceDefinition as SourceDefinitionTemplate'],
 			},
 		],
 		body: [
-			`export default ${renderSourceDefinition(module)} satisfies SourceDefinition`,
+			`const ${module.importName} = ${renderSourceDefinition(module)} satisfies SourceDefinitionTemplate<SourceProvider, Source>`,
+			'',
+			`export default ${module.importName}`,
 		],
 	}
 )
@@ -2432,8 +2490,7 @@ const fieldNeedsExplicitDisplayExpression = (indexes: AppIndexes, fieldDefinitio
 }
 
 const textExpression = (valueExpression: string) => {
-	const value = `(${valueExpression})`
-	return `String(${value} ?? '')`
+	return `String((${valueExpression}) ?? '')`
 }
 
 const renderDisplayExpression = (entity: Entity, indexes: AppIndexes, fieldName: string, valueExpression: string) => {
@@ -2698,7 +2755,7 @@ const renderJoinedItemsExpression = (
 	return `[${expressions.join(', ')}].filter(Boolean).join(${q(separator)})`
 }
 
-const renderFallbackExpression = (expressions: readonly (string | undefined)[]) => {
+const renderFirstDeclaredExpression = (expressions: readonly (string | undefined)[]) => {
 	const filtered = unique(expressions.filter((expression): expression is string => expression != null && expression !== 'undefined'))
 	return filtered.length === 0 ? 'undefined' : filtered.join(' || ')
 }
@@ -2794,7 +2851,7 @@ const viewUsesFormat = (entity: Entity, indexes: AppIndexes, formats: readonly s
 		&& formats.includes(entity.singularView.details.body.format)
 	)
 
-const summaryTitleItems = (entity: Entity) => {
+const declaredSummaryTitleEntries = (entity: Entity) => {
 	const configured = entity.singularView?.summary?.title
 	if (configured != null)
 		return viewItems(configured)
@@ -2802,13 +2859,13 @@ const summaryTitleItems = (entity: Entity) => {
 	return []
 }
 
-const summaryValueItems = (entity: Entity) => viewItems(entity.singularView?.summary?.value)
+const declaredSummaryValueEntries = (entity: Entity) => viewItems(entity.singularView?.summary?.value)
 
 const summaryVisualFieldNames = (entity: Entity) => new Set([
 	...viewItems(entity.singularView?.summary?.icon).flatMap((viewEntry) => itemFieldName(viewEntry)),
-	...summaryTitleItems(entity).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...declaredSummaryTitleEntries(entity).flatMap((viewEntry) => itemFieldName(viewEntry)),
 	...viewItems(entity.singularView?.summary?.titleFallback).flatMap((viewEntry) => itemFieldName(viewEntry)),
-	...summaryValueItems(entity).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...declaredSummaryValueEntries(entity).flatMap((viewEntry) => itemFieldName(viewEntry)),
 	...viewItems(entity.singularView?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldName(viewEntry)),
 ])
 
@@ -2876,7 +2933,7 @@ const contentDlGroups = (entity: Entity, indexes: AppIndexes) => {
 
 const contentBlocks = (entity: Entity) => entity.singularView?.content?.blocks ?? []
 
-const relationshipSections = (entity: Entity) => {
+const declaredRelationshipViewSections = (entity: Entity) => {
 	const configuredSections: RelationshipSection[] = [
 		...(entity.singularView?.lists ?? []).flatMap((list) => (
 			list.field == null ?
@@ -2900,7 +2957,7 @@ const relationshipSections = (entity: Entity) => {
 	return configuredSections
 }
 
-const relationshipSectionComponent = (section: RelationshipSection, indexes: AppIndexes) => {
+const declaredRelationshipSectionComponent = (section: RelationshipSection, indexes: AppIndexes) => {
 	if (section.component != null && indexes.generatedComponents.has(section.component))
 		return section.component
 
@@ -2921,7 +2978,7 @@ const renderSerialTextExpression = (
 ) => {
 	const fallbackExpression = renderJoinedItemsExpression(entity, indexes, viewItems(serial.fallback), entityFieldsExpression)
 	const serialExpression = textExpression(viewFieldExpression(entity, entityFieldsExpression, serial.field))
-	return renderFallbackExpression([
+	return renderFirstDeclaredExpression([
 		`(${serialExpression} ? ${q(`${serial.label} #`)} + ${serialExpression} : '')`,
 		fallbackExpression,
 	])
@@ -3027,8 +3084,8 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	const rendersSerialValue = (
 		serial != null
 		&& (
-			summaryValueItems(entity).length === 0
-			|| summaryValueItems(entity).every((viewEntry) => itemFieldName(viewEntry)[0] === serial.field)
+			declaredSummaryValueEntries(entity).length === 0
+			|| declaredSummaryValueEntries(entity).every((viewEntry) => itemFieldName(viewEntry)[0] === serial.field)
 		)
 	)
 	const selectorFieldNames = entitySelectorFieldNames(entity)
@@ -3041,9 +3098,9 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		...viewItems(entity.singularView?.summary?.titleFallback).flatMap((viewEntry) => itemFieldName(viewEntry)),
 		...viewItems(entity.singularView?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldName(viewEntry)),
 	]).filter((fieldName) => fieldDefinitionByName(entity, fieldName) != null && !selectorFieldNames.has(fieldName))
-		const sections = relationshipSections(entity)
+		const sections = declaredRelationshipViewSections(entity)
 	const detailsTabs = entity.singularView?.details?.tabs ?? []
-	const summaryTitleEntityReferenceItems = (rendersSerialTitle ? [] : summaryTitleItems(entity)).flatMap((viewEntry) => {
+	const summaryTitleEntityReferenceItems = (rendersSerialTitle ? [] : declaredSummaryTitleEntries(entity)).flatMap((viewEntry) => {
 		const fieldName = itemFieldName(viewEntry)[0]
 		const fieldDefinition = fieldName == null ? undefined : fieldDefinitionByName(entity, fieldName)
 		return fieldDefinition?.type === EntityFieldType.EntityReference && fieldDefinition.entityType != null ?
@@ -3051,7 +3108,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		:
 			[]
 	})
-	const summaryValueEntityReferenceItems = (rendersSerialValue ? [] : summaryValueItems(entity)).flatMap((viewEntry) => {
+	const summaryValueEntityReferenceItems = (rendersSerialValue ? [] : declaredSummaryValueEntries(entity)).flatMap((viewEntry) => {
 		const fieldName = itemFieldName(viewEntry)[0]
 		const fieldDefinition = fieldName == null ? undefined : fieldDefinitionByName(entity, fieldName)
 		return fieldDefinition?.type === EntityFieldType.EntityReference && fieldDefinition.entityType != null ?
@@ -3082,8 +3139,8 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 			)
 		)
 	)
-	const summaryTitleNeedsMarkup = summaryItemsNeedMarkup(summaryTitleItems(entity))
-	const summaryValueNeedsMarkup = summaryItemsNeedMarkup(summaryValueItems(entity))
+	const summaryTitleNeedsMarkup = summaryItemsNeedMarkup(declaredSummaryTitleEntries(entity))
+	const summaryValueNeedsMarkup = summaryItemsNeedMarkup(declaredSummaryValueEntries(entity))
 	const summaryIconFieldName = itemFieldName(entity.singularView?.summary?.icon ?? '')[0]
 	const summaryIconFieldDefinition = summaryIconFieldName == null ? undefined : fieldDefinitionByName(entity, summaryIconFieldName)
 	const summaryIconEntityReferenceComponent = (
@@ -3148,7 +3205,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	)
 	const sectionComponents = unique([...sections, ...detailsTabSections].flatMap((section) => {
 		const fieldDefinition = fieldDefinitionByName(entity, section.field)
-			const component = fieldDefinition == null ? undefined : relationshipSectionComponent(section, indexes)
+			const component = fieldDefinition == null ? undefined : declaredRelationshipSectionComponent(section, indexes)
 		return component == null ? [] : [component]
 	}).concat(
 		entityReferenceItems.flatMap((entityType) => {
@@ -3238,22 +3295,22 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		&& !Array.isArray(sourceSelection)
 		&& sourceSelection.name != null
 	)))
-	const titleExpression = renderJoinedItemsExpression(entity, indexes, summaryTitleItems(entity), resolvedEntityExpression)
-	const valueExpression = renderJoinedItemsExpression(entity, indexes, summaryValueItems(entity), resolvedEntityExpression)
-	const pendingTitleExpression = renderJoinedItemsExpression(entity, indexes, summaryTitleItems(entity), pendingEntityExpression)
-	const pendingValueExpression = renderJoinedItemsExpression(entity, indexes, summaryValueItems(entity), pendingEntityExpression)
+	const titleExpression = renderJoinedItemsExpression(entity, indexes, declaredSummaryTitleEntries(entity), resolvedEntityExpression)
+	const valueExpression = renderJoinedItemsExpression(entity, indexes, declaredSummaryValueEntries(entity), resolvedEntityExpression)
+	const pendingTitleExpression = renderJoinedItemsExpression(entity, indexes, declaredSummaryTitleEntries(entity), pendingEntityExpression)
+	const pendingValueExpression = renderJoinedItemsExpression(entity, indexes, declaredSummaryValueEntries(entity), pendingEntityExpression)
 	const fallbackTitleExpression = renderJoinedItemsExpression(
 		entity,
 		indexes,
 		viewItems(entity.singularView?.summary?.titleFallback),
 		pendingEntityExpression
 	)
-	const serialFallbackTitleExpression = serial == null ? renderFallbackExpression([pendingTitleExpression, fallbackTitleExpression]) : renderSerialTextExpression(entity, indexes, serial, pendingEntityExpression)
-	const titleFallbackExpression = renderFallbackExpression([serialFallbackTitleExpression, q(displayLabel(entity.label))])
-	const pendingTitleFallbackExpression = renderFallbackExpression([serial == null ? pendingTitleExpression : renderSerialTextExpression(entity, indexes, serial, pendingEntityExpression), 'title', fallbackTitleExpression, q(displayLabel(entity.label))])
-	const entityTitleFallbackExpression = renderFallbackExpression([titleExpression, 'title', 'titleFallback'])
-	const pendingValueFallbackExpression = renderFallbackExpression([pendingValueExpression, pendingTitleExpression, 'title', fallbackTitleExpression, q(displayLabel(entity.label))])
-	const entityValueFallbackExpression = renderFallbackExpression([valueExpression, titleExpression, 'titleFallback'])
+	const serialFallbackTitleExpression = serial == null ? renderFirstDeclaredExpression([pendingTitleExpression, fallbackTitleExpression]) : renderSerialTextExpression(entity, indexes, serial, pendingEntityExpression)
+	const titleFallbackExpression = renderFirstDeclaredExpression([serialFallbackTitleExpression, q(displayLabel(entity.label))])
+	const pendingTitleFallbackExpression = renderFirstDeclaredExpression([serial == null ? pendingTitleExpression : renderSerialTextExpression(entity, indexes, serial, pendingEntityExpression), 'title', fallbackTitleExpression, q(displayLabel(entity.label))])
+	const entityTitleFallbackExpression = renderFirstDeclaredExpression([titleExpression, 'title', 'titleFallback'])
+	const pendingValueFallbackExpression = renderFirstDeclaredExpression([pendingValueExpression, pendingTitleExpression, 'title', fallbackTitleExpression, q(displayLabel(entity.label))])
+	const entityValueFallbackExpression = renderFirstDeclaredExpression([valueExpression, titleExpression, 'titleFallback'])
 	const entityHrefs = indexes.entityHrefsByType.get(entity.entityType) ?? []
 	const entityHrefImports = Array.from(
 		entityHrefs
@@ -3382,7 +3439,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 				const referenceLevel = fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? 7 : 6
 				if (entitySelectorOwnsField(entity, fieldName)) {
 					const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
-					const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, selectorExpression)
+				const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, selectorExpression, selectorExpression)
 
 					return [
 						`${'\t'.repeat(4)}<${componentIdentifier(component)}`,
@@ -3393,7 +3450,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 						`${'\t'.repeat(4)}/>`,
 					]
 				}
-				const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, `${targetEntityName}[EntityMetaKey.Selector]`, `({ ...${targetEntityName}[EntityMetaKey.Selector], ...${targetEntityName} })`)
+			const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, `${targetEntityName}[EntityMetaKey.Selector]`, `${targetEntityName}[EntityMetaKey.Selector]`)
 
 				return [
 					`${'\t'.repeat(4)}<ResourceBoundary`,
@@ -3437,10 +3494,10 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	}
 	const pendingSummaryFieldsExpression = pendingEntityExpression
 	const entitySummaryFieldsExpression = resolvedEntityExpression
-	const pendingSummaryTitleMarkup = summaryTitleNeedsMarkup ? summaryTitleItems(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, pendingSummaryFieldsExpression, pendingSummaryFieldsExpression, 'Title')) : []
-	const entitySummaryTitleMarkup = summaryTitleNeedsMarkup ? summaryTitleItems(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, entitySummaryFieldsExpression, entitySummaryFieldsExpression, 'Title')) : []
-	const pendingSummaryValueMarkup = summaryValueNeedsMarkup ? summaryValueItems(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, pendingSummaryFieldsExpression, pendingSummaryFieldsExpression, 'Value')) : []
-	const entitySummaryValueMarkup = summaryValueNeedsMarkup ? summaryValueItems(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, entitySummaryFieldsExpression, entitySummaryFieldsExpression, 'Value')) : []
+	const pendingSummaryTitleMarkup = summaryTitleNeedsMarkup ? declaredSummaryTitleEntries(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, pendingSummaryFieldsExpression, pendingSummaryFieldsExpression, 'Title')) : []
+	const entitySummaryTitleMarkup = summaryTitleNeedsMarkup ? declaredSummaryTitleEntries(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, entitySummaryFieldsExpression, entitySummaryFieldsExpression, 'Title')) : []
+	const pendingSummaryValueMarkup = summaryValueNeedsMarkup ? declaredSummaryValueEntries(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, pendingSummaryFieldsExpression, pendingSummaryFieldsExpression, 'Value')) : []
+	const entitySummaryValueMarkup = summaryValueNeedsMarkup ? declaredSummaryValueEntries(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, entitySummaryFieldsExpression, entitySummaryFieldsExpression, 'Value')) : []
 	const detailBodyMarkup = renderBodySection(entity, indexes, entity.singularView?.details?.body, 'detailsOpen', 3)
 	const detailsMarkup = [
 		...relationshipMarkup,
@@ -3535,6 +3592,8 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 				.replace(/[_\s]+/g, '-')
 				.toLowerCase()}-`)} + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))`,
 		] : []),
+		'',
+		'',
 		'// Components',
 		...(carouselMarkup.length === 0 && detailTabsMarkup.length === 0 ? [] : ['import CollapsibleTabs from \'$/components/CollapsibleTabs.svelte\'']),
 		...(hasEntityReferenceCarouselSections ? ['import EntitiesList from \'$/components/EntitiesList.svelte\''] : []),
@@ -3581,7 +3640,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		'\t\t</ResourceBoundary>',
 		] : renderRawLines(entity.singularView.summary.Title.raw, 2)),
 		'\t{/snippet}',
-		...(entity.singularView?.summary?.Value == null && !rendersSerialValue && summaryValueItems(entity).length === 0 ? [] : [
+		...(entity.singularView?.summary?.Value == null && !rendersSerialValue && declaredSummaryValueEntries(entity).length === 0 ? [] : [
 			'',
 			'\t{#snippet Value()}',
 			...(entity.singularView?.summary?.Value == null && serial != null && rendersSerialValue ? renderSerialValueSnippet(entity, indexes, serial, selectorOwnsSerial, entityName) : entity.singularView?.summary?.Value == null ? [
@@ -3637,7 +3696,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	]
 
 	return svelteFile(
-		`src/views/${componentName}.svelte`,
+		viewModulePath(componentName).replace(/^\$\//, 'src/'),
 		{
 			script,
 			markup,
@@ -3775,7 +3834,7 @@ const renderSummaryAfterItem = (
 			const referenceLevel = fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? level + 3 : level + 2
 			if (entitySelectorOwnsField(entity, fieldName)) {
 				const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
-				const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, selectorExpression)
+				const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, selectorExpression, selectorExpression)
 
 				return [
 					`${'\t'.repeat(level)}<span data-text="muted">`,
@@ -3788,7 +3847,7 @@ const renderSummaryAfterItem = (
 					`${'\t'.repeat(level)}</span>`,
 				]
 			}
-			const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, `${targetEntityName}[EntityMetaKey.Selector]`, `({ ...${targetEntityName}[EntityMetaKey.Selector], ...${targetEntityName} })`)
+			const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, `${targetEntityName}[EntityMetaKey.Selector]`, `${targetEntityName}[EntityMetaKey.Selector]`)
 
 			return [
 				`${'\t'.repeat(level)}<ResourceBoundary`,
@@ -3940,7 +3999,7 @@ const renderEntityReferenceDlItem = (
 	const component = singularComponentIdentifier(targetEntity.entityType)
 	if (entitySelectorOwnsField(entity, fieldName)) {
 		const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
-		const hrefExpression = renderEntityHrefExpression(indexes, fieldDefinition.entityType, selectorExpression)
+		const hrefExpression = renderEntityHrefExpression(indexes, fieldDefinition.entityType, selectorExpression, selectorExpression)
 
 		return wrapWhen(viewEntry, openExpression, [
 			`${'\t'.repeat(level)}<div>`,
@@ -3951,7 +4010,7 @@ const renderEntityReferenceDlItem = (
 			...(hrefExpression == null ? [] : [
 				renderSvelteAttribute(level + 3, 'href', hrefExpression),
 			]),
-			`${'\t'.repeat(level + 3)}layout={EntityLayout.Title}`,
+			`${'\t'.repeat(level + 3)}layout={EntityLayout.Value}`,
 			`${'\t'.repeat(level + 3)}open={false}`,
 			`${'\t'.repeat(level + 2)}/>`,
 			`${'\t'.repeat(level + 1)}</dd>`,
@@ -3964,7 +4023,7 @@ const renderEntityReferenceDlItem = (
 		indexes,
 		fieldDefinition.entityType,
 		`${targetEntityName}[EntityMetaKey.Selector]`,
-		`({ ...${targetEntityName}[EntityMetaKey.Selector], ...${targetEntityName} })`
+		`${targetEntityName}[EntityMetaKey.Selector]`
 	)
 	const entityViewLines = [
 		`${'\t'.repeat(level + 2)}<${component}`,
@@ -3973,7 +4032,7 @@ const renderEntityReferenceDlItem = (
 		...(hrefExpression == null ? [] : [
 			renderSvelteAttribute(level + 3, 'href', hrefExpression),
 		]),
-		`${'\t'.repeat(level + 3)}layout={EntityLayout.Title}`,
+		`${'\t'.repeat(level + 3)}layout={EntityLayout.Value}`,
 		`${'\t'.repeat(level + 3)}open={false}`,
 		`${'\t'.repeat(level + 2)}/>`,
 	]
@@ -4201,7 +4260,7 @@ const renderLatestContentItem = (
 		indexes,
 		entityType,
 		selectorExpression,
-		`({ ...${latestEntityName}[EntityMetaKey.Selector], ...${latestEntityName} })`
+		`${latestEntityName}[EntityMetaKey.Selector]`
 	)
 	const latestLabel = latest.label ?? latest.field
 
@@ -4287,18 +4346,21 @@ const renderRelationshipSections = (
 const renderRelationshipSection = (entity: Entity, indexes: AppIndexes, section: RelationshipSection) => {
 	const fieldDefinition = fieldDefinitionByName(entity, section.field)
 	if (fieldDefinition == null)
-		return []
+		throw new Error(`${entity.entityType}.${section.field} relationship section references an unknown field`)
 
-	const component = relationshipSectionComponent(section, indexes)
+	const component = declaredRelationshipSectionComponent(section, indexes)
+	if (component == null)
+		throw new Error(`${entity.entityType}.${section.field} relationship section must declare a generated component`)
+
 	if (fieldDefinition.entityType == null)
-		return []
+		throw new Error(`${entity.entityType}.${section.field} relationship section field must reference an entity`)
 
 	if (fieldDefinition.type === EntityFieldType.EntityReference && component != null)
 		return renderEntityReferenceSection(entity, indexes, section, fieldDefinition, component)
 	if (fieldDefinition.type === EntityFieldType.EntitiesReference && component != null)
 		return renderEntitiesReferenceSection(entity, indexes, section, fieldDefinition, component)
 
-	return []
+	throw new Error(`${entity.entityType}.${section.field} relationship section has unsupported cardinality`)
 }
 
 const detailTabId = (
@@ -4511,27 +4573,47 @@ const renderCollectionHrefExpression = (
 	entity: Entity,
 	indexes: AppIndexes,
 	field: string,
-	targetEntity: string
+	targetEntity: string,
+	fieldsExpression = 'selection.entitySelector'
 ) => {
 	const childHref = indexes.collectionHrefBySourceField.get(collectionSourceFieldKey(entity.entityType, field, targetEntity))
-	if (childHref != null)
-		return renderRouteResolveExpression(
+	if (childHref != null) {
+		const hrefExpression = renderRouteResolveExpression(
 			childHref.href,
 			childHref.params.map((param) => [
 				param.param,
-				renderRouteParamValueExpression(param.value, 'selection.entitySelector', param.decode),
+				renderRouteParamValueExpression(param.value, fieldsExpression, param.decode),
 			])
 		)
+		const condition = childHref.params
+			.map((param) => renderRouteExpressionCondition(fieldsExpression, param.value))
+			.filter(Boolean)
+			.join(' && ')
+		return condition === '' ? hrefExpression : `(${condition} ? ${hrefExpression} : undefined)`
+	}
 
 	const collectionHref = indexes.collectionHrefByEntity.get(targetEntity)
 	return collectionHref == null ? undefined : collectionHref.includes('(') ? renderRouteResolveExpression(collectionHref) : renderResolveExpression(collectionHref)
+}
+
+const collectionHrefFieldNames = (
+	entity: Entity,
+	indexes: AppIndexes,
+	field: string,
+	targetEntity: string
+) => {
+	const childHref = indexes.collectionHrefBySourceField.get(collectionSourceFieldKey(entity.entityType, field, targetEntity))
+	return childHref == null ?
+		[]
+	:
+		unique(childHref.params.flatMap((param) => expressionFieldPaths(param.value).flatMap((fieldPath) => fieldPath[0] == null ? [] : [fieldPath[0]])))
 }
 
 const renderEntityHrefExpression = (
 	indexes: AppIndexes,
 	entityType: string,
 	fieldsExpression: string,
-	routeFieldsExpression = fieldsExpression
+	routeFieldsExpression: string
 ) => {
 	const entityHrefs = indexes.entityHrefsByType.get(entityType) ?? []
 	if (entityHrefs.length === 0)
@@ -4719,7 +4801,7 @@ const renderCarouselSection = (
 		indexes,
 		targetEntity,
 		`${targetEntityName}[EntityMetaKey.Selector]`,
-		`({ ...${targetEntityName}[EntityMetaKey.Selector], ...${targetEntityName} })`
+		`${targetEntityName}[EntityMetaKey.Selector]`
 	)
 	const hrefExpression = section.link == null ?
 		renderCollectionHrefExpression(entity, indexes, section.field, targetEntity)
@@ -4896,7 +4978,7 @@ const renderEntityReferenceSection = (
 	const targetEntityName = camel(targetEntity)
 	if (entitySelectorOwnsField(entity, section.field)) {
 		const selectorExpression = fieldExpression('selection.entitySelector', section.field)
-		const hrefExpression = renderEntityHrefExpression(indexes, targetEntity, selectorExpression)
+		const hrefExpression = renderEntityHrefExpression(indexes, targetEntity, selectorExpression, selectorExpression)
 
 		return [
 			'\t\t\t\t<section data-column="gap-2">',
@@ -4914,7 +4996,7 @@ const renderEntityReferenceSection = (
 		indexes,
 		targetEntity,
 		`${targetEntityName}[EntityMetaKey.Selector]`,
-		`({ ...${targetEntityName}[EntityMetaKey.Selector], ...${targetEntityName} })`
+		`${targetEntityName}[EntityMetaKey.Selector]`
 	)
 	const referenceLevel = fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? 8 : 7
 
@@ -4955,13 +5037,21 @@ const renderEntitiesReferenceSection = (
 	const targetEntity = fieldDefinition.entityType
 	if (targetEntity == null)
 		return []
-	const hrefExpression = renderCollectionHrefExpression(entity, indexes, section.field, targetEntity)
+	const hrefFieldNames = collectionHrefFieldNames(entity, indexes, section.field, targetEntity)
+	const hrefNeedsResolvedEntity = hrefFieldNames.some((fieldName) => !entitySelectorOwnsField(entity, fieldName))
+	const hrefExpression = renderCollectionHrefExpression(
+		entity,
+		indexes,
+		section.field,
+		targetEntity,
+		hrefNeedsResolvedEntity ? 'entity' : 'selection.entitySelector'
+	)
 	const titleLabel = section.label ?? labelForField(fieldDefinition)
 	const titleExpression = section.titleField == null ?
 		undefined
 	:
 		`String(${fieldExpression('entity', section.titleField)} ?? ${q(titleLabel)})`
-	const sectionLines = [
+	const sectionLines = () => [
 		`\t\t\t\t<${componentIdentifier(component)}`,
 		renderSvelteAttribute(5, 'selection', fieldResourceExpression('selection', section.field, targetEntity, query)),
 		titleExpression == null ? `\t\t\t\t\ttitle=${q(titleLabel)}` : renderSvelteAttribute(5, 'title', titleExpression),
@@ -4988,16 +5078,19 @@ const renderEntitiesReferenceSection = (
 		'\t\t\t\t/>',
 	]
 
-	if (section.titleField == null)
-		return sectionLines
+	if (section.titleField == null && !hrefNeedsResolvedEntity)
+		return sectionLines()
 
 	return [
 		'\t\t\t\t<ResourceBoundary',
-		renderSvelteAttribute(5, 'resource', `selection(${renderQuery(undefined, [section.titleField])})`),
+		renderSvelteAttribute(5, 'resource', `selection(${renderQuery(undefined, unique([
+			...(section.titleField == null ? [] : [section.titleField]),
+			...hrefFieldNames,
+		]))})`),
 		'\t\t\t\t>',
 		'\t\t\t\t\t{#snippet children(entity)}',
 		`\t\t\t\t\t\t{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
-		...sectionLines.map((line) => indent(line, 2)),
+		...sectionLines().map((line) => indent(line, 2)),
 		'\t\t\t\t\t{/snippet}',
 		'\t\t\t\t</ResourceBoundary>',
 	]
@@ -5041,7 +5134,7 @@ const renderNamedRelationshipListViewFile = (view: NamedRelationshipListView) =>
 	const emptyText = view.section.emptyText == null ? 'undefined' : q(view.section.emptyText)
 
 	return svelteFile(
-		`src/views/${view.component}.svelte`,
+		viewModulePath(view.component).replace(/^\$\//, 'src/'),
 		{
 			script: [
 				'// Types/constants',
@@ -5079,7 +5172,7 @@ const renderNamedRelationshipListViewFile = (view: NamedRelationshipListView) =>
 				'',
 				'',
 				'// Components',
-				`import ${targetIdentifier} from '$/views/${targetComponent}.svelte'`,
+				`import ${targetIdentifier} from '${viewModulePath(targetComponent)}'`,
 			],
 			markup: [
 				`<${targetIdentifier}`,
@@ -5107,8 +5200,8 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 	const row = pluralView?.row
 	const usesCustomRow = row != null
 	const serial = summarySerial(entity)
-	const rowTitleItems = usesCustomRow ? viewItems(row.title) : summaryTitleItems(entity)
-	const rowValueItems = usesCustomRow ? viewItems(row.value) : summaryValueItems(entity)
+	const rowTitleItems = usesCustomRow ? viewItems(row.title) : declaredSummaryTitleEntries(entity)
+	const rowValueItems = usesCustomRow ? viewItems(row.value) : declaredSummaryValueEntries(entity)
 	const rowAfterItems = usesCustomRow ? viewItems(row.HeadingAfter) : viewItems(entity.singularView?.summary?.HeadingAfter)
 	const rowItems = [
 		...(usesCustomRow ? [] : summarySerialItems(entity)),
@@ -5253,7 +5346,7 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 		'\tselection,',
 		`\ttitle = ${q(pluralView?.title ?? sentenceStart(entity.labelPlural))},`,
 		`\ttypeAnnotationParagraphs = ${defaultTypeAnnotationParagraphs},`,
-			'\tplaceholderText,',
+		'\tplaceholderText,',
 		`\temptyText = ${pluralView?.emptyText == null ? 'undefined' : q(pluralView.emptyText)},`,
 		'\topen = $bindable(true),',
 		'\tcollapsible = true,',
@@ -5287,7 +5380,7 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 		'import EntitiesList from \'$/components/EntitiesList.svelte\'',
 		'import ResourceBoundary from \'$/components/ResourceBoundary.svelte\'',
 		'import { EntityLayout } from \'$/components/EntityView.svelte\'',
-		`import ${singularComponentIdentifier(entity.entityType)} from '$/views/${singularComponentName(entity.entityType)}.svelte'`,
+		`import ${singularComponentIdentifier(entity.entityType)} from '${viewModulePath(singularComponentName(entity.entityType))}'`,
 	]
 	const markup = [
 		'{#snippet TypeAnnotationParagraphs()}',
@@ -5388,7 +5481,7 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 	]
 
 	return svelteFile(
-		`src/views/${componentName}.svelte`,
+		viewModulePath(componentName).replace(/^\$\//, 'src/'),
 		{
 			script,
 			markup,
@@ -5410,11 +5503,11 @@ const renderViewsIndexFile = (entities: readonly Entity[]) => tsFile(
 			},
 			...entities.flatMap((entity) => [
 			{
-				from: `$/views/${singularComponentName(entity.entityType)}.svelte`,
+					from: viewModulePath(singularComponentName(entity.entityType)),
 				defaultName: singularComponentIdentifier(entity.entityType),
 			},
 			{
-				from: `$/views/${pluralComponentName(entity)}.svelte`,
+					from: viewModulePath(pluralComponentName(entity)),
 				defaultName: pluralComponentIdentifier(entity),
 			},
 		]),
@@ -5541,7 +5634,7 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 					names: ['parseEntitySelector'],
 				},
 				{
-					from: `$/schema/${routeFile.load.entity}.ts`,
+					from: schemaModulePath(routeFile.load.entity),
 					defaultName: entitySchemaName,
 				},
 				{
@@ -5585,8 +5678,8 @@ const renderPageFile = (routePath: string, appRoutePath: string, routeFile: Rout
 			names: [...names],
 		}))
 	const componentImports = unique([
-		...(component == null || componentFile == null ? [] : [`import ${component} from '$/views/${componentFile}.svelte'`]),
-		...(collectionComponent == null || collectionComponentFile == null ? [] : [`import ${collectionComponent} from '$/views/${collectionComponentFile}.svelte'`]),
+		...(component == null || componentFile == null ? [] : [`import ${component} from '${viewModulePath(componentFile)}'`]),
+		...(collectionComponent == null || collectionComponentFile == null ? [] : [`import ${collectionComponent} from '${viewModulePath(collectionComponentFile)}'`]),
 	])
 	const title = routeFile.text?.title ?? routeFile.text?.label ?? (viewEntity == null ? collectionEntity == null ? 'Blockhead' : indexes.entityByType.get(collectionEntity)?.labelPlural : indexes.entityByType.get(viewEntity)?.label)
 	const collectionQuery = routeFile.collection == null ? undefined : renderQuery(routeFile.collection.query, [])
@@ -5806,17 +5899,17 @@ const renderLayoutFile = (routePath: string, routeFile: RouteFile, indexes: AppI
 					'// Components',
 					'import { EntityLayout } from \'$/components/EntityView.svelte\'',
 					'import ParentPageCollapsible from \'$/components/ParentPageCollapsible.svelte\'',
-					`import ${component} from '$/views/${componentFile}.svelte'`,
+					`import ${component} from '${viewModulePath(componentFile)}'`,
 				],
-					markup: keyExpression == null ?
-						parentPageCollapsibleLines
-					:
-						[
-							`{#key ${keyExpression}}`,
-							...parentPageCollapsibleLines.map((line) => indent(line)),
-							'{/key}',
-						],
-				}
+				markup: keyExpression == null ?
+					parentPageCollapsibleLines
+				:
+					[
+						`{#key ${keyExpression}}`,
+						...parentPageCollapsibleLines.map((line) => indent(line)),
+						'{/key}',
+					],
+			}
 			)
 		}
 
@@ -6021,7 +6114,7 @@ const checkedInSourceProviderModules = async (app: App): Promise<CheckedInSource
 				await walk(absolutePath)
 				continue
 			}
-			if (entry.name !== 'index.ts' || absolutePath === path.join(generatedRoot, 'sources/index.ts'))
+			if (entry.name !== 'index.ts')
 				continue
 
 			const providerModule = sourceProviderModuleFromText(
@@ -6052,7 +6145,54 @@ const sourceDefinitionModulePath = (
 	return `${source.provider}/${sourceSuffix.split('_').map((part) => pascal(part)).join('/')}/index.ts`
 }
 
-const sourceDefinitionModules = async (app: App): Promise<SourceDefinitionModule[]> => {
+const trackedSourceIndexPaths = async () => {
+	try {
+		const { stdout } = await execFileAsync('git', [
+			'ls-files',
+			'src/sources/**/index.ts',
+		], {
+			cwd: repoRoot,
+		})
+		return stdout.trim().length === 0 ? [] : stdout.trim().split('\n')
+	}
+	catch {
+		return []
+	}
+}
+
+const trackedSourceDefinitionModules = async () => {
+	const modules: SourceDefinitionModule[] = []
+	for (const filePath of await trackedSourceIndexPaths()) {
+		if (filePath === 'src/sources/index.ts')
+			continue
+
+		let source: string
+		try {
+			source = (await execFileAsync('git', [
+				'show',
+				`HEAD:${filePath}`,
+			], {
+				cwd: repoRoot,
+			})).stdout
+		}
+		catch {
+			continue
+		}
+
+		if (sourceProviderModuleFromText(filePath, source) != null)
+			continue
+
+		const module = sourceDefinitionModuleFromText(filePath, source)
+		if (module != null)
+			modules.push(module)
+	}
+
+	return modules
+}
+
+const sourceDefinitionModules = async (
+	sources: readonly Pick<App['sources']['sources'][number], 'provider' | 'source' | 'label'>[]
+): Promise<SourceDefinitionModule[]> => {
 	const modules: SourceDefinitionModule[] = []
 	const walk = async (directory: string) => {
 		const entries = await fs.readdir(directory, {
@@ -6080,12 +6220,15 @@ const sourceDefinitionModules = async (app: App): Promise<SourceDefinitionModule
 
 	await walk(path.join(generatedRoot, 'sources'))
 	const existingModuleBySource = new Map<string, SourceDefinitionModule>()
-	for (const module of modules) {
+	for (const module of [
+		...await trackedSourceDefinitionModules(),
+		...modules,
+	]) {
 		if (!existingModuleBySource.has(module.source))
 			existingModuleBySource.set(module.source, module)
 	}
 
-	return app.sources.sources.map((source) => ({
+	return sources.map((source) => ({
 		path: sourceDefinitionModulePath(source, existingModuleBySource),
 		importName: `${camel(source.source)}SourceDefinition`,
 		provider: source.provider,
@@ -6142,6 +6285,33 @@ const generatedSchemaPaths = async () => {
 		.map((entry) => `src/schema/${entry.name}`)
 }
 
+const generatedSourceDefinitionPaths = async () => {
+	const paths: string[] = []
+	const walk = async (directory: string) => {
+		const entries = await fs.readdir(directory, {
+			withFileTypes: true,
+		})
+		for (const entry of entries) {
+			const absolutePath = path.join(directory, entry.name)
+			if (entry.isDirectory()) {
+				await walk(absolutePath)
+				continue
+			}
+			if (
+				entry.name === 'definition.ts'
+				|| (
+					entry.name === 'index.ts'
+					&& absolutePath !== path.join(generatedRoot, 'sources/index.ts')
+				)
+			)
+				paths.push(relative(absolutePath))
+		}
+	}
+
+	await walk(path.join(generatedRoot, 'sources'))
+	return paths
+}
+
 const removeEmptyRouteDirectories = async (directory = routeRoot) => {
 	const entries = await fs.readdir(directory, {
 		withFileTypes: true,
@@ -6174,11 +6344,17 @@ const cleanStaleGeneratedFiles = async (files: readonly GeneratedFile[]) => {
 		if (!expected.has(filePath) && !protectedSchemaFiles.has(filePath) && await isGeneratedFile(filePath))
 			staleSchemas.push(filePath)
 	}
+	const staleSourceDefinitions = []
+	for (const filePath of await generatedSourceDefinitionPaths()) {
+		if (!expected.has(filePath) && await isGeneratedFile(filePath))
+			staleSourceDefinitions.push(filePath)
+	}
 
 	for (const filePath of [
 		...staleRouteModules,
 		...staleViews,
 		...staleSchemas,
+		...staleSourceDefinitions,
 	])
 		await fs.rm(path.join(repoRoot, filePath), {
 			force: true,
@@ -6204,10 +6380,16 @@ const checkFiles = async (files: readonly GeneratedFile[]) => {
 		if (!expected.has(filePath) && !protectedSchemaFiles.has(filePath) && await isGeneratedFile(filePath))
 			staleSchemas.push(filePath)
 	}
+	const staleSourceDefinitions = []
+	for (const filePath of await generatedSourceDefinitionPaths()) {
+		if (!expected.has(filePath) && await isGeneratedFile(filePath))
+			staleSourceDefinitions.push(filePath)
+	}
 	const stale = [
 		...staleRouteModules,
 		...staleViews,
 		...staleSchemas,
+		...staleSourceDefinitions,
 	]
 	const drift: string[] = []
 
@@ -6233,6 +6415,21 @@ const checkFiles = async (files: readonly GeneratedFile[]) => {
 const writeFiles = async (files: readonly GeneratedFile[]) => {
 	await cleanStaleGeneratedFiles(files)
 	for (const generatedFile of files) {
+		if (
+			(
+				generatedFile.path.startsWith('src/schema/')
+				|| generatedFile.path.startsWith('src/views/')
+			)
+			&& await isGeneratedFile(generatedFile.path)
+		)
+			await fs.rm(path.join(repoRoot, generatedFile.path), {
+				force: true,
+			})
+	}
+	for (const generatedFile of [...files].sort((left, right) => left.path.localeCompare(right.path, 'en', {
+		sensitivity: 'base',
+		numeric: true,
+	}))) {
 		const absolutePath = path.join(repoRoot, generatedFile.path)
 		await fs.mkdir(path.dirname(absolutePath), {
 			recursive: true,
@@ -6252,7 +6449,10 @@ const cleanFiles = async (files: readonly GeneratedFile[]) => {
 const main = async () => {
 	const command = process.argv[2] ?? 'check'
 	const checkedInSourceProviderModuleDefinitions = await checkedInSourceProviderModules(app)
-	const sourceDefinitionModuleDefinitions = await sourceDefinitionModules(app)
+	const sourceDefinitionModuleDefinitions = await sourceDefinitionModules(sourceRows(
+		app,
+		checkedInSourceProviderModuleDefinitions
+	))
 	const indexes = validateAndIndex(
 		app,
 		checkedInSourceProviderModuleDefinitions

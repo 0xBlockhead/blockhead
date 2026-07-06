@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived((String((prefetched.indexInNetwork) ?? '') ? 'Validator #' + String((prefetched.indexInNetwork) ?? '') : '') || 'beacon validator')
 	const viewDomId = $derived('beacon-validator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -350,7 +352,7 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

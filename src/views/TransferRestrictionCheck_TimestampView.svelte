@@ -44,6 +44,8 @@
 	const transferRestrictionCheckTimestamp = $derived(selection({}))
 	const titleFallback = $derived('transfer restriction check timestamp')
 	const viewDomId = $derived('transfer-restriction-check-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<TransferRestrictionView
 						selection={select(EntityType.TransferRestriction, selection.entitySelector.$restriction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -192,7 +194,7 @@
 								<AccountView
 									selection={select(EntityType.Account, account[EntityMetaKey.Selector])}
 									prefetched={account}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

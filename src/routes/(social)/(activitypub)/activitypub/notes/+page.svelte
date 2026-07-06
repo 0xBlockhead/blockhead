@@ -28,15 +28,14 @@
 		href={resolve('/(social)/(activitypub)/activitypub/notes')}
 		title='ActivityPub notes'
 		selection={
-			select(EntityType.ActivityPubNetwork, {
-				scope: 'ActivityPubNetwork',
-			})[EntityProxyField]<EntityType.ActivityPubNote>('$$activityPubNotes', {
+			select(EntityType._GlobalActivityPubNetwork, {
+				scope: '_GlobalActivityPubNetwork',
+			})[EntityProxyField]<EntityType.ActivityPubNote>('$$sourceWindowNotes', {
 				sources: [
 					Source.Mastodon_Rest,
-					Source.Fedi_Rest,
 				],
 			})
 		}
-		id='activity-pub-notes'
+		id='source-window-notes'
 	/>
 </Page>

@@ -44,6 +44,8 @@
 	const tezosBigMap = $derived(selection({}))
 	const titleFallback = $derived('tezos big map')
 	const viewDomId = $derived('tezos-big-map-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TezosContractView from '$/views/TezosContractView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TezosContractView
 						selection={select(EntityType.TezosContract, selection.entitySelector.$contract)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

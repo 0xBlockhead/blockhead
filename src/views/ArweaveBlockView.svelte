@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.height) ?? '')].filter(Boolean).join(' ') || [String((prefetched.indepHash) ?? '')].filter(Boolean).join(' ') || 'arweave block')
 	const viewDomId = $derived('arweave-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -113,7 +115,7 @@
 				<dd>
 					<ArweaveNetworkView
 						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

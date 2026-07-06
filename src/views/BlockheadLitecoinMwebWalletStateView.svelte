@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead litecoin mweb wallet state')
 	const viewDomId = $derived('blockhead-litecoin-mweb-wallet-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BlockheadLitecoinMwebWalletState_TimestampsView from '$/views/BlockheadLitecoinMwebWalletState_TimestampsView.svelte'
@@ -206,7 +208,7 @@
 								<BlockheadWalletView
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -227,7 +229,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

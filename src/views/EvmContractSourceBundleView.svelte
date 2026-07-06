@@ -45,6 +45,8 @@
 	const evmContractSourceBundle = $derived(selection({}))
 	const titleFallback = $derived('EVM contract source bundle')
 	const viewDomId = $derived('evm-contract-source-bundle-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
@@ -140,7 +142,7 @@
 								address: String(selection.entitySelector.$contract.address ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

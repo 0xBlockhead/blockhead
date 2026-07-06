@@ -45,6 +45,8 @@
 	const aptosNetwork = $derived(selection({}))
 	const titleFallback = $derived('aptos network')
 	const viewDomId = $derived('aptos-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AptosNetwork_TimestampsView from '$/views/AptosNetwork_TimestampsView.svelte'
@@ -117,7 +119,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

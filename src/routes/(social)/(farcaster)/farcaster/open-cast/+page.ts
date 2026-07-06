@@ -12,7 +12,8 @@ export const load: PageLoad = ({ params }) => {
 		schema,
 		FarcasterCastSchema,
 		{
-			clientUrl: 'https://warpcast.com',
+			fid: 3,
+			hash: '0xe4f2e1c70d72388a98dba2a2511a9b480840e544',
 		}
 	)
 	if (farcasterCastSelector instanceof arktype.errors) error(404, 'Invalid FarcasterCast selector')

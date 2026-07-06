@@ -45,6 +45,8 @@
 	const tokenProgramExtensionTimestamp = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.extensionKind ?? prefetched.extensionKind) ?? '')].filter(Boolean).join(' ') || 'token program extension timestamp')
 	const viewDomId = $derived('token-program-extension-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -318,7 +320,7 @@
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

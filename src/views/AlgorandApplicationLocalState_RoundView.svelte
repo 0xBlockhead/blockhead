@@ -44,6 +44,8 @@
 	const algorandApplicationLocalStateRound = $derived(selection({}))
 	const titleFallback = $derived('algorand application local state round')
 	const viewDomId = $derived('algorand-application-local-state-round-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<AlgorandAccountView
 						selection={select(EntityType.AlgorandAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -93,7 +95,7 @@
 				<dd>
 					<AlgorandApplicationView
 						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

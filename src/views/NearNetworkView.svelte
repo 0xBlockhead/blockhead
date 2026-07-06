@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? ''), String((selection.entitySelector.slug ?? prefetched.slug) ?? '')].filter(Boolean).join(' ') || 'near network')
 	const viewDomId = $derived('near-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NearNetwork_TimestampsView from '$/views/NearNetwork_TimestampsView.svelte'

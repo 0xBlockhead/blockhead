@@ -44,6 +44,8 @@
 	const xrplTransactionTimestamp = $derived(selection({}))
 	const titleFallback = $derived('XRPL transaction timestamp')
 	const viewDomId = $derived('xrpl-transaction-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XrplTransactionView from '$/views/XrplTransactionView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<XrplTransactionView
 						selection={select(EntityType.XrplTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? ''), String((prefetched.fullyQualifiedName) ?? ''), String((prefetched.compiler) ?? '')].filter(Boolean).join(' ') || 'EVM contract compilation')
 	const viewDomId = $derived('evm-contract-compilation-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
@@ -322,7 +324,7 @@
 								address: String(selection.entitySelector.$contract.address ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

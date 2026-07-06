@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.messageId ?? prefetched.messageId) ?? '')].filter(Boolean).join(' ') || 'ACP message')
 	const viewDomId = $derived('acp-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -127,7 +129,7 @@
 				<dd>
 					<AcpSessionView
 						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

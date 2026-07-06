@@ -44,6 +44,8 @@
 	const hyperliquidOrderTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hyperliquid order timestamp')
 	const viewDomId = $derived('hyperliquid-order-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HyperliquidOrderView from '$/views/HyperliquidOrderView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HyperliquidOrderView
 						selection={select(EntityType.HyperliquidOrder, selection.entitySelector.$order)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

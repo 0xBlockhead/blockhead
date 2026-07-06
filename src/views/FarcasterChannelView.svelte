@@ -58,6 +58,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'Farcaster channel')
 	const viewDomId = $derived('farcaster-channel-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -244,7 +246,7 @@
 								<FarcasterUserView
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -266,7 +268,7 @@
 								<FarcasterUserView
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

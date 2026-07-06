@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || 'URL preview timestamp')
 	const viewDomId = $derived('url-preview-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -442,11 +444,11 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(({ ...media[EntityMetaKey.Selector], ...media }).url !== undefined ? resolve('/(explore)/media/[url]', {
-											url: String(({ ...media[EntityMetaKey.Selector], ...media }).url ?? ''),
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+											url: String(media[EntityMetaKey.Selector].url ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -465,7 +467,7 @@
 								url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

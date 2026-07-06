@@ -46,6 +46,8 @@
 	const payout = $derived(selection({}))
 	const titleFallback = $derived('payout')
 	const viewDomId = $derived('payout-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -154,13 +156,13 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2 !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.namespace !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2 !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.reference !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).kind !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
-											caip2: `${String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.namespace ?? '')}:${String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.reference ?? '')}`,
-											kind: String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).kind ?? ''),
-											assetKey: String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).assetKey ?? ''),
+										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+											caip2: `${String(assetInstance[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(assetInstance[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
+											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -181,15 +183,15 @@
 									selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
 									prefetched={assetClass}
 									href={
-										(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2 !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2.namespace !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2 !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2.reference !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.kind !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.assetKey !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).classKind !== undefined && ({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).classKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/class/[classKind]/[classKey]', {
-											caip2: `${String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2.namespace ?? '')}:${String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.$network.caip2.reference ?? '')}`,
-											kind: String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.kind ?? ''),
-											assetKey: String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).$assetInstance.assetKey ?? ''),
-											classKind: String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).classKind ?? ''),
-											classKey: String(({ ...assetClass[EntityMetaKey.Selector], ...assetClass }).classKey ?? ''),
+										(assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2 !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.namespace !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2 !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.reference !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.kind !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.assetKey !== undefined && assetClass[EntityMetaKey.Selector].classKind !== undefined && assetClass[EntityMetaKey.Selector].classKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/class/[classKind]/[classKey]', {
+											caip2: `${String(assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.namespace ?? '')}:${String(assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.reference ?? '')}`,
+											kind: String(assetClass[EntityMetaKey.Selector].$assetInstance.kind ?? ''),
+											assetKey: String(assetClass[EntityMetaKey.Selector].$assetInstance.assetKey ?? ''),
+											classKind: String(assetClass[EntityMetaKey.Selector].classKind ?? ''),
+											classKey: String(assetClass[EntityMetaKey.Selector].classKey ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -210,13 +212,13 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2 !== undefined && ({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
-											caip2: `${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.namespace ?? '')}:${String(({ ...network[EntityMetaKey.Selector], ...network }).caip2.reference ?? '')}`,
-										}) : ({ ...network[EntityMetaKey.Selector], ...network }).slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
-											networkSlug: String(({ ...network[EntityMetaKey.Selector], ...network }).slug ?? ''),
+										(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -237,12 +239,12 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
-											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(evmContract[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmContract[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

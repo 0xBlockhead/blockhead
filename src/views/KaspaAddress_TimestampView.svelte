@@ -44,6 +44,8 @@
 	const kaspaAddressTimestamp = $derived(selection({}))
 	const titleFallback = $derived('kaspa address timestamp')
 	const viewDomId = $derived('kaspa-address-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<KaspaAddressView
 						selection={select(EntityType.KaspaAddress, selection.entitySelector.$address)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

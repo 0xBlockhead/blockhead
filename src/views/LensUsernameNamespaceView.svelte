@@ -47,6 +47,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.namespace) ?? ''), String((prefetched.tokenName) ?? '')].filter(Boolean).join(' ') || 'Lens username namespace')
 	const viewDomId = $derived('lens-username-namespace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'

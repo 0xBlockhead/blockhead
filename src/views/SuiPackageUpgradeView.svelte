@@ -44,6 +44,8 @@
 	const suiPackageUpgrade = $derived(selection({}))
 	const titleFallback = $derived('Sui package upgrade')
 	const viewDomId = $derived('sui-package-upgrade-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<SuiPackageView
 						selection={select(EntityType.SuiPackage, selection.entitySelector.$package)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -305,7 +307,7 @@
 								<SuiTransactionView
 									selection={select(EntityType.SuiTransaction, suiTransaction[EntityMetaKey.Selector])}
 									prefetched={suiTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -325,7 +327,7 @@
 								<SuiPackageVersionView
 									selection={select(EntityType.SuiPackageVersion, suiPackageVersion[EntityMetaKey.Selector])}
 									prefetched={suiPackageVersion}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

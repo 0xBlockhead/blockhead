@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || [String((prefetched.version) ?? '')].filter(Boolean).join(' ') || 'aptos transaction')
 	const viewDomId = $derived('aptos-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -132,7 +134,7 @@
 				<dd>
 					<AptosNetworkView
 						selection={select(EntityType.AptosNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

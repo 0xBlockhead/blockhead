@@ -44,6 +44,8 @@
 	const cardanoGovernanceProposalTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Cardano governance proposal timestamp')
 	const viewDomId = $derived('cardano-governance-proposal-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import CardanoGovernanceProposalView from '$/views/CardanoGovernanceProposalView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<CardanoGovernanceProposalView
 						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

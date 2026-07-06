@@ -23,6 +23,7 @@ export const proxySourceHttpRequest = async (
 		method: event.request.method,
 		headers,
 		body: event.request.body,
+		cache: event.request.cache,
 		signal: AbortSignal.timeout(PROXY_UPSTREAM_TIMEOUT_MS),
 		...(event.request.body != null && {
 			duplex: 'half',

@@ -44,6 +44,8 @@
 	const stellarAsset = $derived(selection({}))
 	const titleFallback = $derived('stellar asset')
 	const viewDomId = $derived('stellar-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<StellarNetworkView
 						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -229,7 +231,7 @@
 								<StellarAccountView
 									selection={select(EntityType.StellarAccount, stellarAccount[EntityMetaKey.Selector])}
 									prefetched={stellarAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

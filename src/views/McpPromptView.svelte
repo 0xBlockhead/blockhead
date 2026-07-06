@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.name ?? prefetched.name) ?? '')].filter(Boolean).join(' ') || 'mcp prompt')
 	const viewDomId = $derived('mcp-prompt-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import McpPromptResultsView from '$/views/McpPromptResultsView.svelte'
@@ -110,7 +112,7 @@
 				<dd>
 					<McpServerView
 						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

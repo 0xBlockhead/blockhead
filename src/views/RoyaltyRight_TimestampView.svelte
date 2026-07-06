@@ -45,6 +45,8 @@
 	const royaltyRightTimestamp = $derived(selection({}))
 	const titleFallback = $derived('royalty right timestamp')
 	const viewDomId = $derived('royalty-right-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -242,7 +244,7 @@
 								<NftCollectionView
 									selection={select(EntityType.NftCollection, nftCollection[EntityMetaKey.Selector])}
 									prefetched={nftCollection}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -262,7 +264,7 @@
 								<NftTokenView
 									selection={select(EntityType.NftToken, nftToken[EntityMetaKey.Selector])}
 									prefetched={nftToken}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

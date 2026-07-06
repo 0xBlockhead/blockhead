@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived('ENS hub observation')
 	const viewDomId = $derived('-global-ens-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -125,7 +127,7 @@
 					<GlobalEnsNetworkView
 						selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
 						href={resolve('/(explore)/(ens)/ens')}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

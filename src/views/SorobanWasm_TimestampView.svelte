@@ -44,6 +44,8 @@
 	const sorobanWasmTimestamp = $derived(selection({}))
 	const titleFallback = $derived('soroban Wasm timestamp')
 	const viewDomId = $derived('soroban-wasm-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SorobanWasmView from '$/views/SorobanWasmView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<SorobanWasmView
 						selection={select(EntityType.SorobanWasm, selection.entitySelector.$wasm)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

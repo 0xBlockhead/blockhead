@@ -49,13 +49,24 @@ const beaconFinalityCheckpointsForChain = async (
 }
 
 const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
-	{ $network, upgradeId }: EntitySelector<typeof schema, EntityType.EthereumConsensusUpgrade>
+	selector: EntitySelector<typeof schema, EntityType.EthereumConsensusUpgrade>
 ): Promise<BeaconForkScheduleEntry | undefined> => {
-	const chainId = Number($network.caip2.reference)
-	const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
-	const consensusUpgrade = networkConsensusUpgradeByChainIdAndUpgradeId[
-		`${chainId}:${upgradeId}`
-	]
+	const chainId = Number(selector.$network.caip2.reference)
+	const {
+		networkConsensusUpgrades,
+	} = await import('$/constants/EthereumNetworkUpgrades.ts')
+	const segment = 'upgradeId' in selector ? selector.upgradeId : selector.slug
+	const consensusUpgrade = networkConsensusUpgrades.find((candidate) => (
+		candidate.chainId === chainId
+		&& [
+			candidate.upgradeId,
+			candidate.slug,
+			candidate.upgradeId.toLowerCase(),
+			candidate.slug.toLowerCase(),
+		].includes(segment)
+	))
+	if (consensusUpgrade == null)
+		throw new Error(`Beacon_Rest: consensus upgrade not found for chain ${String(chainId)}`)
 	const activationEpoch = consensusUpgrade.activationEpoch
 	if (activationEpoch == null) {
 		return undefined
@@ -747,6 +758,9 @@ export default {
 				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: async (selector) => (
 					(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.previousVersion
 				),
+				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: async (selector) => (
+					(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.previousVersion
+				),
 			},
 		})({
 			fields: {
@@ -758,6 +772,9 @@ export default {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			resolve: {
 				[EthereumConsensusUpgradeSelector.EvmNetworkUpgradeId]: async (selector) => (
+					(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.currentVersion
+				),
+				[EthereumConsensusUpgradeSelector.EvmNetworkSlug]: async (selector) => (
 					(await beaconForkScheduleEntryForNetworkConsensusUpgrade(selector))?.currentVersion
 				),
 			},

@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'blockhead action readiness check timestamp')
 	const viewDomId = $derived('blockhead-action-readiness-check-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -134,7 +136,7 @@
 				<dd>
 					<BlockheadActionReadinessCheckView
 						selection={select(EntityType.BlockheadActionReadinessCheck, selection.entitySelector.$readinessCheck)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

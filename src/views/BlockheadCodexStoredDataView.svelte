@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.cid ?? prefetched.cid) ?? '')].filter(Boolean).join(' ') || 'blockhead codex stored data')
 	const viewDomId = $derived('blockhead-codex-stored-data-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -135,7 +137,7 @@
 				<dd>
 					<BlockheadCodexStorageNodeStateView
 						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -182,7 +184,7 @@
 								<CodexDatasetView
 									selection={select(EntityType.CodexDataset, codexDataset[EntityMetaKey.Selector])}
 									prefetched={codexDataset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

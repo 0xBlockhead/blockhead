@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived('eigen layer delegation timestamp')
 	const viewDomId = $derived('eigen-layer-delegation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -148,7 +150,7 @@
 				<dd>
 					<EvmNetworkAccountView
 						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -159,7 +161,7 @@
 				<dd>
 					<EigenLayerOperatorView
 						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -170,7 +172,7 @@
 				<dd>
 					<EigenLayerStrategyView
 						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

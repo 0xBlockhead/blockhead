@@ -76,10 +76,17 @@ export const fetchBrowseResult = async ({
 			gatewayOrigin: endpoint.origin,
 		})
 
-		const response = await corsFetch(gatewayUrl, {
-			origins: ipfsGatewayOrigins,
-			init: { signal },
-		})
+		let response: Response
+		try {
+			response = await corsFetch(gatewayUrl, {
+				origins: ipfsGatewayOrigins,
+				init: { signal },
+			})
+		}
+		catch (error) {
+			failures.push(`${endpoint.locator}: ${error instanceof Error ? error.message : String(error)}`)
+			continue
+		}
 		if (!response.ok) {
 			const hint = await jsonErrorHintFromResponse(response)
 			failures.push(

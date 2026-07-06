@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.displayName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.magnetUri ?? prefetched.magnetUri) ?? '')].filter(Boolean).join(' ') || 'magnet link')
 	const viewDomId = $derived('magnet-link-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -340,7 +342,7 @@
 								<BitTorrentMetainfoView
 									selection={select(EntityType.BitTorrentMetainfo, bitTorrentMetainfo[EntityMetaKey.Selector])}
 									prefetched={bitTorrentMetainfo}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

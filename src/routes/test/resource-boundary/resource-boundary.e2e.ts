@@ -109,7 +109,7 @@ test('real selection scalar fields resolve through direct, native await, and bou
 	expectNoWarnings()
 })
 
-test('getter-only direct getter lazy source notification updates without route reload, await, or ResourceBoundary consumers', async ({ page }) => {
+test('direct selection getters update without await or ResourceBoundary consumers', async ({ page }) => {
 	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
 	await openRoute(page)
 	const initialUrl = page.url()
@@ -181,5 +181,16 @@ test('ResourceBoundary consumes a SvelteKit-shaped Query through the await surfa
 	await page.getByTestId('resolve-query-resource-boundary').click()
 	await expect(page.getByTestId('query-tagged-boundary-value')).toHaveText('Query tagged value')
 	await expect(sectionLoading(page, 'query-resource-boundary-section')).toHaveCount(0)
+	expectNoWarnings()
+})
+
+test('ResourceBoundary renders a rejected resource through the Failed snippet', async ({ page }) => {
+	const expectNoWarnings = expectNoSvelteReactivityWarnings(page)
+	await openRoute(page)
+	await expect(page.getByTestId('failed-resource-message')).toHaveCount(0)
+
+	await page.getByTestId('show-failed-resource').click()
+	await expect(page.getByTestId('failed-resource-message')).toBeAttached()
+	await expect(sectionLoading(page, 'failed-resource-boundary-section')).toHaveCount(0)
 	expectNoWarnings()
 })

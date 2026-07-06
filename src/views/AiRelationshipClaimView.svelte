@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.relationshipKind ?? prefetched.relationshipKind) ?? '')].filter(Boolean).join(' ') || 'AI relationship claim')
 	const viewDomId = $derived('ai-relationship-claim-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -321,7 +323,7 @@
 								<AiDocumentView
 									selection={select(EntityType.AiDocument, aiDocument[EntityMetaKey.Selector])}
 									prefetched={aiDocument}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -341,7 +343,7 @@
 								<AiDocumentClaimView
 									selection={select(EntityType.AiDocumentClaim, aiDocumentClaim[EntityMetaKey.Selector])}
 									prefetched={aiDocumentClaim}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -44,6 +44,8 @@
 	const cardanoTxOutputAsset = $derived(selection({}))
 	const titleFallback = $derived('Cardano transaction output asset')
 	const viewDomId = $derived('cardano-tx-output-asset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import CardanoTxOutputView from '$/views/CardanoTxOutputView.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<CardanoTxOutputView
 						selection={select(EntityType.CardanoTxOutput, selection.entitySelector.$output)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -92,7 +94,7 @@
 				<dd>
 					<CardanoNativeAssetView
 						selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

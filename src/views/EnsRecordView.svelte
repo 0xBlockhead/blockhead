@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.recordKey ?? prefetched.recordKey) ?? '')].filter(Boolean).join(' ') || 'ENS record')
 	const viewDomId = $derived('ens-record-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -124,7 +126,7 @@
 								ensName: String(selection.entitySelector.$name.name ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

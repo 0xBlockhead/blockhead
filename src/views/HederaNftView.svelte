@@ -44,6 +44,8 @@
 	const hederaNft = $derived(selection({}))
 	const titleFallback = $derived('hedera NFT')
 	const viewDomId = $derived('hedera-nft-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HederaTokenView from '$/views/HederaTokenView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HederaTokenView
 						selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

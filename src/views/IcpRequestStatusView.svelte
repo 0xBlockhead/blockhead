@@ -44,6 +44,8 @@
 	const icpRequestStatus = $derived(selection({}))
 	const titleFallback = $derived('ICP request status')
 	const viewDomId = $derived('icp-request-status-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpNetworkView from '$/views/IcpNetworkView.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<IcpNetworkView
 						selection={select(EntityType.IcpNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -128,7 +130,7 @@
 								<IcpCanisterView
 									selection={select(EntityType.IcpCanister, icpCanister[EntityMetaKey.Selector])}
 									prefetched={icpCanister}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

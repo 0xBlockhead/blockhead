@@ -45,6 +45,8 @@
 	const issuerAction = $derived(selection({}))
 	const titleFallback = $derived('issuer action')
 	const viewDomId = $derived('issuer-action-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -150,13 +152,13 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2 !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.namespace !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2 !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.reference !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).kind !== undefined && ({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
-											caip2: `${String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.namespace ?? '')}:${String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).$network.caip2.reference ?? '')}`,
-											kind: String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).kind ?? ''),
-											assetKey: String(({ ...assetInstance[EntityMetaKey.Selector], ...assetInstance }).assetKey ?? ''),
+										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+											caip2: `${String(assetInstance[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(assetInstance[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
+											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -213,7 +215,7 @@
 								<IssuerPowerView
 									selection={select(EntityType.IssuerPower, issuerPower[EntityMetaKey.Selector])}
 									prefetched={issuerPower}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

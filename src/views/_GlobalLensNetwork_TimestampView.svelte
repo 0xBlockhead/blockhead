@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived('global lens network timestamp')
 	const viewDomId = $derived('-global-lens-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -115,7 +117,7 @@
 				<dd>
 					<GlobalLensNetworkView
 						selection={select(EntityType._GlobalLensNetwork, selection.entitySelector.$hub)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

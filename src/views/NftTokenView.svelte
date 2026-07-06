@@ -44,6 +44,8 @@
 	const nftToken = $derived(selection({}))
 	const titleFallback = $derived('NFT token')
 	const viewDomId = $derived('nft-token-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UsageRight_TimestampsView from '$/views/UsageRight_TimestampsView.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<NftCollectionView
 						selection={select(EntityType.NftCollection, selection.entitySelector.$collection)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -167,7 +169,7 @@
 								<AssetObjectView
 									selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector])}
 									prefetched={assetObject}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -187,7 +189,7 @@
 								<TokenMetadataDocumentView
 									selection={select(EntityType.TokenMetadataDocument, tokenMetadataDocument[EntityMetaKey.Selector])}
 									prefetched={tokenMetadataDocument}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.partKind) ?? '')].filter(Boolean).join(' ') || 'ACP message part')
 	const viewDomId = $derived('acp-message-part-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -135,7 +137,7 @@
 				<dd>
 					<AcpMessageView
 						selection={select(EntityType.AcpMessage, selection.entitySelector.$message)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -296,7 +298,7 @@
 								<AiArtifactView
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

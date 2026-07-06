@@ -44,6 +44,8 @@
 	const icpLedgerCanisterTimestamp = $derived(selection({}))
 	const titleFallback = $derived('ICP ledger canister timestamp')
 	const viewDomId = $derived('icp-ledger-canister-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import IcpLedgerCanisterView from '$/views/IcpLedgerCanisterView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<IcpLedgerCanisterView
 						selection={select(EntityType.IcpLedgerCanister, selection.entitySelector.$ledger)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

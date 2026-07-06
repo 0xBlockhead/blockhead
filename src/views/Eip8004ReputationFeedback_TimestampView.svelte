@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.value) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.feedbackIndex ?? prefetched.feedbackIndex) ?? '')].filter(Boolean).join(' ') || 'EIP-8004 reputation feedback timestamp')
 	const viewDomId = $derived('eip8004reputation-feedback-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -136,7 +138,7 @@
 				<dd>
 					<Eip8004AgentRegistrationView
 						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

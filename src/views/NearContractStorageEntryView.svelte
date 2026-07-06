@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.keyBase64 ?? prefetched.keyBase64) ?? '')].filter(Boolean).join(' ') || 'near contract storage entry')
 	const viewDomId = $derived('near-contract-storage-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -138,7 +140,7 @@
 				<dd>
 					<NearContractView
 						selection={select(EntityType.NearContract, selection.entitySelector.$contract)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

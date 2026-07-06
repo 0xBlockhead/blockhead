@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.datasetUri) ?? ''), String((prefetched.datasetName) ?? ''), String((prefetched.huggingFaceDatasetId) ?? '')].filter(Boolean).join(' ') || 'AI dataset')
 	const viewDomId = $derived('ai-dataset-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -355,7 +357,7 @@
 								<AiArtifactView
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -44,6 +44,8 @@
 	const sorobanContractStorageEntryTimestamp = $derived(selection({}))
 	const titleFallback = $derived('soroban contract storage entry timestamp')
 	const viewDomId = $derived('soroban-contract-storage-entry-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SorobanContractStorageEntryView from '$/views/SorobanContractStorageEntryView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<SorobanContractStorageEntryView
 						selection={select(EntityType.SorobanContractStorageEntry, selection.entitySelector.$entry)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

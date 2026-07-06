@@ -44,6 +44,8 @@
 	const trustedIssuer = $derived(selection({}))
 	const titleFallback = $derived('trusted issuer')
 	const viewDomId = $derived('trusted-issuer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<RegulatedAssetProfileView
 						selection={select(EntityType.RegulatedAssetProfile, selection.entitySelector.$profile)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

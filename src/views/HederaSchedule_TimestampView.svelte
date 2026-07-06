@@ -44,6 +44,8 @@
 	const hederaScheduleTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hedera schedule timestamp')
 	const viewDomId = $derived('hedera-schedule-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<HederaScheduleView
 						selection={select(EntityType.HederaSchedule, selection.entitySelector.$schedule)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -334,7 +336,7 @@
 								<HederaTransactionView
 									selection={select(EntityType.HederaTransaction, hederaTransaction[EntityMetaKey.Selector])}
 									prefetched={hederaTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

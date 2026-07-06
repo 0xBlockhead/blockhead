@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.path) ?? '')].filter(Boolean).join(' ') || 'bit torrent file')
 	const viewDomId = $derived('bit-torrent-file-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -106,7 +108,7 @@
 				<dd>
 					<BitTorrentMetainfoView
 						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -44,6 +44,8 @@
 	const icpCanisterTimestamp = $derived(selection({}))
 	const titleFallback = $derived('ICP canister timestamp')
 	const viewDomId = $derived('icp-canister-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<IcpCanisterView
 						selection={select(EntityType.IcpCanister, selection.entitySelector.$canister)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -159,7 +161,7 @@
 								<IcpSubnetView
 									selection={select(EntityType.IcpSubnet, icpSubnet[EntityMetaKey.Selector])}
 									prefetched={icpSubnet}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

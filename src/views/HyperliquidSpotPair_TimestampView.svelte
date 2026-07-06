@@ -44,6 +44,8 @@
 	const hyperliquidSpotPairTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hyperliquid spot pair timestamp')
 	const viewDomId = $derived('hyperliquid-spot-pair-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HyperliquidSpotPairView from '$/views/HyperliquidSpotPairView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HyperliquidSpotPairView
 						selection={select(EntityType.HyperliquidSpotPair, selection.entitySelector.$spotPair)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

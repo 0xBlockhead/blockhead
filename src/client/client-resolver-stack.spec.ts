@@ -77,6 +77,35 @@ describe('client resolver stack architecture', () => {
 		}
 	})
 
+	it('distinguishes remote, hydrated-rows, and loaded-marker persistence outcomes', () => {
+		const clientSource = source('$client.svelte.ts')
+		expect(clientSource).toMatch(/PersistedCollectionLoadedSubset/)
+		expect(clientSource).toMatch(/metadata\?\.collection\.get\(metadataKey\)/)
+		expect(clientSource).toMatch(/decision: CollectionLoadDecision\.Persisted[\s\S]*status: PersistedCollectionLoadStatus\.Completed/)
+		expect(clientSource).toMatch(/decision: CollectionLoadDecision\.Remote[\s\S]*status: PersistedCollectionLoadStatus\.Loading/)
+		expect(clientSource).toMatch(/rowCount: marker\.rowCount/)
+		expect(clientSource).toMatch(/sourceRowCounts: marker\.sourceRowCounts/)
+	})
+
+	it('rejects incomplete persisted subsets and implicit-source marker mismatches', () => {
+		const clientSource = source('$client.svelte.ts')
+		expect(clientSource).toMatch(/missing-marker/)
+		expect(clientSource).toMatch(/row-count-undercount/)
+		expect(clientSource).toMatch(/missing-source/)
+		expect(clientSource).toMatch(/source-count-undercount/)
+		expect(clientSource).toMatch(/remoteSources = \(/)
+		expect(clientSource).toMatch(/requestedSources\.filter/)
+	})
+
+	it('keeps hydrated rows visible when count refresh failure surfaces later errors', () => {
+		const clientSource = source('$client.svelte.ts')
+		expect(clientSource).toMatch(/\.\.\.persistedRows\(loadSubsetOptions, collection\.toArray\)/)
+		expect(clientSource).toMatch(/\.\.\.loaded\.rows/)
+		expect(clientSource).toMatch(/failedOutcomes/)
+		expect(clientSource).toMatch(/collectionLoadFailures\.add/)
+		expect(clientSource).toMatch(/status: PersistedCollectionLoadStatus\.Failed/)
+	})
+
 	it('keeps undefined snapshot completion gated by schema cardinality', () => {
 		const clientSource = source('$client.svelte.ts')
 		for (const queryFunction of [

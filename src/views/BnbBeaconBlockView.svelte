@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.height) ?? '')].filter(Boolean).join(' ') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'bnb beacon block')
 	const viewDomId = $derived('bnb-beacon-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -113,7 +115,7 @@
 				<dd>
 					<BnbBeaconNetworkView
 						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

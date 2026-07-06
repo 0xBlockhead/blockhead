@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived('blockhead Lightning channel state')
 	const viewDomId = $derived('blockhead-lightning-channel-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BlockheadLightningChannelState_TimestampsView from '$/views/BlockheadLightningChannelState_TimestampsView.svelte'
@@ -158,7 +160,7 @@
 				<dd>
 					<BlockheadLightningNodeStateView
 						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -175,7 +177,7 @@
 								channelId: String(selection.entitySelector.$channel.channelId ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

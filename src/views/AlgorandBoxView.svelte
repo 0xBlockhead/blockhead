@@ -45,6 +45,8 @@
 	const algorandBox = $derived(selection({}))
 	const titleFallback = $derived('algorand box')
 	const viewDomId = $derived('algorand-box-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AlgorandBox_RoundsView from '$/views/AlgorandBox_RoundsView.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<AlgorandApplicationView
 						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

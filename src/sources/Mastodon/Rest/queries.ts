@@ -1,9 +1,10 @@
-import type { SourcePublicEnv } from '$/sources/$sources.ts'
-import { mastodonGet } from '$/sources/Mastodon/Rest/client.ts'
-import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
+import { optionalPublicEnvString, type SourcePublicEnv } from '$/sources/$sources.ts'
+import { mastodonFetch, mastodonGet } from '$/sources/Mastodon/Rest/client.ts'
+import { mastodonInstanceByBaseUrl } from '$/constants/Mastodon.ts'
 import type {
 	MastodonApiV1Account,
 	MastodonApiV1Context,
+	MastodonApiV1DomainBlock,
 	MastodonApiV1Instance,
 	MastodonApiV1Status,
 	MastodonApiV2Search,
@@ -11,16 +12,18 @@ import type {
 
 export const getAccountByLocalAccountId = async (
 	publicEnv: SourcePublicEnv,
+	instanceOrigin: string,
 	localAccountId: string
 ) => (
-	mastodonGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
+	mastodonGet<MastodonApiV1Account>(publicEnv, instanceOrigin, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
 
 export const getAccountByAcct = async (
 	publicEnv: SourcePublicEnv,
+	instanceOrigin: string,
 	acct: string
 ) => (
-	mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct })
+	mastodonGet<MastodonApiV1Account>(publicEnv, instanceOrigin, '/accounts/lookup', { acct })
 )
 
 export const getAccountByActivityStreamsUri = async (
@@ -29,6 +32,7 @@ export const getAccountByActivityStreamsUri = async (
 ) => {
 	const account = (await mastodonGet<MastodonApiV2Search>(
 		publicEnv,
+		new URL(activityStreamsUri).origin,
 		'/search',
 		{
 			q: activityStreamsUri,
@@ -44,9 +48,10 @@ export const getAccountByActivityStreamsUri = async (
 
 export const getStatus = async (
 	publicEnv: SourcePublicEnv,
+	instanceOrigin: string,
 	localStatusId: string
 ) => (
-	mastodonGet<MastodonApiV1Status>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
+	mastodonGet<MastodonApiV1Status>(publicEnv, instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
 export const getStatusByActivityStreamsUri = async (
@@ -55,6 +60,7 @@ export const getStatusByActivityStreamsUri = async (
 ) => {
 	const status = (await mastodonGet<MastodonApiV2Search>(
 		publicEnv,
+		new URL(activityStreamsUri).origin,
 		'/search',
 		{
 			q: activityStreamsUri,
@@ -70,41 +76,70 @@ export const getStatusByActivityStreamsUri = async (
 
 export const getStatusContext = async (
 	publicEnv: SourcePublicEnv,
+	instanceOrigin: string,
 	localStatusId: string
 ) => (
-	mastodonGet<MastodonApiV1Context>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
+	mastodonGet<MastodonApiV1Context>(publicEnv, instanceOrigin, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
 
 export const listAccountStatusesByLocalAccountId = async (
 	publicEnv: SourcePublicEnv,
+	instanceOrigin: string,
 	localAccountId: string,
 	limit: number
 ) => (
 	mastodonGet<MastodonApiV1Status[]>(
 		publicEnv,
+		instanceOrigin,
 		`/accounts/${encodeURIComponent(localAccountId)}/statuses`,
 		{ limit: String(Math.min(80, Math.max(1, limit))) }
 	)
 )
 
 export const getInstance = async (
-	publicEnv: SourcePublicEnv
+	publicEnv: SourcePublicEnv,
+	instanceOrigin: string
 ) => (
-	mastodonGet<MastodonApiV1Instance>(publicEnv, '/instance')
+	mastodonGet<MastodonApiV1Instance>(publicEnv, instanceOrigin, '/instance')
 )
 
 export const listPublicTimeline = async (
 	publicEnv: SourcePublicEnv,
+	instanceOrigin: string,
 	limit: number
 ) => (
-	mastodonGet<MastodonApiV1Status[]>(
-		publicEnv,
-		'/timelines/public',
-		{ limit: String(Math.min(80, Math.max(1, limit))) }
-	)
+	optionalPublicEnvString(publicEnv, 'PUBLIC_MASTODON_ACCESS_TOKEN') == null ?
+		[]
+	:
+		mastodonGet<MastodonApiV1Status[]>(
+			publicEnv,
+			instanceOrigin,
+			'/timelines/public',
+			{ limit: String(Math.min(80, Math.max(1, limit))) }
+		)
 )
 
+export const listInstancePeerDomains = async (
+	publicEnv: SourcePublicEnv,
+	instanceOrigin: string
+) => {
+	const response = await mastodonFetch(publicEnv, instanceOrigin, '/instance/peers')
+	if (!response.ok)
+		throw new Error(`Mastodon_Rest: instance peers failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
+	return response.json<string[]>()
+}
+
+export const listInstanceModeratedDomains = async (
+	publicEnv: SourcePublicEnv,
+	instanceOrigin: string
+) => {
+	const response = await mastodonFetch(publicEnv, instanceOrigin, '/instance/domain_blocks')
+	if (!response.ok)
+		throw new Error(`Mastodon_Rest: instance domain blocks failed for ${instanceOrigin}: ${response.status} ${response.statusText}`)
+	return response.json<MastodonApiV1DomainBlock[]>()
+}
+
 export const assertInstanceMatches = (instanceOrigin: string) => {
-	if (new URL(instanceOrigin).origin !== new URL(mastodonInstanceByKey.mastodon_social.origin).origin)
-		throw new Error('Mastodon_Rest: entity instance does not match configured Mastodon instance')
+	if (mastodonInstanceByBaseUrl[new URL(instanceOrigin).origin] == null)
+		throw new Error('Mastodon_Rest: entity instance does not match configured Mastodon-compatible ActivityPub instance')
 }

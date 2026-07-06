@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('global IPFS access timestamp')
 	const viewDomId = $derived('-global-ipfs-access-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -124,7 +126,7 @@
 					<GlobalIpfsAccessView
 						selection={select(EntityType._GlobalIpfsAccess, selection.entitySelector.$hub)}
 						href={resolve('/(explore)/(ipfs)/ipfs/access')}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

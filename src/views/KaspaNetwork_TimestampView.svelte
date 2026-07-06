@@ -44,6 +44,8 @@
 	const kaspaNetworkTimestamp = $derived(selection({}))
 	const titleFallback = $derived('kaspa network timestamp')
 	const viewDomId = $derived('kaspa-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<KaspaNetworkView
 						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.videoId ?? prefetched.videoId) ?? '')].filter(Boolean).join(' ') || 'YouTube video')
 	const viewDomId = $derived('youtube-video-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -231,7 +233,7 @@
 									<YoutubeChannelView
 										selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
 										prefetched={youtubeChannel}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>

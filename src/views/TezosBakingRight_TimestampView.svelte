@@ -44,6 +44,8 @@
 	const tezosBakingRightTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tezos baking right timestamp')
 	const viewDomId = $derived('tezos-baking-right-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TezosBakingRightView from '$/views/TezosBakingRightView.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TezosBakingRightView
 						selection={select(EntityType.TezosBakingRight, selection.entitySelector.$right)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -228,7 +230,7 @@
 								<TezosBlockView
 									selection={select(EntityType.TezosBlock, tezosBlock[EntityMetaKey.Selector])}
 									prefetched={tezosBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

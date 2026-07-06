@@ -4,13 +4,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -46,11 +45,11 @@
 	const mevBuilder = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.builderPubkey ?? prefetched.builderPubkey) ?? '')].filter(Boolean).join(' ') || 'MEV builder')
 	const viewDomId = $derived('mev-builder-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import MevBuilder_TimestampsView from '$/views/MevBuilder_TimestampsView.svelte'
-	import MevRelay_ProposerPayloadDeliveredRowsView from '$/views/MevRelay_ProposerPayloadDeliveredRowsView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
@@ -185,41 +184,11 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
 			</div>
 		</dl>
-	{/snippet}
-
-	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<MevBuilder_TimestampsView
-				selection={
-						selection[EntityProxyField]<EntityType.MevBuilder_Timestamp>('$$timestamps', {
-							sources: [
-								Source.MevRelay_Rest,
-							],
-						})
-					}
-				title='Timestamps'
-				emptyText='No builder observations yet.'
-				id='MevBuilder_TimestampsView-$$timestamps'
-			/>
-
-			<MevRelay_ProposerPayloadDeliveredRowsView
-				selection={
-						selection[EntityProxyField]<EntityType.MevRelay_ProposerPayloadDelivered>('$$deliveredPayloads', {
-							sources: [
-								Source.MevRelay_Rest,
-							],
-						})
-					}
-				title='Delivered payloads'
-				emptyText='No delivered payloads for this builder yet.'
-				id='MevRelay_ProposerPayloadDeliveredRowsView-$$deliveredPayloads'
-			/>
-		{/if}
 	{/snippet}
 </EntityView>

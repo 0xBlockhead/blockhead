@@ -44,6 +44,8 @@
 	const tezosCycle = $derived(selection({}))
 	const titleFallback = $derived('tezos cycle')
 	const viewDomId = $derived('tezos-cycle-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TezosNetworkView from '$/views/TezosNetworkView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TezosNetworkView
 						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

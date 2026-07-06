@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived('EVM network account timestamp')
 	const viewDomId = $derived('evm-network-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -137,7 +139,7 @@
 				<dd>
 					<EvmNetworkAccountView
 						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

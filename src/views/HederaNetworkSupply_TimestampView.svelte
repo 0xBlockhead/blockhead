@@ -44,6 +44,8 @@
 	const hederaNetworkSupplyTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hedera network supply timestamp')
 	const viewDomId = $derived('hedera-network-supply-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HederaNetworkView from '$/views/HederaNetworkView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HederaNetworkView
 						selection={select(EntityType.HederaNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

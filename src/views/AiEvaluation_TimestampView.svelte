@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.metricName ?? prefetched.metricName) ?? '')].filter(Boolean).join(' ') || 'AI evaluation timestamp')
 	const viewDomId = $derived('ai-evaluation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -159,7 +161,7 @@
 				<dd>
 					<AiBenchmarkView
 						selection={select(EntityType.AiBenchmark, selection.entitySelector.$benchmark)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -373,7 +375,7 @@
 								<AiModelView
 									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 									prefetched={aiModel}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -393,7 +395,7 @@
 								<AiModelVersionView
 									selection={select(EntityType.AiModelVersion, aiModelVersion[EntityMetaKey.Selector])}
 									prefetched={aiModelVersion}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -413,7 +415,7 @@
 								<A2aAgentServiceView
 									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
 									prefetched={a2aAgentService}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -433,7 +435,7 @@
 								<McpServerView
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
 									prefetched={mcpServer}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -453,7 +455,7 @@
 								<Eip8004AgentRegistrationView
 									selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
 									prefetched={eip8004AgentRegistration}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

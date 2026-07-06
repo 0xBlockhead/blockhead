@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('global Swarm access timestamp')
 	const viewDomId = $derived('-global-swarm-access-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -124,7 +126,7 @@
 					<GlobalSwarmAccessView
 						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
 						href={resolve('/(explore)/(swarm)/swarm/access')}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

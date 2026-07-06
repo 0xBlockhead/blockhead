@@ -55,12 +55,13 @@
 	}))
 	const titleFallback = $derived((String((prefetched.blockNumber) ?? '') ? 'Block #' + String((prefetched.blockNumber) ?? '') : '') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'EVM block')
 	const viewDomId = $derived('evm-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
@@ -417,12 +418,12 @@
 										selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
 										prefetched={evmBlock}
 										href={
-											(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2 !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference !== undefined && ({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
-												caip2: `${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.namespace ?? '')}:${String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).$network.caip2.reference ?? '')}`,
-												blockNumber: String(({ ...evmBlock[EntityMetaKey.Selector], ...evmBlock }).blockNumber ?? ''),
+											(evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmBlock[EntityMetaKey.Selector].$network !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && evmBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmBlock[EntityMetaKey.Selector].blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {
+												caip2: `${String(evmBlock[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmBlock[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+												blockNumber: String(evmBlock[EntityMetaKey.Selector].blockNumber ?? ''),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -445,11 +446,11 @@
 										selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 										prefetched={evmAccount}
 										href={
-											(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
-												address: String(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address ?? ''),
+											(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+												address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 											}) : undefined)
 										}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -459,16 +460,5 @@
 				</ResourceBoundary>
 			{/if}
 		</dl>
-	{/snippet}
-
-	{#snippet Details({ open: detailsOpen })}
-		{#if detailsOpen}
-			<EvmTransactionsView
-				selection={selection[EntityProxyField]<EntityType.EvmTransaction>('$$transactions')}
-				title='Transactions'
-				emptyText='No transactions in this block.'
-				id='EvmTransactionsView-$$transactions'
-			/>
-		{/if}
 	{/snippet}
 </EntityView>

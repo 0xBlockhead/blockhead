@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('ENS reverse record')
 	const viewDomId = $derived('ens-reverse-record-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -129,7 +131,7 @@
 				<dd>
 					<AccountView
 						selection={select(EntityType.Account, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -145,7 +147,7 @@
 								ensName: String(selection.entitySelector.$name.name ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

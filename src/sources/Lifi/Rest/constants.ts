@@ -13,3 +13,14 @@ export const baseUrl = origin
 export const stagingOrigin = 'https://staging.li.quest' as const
 
 export const stagingBaseUrl = stagingOrigin
+
+export const lifiRestOrigins = [
+	{
+		origin,
+		corsEnabled: false,
+	},
+	{
+		origin: stagingOrigin,
+		corsEnabled: false,
+	},
+] as const

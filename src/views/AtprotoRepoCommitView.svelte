@@ -41,6 +41,8 @@
 	const atprotoRepoCommit = $derived(selection({}))
 	const titleFallback = $derived([String((prefetched.rev) ?? ''), String((prefetched.commitCid) ?? '')].filter(Boolean).join(' ') || 'AT Protocol repo commit')
 	const viewDomId = $derived('atproto-repo-commit-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'

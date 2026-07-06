@@ -45,6 +45,8 @@
 	const algorandTealProgramTimestamp = $derived(selection({}))
 	const titleFallback = $derived('algorand teal program timestamp')
 	const viewDomId = $derived('algorand-teal-program-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<AlgorandTealProgramView
 						selection={select(EntityType.AlgorandTealProgram, selection.entitySelector.$program)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

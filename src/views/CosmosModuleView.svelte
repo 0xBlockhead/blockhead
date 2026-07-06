@@ -45,6 +45,8 @@
 	const cosmosModule = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.moduleName ?? prefetched.moduleName) ?? '')].filter(Boolean).join(' ') || 'Cosmos module')
 	const viewDomId = $derived('cosmos-module-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import CosmosAccountView from '$/views/CosmosAccountView.svelte'
@@ -176,12 +178,12 @@
 									selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
 									prefetched={cosmosAccount}
 									href={
-										(({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).$network !== undefined && ({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).$network.caip2 !== undefined && ({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).$network.caip2.namespace !== undefined && ({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).$network !== undefined && ({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).$network.caip2 !== undefined && ({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).$network.caip2.reference !== undefined && ({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
-											caip2: `${String(({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).$network.caip2.namespace ?? '')}:${String(({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).$network.caip2.reference ?? '')}`,
-											address: String(({ ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }).address ?? ''),
+										(cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && cosmosAccount[EntityMetaKey.Selector].$network !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && cosmosAccount[EntityMetaKey.Selector].$network.caip2.reference !== undefined && cosmosAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
+											caip2: `${String(cosmosAccount[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(cosmosAccount[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											address: String(cosmosAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -202,7 +204,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

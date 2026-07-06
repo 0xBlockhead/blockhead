@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived('eigen layer allocation timestamp')
 	const viewDomId = $derived('eigen-layer-allocation-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -147,7 +149,7 @@
 				<dd>
 					<EigenLayerOperatorView
 						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -158,7 +160,7 @@
 				<dd>
 					<EigenLayerAvsView
 						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -169,7 +171,7 @@
 				<dd>
 					<EigenLayerStrategyView
 						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

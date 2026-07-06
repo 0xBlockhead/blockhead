@@ -21,18 +21,18 @@ export default {
 	],
 	fields: [
 		{
-				name: '$output',
-				label: 'Output',
-				type: EntityFieldType.EntityReference,
-				entityType: EntityType.UtxoOutput,
-				cardinality: EntityFieldCardinality.One,
+			name: '$output',
+			label: 'Output',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.UtxoOutput,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
-				name: 'commitmentHex',
-				label: 'Commitment hex',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('string'),
-				cardinality: EntityFieldCardinality.One,
+			name: 'commitmentHex',
+			label: 'Commitment hex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

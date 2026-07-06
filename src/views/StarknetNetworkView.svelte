@@ -59,6 +59,8 @@
 	}))
 	const titleFallback = $derived('starknet network')
 	const viewDomId = $derived('starknet-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StarknetNetwork_TimestampsView from '$/views/StarknetNetwork_TimestampsView.svelte'
@@ -142,7 +144,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

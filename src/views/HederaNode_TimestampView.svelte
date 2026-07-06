@@ -44,6 +44,8 @@
 	const hederaNodeTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hedera node timestamp')
 	const viewDomId = $derived('hedera-node-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<HederaNodeView
 						selection={select(EntityType.HederaNode, selection.entitySelector.$node)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -194,7 +196,7 @@
 								<HederaAccountView
 									selection={select(EntityType.HederaAccount, hederaAccount[EntityMetaKey.Selector])}
 									prefetched={hederaAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.entryLabel) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.providerEntryId ?? prefetched.providerEntryId) ?? '')].filter(Boolean).join(' ') || 'AI provider catalog entry')
 	const viewDomId = $derived('ai-provider-catalog-entry-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AiProviderCatalogEntry_TimestampsView from '$/views/AiProviderCatalogEntry_TimestampsView.svelte'
@@ -127,7 +129,7 @@
 				<dd>
 					<AiModelProviderView
 						selection={select(EntityType.AiModelProvider, selection.entitySelector.$provider)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

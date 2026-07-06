@@ -44,6 +44,8 @@
 	const hederaTokenAssociation = $derived(selection({}))
 	const titleFallback = $derived('hedera token association')
 	const viewDomId = $derived('hedera-token-association-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<HederaAccountView
 						selection={select(EntityType.HederaAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -93,7 +95,7 @@
 				<dd>
 					<HederaTokenView
 						selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

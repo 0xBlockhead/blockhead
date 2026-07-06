@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.iso4217 ?? prefetched.iso4217) ?? '')].filter(Boolean).join(' ') || 'currency')
 	const viewDomId = $derived('currency-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -145,9 +147,9 @@
 										})
 									}
 									href={
-										(({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).$currency !== undefined && ({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).$currency.iso4217 !== undefined && ({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).timestampMs !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
-											iso4217: String(({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).$currency.iso4217 ?? ''),
-											timestampMs: String(({ ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }).timestampMs ?? ''),
+										(currencyTimestamp[EntityMetaKey.Selector].$currency !== undefined && currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 !== undefined && currencyTimestamp[EntityMetaKey.Selector].timestampMs !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {
+											iso4217: String(currencyTimestamp[EntityMetaKey.Selector].$currency.iso4217 ?? ''),
+											timestampMs: String(currencyTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
 										}) : undefined)
 									}
 									prefetched={{ ...currencyTimestampSelector, ...currencyTimestamp }}

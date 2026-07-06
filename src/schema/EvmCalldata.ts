@@ -22,11 +22,11 @@ export default {
 	],
 	fields: [
 		{
-				name: 'hex',
-				label: 'Hex',
-				type: EntityFieldType.Primitive,
-				primitiveType: (ZeroExHex),
-				cardinality: EntityFieldCardinality.One,
+			name: 'hex',
+			label: 'Hex',
+			type: EntityFieldType.Primitive,
+			primitiveType: (ZeroExHex),
+			cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

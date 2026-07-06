@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.tipsetKey ?? prefetched.tipsetKey) ?? '')].filter(Boolean).join(' ') || 'filecoin message receipt')
 	const viewDomId = $derived('filecoin-message-receipt-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -134,7 +136,7 @@
 				<dd>
 					<FilecoinMessageView
 						selection={select(EntityType.FilecoinMessage, selection.entitySelector.$message)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -211,7 +213,7 @@
 								<FilecoinTipsetView
 									selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
 									prefetched={filecoinTipset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

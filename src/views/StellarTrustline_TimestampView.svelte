@@ -44,6 +44,8 @@
 	const stellarTrustlineTimestamp = $derived(selection({}))
 	const titleFallback = $derived('stellar trustline timestamp')
 	const viewDomId = $derived('stellar-trustline-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StellarTrustlineView from '$/views/StellarTrustlineView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<StellarTrustlineView
 						selection={select(EntityType.StellarTrustline, selection.entitySelector.$trustline)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

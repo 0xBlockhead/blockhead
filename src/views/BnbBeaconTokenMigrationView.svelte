@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.migrationKind) ?? '')].filter(Boolean).join(' ') || 'bnb beacon token migration')
 	const viewDomId = $derived('bnb-beacon-token-migration-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -137,7 +139,7 @@
 				<dd>
 					<BnbBeaconTokenView
 						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -155,7 +157,7 @@
 								networkSlug: String(selection.entitySelector.$targetNetwork.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

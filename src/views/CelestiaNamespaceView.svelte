@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.namespaceId ?? prefetched.namespaceId) ?? '')].filter(Boolean).join(' ') || 'celestia namespace')
 	const viewDomId = $derived('celestia-namespace-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -108,7 +110,7 @@
 				<dd>
 					<CelestiaNetworkView
 						selection={select(EntityType.CelestiaNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

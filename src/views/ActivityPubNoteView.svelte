@@ -46,7 +46,6 @@
 	const activityPubNote = $derived(selection({
 		sources: [
 			Source.Mastodon_Rest,
-			Source.Fedi_Rest,
 		],
 		fields: {
 			content: true,
@@ -57,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.content) ?? ''), String((prefetched.localStatusId) ?? '')].filter(Boolean).join(' ') || 'ActivityPub note')
 	const viewDomId = $derived('activity-pub-note-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -120,12 +121,12 @@
 									selection={select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector])}
 									prefetched={activityPubActor}
 									href={
-										(({ ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }).instanceOrigin !== undefined && ({ ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }).localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-											instanceOrigin: String(({ ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }).instanceOrigin ?? ''),
-											localAccountId: String(({ ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }).localAccountId ?? ''),
+										(activityPubActor[EntityMetaKey.Selector].instanceOrigin !== undefined && activityPubActor[EntityMetaKey.Selector].localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+											instanceOrigin: String(activityPubActor[EntityMetaKey.Selector].instanceOrigin ?? ''),
+											localAccountId: String(activityPubActor[EntityMetaKey.Selector].localAccountId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

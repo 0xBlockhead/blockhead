@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.eventType) ?? '')].filter(Boolean).join(' ') || 'aptos event')
 	const viewDomId = $derived('aptos-event-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -100,7 +102,7 @@
 				<dd>
 					<AptosNetworkView
 						selection={select(EntityType.AptosNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -117,7 +119,7 @@
 								<AptosTransactionView
 									selection={select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector])}
 									prefetched={aptosTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

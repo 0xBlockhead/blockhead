@@ -2,22 +2,22 @@
 
 import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
+import _GlobalActivityPubNetworkSchema from '$/schema/_GlobalActivityPubNetwork.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import ActivityPubNetworkSchema from '$/schema/ActivityPubNetwork.ts'
 import { schema } from '$/schema/index.ts'
 import { type as arktype } from 'arktype'
 
 export const load: PageLoad = ({ params }) => {
-	const activityPubNetworkSelector = parseEntitySelector(
+	const globalActivityPubNetworkSelector = parseEntitySelector(
 		schema,
-		ActivityPubNetworkSchema,
+		_GlobalActivityPubNetworkSchema,
 		{
-			scope: 'ActivityPubNetwork',
+			scope: '_GlobalActivityPubNetwork',
 		}
 	)
-	if (activityPubNetworkSelector instanceof arktype.errors) error(404, 'Invalid ActivityPubNetwork selector')
+	if (globalActivityPubNetworkSelector instanceof arktype.errors) error(404, 'Invalid _GlobalActivityPubNetwork selector')
 
 	return {
-		selector: activityPubNetworkSelector,
+		selector: globalActivityPubNetworkSelector,
 	}
 }

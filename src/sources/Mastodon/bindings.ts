@@ -1,6 +1,6 @@
 import { type as arktype } from 'arktype'
 
-import { mastodonInstanceByKey } from '$/constants/Mastodon.ts'
+import { mastodonInstances } from '$/constants/Mastodon.ts'
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
@@ -25,16 +25,16 @@ export const mastodonBindings = [
 		source: Source.Mastodon_Rest,
 		target: {
 			kind: SourceTargetKind.Global,
-			key: 'mastodon-social',
+			key: 'mastodon-compatible-activitypub',
 		},
-		endpoints: [
+		endpoints: mastodonInstances.map((instance) => (
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: mastodonInstanceByKey.mastodon_social.origin,
-				origin: mastodonInstanceByKey.mastodon_social.origin,
+				locator: instance.origin,
+				origin: instance.origin,
 				corsEnabled: false,
-			},
-		],
+			}
+		)),
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.RestJson,
 		operationGroups: [

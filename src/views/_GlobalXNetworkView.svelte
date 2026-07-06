@@ -46,6 +46,8 @@
 	}))
 	const titleFallback = $derived('global X network')
 	const viewDomId = $derived('-global-xnetwork-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>

@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Polkadot asset timestamp')
 	const viewDomId = $derived('polkadot-asset-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -125,7 +127,7 @@
 				<dd>
 					<PolkadotAssetView
 						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

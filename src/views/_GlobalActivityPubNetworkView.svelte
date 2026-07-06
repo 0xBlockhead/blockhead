@@ -42,16 +42,20 @@
 	const globalActivityPubNetwork = $derived(selection({
 		sources: [
 			Source.Constants_Internal,
-			Source.Fedi_Rest,
 			Source.Mastodon_Rest,
 		],
 	}))
 	const titleFallback = $derived('global ActivityPub network')
 	const viewDomId = $derived('-global-activity-pub-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
+	import ActivityPubInstancesView from '$/views/ActivityPubInstancesView.svelte'
+	import ActivityPubInstancePeersView from '$/views/ActivityPubInstancePeersView.svelte'
+	import ActivityPubInstanceModeratedDomainsView from '$/views/ActivityPubInstanceModeratedDomainsView.svelte'
 	import GlobalActivityPubNetwork_TimestampsView from '$/views/_GlobalActivityPubNetwork_TimestampsView.svelte'
 </script>
 
@@ -142,6 +146,27 @@
 				href={resolve('/(social)/(activitypub)/activitypub/notes')}
 				emptyText='No ActivityPub notes in this source window.'
 				id='ActivityPubNotesView-$$sourceWindowNotes'
+			/>
+
+			<ActivityPubInstancesView
+				selection={selection[EntityProxyField]<EntityType.ActivityPubInstance>('$$instances')}
+				title='Instances'
+				emptyText='No ActivityPub instances configured.'
+				id='ActivityPubInstancesView-$$instances'
+			/>
+
+			<ActivityPubInstancePeersView
+				selection={selection[EntityProxyField]<EntityType.ActivityPubInstancePeer>('$$instancePeers')}
+				title='Instance peers'
+				emptyText='No ActivityPub instance peers in this source window.'
+				id='ActivityPubInstancePeersView-$$instancePeers'
+			/>
+
+			<ActivityPubInstanceModeratedDomainsView
+				selection={selection[EntityProxyField]<EntityType.ActivityPubInstanceModeratedDomain>('$$instanceModeratedDomains')}
+				title='Instance moderated domains'
+				emptyText='No ActivityPub moderated domains in this source window.'
+				id='ActivityPubInstanceModeratedDomainsView-$$instanceModeratedDomains'
 			/>
 
 			<GlobalActivityPubNetwork_TimestampsView

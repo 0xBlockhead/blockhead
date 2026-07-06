@@ -57,6 +57,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.labelPlural) ?? '')].filter(Boolean).join(' ') || [String((proposalCategoryById[String(selection.entitySelector.category ?? prefetched.category)]?.labelPlural ?? (String((selection.entitySelector.category ?? prefetched.category) ?? ''))) ?? '')].filter(Boolean).join(' ') || 'Specification proposal kind')
 	const viewDomId = $derived('specification-proposal-kind-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
@@ -180,11 +182,11 @@
 									selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector])}
 									prefetched={specificationRealm}
 									href={
-										(({ ...specificationRealm[EntityMetaKey.Selector], ...specificationRealm }).realm !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
-											specificationRealmSlug: String(specificationRealmById[String(({ ...specificationRealm[EntityMetaKey.Selector], ...specificationRealm }).realm)].slug ?? ''),
+										(specificationRealm[EntityMetaKey.Selector].realm !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {
+											specificationRealmSlug: String(specificationRealmById[String(specificationRealm[EntityMetaKey.Selector].realm)].slug ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

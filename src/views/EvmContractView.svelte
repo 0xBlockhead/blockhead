@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.precompileName) ?? ''), String((selection.entitySelector.address ?? prefetched.address) ?? '')].filter(Boolean).join(' ') || 'EVM contract')
 	const viewDomId = $derived('evm-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -226,7 +228,7 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -246,11 +248,11 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
-											address: String(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address ?? ''),
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -271,12 +273,12 @@
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									prefetched={evmTransaction}
 									href={
-										(({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2 !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2.namespace !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2 !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2.reference !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											caip2: `${String(({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2.namespace ?? '')}:${String(({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2.reference ?? '')}`,
-											transactionId: String(({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).txHash ?? ''),
+										(evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmTransaction[EntityMetaKey.Selector].txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+											caip2: `${String(evmTransaction[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmTransaction[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -297,12 +299,12 @@
 									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
 									prefetched={evmContract}
 									href={
-										(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2 !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference !== undefined && ({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
-											caip2: `${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.namespace ?? '')}:${String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).$network.caip2.reference ?? '')}`,
-											address: String(({ ...evmContract[EntityMetaKey.Selector], ...evmContract }).address ?? ''),
+										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2 !== undefined && evmContract[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]', {
+											caip2: `${String(evmContract[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmContract[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -323,12 +325,12 @@
 									selection={select(EntityType.EvmContractVerification, evmContractVerification[EntityMetaKey.Selector])}
 									prefetched={evmContractVerification}
 									href={
-										(({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.$network !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.$network.caip2 !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.$network.caip2.namespace !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.$network !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.$network.caip2 !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.$network.caip2.reference !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract !== undefined && ({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]/verification', {
-											caip2: `${String(({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.$network.caip2.namespace ?? '')}:${String(({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.$network.caip2.reference ?? '')}`,
-											address: String(({ ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }).$contract.address ?? ''),
+										(evmContractVerification[EntityMetaKey.Selector].$contract !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract.$network !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract.$network.caip2 !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract.$network.caip2.namespace !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract.$network !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract.$network.caip2 !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract.$network.caip2.reference !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract !== undefined && evmContractVerification[EntityMetaKey.Selector].$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]/verification', {
+											caip2: `${String(evmContractVerification[EntityMetaKey.Selector].$contract.$network.caip2.namespace ?? '')}:${String(evmContractVerification[EntityMetaKey.Selector].$contract.$network.caip2.reference ?? '')}`,
+											address: String(evmContractVerification[EntityMetaKey.Selector].$contract.address ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

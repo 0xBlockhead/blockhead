@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.txHash ?? prefetched.txHash) ?? '')].filter(Boolean).join(' ') || 'Cosmos transaction')
 	const viewDomId = $derived('cosmos-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -558,12 +560,12 @@
 									selection={select(EntityType.CosmosBlock, cosmosBlock[EntityMetaKey.Selector])}
 									prefetched={cosmosBlock}
 									href={
-										(({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2 !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2.namespace !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2 !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2.reference !== undefined && ({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).height !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/block/[height=nonNegativeInteger]', {
-											caip2: `${String(({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2.namespace ?? '')}:${String(({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).$network.caip2.reference ?? '')}`,
-											height: String(({ ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }).height ?? ''),
+										(cosmosBlock[EntityMetaKey.Selector].$network !== undefined && cosmosBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && cosmosBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && cosmosBlock[EntityMetaKey.Selector].$network !== undefined && cosmosBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && cosmosBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && cosmosBlock[EntityMetaKey.Selector].height !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/block/[height=nonNegativeInteger]', {
+											caip2: `${String(cosmosBlock[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(cosmosBlock[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											height: String(cosmosBlock[EntityMetaKey.Selector].height ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -584,7 +586,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('dydx chain subaccount')
 	const viewDomId = $derived('dydx-chain-subaccount-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -132,7 +134,7 @@
 				<dd>
 					<DydxChainNetworkView
 						selection={select(EntityType.DydxChainNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -149,7 +151,7 @@
 								address: String(selection.entitySelector.$account.address ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

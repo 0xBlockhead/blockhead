@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Solana network')
 	const viewDomId = $derived('solana-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -224,9 +226,9 @@
 				selection={selection[EntityProxyField]<EntityType.SolanaNetwork_Timestamp>('$$timestamps')}
 				title='Timestamps'
 				href={
-						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/observations', {
+						(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/observations', {
 							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-						})
+						}) : undefined)
 					}
 				id='SolanaNetwork_TimestampsView-$$timestamps'
 			/>
@@ -235,9 +237,9 @@
 				selection={selection[EntityProxyField]<EntityType.SolanaBlock>('$$blocks')}
 				title='Blocks'
 				href={
-						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/blocks', {
+						(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/blocks', {
 							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-						})
+						}) : undefined)
 					}
 				id='SolanaBlocksView-$$blocks'
 			/>
@@ -246,9 +248,9 @@
 				selection={selection[EntityProxyField]<EntityType.SolanaTransaction>('$$transactions')}
 				title='Transactions'
 				href={
-						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/transactions', {
+						(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/transactions', {
 							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-						})
+						}) : undefined)
 					}
 				id='SolanaTransactionsView-$$transactions'
 			/>
@@ -257,9 +259,9 @@
 				selection={selection[EntityProxyField]<EntityType.SolanaAccount>('$$accounts')}
 				title='Accounts'
 				href={
-						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/accounts', {
+						(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/accounts', {
 							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-						})
+						}) : undefined)
 					}
 				id='SolanaAccountsView-$$accounts'
 			/>
@@ -268,9 +270,9 @@
 				selection={selection[EntityProxyField]<EntityType.SolanaProgram>('$$programs')}
 				title='Programs'
 				href={
-						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/programs', {
+						(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/programs', {
 							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-						})
+						}) : undefined)
 					}
 				id='SolanaProgramsView-$$programs'
 			/>
@@ -279,9 +281,9 @@
 				selection={selection[EntityProxyField]<EntityType.SolanaTokenAccount>('$$tokenAccounts')}
 				title='Token accounts'
 				href={
-						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-accounts', {
+						(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-accounts', {
 							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-						})
+						}) : undefined)
 					}
 				id='SolanaTokenAccountsView-$$tokenAccounts'
 			/>
@@ -290,9 +292,9 @@
 				selection={selection[EntityProxyField]<EntityType.SolanaTokenMint>('$$tokenMints')}
 				title='Token mints'
 				href={
-						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mints', {
+						(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mints', {
 							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-						})
+						}) : undefined)
 					}
 				id='SolanaTokenMintsView-$$tokenMints'
 			/>
@@ -301,9 +303,9 @@
 				selection={selection[EntityProxyField]<EntityType.SolanaValidator>('$$validators')}
 				title='Validators'
 				href={
-						resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validators', {
+						(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validators', {
 							networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-						})
+						}) : undefined)
 					}
 				id='SolanaValidatorsView-$$validators'
 			/>
@@ -350,9 +352,9 @@
 					<SolanaBlocksView
 						selection={selection[EntityProxyField]<EntityType.SolanaBlock>('$$blocks')}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/blocks', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/blocks', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -365,9 +367,9 @@
 					<SolanaTransactionsView
 						selection={selection[EntityProxyField]<EntityType.SolanaTransaction>('$$transactions')}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/transactions', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/transactions', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -380,9 +382,9 @@
 					<SolanaAccountsView
 						selection={selection[EntityProxyField]<EntityType.SolanaAccount>('$$accounts')}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/accounts', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/accounts', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -395,9 +397,9 @@
 					<SolanaProgramsView
 						selection={selection[EntityProxyField]<EntityType.SolanaProgram>('$$programs')}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/programs', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/programs', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -410,9 +412,9 @@
 					<SolanaNetwork_TimestampsView
 						selection={selection[EntityProxyField]<EntityType.SolanaNetwork_Timestamp>('$$timestamps')}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/observations', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/observations', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -457,9 +459,9 @@
 					<SolanaTokenAccountsView
 						selection={selection[EntityProxyField]<EntityType.SolanaTokenAccount>('$$tokenAccounts')}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-accounts', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-accounts', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -472,9 +474,9 @@
 					<SolanaTokenMintsView
 						selection={selection[EntityProxyField]<EntityType.SolanaTokenMint>('$$tokenMints')}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mints', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mints', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -487,9 +489,9 @@
 					<SolanaValidatorsView
 						selection={selection[EntityProxyField]<EntityType.SolanaValidator>('$$validators')}
 						href={
-							resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validators', {
+							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validators', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.caip2.namespace) + ':' + String(selection.entitySelector.caip2.reference))].slug ?? ''),
-							})
+							}) : undefined)
 						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}

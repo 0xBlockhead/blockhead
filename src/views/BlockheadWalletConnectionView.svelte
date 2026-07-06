@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived('wallet connection')
 	const viewDomId = $derived('blockhead-wallet-connection-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -116,7 +118,7 @@
 				<dd>
 					<BlockheadWalletView
 						selection={select(EntityType.BlockheadWallet, selection.entitySelector.$wallet)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -425,7 +427,7 @@
 								<BlockheadWalletAccountView
 									selection={select(EntityType.BlockheadWalletAccount, blockheadWalletAccount[EntityMetaKey.Selector])}
 									prefetched={blockheadWalletAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

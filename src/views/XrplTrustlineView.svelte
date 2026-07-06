@@ -44,6 +44,8 @@
 	const xrplTrustline = $derived(selection({}))
 	const titleFallback = $derived('XRPL trustline')
 	const viewDomId = $derived('xrpl-trustline-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<XrplNetworkView
 						selection={select(EntityType.XrplNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -189,7 +191,7 @@
 								<XrplAccountView
 									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
 									prefetched={xrplAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -209,7 +211,7 @@
 								<XrplAccountView
 									selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
 									prefetched={xrplAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

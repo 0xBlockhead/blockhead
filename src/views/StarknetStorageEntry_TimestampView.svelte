@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('starknet storage entry timestamp')
 	const viewDomId = $derived('starknet-storage-entry-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -139,7 +141,7 @@
 				<dd>
 					<StarknetStorageEntryView
 						selection={select(EntityType.StarknetStorageEntry, selection.entitySelector.$entry)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

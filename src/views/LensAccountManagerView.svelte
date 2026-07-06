@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.manager ?? prefetched.manager) ?? '')].filter(Boolean).join(' ') || 'Lens account manager')
 	const viewDomId = $derived('lens-account-manager-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -377,7 +379,7 @@
 				<dd>
 					<LensAccountView
 						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

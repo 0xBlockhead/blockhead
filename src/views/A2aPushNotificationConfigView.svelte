@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.configId ?? prefetched.configId) ?? '')].filter(Boolean).join(' ') || 'A2A push notification config')
 	const viewDomId = $derived('a2a-push-notification-config-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -142,7 +144,7 @@
 				<dd>
 					<A2aTaskView
 						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -45,6 +45,8 @@
 	const hyperliquidSpotPair = $derived(selection({}))
 	const titleFallback = $derived('hyperliquid spot pair')
 	const viewDomId = $derived('hyperliquid-spot-pair-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -89,7 +91,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -136,7 +138,7 @@
 								<HyperliquidSpotAssetView
 									selection={select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector])}
 									prefetched={hyperliquidSpotAsset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -156,7 +158,7 @@
 								<HyperliquidSpotAssetView
 									selection={select(EntityType.HyperliquidSpotAsset, hyperliquidSpotAsset[EntityMetaKey.Selector])}
 									prefetched={hyperliquidSpotAsset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -46,6 +46,8 @@
 	const bitcoinCashCashTokenCategory = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.categoryId ?? prefetched.categoryId) ?? '')].filter(Boolean).join(' ') || 'Bitcoin Cash CashToken category')
 	const viewDomId = $derived('bitcoin-cash-cash-token-category-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -189,7 +191,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

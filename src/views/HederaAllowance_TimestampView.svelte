@@ -44,6 +44,8 @@
 	const hederaAllowanceTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hedera allowance timestamp')
 	const viewDomId = $derived('hedera-allowance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HederaAllowanceView from '$/views/HederaAllowanceView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HederaAllowanceView
 						selection={select(EntityType.HederaAllowance, selection.entitySelector.$allowance)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

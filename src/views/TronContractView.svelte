@@ -45,6 +45,8 @@
 	const tronContract = $derived(selection({}))
 	const titleFallback = $derived('tron contract')
 	const viewDomId = $derived('tron-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -91,7 +93,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -145,7 +147,7 @@
 								<TronAccountView
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									prefetched={tronAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -209,7 +211,7 @@
 								<TronAccountView
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									prefetched={tronAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -235,7 +237,7 @@
 								<TronTransactionView
 									selection={select(EntityType.TronTransaction, tronTransaction[EntityMetaKey.Selector])}
 									prefetched={tronTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

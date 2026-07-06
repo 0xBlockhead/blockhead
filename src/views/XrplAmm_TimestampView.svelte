@@ -44,6 +44,8 @@
 	const xrplAmmTimestamp = $derived(selection({}))
 	const titleFallback = $derived('XRPL AMM timestamp')
 	const viewDomId = $derived('xrpl-amm-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XrplAmmView from '$/views/XrplAmmView.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<XrplAmmView
 						selection={select(EntityType.XrplAmm, selection.entitySelector.$amm)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -333,7 +335,7 @@
 								<XrplLedgerEntryView
 									selection={select(EntityType.XrplLedgerEntry, xrplLedgerEntry[EntityMetaKey.Selector])}
 									prefetched={xrplLedgerEntry}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

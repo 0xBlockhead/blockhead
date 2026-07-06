@@ -44,6 +44,8 @@
 	const hederaTopicMessage = $derived(selection({}))
 	const titleFallback = $derived('hedera topic message')
 	const viewDomId = $derived('hedera-topic-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<HederaTopicView
 						selection={select(EntityType.HederaTopic, selection.entitySelector.$topic)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

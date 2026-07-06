@@ -44,6 +44,8 @@
 	const cardanoNetworkTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Cardano network timestamp')
 	const viewDomId = $derived('cardano-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import CardanoNetworkView from '$/views/CardanoNetworkView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<CardanoNetworkView
 						selection={select(EntityType.CardanoNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

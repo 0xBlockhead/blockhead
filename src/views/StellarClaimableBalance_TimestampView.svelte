@@ -44,6 +44,8 @@
 	const stellarClaimableBalanceTimestamp = $derived(selection({}))
 	const titleFallback = $derived('stellar claimable balance timestamp')
 	const viewDomId = $derived('stellar-claimable-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StellarClaimableBalanceView from '$/views/StellarClaimableBalanceView.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<StellarClaimableBalanceView
 						selection={select(EntityType.StellarClaimableBalance, selection.entitySelector.$claimableBalance)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -194,7 +196,7 @@
 								<StellarAssetView
 									selection={select(EntityType.StellarAsset, stellarAsset[EntityMetaKey.Selector])}
 									prefetched={stellarAsset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -284,7 +286,7 @@
 								<StellarTransactionView
 									selection={select(EntityType.StellarTransaction, stellarTransaction[EntityMetaKey.Selector])}
 									prefetched={stellarTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

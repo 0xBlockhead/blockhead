@@ -44,6 +44,8 @@
 	const xrplAmendmentTimestamp = $derived(selection({}))
 	const titleFallback = $derived('XRPL amendment timestamp')
 	const viewDomId = $derived('xrpl-amendment-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XrplAmendmentView from '$/views/XrplAmendmentView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<XrplAmendmentView
 						selection={select(EntityType.XrplAmendment, selection.entitySelector.$amendment)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

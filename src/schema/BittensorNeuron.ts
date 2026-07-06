@@ -22,18 +22,18 @@ export default {
 	],
 	fields: [
 		{
-				name: '$subnet',
-				label: 'Subnet',
-				type: EntityFieldType.EntityReference,
-				entityType: EntityType.BittensorSubnet,
-				cardinality: EntityFieldCardinality.One,
+			name: '$subnet',
+			label: 'Subnet',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.BittensorSubnet,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
-				name: 'uid',
-				label: 'UID',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('number'),
-				cardinality: EntityFieldCardinality.One,
+			name: 'uid',
+			label: 'UID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.runtimeId ?? prefetched.runtimeId) ?? '')].filter(Boolean).join(' ') || 'ACP agent runtime')
 	const viewDomId = $derived('acp-agent-runtime-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -193,7 +195,7 @@
 								<BlockheadSourceView
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -213,7 +215,7 @@
 								<AcpAgentProgramVersionView
 									selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
 									prefetched={acpAgentProgramVersion}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -233,7 +235,7 @@
 								<BlockheadAgentProgramInstallView
 									selection={select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentProgramInstall}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

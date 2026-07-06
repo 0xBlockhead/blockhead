@@ -44,6 +44,8 @@
 	const tonContractGetMethodTimestamp = $derived(selection({}))
 	const titleFallback = $derived('TON contract get method timestamp')
 	const viewDomId = $derived('ton-contract-get-method-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TonContractGetMethodView
 						selection={select(EntityType.TonContractGetMethod, selection.entitySelector.$method)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

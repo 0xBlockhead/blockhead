@@ -44,6 +44,8 @@
 	const stellarAccountTimestamp = $derived(selection({}))
 	const titleFallback = $derived('stellar account timestamp')
 	const viewDomId = $derived('stellar-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<StellarAccountView
 						selection={select(EntityType.StellarAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

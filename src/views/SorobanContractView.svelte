@@ -44,6 +44,8 @@
 	const sorobanContract = $derived(selection({}))
 	const titleFallback = $derived('soroban contract')
 	const viewDomId = $derived('soroban-contract-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import StellarNetworkView from '$/views/StellarNetworkView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<StellarNetworkView
 						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

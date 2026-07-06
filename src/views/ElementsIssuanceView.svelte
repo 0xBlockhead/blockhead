@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.inputIndex ?? prefetched.inputIndex) ?? '')].filter(Boolean).join(' ') || 'Elements issuance')
 	const viewDomId = $derived('elements-issuance-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -195,7 +197,7 @@
 								txId: String(selection.entitySelector.$transaction.txId ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -242,7 +244,7 @@
 								<ElementsAssetView
 									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 									prefetched={elementsAsset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -262,7 +264,7 @@
 								<ElementsAssetView
 									selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
 									prefetched={elementsAsset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

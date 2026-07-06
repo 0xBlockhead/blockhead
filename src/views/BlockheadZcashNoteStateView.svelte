@@ -57,6 +57,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.noteCommitment ?? prefetched.noteCommitment) ?? '')].filter(Boolean).join(' ') || 'blockhead zcash note state')
 	const viewDomId = $derived('blockhead-zcash-note-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -169,7 +171,7 @@
 								<BlockheadWalletView
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -190,15 +192,15 @@
 									selection={select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector])}
 									prefetched={zcashShieldedAction}
 									href={
-										(({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.$network !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.$network.caip2 !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.$network.caip2.namespace !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.$network !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.$network.caip2 !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.$network.caip2.reference !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.txId !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).pool !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).actionKind !== undefined && ({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/shielded-action/[pool]/[actionKind]/[actionIndex=nonNegativeInteger]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.$network.caip2.namespace) + ':' + String(({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.$network.caip2.reference))].slug ?? ''),
-											txId: String(({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).$transaction.txId ?? ''),
-											pool: String(({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).pool ?? ''),
-											actionKind: String(({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).actionKind ?? ''),
-											actionIndex: String(({ ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }).indexInTransaction ?? ''),
+										(zcashShieldedAction[EntityMetaKey.Selector].$transaction !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2.namespace !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2 !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2.reference !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction !== undefined && zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId !== undefined && zcashShieldedAction[EntityMetaKey.Selector].pool !== undefined && zcashShieldedAction[EntityMetaKey.Selector].actionKind !== undefined && zcashShieldedAction[EntityMetaKey.Selector].indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/shielded-action/[pool]/[actionKind]/[actionIndex=nonNegativeInteger]', {
+											networkSlug: String(networkByCaip2[String(String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2.namespace) + ':' + String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.$network.caip2.reference))].slug ?? ''),
+											txId: String(zcashShieldedAction[EntityMetaKey.Selector].$transaction.txId ?? ''),
+											pool: String(zcashShieldedAction[EntityMetaKey.Selector].pool ?? ''),
+											actionKind: String(zcashShieldedAction[EntityMetaKey.Selector].actionKind ?? ''),
+											actionIndex: String(zcashShieldedAction[EntityMetaKey.Selector].indexInTransaction ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

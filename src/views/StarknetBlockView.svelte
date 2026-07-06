@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.blockNumber) ?? '')].filter(Boolean).join(' ') || 'starknet block')
 	const viewDomId = $derived('starknet-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

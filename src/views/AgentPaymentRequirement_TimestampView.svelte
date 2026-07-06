@@ -44,6 +44,8 @@
 	const agentPaymentRequirementTimestamp = $derived(selection({}))
 	const titleFallback = $derived('agent payment requirement timestamp')
 	const viewDomId = $derived('agent-payment-requirement-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -210,7 +212,7 @@
 								<A2aAgentServiceView
 									selection={select(EntityType.A2aAgentService, a2aAgentService[EntityMetaKey.Selector])}
 									prefetched={a2aAgentService}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -230,7 +232,7 @@
 								<McpServerView
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
 									prefetched={mcpServer}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -250,7 +252,7 @@
 								<Eip8004AgentServiceEndpointView
 									selection={select(EntityType.Eip8004AgentServiceEndpoint, eip8004AgentServiceEndpoint[EntityMetaKey.Selector])}
 									prefetched={eip8004AgentServiceEndpoint}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -270,7 +272,7 @@
 								<BlockheadAgentConnectionView
 									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConnection}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

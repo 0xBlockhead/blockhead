@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'CCTP burn fee timestamp')
 	const viewDomId = $derived('cctp-burn-fee-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -148,7 +150,7 @@
 				<dd>
 					<CctpDomainSupportView
 						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$sourceDomain)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -159,7 +161,7 @@
 				<dd>
 					<CctpDomainSupportView
 						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$destinationDomain)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

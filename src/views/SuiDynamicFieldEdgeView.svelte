@@ -44,6 +44,8 @@
 	const suiDynamicFieldEdge = $derived(selection({}))
 	const titleFallback = $derived('Sui dynamic field edge')
 	const viewDomId = $derived('sui-dynamic-field-edge-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<SuiObjectView
 						selection={select(EntityType.SuiObject, selection.entitySelector.$parentObject)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

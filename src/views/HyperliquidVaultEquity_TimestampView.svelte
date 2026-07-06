@@ -44,6 +44,8 @@
 	const hyperliquidVaultEquityTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hyperliquid vault equity timestamp')
 	const viewDomId = $derived('hyperliquid-vault-equity-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<HyperliquidAccountView
 						selection={select(EntityType.HyperliquidAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -93,7 +95,7 @@
 				<dd>
 					<HyperliquidVaultView
 						selection={select(EntityType.HyperliquidVault, selection.entitySelector.$vault)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

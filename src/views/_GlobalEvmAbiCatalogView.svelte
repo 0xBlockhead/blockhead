@@ -45,6 +45,8 @@
 	}))
 	const titleFallback = $derived('global EVM ABI catalog')
 	const viewDomId = $derived('-global-evm-abi-catalog-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>

@@ -44,6 +44,8 @@
 	const tezosBigMapKey = $derived(selection({}))
 	const titleFallback = $derived('tezos big map key')
 	const viewDomId = $derived('tezos-big-map-key-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TezosBigMapView
 						selection={select(EntityType.TezosBigMap, selection.entitySelector.$bigMap)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

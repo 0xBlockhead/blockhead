@@ -46,6 +46,8 @@
 	const payoutClaimTimestamp = $derived(selection({}))
 	const titleFallback = $derived('payout claim timestamp')
 	const viewDomId = $derived('payout-claim-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -86,7 +88,7 @@
 				<dd>
 					<PayoutView
 						selection={select(EntityType.Payout, selection.entitySelector.$payout)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -97,7 +99,7 @@
 				<dd>
 					<AccountView
 						selection={select(EntityType.Account, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -317,12 +319,12 @@
 									selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
 									prefetched={evmTransaction}
 									href={
-										(({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2 !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2.namespace !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2 !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2.reference !== undefined && ({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
-											caip2: `${String(({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2.namespace ?? '')}:${String(({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).$network.caip2.reference ?? '')}`,
-											transactionId: String(({ ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }).txHash ?? ''),
+										(evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmTransaction[EntityMetaKey.Selector].$network !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2 !== undefined && evmTransaction[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmTransaction[EntityMetaKey.Selector].txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
+											caip2: `${String(evmTransaction[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(evmTransaction[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											transactionId: String(evmTransaction[EntityMetaKey.Selector].txHash ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

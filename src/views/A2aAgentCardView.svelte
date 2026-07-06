@@ -47,6 +47,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.agentCardUrl ?? prefetched.agentCardUrl) ?? '')].filter(Boolean).join(' ') || 'A2A agent card')
 	const viewDomId = $derived('a2a-agent-card-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

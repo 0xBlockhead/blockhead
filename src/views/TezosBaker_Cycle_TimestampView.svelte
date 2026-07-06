@@ -44,6 +44,8 @@
 	const tezosBakerCycleTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tezos baker cycle timestamp')
 	const viewDomId = $derived('tezos-baker-cycle-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TezosBakerView from '$/views/TezosBakerView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TezosBakerView
 						selection={select(EntityType.TezosBaker, selection.entitySelector.$baker)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -44,6 +44,8 @@
 	const hederaTokenAssociationTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hedera token association timestamp')
 	const viewDomId = $derived('hedera-token-association-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import HederaTokenAssociationView from '$/views/HederaTokenAssociationView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<HederaTokenAssociationView
 						selection={select(EntityType.HederaTokenAssociation, selection.entitySelector.$association)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

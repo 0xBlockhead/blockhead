@@ -22,18 +22,18 @@ export default {
 	],
 	fields: [
 		{
-				name: '$network',
-				label: 'Network',
-				type: EntityFieldType.EntityReference,
-				entityType: EntityType.Network,
-				cardinality: EntityFieldCardinality.One,
+			name: '$network',
+			label: 'Network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
-				name: 'stashAccountId',
-				label: 'Stash account ID',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('string'),
-				cardinality: EntityFieldCardinality.One,
+			name: 'stashAccountId',
+			label: 'Stash account ID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

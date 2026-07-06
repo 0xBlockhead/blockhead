@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.commitment) ?? '')].filter(Boolean).join(' ') || 'litecoin MWEB output')
 	const viewDomId = $derived('litecoin-mweb-output-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -108,7 +110,7 @@
 				<dd>
 					<LitecoinMwebTransactionView
 						selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

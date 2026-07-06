@@ -44,6 +44,8 @@
 	const tonNftTransfer = $derived(selection({}))
 	const titleFallback = $derived('TON NFT transfer')
 	const viewDomId = $derived('ton-nft-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -86,7 +88,7 @@
 				<dd>
 					<TonNetworkView
 						selection={select(EntityType.TonNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -163,7 +165,7 @@
 								<TonNftItemView
 									selection={select(EntityType.TonNftItem, tonNftItem[EntityMetaKey.Selector])}
 									prefetched={tonNftItem}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -183,7 +185,7 @@
 								<TonNftCollectionView
 									selection={select(EntityType.TonNftCollection, tonNftCollection[EntityMetaKey.Selector])}
 									prefetched={tonNftCollection}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -203,7 +205,7 @@
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -223,7 +225,7 @@
 								<TonAccountView
 									selection={select(EntityType.TonAccount, tonAccount[EntityMetaKey.Selector])}
 									prefetched={tonAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -243,7 +245,7 @@
 								<TonTraceView
 									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
 									prefetched={tonTrace}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -263,7 +265,7 @@
 								<TonMessageView
 									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
 									prefetched={tonMessage}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

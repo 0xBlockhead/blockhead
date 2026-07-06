@@ -21,11 +21,11 @@ export default {
 	],
 	fields: [
 		{
-				name: 'id',
-				label: 'ID',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('string'),
-				cardinality: EntityFieldCardinality.One,
+			name: 'id',
+			label: 'ID',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -44,6 +44,8 @@
 	const aptosAccountResource = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.resourceType ?? prefetched.resourceType) ?? '')].filter(Boolean).join(' ') || 'aptos account resource')
 	const viewDomId = $derived('aptos-account-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -103,7 +105,7 @@
 				<dd>
 					<AptosAccountView
 						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

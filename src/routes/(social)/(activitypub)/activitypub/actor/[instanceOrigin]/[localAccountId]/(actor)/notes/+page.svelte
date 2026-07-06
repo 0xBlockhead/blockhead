@@ -46,7 +46,6 @@
 			})[EntityProxyField]<EntityType.ActivityPubNote>('$$notes', {
 				sources: [
 					Source.Mastodon_Rest,
-					Source.Fedi_Rest,
 				],
 			})
 		}

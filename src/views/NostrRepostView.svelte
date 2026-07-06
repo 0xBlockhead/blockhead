@@ -60,6 +60,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.repostedEventId) ?? '')].filter(Boolean).join(' ') || 'Nostr repost')
 	const viewDomId = $derived('nostr-repost-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -292,7 +294,7 @@
 									<NostrProfileView
 										selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
 										prefetched={nostrProfile}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -360,7 +362,7 @@
 									<NostrNoteView
 										selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
 										prefetched={nostrNote}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>
@@ -388,7 +390,7 @@
 									<NostrArticleView
 										selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
 										prefetched={nostrArticle}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								</dd>

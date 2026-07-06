@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') ? 'Withdrawal #' + String((selection.entitySelector.indexInSlot ?? prefetched.indexInSlot) ?? '') : '') || 'beacon withdrawal')
 	const viewDomId = $derived('beacon-withdrawal-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -290,12 +292,12 @@
 									selection={select(EntityType.BeaconValidator, beaconValidator[EntityMetaKey.Selector])}
 									prefetched={beaconValidator}
 									href={
-										(({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).$network !== undefined && ({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).$network.caip2 !== undefined && ({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).$network.caip2.namespace !== undefined && ({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).$network !== undefined && ({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).$network.caip2 !== undefined && ({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).$network.caip2.reference !== undefined && ({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).indexInNetwork !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
-											caip2: `${String(({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).$network.caip2.namespace ?? '')}:${String(({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).$network.caip2.reference ?? '')}`,
-											validatorIndex: String(({ ...beaconValidator[EntityMetaKey.Selector], ...beaconValidator }).indexInNetwork ?? ''),
+										(beaconValidator[EntityMetaKey.Selector].$network !== undefined && beaconValidator[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconValidator[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && beaconValidator[EntityMetaKey.Selector].$network !== undefined && beaconValidator[EntityMetaKey.Selector].$network.caip2 !== undefined && beaconValidator[EntityMetaKey.Selector].$network.caip2.reference !== undefined && beaconValidator[EntityMetaKey.Selector].indexInNetwork !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/validator/[validatorIndex=nonNegativeInteger]', {
+											caip2: `${String(beaconValidator[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(beaconValidator[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
+											validatorIndex: String(beaconValidator[EntityMetaKey.Selector].indexInNetwork ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -316,11 +318,11 @@
 									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
 									prefetched={evmAccount}
 									href={
-										(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
-											address: String(({ ...evmAccount[EntityMetaKey.Selector], ...evmAccount }).address ?? ''),
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
+											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -339,7 +341,7 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

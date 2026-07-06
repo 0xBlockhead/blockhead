@@ -46,6 +46,8 @@
 	}))
 	const titleFallback = $derived(['YouTube'].filter(Boolean).join(' ') || 'YouTube network')
 	const viewDomId = $derived('-global-youtube-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import YoutubeChannelsView from '$/views/YoutubeChannelsView.svelte'

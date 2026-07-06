@@ -45,6 +45,8 @@
 	const availNetwork = $derived(selection({}))
 	const titleFallback = $derived('avail network')
 	const viewDomId = $derived('avail-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AvailNetwork_TimestampsView from '$/views/AvailNetwork_TimestampsView.svelte'
@@ -127,7 +129,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

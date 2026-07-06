@@ -58,6 +58,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.classHash ?? prefetched.classHash) ?? '')].filter(Boolean).join(' ') || 'starknet class')
 	const viewDomId = $derived('starknet-class-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -133,7 +135,7 @@
 				<dd>
 					<StarknetNetworkView
 						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

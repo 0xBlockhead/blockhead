@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((prefetched.benchmarkId) ?? ''), String((prefetched.benchmarkUri) ?? '')].filter(Boolean).join(' ') || 'AI benchmark')
 	const viewDomId = $derived('ai-benchmark-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -462,7 +464,7 @@
 								<AiDatasetView
 									selection={select(EntityType.AiDataset, aiDataset[EntityMetaKey.Selector])}
 									prefetched={aiDataset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.partIndex ?? prefetched.partIndex) ?? '')].filter(Boolean).join(' ') || 'A2A message part')
 	const viewDomId = $derived('a2a-message-part-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -135,7 +137,7 @@
 								<A2aMessageView
 									selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector])}
 									prefetched={a2aMessage}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -155,7 +157,7 @@
 								<A2aArtifactView
 									selection={select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector])}
 									prefetched={a2aArtifact}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -354,7 +356,7 @@
 								<AiArtifactView
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

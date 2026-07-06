@@ -1106,7 +1106,11 @@ export default {
 				const catalog = await readNormalizedLocalInternal()
 				const blockheadPanelTree = catalog.blockheadPanelTrees.find((candidate) => candidate.id === id)
 				if (blockheadPanelTree == null) throw new Error('Local_Internal: BlockheadPanelTree not present in local catalog')
-				return {}
+				return {
+					[EntityMetaKey.Selector]: {
+						id: blockheadPanelTree.id,
+					},
+				}
 			}
 			},
 		})({
@@ -1140,12 +1144,12 @@ export default {
 				if (blockheadFarcasterAccountConnection == null) {
 					throw new Error('Local_Internal: BlockheadFarcasterAccountConnection not present in local catalog')
 				}
-				return {}
+				return blockheadFarcasterAccountConnection
 			}
 			},
 		})({
 				fields: {
-				fid: (blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection[EntityMetaKey.Selector].fid,
+				fid: (blockheadFarcasterAccountConnection) => blockheadFarcasterAccountConnection.fid,
 			},
 			}),
 

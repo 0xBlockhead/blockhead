@@ -44,6 +44,8 @@
 	const tonTransaction = $derived(selection({}))
 	const titleFallback = $derived('TON transaction')
 	const viewDomId = $derived('ton-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -84,7 +86,7 @@
 				<dd>
 					<TonAccountView
 						selection={select(EntityType.TonAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -446,7 +448,7 @@
 								<TonBlockView
 									selection={select(EntityType.TonBlock, tonBlock[EntityMetaKey.Selector])}
 									prefetched={tonBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -466,7 +468,7 @@
 								<TonTraceView
 									selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
 									prefetched={tonTrace}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -486,7 +488,7 @@
 								<TonMessageView
 									selection={select(EntityType.TonMessage, tonMessage[EntityMetaKey.Selector])}
 									prefetched={tonMessage}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

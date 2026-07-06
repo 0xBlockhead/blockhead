@@ -283,7 +283,10 @@ export default {
 					if (parentLayer == null) throw new Error('Chainlist_Rest: network bridge not in rpcs.json')
 					if (
 					parentLayer.chainId !== Number(entitySelector.$fromNetwork.caip2.reference)
-					|| !(chain.parent?.bridges ?? []).some((bridge) => bridge.url === entitySelector.url)
+					|| (
+						(chain.parent?.bridges ?? []).length > 0
+						&& !(chain.parent?.bridges ?? []).some((bridge) => bridge.url === entitySelector.url)
+					)
 					) throw new Error('Chainlist_Rest: network bridge not in rpcs.json')
 					return {
 						[EntityMetaKey.Selector]: entitySelector,

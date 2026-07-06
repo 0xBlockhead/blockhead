@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived('monero ring')
 	const viewDomId = $derived('monero-ring-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import MoneroRingMembersView from '$/views/MoneroRingMembersView.svelte'
@@ -107,7 +109,7 @@
 				<dd>
 					<MoneroKeyImageView
 						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

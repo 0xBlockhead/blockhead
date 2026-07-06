@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.peerNodeId ?? prefetched.peerNodeId) ?? '')].filter(Boolean).join(' ') || 'blockhead radicle peer')
 	const viewDomId = $derived('blockhead-radicle-peer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -127,7 +129,7 @@
 				<dd>
 					<BlockheadRadicleNodeStateView
 						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$node)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

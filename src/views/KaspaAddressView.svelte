@@ -44,6 +44,8 @@
 	const kaspaAddress = $derived(selection({}))
 	const titleFallback = $derived('kaspa address')
 	const viewDomId = $derived('kaspa-address-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -84,7 +86,7 @@
 				<dd>
 					<KaspaNetworkView
 						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

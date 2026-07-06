@@ -44,6 +44,8 @@
 	const tezosOperationGroup = $derived(selection({}))
 	const titleFallback = $derived('tezos operation group')
 	const viewDomId = $derived('tezos-operation-group-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<TezosNetworkView
 						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -129,7 +131,7 @@
 								<TezosBlockView
 									selection={select(EntityType.TezosBlock, tezosBlock[EntityMetaKey.Selector])}
 									prefetched={tezosBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.walletId ?? prefetched.walletId) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu wallet state')
 	const viewDomId = $derived('blockhead-cashu-wallet-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -172,7 +174,7 @@
 								<BlockheadWalletView
 									selection={select(EntityType.BlockheadWallet, blockheadWallet[EntityMetaKey.Selector])}
 									prefetched={blockheadWallet}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -192,7 +194,7 @@
 								<CashuMintView
 									selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 									prefetched={cashuMint}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}

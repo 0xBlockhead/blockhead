@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.title) ?? ''), String((prefetched.url) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast embed')
 	const viewDomId = $derived('farcaster-cast-embed-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import IconComponent from '$/components/Icon.svelte'
 	import NumberValue from '$/components/NumberValue.svelte'
@@ -120,9 +122,9 @@
 								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 								prefetched={farcasterCast}
 								href={
-									(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid !== undefined && ({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-										fid: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid ?? ''),
-										hash: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash ?? ''),
+									(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+										fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
+										hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -153,9 +155,9 @@
 								selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 								prefetched={farcasterCast}
 								href={
-									(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid !== undefined && ({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-										fid: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid ?? ''),
-										hash: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash ?? ''),
+									(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+										fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
+										hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
 									}) : undefined)
 								}
 								layout={EntityLayout.Title}
@@ -200,7 +202,7 @@
 								hash: String(selection.entitySelector.$cast.hash ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -303,12 +305,12 @@
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
 									href={
-										(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid !== undefined && ({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-											fid: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid ?? ''),
-											hash: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash ?? ''),
+										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+											fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
+											hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

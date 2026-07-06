@@ -43,12 +43,6 @@ export const navigationItems = [
 				icon: '🔓',
 			},
 			{
-				id: 'local-positions',
-				title: 'Positions',
-				href: '/~/accounts/positions',
-				icon: '📈',
-			},
-			{
 				id: 'local-transactions',
 				title: 'Transactions',
 				href: '/~/accounts/transactions',
@@ -260,12 +254,6 @@ export const navigationItems = [
 				title: 'Vaults',
 				href: '/vaults',
 				icon: '📈',
-			},
-			{
-				id: 'assets-leverage',
-				title: 'Leverage',
-				href: '/leverage',
-				icon: '⚖️',
 			},
 			{
 				id: 'assets-channels',

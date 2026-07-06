@@ -44,6 +44,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.gatewayId ?? prefetched.gatewayId) ?? '')].filter(Boolean).join(' ') || 'Fedimint gateway')
 	const viewDomId = $derived('fedimint-gateway-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'

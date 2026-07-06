@@ -44,6 +44,8 @@
 	const cardanoTxInput = $derived(selection({}))
 	const titleFallback = $derived('Cardano transaction input')
 	const viewDomId = $derived('cardano-tx-input-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<CardanoTransactionView
 						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -234,7 +236,7 @@
 								<CardanoTxOutputView
 									selection={select(EntityType.CardanoTxOutput, cardanoTxOutput[EntityMetaKey.Selector])}
 									prefetched={cardanoTxOutput}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

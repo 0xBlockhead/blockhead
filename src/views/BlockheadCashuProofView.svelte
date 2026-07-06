@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.secretHash ?? prefetched.secretHash) ?? '')].filter(Boolean).join(' ') || 'blockhead Cashu proof')
 	const viewDomId = $derived('blockhead-cashu-proof-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -145,7 +147,7 @@
 								<CashuMintView
 									selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
 									prefetched={cashuMint}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -209,7 +211,7 @@
 								<CashuKeysetView
 									selection={select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector])}
 									prefetched={cashuKeyset}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

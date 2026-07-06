@@ -52,6 +52,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.version) ?? '')].filter(Boolean).join(' ') || 'ACP agent program version')
 	const viewDomId = $derived('acp-agent-program-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -159,7 +161,7 @@
 								<AcpAgentProgramView
 									selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
 									prefetched={acpAgentProgram}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -214,7 +216,7 @@
 								<AiArtifactView
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

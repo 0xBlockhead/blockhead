@@ -44,6 +44,8 @@
 	const tronContractTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tron contract timestamp')
 	const viewDomId = $derived('tron-contract-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TronContractView from '$/views/TronContractView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TronContractView
 						selection={select(EntityType.TronContract, selection.entitySelector.$contract)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -277,7 +279,7 @@
 								<TronContractView
 									selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector])}
 									prefetched={tronContract}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

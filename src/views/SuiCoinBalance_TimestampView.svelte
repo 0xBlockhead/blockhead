@@ -44,6 +44,8 @@
 	const suiCoinBalanceTimestamp = $derived(selection({}))
 	const titleFallback = $derived('Sui coin balance timestamp')
 	const viewDomId = $derived('sui-coin-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<SuiAccountView
 						selection={select(EntityType.SuiAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

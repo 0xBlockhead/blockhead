@@ -44,6 +44,8 @@
 	const hederaTransaction = $derived(selection({}))
 	const titleFallback = $derived('hedera transaction')
 	const viewDomId = $derived('hedera-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -83,7 +85,7 @@
 				<dd>
 					<HederaNetworkView
 						selection={select(EntityType.HederaNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -445,7 +447,7 @@
 								<HederaBlockView
 									selection={select(EntityType.HederaBlock, hederaBlock[EntityMetaKey.Selector])}
 									prefetched={hederaBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -465,7 +467,7 @@
 								<HederaScheduleView
 									selection={select(EntityType.HederaSchedule, hederaSchedule[EntityMetaKey.Selector])}
 									prefetched={hederaSchedule}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

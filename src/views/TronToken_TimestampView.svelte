@@ -44,6 +44,8 @@
 	const tronTokenTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tron token timestamp')
 	const viewDomId = $derived('tron-token-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TronTokenView from '$/views/TronTokenView.svelte'
@@ -80,7 +82,7 @@
 				<dd>
 					<TronTokenView
 						selection={select(EntityType.TronToken, selection.entitySelector.$token)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

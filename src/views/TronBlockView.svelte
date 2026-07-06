@@ -45,6 +45,8 @@
 	const tronBlock = $derived(selection({}))
 	const titleFallback = $derived('tron block')
 	const viewDomId = $derived('tron-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -91,7 +93,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -178,7 +180,7 @@
 								<TronBlockView
 									selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector])}
 									prefetched={tronBlock}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -286,7 +288,7 @@
 								<TronWitnessView
 									selection={select(EntityType.TronWitness, tronWitness[EntityMetaKey.Selector])}
 									prefetched={tronWitness}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

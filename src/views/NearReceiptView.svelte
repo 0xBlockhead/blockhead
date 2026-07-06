@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.receiptId ?? prefetched.receiptId) ?? '')].filter(Boolean).join(' ') || 'near receipt')
 	const viewDomId = $derived('near-receipt-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -211,7 +213,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -264,7 +266,7 @@
 								<NearAccountView
 									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 									prefetched={nearAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -290,7 +292,7 @@
 								<NearAccountView
 									selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
 									prefetched={nearAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

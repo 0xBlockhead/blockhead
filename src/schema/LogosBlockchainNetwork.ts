@@ -21,18 +21,18 @@ export default {
 	],
 	fields: [
 		{
-				name: '$network',
-				label: 'Network',
-				type: EntityFieldType.EntityReference,
-				entityType: EntityType.Network,
-				cardinality: EntityFieldCardinality.One,
+			name: '$network',
+			label: 'Network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
-				name: '$$timestamps',
-				label: 'Timestamps',
-				type: EntityFieldType.EntitiesReference,
-				entityType: EntityType.LogosBlockchainNetwork_Timestamp,
-				cardinality: EntityFieldCardinality.Many,
+			name: '$$timestamps',
+			label: 'Timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.LogosBlockchainNetwork_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
 		},
 	],
 } as const satisfies EntityDefinition

@@ -45,6 +45,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.clientName) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.clientId ?? prefetched.clientId) ?? '')].filter(Boolean).join(' ') || 'blockhead bit torrent client state')
 	const viewDomId = $derived('blockhead-bit-torrent-client-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BlockheadBitTorrentClientState_TimestampsView from '$/views/BlockheadBitTorrentClientState_TimestampsView.svelte'

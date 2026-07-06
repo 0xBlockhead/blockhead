@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([(String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') ? 'Block ' + String((selection.entitySelector.blockNumber ?? prefetched.blockNumber) ?? '') : '')].filter(Boolean).join(' ') || 'EVM actor coin allowance block')
 	const viewDomId = $derived('evm-actor-coin-allowance-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -281,7 +283,7 @@
 				<dd>
 					<EvmActorCoinAllowanceView
 						selection={select(EntityType.EvmActorCoinAllowance, selection.entitySelector.$allowance)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

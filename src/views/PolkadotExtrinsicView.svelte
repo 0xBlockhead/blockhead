@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.indexInBlock ?? prefetched.indexInBlock) ?? '') ? 'Extrinsic #' + String((selection.entitySelector.indexInBlock ?? prefetched.indexInBlock) ?? '') : '') || 'Polkadot extrinsic')
 	const viewDomId = $derived('polkadot-extrinsic-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -278,12 +280,12 @@
 									selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
 									prefetched={polkadotAccount}
 									href={
-										(({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2 !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2.namespace !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2 !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2.reference !== undefined && ({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2.namespace) + ':' + String(({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).$network.caip2.reference))].slug ?? ''),
-											accountId: String(({ ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }).accountId ?? ''),
+										(polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && polkadotAccount[EntityMetaKey.Selector].$network !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2 !== undefined && polkadotAccount[EntityMetaKey.Selector].$network.caip2.reference !== undefined && polkadotAccount[EntityMetaKey.Selector].accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
+											networkSlug: String(networkByCaip2[String(String(polkadotAccount[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(polkadotAccount[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											accountId: String(polkadotAccount[EntityMetaKey.Selector].accountId ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -304,12 +306,12 @@
 									selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
 									prefetched={polkadotPallet}
 									href={
-										(({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).$network !== undefined && ({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).$network.caip2 !== undefined && ({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).$network.caip2.namespace !== undefined && ({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).$network !== undefined && ({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).$network.caip2 !== undefined && ({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).$network.caip2.reference !== undefined && ({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).palletName !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/pallet/[palletName]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).$network.caip2.namespace) + ':' + String(({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).$network.caip2.reference))].slug ?? ''),
-											palletName: String(({ ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }).palletName ?? ''),
+										(polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2 !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && polkadotPallet[EntityMetaKey.Selector].$network !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2 !== undefined && polkadotPallet[EntityMetaKey.Selector].$network.caip2.reference !== undefined && polkadotPallet[EntityMetaKey.Selector].palletName !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/pallet/[palletName]', {
+											networkSlug: String(networkByCaip2[String(String(polkadotPallet[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(polkadotPallet[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											palletName: String(polkadotPallet[EntityMetaKey.Selector].palletName ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -330,7 +332,7 @@
 								hash: String(selection.entitySelector.$block.hash ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

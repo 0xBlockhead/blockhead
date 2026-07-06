@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.orderId ?? prefetched.orderId) ?? '')].filter(Boolean).join(' ') || 'dydx chain order')
 	const viewDomId = $derived('dydx-chain-order-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -130,7 +132,7 @@
 				<dd>
 					<DydxChainSubaccountView
 						selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -177,7 +179,7 @@
 								<DydxChainMarketView
 									selection={select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector])}
 									prefetched={dydxChainMarket}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.name) ?? ''), String((selection.entitySelector.upgradeId ?? prefetched.upgradeId) ?? '')].filter(Boolean).join(' ') || 'network upgrade')
 	const viewDomId = $derived('network-upgrade-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SpecificationProposalsView from '$/views/SpecificationProposalsView.svelte'
@@ -139,7 +141,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

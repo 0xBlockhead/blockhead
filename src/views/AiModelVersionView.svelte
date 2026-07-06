@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.versionId) ?? '')].filter(Boolean).join(' ') || [String((prefetched.revision) ?? '')].filter(Boolean).join(' ') || 'AI model version')
 	const viewDomId = $derived('ai-model-version-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -155,7 +157,7 @@
 								<AiModelView
 									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 									prefetched={aiModel}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -210,7 +212,7 @@
 								<AiArtifactView
 									selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
 									prefetched={aiArtifact}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

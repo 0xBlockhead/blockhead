@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('dydx chain network')
 	const viewDomId = $derived('dydx-chain-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import DydxChainNetwork_TimestampsView from '$/views/DydxChainNetwork_TimestampsView.svelte'
@@ -115,7 +117,7 @@
 								caip2: `${String(selection.entitySelector.$network.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

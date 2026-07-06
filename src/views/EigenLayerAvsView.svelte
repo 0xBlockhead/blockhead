@@ -59,6 +59,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.avsAddress ?? prefetched.avsAddress) ?? '')].filter(Boolean).join(' ') || 'eigen layer avs')
 	const viewDomId = $derived('eigen-layer-avs-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -319,7 +321,7 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -336,7 +338,7 @@
 								<EvmNetworkAccountView
 									selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
 									prefetched={evmNetworkAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

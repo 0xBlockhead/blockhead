@@ -359,7 +359,6 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'ExecutionRpcOrigins.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'EthereumSpecs.ts')]).toBeUndefined()
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'FilecoinNetwork.ts')]).not.toMatch(/^export const \w*(?:Caip2|RpcUrl|RestBaseUrl)\b/m)
-		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Fedi.ts')]).not.toMatch(/^export const \w*(?:Origin|ApiBase)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Mastodon.ts')]).not.toMatch(/^export const \w*(?:Default|Origin|ApiBase)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'MevRelayHosts.ts')]).not.toMatch(/^export const \w*(?:Origin|Origins)\b/m)
 		expect(scannedSourceByFilePath[join(srcPath, 'constants', 'Cashu.ts')]).not.toMatch(/^export const \w*(?:Url|Id)\b/m)
@@ -416,6 +415,32 @@ describe('client resolver architecture', () => {
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Evm', 'JsonRpc', 'client.ts')]).not.toMatch(/\$\/sources\/Voltaire\//)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Evm', 'JsonRpc', 'client.ts')]).toMatch(/\borigins:\s*readonly SourceOrigin\[\]/)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Voltaire', 'index.ts')]).toMatch(/\$\/sources\/Voltaire\/bindings\.ts/)
+	})
+
+	it('keeps e2e route fixtures tied to checked-in source seed rows', () => {
+		const routeParamFixtureSource = readFileSync(join(rootPath, 'tests', 'e2e', '_routeParamFixtures.ts'), 'utf8')
+		const dynamicRouteRealSourcesSource = readFileSync(join(rootPath, 'tests', 'e2e', 'dynamic-route-real-sources.e2e.ts'), 'utf8')
+
+		expect(routeParamFixtureSource).toMatch(/from '\.\.\/\.\.\/src\/constants\/Social\/ActivityPub\.ts'/)
+		expect(routeParamFixtureSource).toMatch(/from '\.\.\/\.\.\/src\/constants\/Social\/Atproto\.ts'/)
+		expect(routeParamFixtureSource).toMatch(/from '\.\.\/\.\.\/src\/constants\/Social\/Nostr\.ts'/)
+		expect(routeParamFixtureSource).toMatch(/from '\.\.\/\.\.\/src\/constants\/Social\/Rss\.ts'/)
+		expect(routeParamFixtureSource).toMatch(/from '\.\.\/\.\.\/src\/constants\/Social\/YouTube\.ts'/)
+		expect(routeParamFixtureSource).toMatch(/const NOSTR_PROBE_PUBKEY = nostrNetworkSeedProfiles\[0\]\.pubkey/)
+		expect(routeParamFixtureSource).toMatch(/const NOSTR_PROBE_RELAY_URL = nostrNetworkSeedRelays\[0\]\.relayUrl/)
+		expect(routeParamFixtureSource).toMatch(/const NOSTR_PROBE_NOTE_EVENT_ID = nostrNetworkSeedNotes\[0\]\.eventId/)
+		expect(routeParamFixtureSource).toMatch(/const YOUTUBE_PROBE_PLAYLIST_ID = youtubeNetworkSeedPlaylists\[0\]\.playlistId/)
+		expect(routeParamFixtureSource).toMatch(/const YOUTUBE_PROBE_VIDEO_ID = youtubeNetworkSeedVideos\[0\]\.videoId/)
+		expect(routeParamFixtureSource).toMatch(/const YOUTUBE_PROBE_CHANNEL_ID = youtubeNetworkSeedChannels\[0\]\.channelId/)
+		expect(routeParamFixtureSource).toMatch(/const RSS_PROBE_FEED_URL = rssNetworkSeedFeeds\[0\]\.feedUrl/)
+		expect(routeParamFixtureSource).toMatch(/const ACTIVITY_PUB_PROBE_ACTOR_URI = `\$\{activityPubNetworkSeedActors\[0\]\.instanceOrigin\}\/users\/Gargron`/)
+		expect(routeParamFixtureSource).not.toMatch(/const YOUTUBE_PROBE_(?:PLAYLIST|VIDEO|CHANNEL)_ID = '[^']+'/)
+		expect(routeParamFixtureSource).not.toMatch(/const RSS_PROBE_FEED_URL = 'https?:\/\//)
+		expect(routeParamFixtureSource).not.toMatch(/const ACTIVITY_PUB_PROBE_ACTOR_URI = 'https?:\/\//)
+
+		expect(dynamicRouteRealSourcesSource).toMatch(/\bnonConstantRemoteCollectionLoads\(events\)/)
+		expect(dynamicRouteRealSourcesSource).toMatch(/\.not\.toEqual\(\[\]\)/)
+		expect(dynamicRouteRealSourcesSource).toMatch(/liveBackedDynamicRoutePattern/)
 	})
 
 	it('keeps generic lib out of Persisted collection and provider ownership', () => {
@@ -587,9 +612,29 @@ describe('client resolver architecture', () => {
 		expect(source).not.toMatch(/\[SolanaBlockSelector\.Slot\]: async \(entitySelector\)/)
 	})
 
+	it('keeps dl entity references on EntityView title/value layouts only', () => {
+		const generatorSource = readFileSync(join(rootPath, 'scripts', 'app', 'generate.ts'), 'utf8')
+		const dlRenderer = generatorSource.match(/const renderEntityReferenceDlItem = \([\s\S]*?\nconst renderContentItem = /)?.[0] ?? ''
+
+		expect(dlRenderer).toMatch(/layout=\{EntityLayout\.Value\}/)
+		expect(dlRenderer).not.toMatch(/layout=\{EntityLayout\.(?:Summary|SummaryDetails|Icon)\}/)
+
+		for (const [filePath, source] of Object.entries(scannedSourceByFilePath)) {
+			const relativePath = filePath.slice(srcPath.length + 1)
+			if (!relativePath.startsWith('views/') || !relativePath.endsWith('.svelte'))
+				continue
+
+			for (const match of source.matchAll(/<dl\b[\s\S]*?<\/dl>/g)) {
+				const dlSource = match[0]
+				expect(dlSource, relativePath).not.toMatch(/layout=\{EntityLayout\.(?:Summary|SummaryDetails|Icon)\}/)
+				for (const layoutMatch of dlSource.matchAll(/layout=\{EntityLayout\.([A-Za-z]+)\}/g))
+					expect(['Title', 'Value'], `${relativePath}: ${layoutMatch[0]}`).toContain(layoutMatch[1])
+			}
+		}
+	})
+
 	it('does not keep false alternate-selector resolver branches', () => {
 		const source = [
-			join(srcPath, 'resolvers', 'Fedi-Rest.ts'),
 			join(srcPath, 'resolvers', 'Mastodon-Rest.ts'),
 			join(srcPath, 'resolvers', 'Neynar-Rest.ts'),
 			join(srcPath, 'resolvers', 'Lens-Graphql.ts'),

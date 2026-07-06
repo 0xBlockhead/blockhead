@@ -40,6 +40,8 @@
 	const global = $derived(selection({}))
 	const titleFallback = $derived('global')
 	const viewDomId = $derived('-global-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>

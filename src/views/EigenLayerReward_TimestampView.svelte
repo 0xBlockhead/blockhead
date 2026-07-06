@@ -57,6 +57,8 @@
 	}))
 	const titleFallback = $derived('eigen layer reward timestamp')
 	const viewDomId = $derived('eigen-layer-reward-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -142,7 +144,7 @@
 				<dd>
 					<EvmNetworkAccountView
 						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -189,7 +191,7 @@
 								<EigenLayerStrategyView
 									selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector])}
 									prefetched={eigenLayerStrategy}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -209,7 +211,7 @@
 								<EigenLayerOperatorView
 									selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
 									prefetched={eigenLayerOperator}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -229,7 +231,7 @@
 								<EigenLayerAvsView
 									selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
 									prefetched={eigenLayerAvs}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

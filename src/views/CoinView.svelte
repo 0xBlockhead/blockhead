@@ -12,7 +12,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
-	import { catalogCoinSpotUsdMarkets } from '$/constants/MarketCatalog.ts'
+	import { localCatalogCoinSpotUsdMarkets } from '$/constants/MarketCatalog.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -58,6 +58,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.symbol) ?? ''), String((prefetched.name) ?? '')].filter(Boolean).join(' ') || 'Coin')
 	const viewDomId = $derived('coin-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -184,10 +186,10 @@
 										})
 									}
 									href={
-										(({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).$coin !== undefined && ({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).$coin.coinId !== undefined && ({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).timestampMs !== undefined && ({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).source !== undefined ? resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
-											coinId: String(({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).$coin.coinId ?? ''),
-											timestampMs: String(({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).timestampMs ?? ''),
-											source: String(({ ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }).source ?? ''),
+										(coinTimestamp[EntityMetaKey.Selector].$coin !== undefined && coinTimestamp[EntityMetaKey.Selector].$coin.coinId !== undefined && coinTimestamp[EntityMetaKey.Selector].timestampMs !== undefined && coinTimestamp[EntityMetaKey.Selector].source !== undefined ? resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {
+											coinId: String(coinTimestamp[EntityMetaKey.Selector].$coin.coinId ?? ''),
+											timestampMs: String(coinTimestamp[EntityMetaKey.Selector].timestampMs ?? ''),
+											source: String(coinTimestamp[EntityMetaKey.Selector].source ?? ''),
 										}) : undefined)
 									}
 									prefetched={{ ...coinTimestampSelector, ...coinTimestamp }}
@@ -363,7 +365,7 @@
 				{/snippet}
 
 				{#snippet SectionCatalogUsdMarket({ id, label, open })}
-					{@const catalogUsdMarket = catalogCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
+					{@const catalogUsdMarket = localCatalogCoinSpotUsdMarkets.find((market) => market.baseCoinId === selection.entitySelector.coinId)}
 					{#if catalogUsdMarket}
 						<div data-row="wrap align-center gap-2">
 							<a href={resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {

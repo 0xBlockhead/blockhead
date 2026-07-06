@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.delegatorAddress) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || 'avalanche delegator')
 	const viewDomId = $derived('avalanche-delegator-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -107,7 +109,7 @@
 				<dd>
 					<AvalancheValidatorView
 						selection={select(EntityType.AvalancheValidator, selection.entitySelector.$validator)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

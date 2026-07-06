@@ -45,6 +45,8 @@
 	const tronTokenTransfer = $derived(selection({}))
 	const titleFallback = $derived('tron token transfer')
 	const viewDomId = $derived('tron-token-transfer-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -91,7 +93,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -174,7 +176,7 @@
 								<TronTransactionView
 									selection={select(EntityType.TronTransaction, tronTransaction[EntityMetaKey.Selector])}
 									prefetched={tronTransaction}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -200,7 +202,7 @@
 								<TronTokenView
 									selection={select(EntityType.TronToken, tronToken[EntityMetaKey.Selector])}
 									prefetched={tronToken}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -264,7 +266,7 @@
 								<TronAccountView
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									prefetched={tronAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -290,7 +292,7 @@
 								<TronAccountView
 									selection={select(EntityType.TronAccount, tronAccount[EntityMetaKey.Selector])}
 									prefetched={tronAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

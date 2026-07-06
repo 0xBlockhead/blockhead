@@ -44,6 +44,8 @@
 	const hederaAccountTimestamp = $derived(selection({}))
 	const titleFallback = $derived('hedera account timestamp')
 	const viewDomId = $derived('hedera-account-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<HederaAccountView
 						selection={select(EntityType.HederaAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

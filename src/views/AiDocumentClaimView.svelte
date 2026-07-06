@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.claimPath ?? prefetched.claimPath) ?? '')].filter(Boolean).join(' ') || 'AI document claim')
 	const viewDomId = $derived('ai-document-claim-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -128,7 +130,7 @@
 				<dd>
 					<AiDocumentView
 						selection={select(EntityType.AiDocument, selection.entitySelector.$document)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

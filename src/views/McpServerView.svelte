@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.serverKey ?? prefetched.serverKey) ?? '')].filter(Boolean).join(' ') || 'mcp server')
 	const viewDomId = $derived('mcp-server-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -184,7 +186,7 @@
 								<BlockheadSourceView
 									selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
 									prefetched={blockheadSource}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -204,7 +206,7 @@
 								<McpServerPackageVersionView
 									selection={select(EntityType.McpServerPackageVersion, mcpServerPackageVersion[EntityMetaKey.Selector])}
 									prefetched={mcpServerPackageVersion}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

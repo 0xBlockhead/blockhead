@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.txId ?? prefetched.txId) ?? '')].filter(Boolean).join(' ') || 'algorand transaction')
 	const viewDomId = $derived('algorand-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AlgorandTransactionProofsView from '$/views/AlgorandTransactionProofsView.svelte'
@@ -124,7 +126,7 @@
 				<dd>
 					<AlgorandNetworkView
 						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -338,7 +340,7 @@
 								<AlgorandTransactionGroupView
 									selection={select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector])}
 									prefetched={algorandTransactionGroup}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

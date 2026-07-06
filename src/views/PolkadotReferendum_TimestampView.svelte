@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.status) ?? '')].filter(Boolean).join(' ') || 'Polkadot referendum timestamp')
 	const viewDomId = $derived('polkadot-referendum-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -129,7 +131,7 @@
 				<dd>
 					<PolkadotReferendumView
 						selection={select(EntityType.PolkadotReferendum, selection.entitySelector.$referendum)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

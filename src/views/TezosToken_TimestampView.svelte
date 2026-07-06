@@ -44,6 +44,8 @@
 	const tezosTokenTimestamp = $derived(selection({}))
 	const titleFallback = $derived('tezos token timestamp')
 	const viewDomId = $derived('tezos-token-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<TezosTokenView
 						selection={select(EntityType.TezosToken, selection.entitySelector.$token)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

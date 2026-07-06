@@ -48,6 +48,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.appId ?? prefetched.appId) ?? '')].filter(Boolean).join(' ') || 'avail app ID')
 	const viewDomId = $derived('avail-app-id-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -106,7 +108,7 @@
 				<dd>
 					<AvailNetworkView
 						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

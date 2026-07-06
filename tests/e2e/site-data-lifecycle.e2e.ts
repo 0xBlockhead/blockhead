@@ -8,7 +8,7 @@ import {
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
 
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
 const settleTimeoutMs = (() => {
@@ -20,15 +20,7 @@ test.describe('site data lifecycle', () => {
 	test('every route: no console issues; load → cache → cold profile', async ({ browser }) => {
 		test.setTimeout(900_000)
 
-		const pathnamesAll = await discoverPathnamesFromRoutes()
-		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-		const limit = Number(limitRaw)
-		const pathnames = (
-			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-				pathnamesAll.slice(0, limit)
-			:
-				pathnamesAll
-		)
+		const pathnames = await discoverFilteredPathnamesFromRoutes()
 
 		for (const pathname of pathnames) {
 			await test.step(pathname, async () => {

@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.timestampMs ?? prefetched.timestampMs) ?? '')].filter(Boolean).join(' ') || 'dydx chain perpetual position timestamp')
 	const viewDomId = $derived('dydx-chain-perpetual-position-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -111,7 +113,7 @@
 				<dd>
 					<DydxChainSubaccountView
 						selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -122,7 +124,7 @@
 				<dd>
 					<DydxChainMarketView
 						selection={select(EntityType.DydxChainMarket, selection.entitySelector.$market)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

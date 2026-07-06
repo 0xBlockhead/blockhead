@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.height ?? prefetched.height) ?? '') ? 'Block #' + String((selection.entitySelector.height ?? prefetched.height) ?? '') : '') || [String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'UTXO block')
 	const viewDomId = $derived('utxo-block-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -447,13 +449,13 @@
 									selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
 									prefetched={utxoBlock}
 									href={
-										(({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).$network !== undefined && ({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).$network.caip2 !== undefined && ({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).$network.caip2.namespace !== undefined && ({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).$network !== undefined && ({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).$network.caip2 !== undefined && ({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).$network.caip2.reference !== undefined && ({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).height !== undefined && ({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).$network.caip2.namespace) + ':' + String(({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).$network.caip2.reference))].slug ?? ''),
-											height: String(({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).height ?? ''),
-											hash: String(({ ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }).hash ?? ''),
+										(utxoBlock[EntityMetaKey.Selector].$network !== undefined && utxoBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoBlock[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && utxoBlock[EntityMetaKey.Selector].$network !== undefined && utxoBlock[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoBlock[EntityMetaKey.Selector].$network.caip2.reference !== undefined && utxoBlock[EntityMetaKey.Selector].height !== undefined && utxoBlock[EntityMetaKey.Selector].hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {
+											networkSlug: String(networkByCaip2[String(String(utxoBlock[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(utxoBlock[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											height: String(utxoBlock[EntityMetaKey.Selector].height ?? ''),
+											hash: String(utxoBlock[EntityMetaKey.Selector].hash ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -474,7 +476,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

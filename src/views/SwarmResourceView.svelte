@@ -62,6 +62,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.canonicalUri) ?? '')].filter(Boolean).join(' ') || 'Swarm resource')
 	const viewDomId = $derived('swarm-resource-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -510,11 +512,11 @@
 									selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
 									prefetched={media}
 									href={
-										(({ ...media[EntityMetaKey.Selector], ...media }).url !== undefined ? resolve('/(explore)/media/[url]', {
-											url: String(({ ...media[EntityMetaKey.Selector], ...media }).url ?? ''),
+										(media[EntityMetaKey.Selector].url !== undefined ? resolve('/(explore)/media/[url]', {
+											url: String(media[EntityMetaKey.Selector].url ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

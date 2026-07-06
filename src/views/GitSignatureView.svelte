@@ -47,6 +47,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.signatureId ?? prefetched.signatureId) ?? '')].filter(Boolean).join(' ') || 'Git signature')
 	const viewDomId = $derived('git-signature-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'

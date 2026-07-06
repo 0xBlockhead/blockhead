@@ -57,6 +57,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.text) ?? ''), String((prefetched.hash) ?? '')].filter(Boolean).join(' ') || 'Farcaster cast')
 	const viewDomId = $derived('farcaster-cast-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -144,7 +146,7 @@
 								<FarcasterUserView
 									selection={select(EntityType.FarcasterUser, farcasterUser[EntityMetaKey.Selector])}
 									prefetched={farcasterUser}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -203,7 +205,7 @@
 								<FarcasterChannelView
 									selection={select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector])}
 									prefetched={farcasterChannel}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -226,12 +228,12 @@
 									selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
 									prefetched={farcasterCast}
 									href={
-										(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid !== undefined && ({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
-											fid: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).fid ?? ''),
-											hash: String(({ ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }).hash ?? ''),
+										(farcasterCast[EntityMetaKey.Selector].fid !== undefined && farcasterCast[EntityMetaKey.Selector].hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
+											fid: String(farcasterCast[EntityMetaKey.Selector].fid ?? ''),
+											hash: String(farcasterCast[EntityMetaKey.Selector].hash ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

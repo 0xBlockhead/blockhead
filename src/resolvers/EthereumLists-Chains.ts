@@ -310,7 +310,10 @@ export default {
 					if (
 					parentMatch == null
 					|| Number(parentMatch[1]) !== Number(entitySelector.$fromNetwork.caip2.reference)
-					|| !(chain.parent?.bridges ?? []).some((bridge) => bridge.url === entitySelector.url)
+					|| (
+						(chain.parent?.bridges ?? []).length > 0
+						&& !(chain.parent?.bridges ?? []).some((bridge) => bridge.url === entitySelector.url)
+					)
 					) throw new Error('EthereumLists_Rest: network bridge not in chains.json')
 					return {
 						[EntityMetaKey.Selector]: entitySelector,

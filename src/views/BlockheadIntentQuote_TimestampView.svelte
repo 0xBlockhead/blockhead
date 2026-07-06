@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.quoteId) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.source ?? prefetched.source) ?? '')].filter(Boolean).join(' ') || 'blockhead intent quote timestamp')
 	const viewDomId = $derived('blockhead-intent-quote-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -135,7 +137,7 @@
 				<dd>
 					<BlockheadIntentQuoteView
 						selection={select(EntityType.BlockheadIntentQuote, selection.entitySelector.$quote)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

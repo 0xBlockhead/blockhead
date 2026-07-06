@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived('Polkadot asset balance timestamp')
 	const viewDomId = $derived('polkadot-asset-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -147,7 +149,7 @@
 								accountId: String(selection.entitySelector.$account.accountId ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -158,7 +160,7 @@
 				<dd>
 					<PolkadotAssetView
 						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

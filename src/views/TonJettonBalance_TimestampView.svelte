@@ -44,6 +44,8 @@
 	const tonJettonBalanceTimestamp = $derived(selection({}))
 	const titleFallback = $derived('TON jetton balance timestamp')
 	const viewDomId = $derived('ton-jetton-balance-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<TonAccountView
 						selection={select(EntityType.TonAccount, selection.entitySelector.$account)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -93,7 +95,7 @@
 				<dd>
 					<TonJettonView
 						selection={select(EntityType.TonJetton, selection.entitySelector.$jetton)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

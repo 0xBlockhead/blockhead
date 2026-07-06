@@ -47,6 +47,8 @@
 	const mevRelay = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.host ?? prefetched.host) ?? '')].filter(Boolean).join(' ') || 'MEV relay')
 	const viewDomId = $derived('mev-relay-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -219,7 +221,7 @@
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

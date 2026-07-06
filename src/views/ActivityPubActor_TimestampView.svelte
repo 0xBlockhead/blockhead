@@ -46,11 +46,12 @@
 	const activityPubActorTimestamp = $derived(selection({
 		sources: [
 			Source.Mastodon_Rest,
-			Source.Fedi_Rest,
 		],
 	}))
 	const titleFallback = $derived('ActivityPub actor observation')
 	const viewDomId = $derived('activity-pub-actor-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -140,7 +141,7 @@
 								localAccountId: String(selection.entitySelector.$actor.localAccountId ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

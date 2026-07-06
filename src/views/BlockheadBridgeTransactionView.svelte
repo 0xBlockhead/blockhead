@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.createdAt ?? prefetched.createdAt) ?? '')].filter(Boolean).join(' ') || 'bridge transaction')
 	const viewDomId = $derived('blockhead-bridge-transaction-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -169,7 +171,7 @@
 								address: String(selection.entitySelector.$account.address ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -186,7 +188,7 @@
 								transactionId: String(selection.entitySelector.$sourceTx.txHash ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -235,7 +237,7 @@
 								<BridgeTransferView
 									selection={select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector])}
 									prefetched={bridgeTransfer}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

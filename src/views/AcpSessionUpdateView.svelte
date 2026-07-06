@@ -53,6 +53,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '') ? 'Update #' + String((selection.entitySelector.sequence ?? prefetched.sequence) ?? '') : '') || 'ACP session update')
 	const viewDomId = $derived('acp-session-update-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -127,7 +129,7 @@
 				<dd>
 					<AcpSessionView
 						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

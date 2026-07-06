@@ -45,6 +45,8 @@
 	const moveModule = $derived(selection({}))
 	const titleFallback = $derived([String((selection.entitySelector.moduleName ?? prefetched.moduleName) ?? '')].filter(Boolean).join(' ') || 'move module')
 	const viewDomId = $derived('move-module-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -150,7 +152,7 @@
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived('eigen layer avs timestamp')
 	const viewDomId = $derived('eigen-layer-avs-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -144,7 +146,7 @@
 				<dd>
 					<EigenLayerAvsView
 						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

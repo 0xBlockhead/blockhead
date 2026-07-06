@@ -21,18 +21,18 @@ export default {
 	],
 	fields: [
 		{
-				name: '$contract',
-				label: 'Contract',
-				type: EntityFieldType.EntityReference,
-				entityType: EntityType.EvmContract,
-				cardinality: EntityFieldCardinality.One,
+			name: '$contract',
+			label: 'Contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
-				name: 'files',
-				label: 'Files',
-				type: EntityFieldType.Primitive,
-				primitiveType: type('unknown'),
-				cardinality: EntityFieldCardinality.One,
+			name: 'files',
+			label: 'Files',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('unknown'),
+			cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition

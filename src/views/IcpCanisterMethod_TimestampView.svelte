@@ -44,6 +44,8 @@
 	const icpCanisterMethodTimestamp = $derived(selection({}))
 	const titleFallback = $derived('ICP canister method timestamp')
 	const viewDomId = $derived('icp-canister-method-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<IcpCanisterMethodView
 						selection={select(EntityType.IcpCanisterMethod, selection.entitySelector.$method)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

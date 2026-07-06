@@ -44,6 +44,8 @@
 	const radicleIdentityDocument = $derived(selection({}))
 	const titleFallback = $derived('radicle identity document')
 	const viewDomId = $derived('radicle-identity-document-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -282,7 +284,7 @@
 								<RadicleRepositoryView
 									selection={select(EntityType.RadicleRepository, radicleRepository[EntityMetaKey.Selector])}
 									prefetched={radicleRepository}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

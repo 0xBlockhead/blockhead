@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.indexInTurn ?? prefetched.indexInTurn) ?? '') ? 'Call #' + String((selection.entitySelector.indexInTurn ?? prefetched.indexInTurn) ?? '') : '') || 'blockhead agent provider call')
 	const viewDomId = $derived('blockhead-agent-provider-call-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -116,7 +118,7 @@
 								turnId: String(selection.entitySelector.$turn.id ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -163,7 +165,7 @@
 								<BlockheadAgentConnectionView
 									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConnection}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -183,7 +185,7 @@
 								<AiModelProviderView
 									selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
 									prefetched={aiModelProvider}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -203,7 +205,7 @@
 								<AiModelView
 									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 									prefetched={aiModel}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -223,7 +225,7 @@
 								<AiProviderApiOperationView
 									selection={select(EntityType.AiProviderApiOperation, aiProviderApiOperation[EntityMetaKey.Selector])}
 									prefetched={aiProviderApiOperation}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

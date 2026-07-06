@@ -50,6 +50,8 @@
 	}))
 	const titleFallback = $derived('zero g consensus network timestamp')
 	const viewDomId = $derived('zero-gconsensus-network-timestamp-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -115,7 +117,7 @@
 				<dd>
 					<ZeroGConsensusNetworkView
 						selection={select(EntityType.ZeroGConsensusNetwork, selection.entitySelector.$consensusNetwork)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

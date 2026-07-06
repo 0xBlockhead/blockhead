@@ -47,6 +47,8 @@
 	}))
 	const titleFallback = $derived('global RSS network')
 	const viewDomId = $derived('-global-rss-network-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>

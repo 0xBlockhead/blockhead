@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.profileId ?? prefetched.profileId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent profile')
 	const viewDomId = $derived('blockhead-agent-profile-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -226,7 +228,7 @@
 								<AiModelView
 									selection={select(EntityType.AiModel, aiModel[EntityMetaKey.Selector])}
 									prefetched={aiModel}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -248,7 +250,7 @@
 								<McpServerView
 									selection={select(EntityType.McpServer, mcpServer[EntityMetaKey.Selector])}
 									prefetched={mcpServer}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -268,7 +270,7 @@
 								<Eip8004AgentRegistrationView
 									selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
 									prefetched={eip8004AgentRegistration}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

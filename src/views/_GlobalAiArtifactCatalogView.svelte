@@ -40,6 +40,8 @@
 	const globalAiArtifactCatalog = $derived(selection({}))
 	const titleFallback = $derived('global AI artifact catalog')
 	const viewDomId = $derived('-global-ai-artifact-catalog-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import AiArtifactsView from '$/views/AiArtifactsView.svelte'

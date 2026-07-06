@@ -51,6 +51,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '') ? 'Output #' + String((selection.entitySelector.indexInTransaction ?? prefetched.indexInTransaction) ?? '') : '') || 'UTXO output')
 	const viewDomId = $derived('utxo-output-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -113,9 +115,9 @@
 									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									prefetched={utxoAddress}
 									href={
-										(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2 !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.namespace !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2 !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.reference !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.namespace) + ':' + String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.reference))].slug ?? ''),
-											address: String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).address ?? ''),
+										(utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2.reference !== undefined && utxoAddress[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
+											networkSlug: String(networkByCaip2[String(String(utxoAddress[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(utxoAddress[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -145,9 +147,9 @@
 									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									prefetched={utxoAddress}
 									href={
-										(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2 !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.namespace !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2 !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.reference !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.namespace) + ':' + String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.reference))].slug ?? ''),
-											address: String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).address ?? ''),
+										(utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2.reference !== undefined && utxoAddress[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
+											networkSlug: String(networkByCaip2[String(String(utxoAddress[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(utxoAddress[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
 									layout={EntityLayout.Title}
@@ -246,12 +248,12 @@
 									selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
 									prefetched={utxoAddress}
 									href={
-										(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2 !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.namespace !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2 !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.reference !== undefined && ({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
-											networkSlug: String(networkByCaip2[String(String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.namespace) + ':' + String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).$network.caip2.reference))].slug ?? ''),
-											address: String(({ ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }).address ?? ''),
+										(utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && utxoAddress[EntityMetaKey.Selector].$network !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2 !== undefined && utxoAddress[EntityMetaKey.Selector].$network.caip2.reference !== undefined && utxoAddress[EntityMetaKey.Selector].address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
+											networkSlug: String(networkByCaip2[String(String(utxoAddress[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(utxoAddress[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
+											address: String(utxoAddress[EntityMetaKey.Selector].address ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -626,13 +628,13 @@
 									selection={select(EntityType.BitcoinCashCashTokenFungibleAmount, bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenFungibleAmount}
 									href={
-										(({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network.caip2.namespace !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network.caip2.reference !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.txId !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output !== undefined && ({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
-											networkSlug: String(networkByCaip2[String(String(({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network.caip2.namespace) + ':' + String(({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.$network.caip2.reference))].slug ?? ''),
-											txId: String(({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.$transaction.txId ?? ''),
-											outputIndex: String(({ ...bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector], ...bitcoinCashCashTokenFungibleAmount }).$output.indexInTransaction ?? ''),
+										(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.caip2.namespace !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.caip2.reference !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/fungible-amount', {
+											networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.$network.caip2.reference))].slug ?? ''),
+											txId: String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
+											outputIndex: String(bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -653,13 +655,13 @@
 									selection={select(EntityType.BitcoinCashCashTokenNft, bitcoinCashCashTokenNft[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenNft}
 									href={
-										(({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.$network !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.$network.caip2.namespace !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.$network !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.$network.caip2 !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.$network.caip2.reference !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.txId !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output !== undefined && ({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
-											networkSlug: String(networkByCaip2[String(String(({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.$network.caip2.namespace) + ':' + String(({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.$network.caip2.reference))].slug ?? ''),
-											txId: String(({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.$transaction.txId ?? ''),
-											outputIndex: String(({ ...bitcoinCashCashTokenNft[EntityMetaKey.Selector], ...bitcoinCashCashTokenNft }).$output.indexInTransaction ?? ''),
+										(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.caip2.namespace !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.caip2 !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.caip2.reference !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.txId !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output !== undefined && bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]/cash-token/nft', {
+											networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.$network.caip2.reference))].slug ?? ''),
+											txId: String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.$transaction.txId ?? ''),
+											outputIndex: String(bitcoinCashCashTokenNft[EntityMetaKey.Selector].$output.indexInTransaction ?? ''),
 										}) : undefined)
 									}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -679,7 +681,7 @@
 								txId: String(selection.entitySelector.$transaction.txId ?? ''),
 							}) : undefined)
 						}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

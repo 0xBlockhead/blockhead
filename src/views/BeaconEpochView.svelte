@@ -47,6 +47,8 @@
 	}))
 	const titleFallback = $derived((String((selection.entitySelector.epoch ?? prefetched.epoch) ?? '') ? 'Epoch #' + String((selection.entitySelector.epoch ?? prefetched.epoch) ?? '') : '') || 'beacon epoch')
 	const viewDomId = $derived('beacon-epoch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

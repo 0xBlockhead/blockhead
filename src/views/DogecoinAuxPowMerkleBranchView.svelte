@@ -49,6 +49,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.branchKind ?? prefetched.branchKind) ?? '')].filter(Boolean).join(' ') || 'dogecoin aux pow merkle branch')
 	const viewDomId = $derived('dogecoin-aux-pow-merkle-branch-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -108,7 +110,7 @@
 				<dd>
 					<DogecoinBlockAuxPowView
 						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

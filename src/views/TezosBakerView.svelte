@@ -44,6 +44,8 @@
 	const tezosBaker = $derived(selection({}))
 	const titleFallback = $derived('tezos baker')
 	const viewDomId = $derived('tezos-baker-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -82,7 +84,7 @@
 				<dd>
 					<TezosNetworkView
 						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>
@@ -129,7 +131,7 @@
 								<TezosAccountView
 									selection={select(EntityType.TezosAccount, tezosAccount[EntityMetaKey.Selector])}
 									prefetched={tezosAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

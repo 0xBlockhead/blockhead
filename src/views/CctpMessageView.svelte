@@ -56,6 +56,8 @@
 	}))
 	const titleFallback = $derived([String((selection.entitySelector.nonce ?? prefetched.nonce) ?? '')].filter(Boolean).join(' ') || 'CCTP message')
 	const viewDomId = $derived('cctp-message-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -374,7 +376,7 @@
 								<CctpDomainSupportView
 									selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
 									prefetched={cctpDomainSupport}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -394,7 +396,7 @@
 								<CctpDomainSupportView
 									selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
 									prefetched={cctpDomainSupport}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

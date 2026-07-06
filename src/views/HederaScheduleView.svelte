@@ -44,6 +44,8 @@
 	const hederaSchedule = $derived(selection({}))
 	const titleFallback = $derived('hedera schedule')
 	const viewDomId = $derived('hedera-schedule-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<HederaNetworkView
 						selection={select(EntityType.HederaNetwork, selection.entitySelector.$network)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

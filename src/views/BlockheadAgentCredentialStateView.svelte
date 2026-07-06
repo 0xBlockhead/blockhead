@@ -54,6 +54,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.label) ?? '')].filter(Boolean).join(' ') || [String((selection.entitySelector.credentialId ?? prefetched.credentialId) ?? '')].filter(Boolean).join(' ') || 'blockhead agent credential state')
 	const viewDomId = $derived('blockhead-agent-credential-state-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -185,7 +187,7 @@
 								<BlockheadAgentConnectionView
 									selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
 									prefetched={blockheadAgentConnection}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

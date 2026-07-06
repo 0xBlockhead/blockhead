@@ -11,19 +11,10 @@ import {
 	type PersistedCollectionLoadEvent,
 } from '../_e2eBrowserHelpers.ts'
 
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+import { discoverFilteredPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
 const probePath = process.env.E2E_PROBE_PATH?.trim()
-const pathPattern = (
-	((raw) => (
-		raw == null || raw === '' ?
-			undefined
-		:
-			new RegExp(raw)
-	))(process.env.E2E_PATH_PATTERN?.trim())
-)
-
 const liveBackedDynamicRoutePattern = /^\/(?:url\/|network\/(?:eip155(?:%253A|:)1\/(?:account|block|blob|contract|tx|user-operation)\/|0g(?:$|\/(?:address|blocks|channels|nodes|transactions)(?:\/|$))|(?:bitcoin|bitcoin-cash)(?:$|\/(?:address|blocks|transactions)(?:\/|$))))/
 
 const remoteCollectionLoadsByCollection = (
@@ -54,17 +45,11 @@ const routePathnames = await (async () => {
 	if (probePath != null && probePath !== '')
 		return [probePath]
 
-	const all = (await discoverPathnamesFromRoutes())
+	const pathnames = (await discoverFilteredPathnamesFromRoutes())
 		.filter((pathname) => liveBackedDynamicRoutePattern.test(pathname))
-		.filter((pathname) => pathPattern?.test(pathname) ?? true)
-	const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
-	const limit = Number(limitRaw)
-	return (
-		limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-			all.slice(0, limit)
-		:
-			all
-	)
+	if (pathnames.length === 0)
+		throw new Error('No filtered routes matched live-backed dynamic route source coverage')
+	return pathnames
 })()
 
 test.describe('dynamic routes resolve from real sources', () => {

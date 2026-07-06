@@ -55,6 +55,8 @@
 	}))
 	const titleFallback = $derived([String((prefetched.text) ?? ''), String((selection.entitySelector.id ?? prefetched.id) ?? '')].filter(Boolean).join(' ') || 'Lens post')
 	const viewDomId = $derived('lens-post-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -113,7 +115,7 @@
 								<LensAccountView
 									selection={select(EntityType.LensAccount, lensAccount[EntityMetaKey.Selector])}
 									prefetched={lensAccount}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -334,7 +336,7 @@
 								<LensPostView
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -356,7 +358,7 @@
 								<LensPostView
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -378,7 +380,7 @@
 								<LensPostView
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>
@@ -400,7 +402,7 @@
 								<LensPostView
 									selection={select(EntityType.LensPost, lensPost[EntityMetaKey.Selector])}
 									prefetched={lensPost}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

@@ -90,7 +90,7 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	for (const { ledger, category: cat, data } of byLedger) {
 		for (const githubContent of data) {
 			if (githubContent.type !== 'file' || !githubContent.name.endsWith('.md')) continue
-				const proposalNumberRaw = regex('^(?:eip|erc)-(?<proposalNumber>\\d+)\\.md$').exec(githubContent.name)?.groups.proposalNumber
+				const proposalNumberRaw = regex(`^${ledger}-(?<proposalNumber>\\d+)\\.md$`).exec(githubContent.name)?.groups.proposalNumber
 				const proposalNumber = proposalNumberRaw != null ?
 					parseInt(proposalNumberRaw, 10)
 				:

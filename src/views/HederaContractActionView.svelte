@@ -44,6 +44,8 @@
 	const hederaContractAction = $derived(selection({}))
 	const titleFallback = $derived('hedera contract action')
 	const viewDomId = $derived('hedera-contract-action-' + (titleFallback.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'entity').replace(/^-|-$/g, ''))
+
+
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -81,7 +83,7 @@
 				<dd>
 					<HederaContractResultView
 						selection={select(EntityType.HederaContractResult, selection.entitySelector.$result)}
-						layout={EntityLayout.Title}
+						layout={EntityLayout.Value}
 						open={false}
 					/>
 				</dd>

@@ -23,18 +23,18 @@ export default {
 	],
 	fields: [
 		{
-				name: '$registration',
-				label: 'Registration',
-				type: EntityFieldType.EntityReference,
-				entityType: EntityType.Eip8004AgentRegistration,
-				cardinality: EntityFieldCardinality.One,
+			name: '$registration',
+			label: 'Registration',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Eip8004AgentRegistration,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
-				name: 'fileUrl',
-				label: 'File URL',
-				type: EntityFieldType.Primitive,
-				primitiveType: (UrlString),
-				cardinality: EntityFieldCardinality.One,
+			name: 'fileUrl',
+			label: 'File URL',
+			type: EntityFieldType.Primitive,
+			primitiveType: (UrlString),
+			cardinality: EntityFieldCardinality.One,
 		},
 	],
 } as const satisfies EntityDefinition
