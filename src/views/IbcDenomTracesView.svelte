@@ -116,7 +116,7 @@
 				{#snippet Item({ item: ibcDenomTrace }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IbcDenomTrace> })}
 					{@const ibcDenomTraceFields = { ...ibcDenomTrace[EntityMetaKey.Selector], ...ibcDenomTrace }}
 					<IbcDenomTraceView
-						selection={select(EntityType.IbcDenomTrace, ibcDenomTrace[EntityMetaKey.Selector])}
+						selection={select(EntityType.IbcDenomTrace, ibcDenomTrace[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ibcDenomTraceFields}
 						layout={EntityLayout.Summary}
 						open={false}

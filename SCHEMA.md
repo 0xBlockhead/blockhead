@@ -2017,7 +2017,7 @@ SchemaVersion 1
 
   Entity BlockheadCashuProof
     Selectors :: walletId+mintUrl+keysetId+secretHash: walletId+mintUrl+keysetId+secretHash
-    Fields :: walletId! p:str, $mint! $:CashuMint, $keyset? $:CashuKeyset, keysetId! p:str, secretHash! p:hex, secret? p:str, amount! p:bigint, unit! p:str, signature? p:hex, dleqJson? p:str, receivedAt? p:num, sourceTokenId? p:str, $$timestamps* $:BlockheadCashuProof_Timestamp
+    Fields :: walletId! p:str, $mint! $:CashuMint, mintUrl! p:url, $keyset? $:CashuKeyset, keysetId! p:str, secretHash! p:hex, secret? p:str, amount! p:bigint, unit! p:str, signature? p:hex, dleqJson? p:str, receivedAt? p:num, sourceTokenId? p:str, $$timestamps* $:BlockheadCashuProof_Timestamp
     Label :: blockhead Cashu proof
     LabelPlural :: blockhead Cashu proofs
     Sources ::
@@ -2052,7 +2052,7 @@ SchemaVersion 1
 
   Entity BlockheadCashuWalletState
     Selectors :: walletId+mintUrl+unit: walletId+mintUrl+unit
-    Fields :: walletId! p:str, $wallet? $:BlockheadWallet, $mint! $:CashuMint, unit! p:str, $$timestamps* $:BlockheadCashuWalletState_Timestamp, $$proofs* $:BlockheadCashuProof, $$tokens* $:BlockheadCashuToken, $$mintQuotes* $:BlockheadCashuMintQuote, $$meltQuotes* $:BlockheadCashuMeltQuote
+    Fields :: walletId! p:str, $wallet? $:BlockheadWallet, $mint! $:CashuMint, mintUrl! p:url, unit! p:str, $$timestamps* $:BlockheadCashuWalletState_Timestamp, $$proofs* $:BlockheadCashuProof, $$tokens* $:BlockheadCashuToken, $$mintQuotes* $:BlockheadCashuMintQuote, $$meltQuotes* $:BlockheadCashuMeltQuote
     Label :: blockhead Cashu wallet state
     LabelPlural :: blockhead Cashu wallet states
     Sources ::
@@ -2151,7 +2151,7 @@ SchemaVersion 1
 
   Entity BlockheadFedimintClientState
     Selectors :: clientId+federationId: clientId+federationId
-    Fields :: clientId! p:str, clientName? p:str, $federation! $:FedimintFederation, inviteCode? p:str, mnemonicSet? p:bool, guardianThreshold? p:num, moduleConfigJson? p:str, joinedAt? p:num, viewingKeyJson? p:str, $$timestamps* $:BlockheadFedimintClientState_Timestamp
+    Fields :: clientId! p:str, clientName? p:str, federationId! p:str, $federation! $:FedimintFederation, inviteCode? p:str, mnemonicSet? p:bool, guardianThreshold? p:num, moduleConfigJson? p:str, joinedAt? p:num, viewingKeyJson? p:str, $$timestamps* $:BlockheadFedimintClientState_Timestamp
     Label :: blockhead Fedimint client state
     LabelPlural :: blockhead Fedimint client states
     Sources ::

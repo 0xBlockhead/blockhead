@@ -116,7 +116,7 @@
 					{@const evmContractVerificationFields = { ...evmContractVerification[EntityMetaKey.Selector], ...evmContractVerification }}
 					{@const evmContractVerificationHrefFields = { ...evmContractVerification, ...evmContractVerification[EntityMetaKey.Selector] }}
 					<EvmContractVerificationView
-						selection={select(EntityType.EvmContractVerification, evmContractVerification[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmContractVerification, evmContractVerification[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmContractVerificationFields}
 						href={
 							(evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.$network !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2 !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2.namespace !== undefined && evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.$network !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2 !== undefined && evmContractVerificationHrefFields.$contract.$network.caip2.reference !== undefined && evmContractVerificationHrefFields.$contract !== undefined && evmContractVerificationHrefFields.$contract.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(contracts)/contract/[address=evmAddress]/verification', {

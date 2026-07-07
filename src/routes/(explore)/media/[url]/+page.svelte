@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +23,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Media • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<MediaView
 		href={
@@ -37,7 +31,9 @@
 			})
 		}
 		selection={
-			select(EntityType.Media, data.selector, {
+			select(EntityType.Media, {
+				url: decodeURIComponent(params.url),
+			}, {
 				fields: {
 					type: true,
 					transport: true,

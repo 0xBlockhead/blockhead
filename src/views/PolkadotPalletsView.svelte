@@ -117,7 +117,7 @@
 					{@const polkadotPalletFields = { ...polkadotPallet[EntityMetaKey.Selector], ...polkadotPallet }}
 					{@const polkadotPalletHrefFields = { ...polkadotPallet, ...polkadotPallet[EntityMetaKey.Selector] }}
 					<PolkadotPalletView
-						selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotPallet, polkadotPallet[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotPalletFields}
 						href={
 							(polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.caip2 !== undefined && polkadotPalletHrefFields.$network.caip2.namespace !== undefined && polkadotPalletHrefFields.$network !== undefined && polkadotPalletHrefFields.$network.caip2 !== undefined && polkadotPalletHrefFields.$network.caip2.reference !== undefined && polkadotPalletHrefFields.palletName !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/pallet/[palletName]', {

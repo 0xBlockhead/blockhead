@@ -116,7 +116,7 @@
 				<dt>Subnet</dt>
 				<dd>
 					<BittensorSubnetView
-						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet)}
+						selection={select(EntityType.BittensorSubnet, selection.entitySelector.$subnet, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

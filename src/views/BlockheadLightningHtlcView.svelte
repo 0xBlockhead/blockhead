@@ -166,7 +166,7 @@
 				<dt>channel state</dt>
 				<dd>
 					<BlockheadLightningChannelStateView
-						selection={select(EntityType.BlockheadLightningChannelState, selection.entitySelector.$channelState)}
+						selection={select(EntityType.BlockheadLightningChannelState, selection.entitySelector.$channelState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

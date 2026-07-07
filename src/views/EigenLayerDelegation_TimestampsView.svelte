@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eigenLayerDelegationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EigenLayerDelegation_Timestamp> })}
 					{@const eigenLayerDelegationTimestampFields = { ...eigenLayerDelegationTimestamp[EntityMetaKey.Selector], ...eigenLayerDelegationTimestamp }}
 					<EigenLayerDelegation_TimestampView
-						selection={select(EntityType.EigenLayerDelegation_Timestamp, eigenLayerDelegationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerDelegation_Timestamp, eigenLayerDelegationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eigenLayerDelegationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

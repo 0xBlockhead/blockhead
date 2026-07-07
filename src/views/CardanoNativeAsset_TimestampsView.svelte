@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoNativeAssetTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoNativeAsset_Timestamp> })}
 					{@const cardanoNativeAssetTimestampFields = { ...cardanoNativeAssetTimestamp[EntityMetaKey.Selector], ...cardanoNativeAssetTimestamp }}
 					<CardanoNativeAsset_TimestampView
-						selection={select(EntityType.CardanoNativeAsset_Timestamp, cardanoNativeAssetTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoNativeAsset_Timestamp, cardanoNativeAssetTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoNativeAssetTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

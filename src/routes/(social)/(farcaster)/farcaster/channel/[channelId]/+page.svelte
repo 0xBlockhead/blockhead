@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Farcaster channel • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<FarcasterChannelView
 		href={
@@ -37,7 +32,14 @@
 			})
 		}
 		selection={
-			select(EntityType.FarcasterChannel, data.selector, {
+			select(EntityType.FarcasterChannel, {
+				id: decodeURIComponent(params.channelId),
+			}, {
+				sources: [
+					Source.Farcaster_Rest,
+					Source.Neynar_Rest,
+					Source.Snapchain_Rest,
+				],
 				fields: {
 					$icon: true,
 					name: true,

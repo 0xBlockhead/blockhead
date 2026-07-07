@@ -135,7 +135,7 @@
 				<dt>wallet request</dt>
 				<dd>
 					<BlockheadWalletRequestView
-						selection={select(EntityType.BlockheadWalletRequest, selection.entitySelector.$walletRequest)}
+						selection={select(EntityType.BlockheadWalletRequest, selection.entitySelector.$walletRequest, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

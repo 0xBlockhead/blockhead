@@ -82,7 +82,7 @@
 				<dt>network</dt>
 				<dd>
 					<XrplNetworkView
-						selection={select(EntityType.XrplNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.XrplNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

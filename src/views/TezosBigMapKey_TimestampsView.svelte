@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosBigMapKeyTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosBigMapKey_Timestamp> })}
 					{@const tezosBigMapKeyTimestampFields = { ...tezosBigMapKeyTimestamp[EntityMetaKey.Selector], ...tezosBigMapKeyTimestamp }}
 					<TezosBigMapKey_TimestampView
-						selection={select(EntityType.TezosBigMapKey_Timestamp, tezosBigMapKeyTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosBigMapKey_Timestamp, tezosBigMapKeyTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosBigMapKeyTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

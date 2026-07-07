@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +23,6 @@
 </script>
 
 
-<svelte:head>
-	<title>URL • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<UrlView
 		href={
@@ -36,6 +30,10 @@
 				url: params.url,
 			})
 		}
-		selection={select(EntityType.Url, data.selector)}
+		selection={
+			select(EntityType.Url, {
+				url: decodeURIComponent(params.url),
+			})
+		}
 	/>
 </Page>

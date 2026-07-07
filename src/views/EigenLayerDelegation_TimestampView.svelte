@@ -149,7 +149,7 @@
 				<dt>staker</dt>
 				<dd>
 					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker)}
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$staker, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -160,7 +160,7 @@
 				<dt>operator</dt>
 				<dd>
 					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -171,7 +171,7 @@
 				<dt>strategy</dt>
 				<dd>
 					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

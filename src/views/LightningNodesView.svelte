@@ -117,7 +117,7 @@
 					{@const lightningNodeFields = { ...lightningNode[EntityMetaKey.Selector], ...lightningNode }}
 					{@const lightningNodeHrefFields = { ...lightningNode, ...lightningNode[EntityMetaKey.Selector] }}
 					<LightningNodeView
-						selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector])}
+						selection={select(EntityType.LightningNode, lightningNode[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lightningNodeFields}
 						href={
 							(lightningNodeHrefFields.$network !== undefined && lightningNodeHrefFields.$network.slug !== undefined && lightningNodeHrefFields.publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {

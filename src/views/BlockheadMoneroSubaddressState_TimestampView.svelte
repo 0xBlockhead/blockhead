@@ -141,7 +141,7 @@
 				<dt>subaddress state</dt>
 				<dd>
 					<BlockheadMoneroSubaddressStateView
-						selection={select(EntityType.BlockheadMoneroSubaddressState, selection.entitySelector.$subaddressState)}
+						selection={select(EntityType.BlockheadMoneroSubaddressState, selection.entitySelector.$subaddressState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

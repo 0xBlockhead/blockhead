@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoStakePool }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoStakePool> })}
 					{@const cardanoStakePoolFields = { ...cardanoStakePool[EntityMetaKey.Selector], ...cardanoStakePool }}
 					<CardanoStakePoolView
-						selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoStakePool, cardanoStakePool[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoStakePoolFields}
 						layout={EntityLayout.Summary}
 						open={false}

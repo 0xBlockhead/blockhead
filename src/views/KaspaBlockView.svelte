@@ -85,7 +85,7 @@
 				<dt>network</dt>
 				<dd>
 					<KaspaNetworkView
-						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -279,7 +279,7 @@
 						{#snippet Pending()}
 							{@const parentHashes = prefetched.parentHashes}
 							{#if parentHashes !== undefined && parentHashes !== null}
-								<TruncatedValue value={(parentHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={parentHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -287,7 +287,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const parentHashes = resolvedEntity.parentHashes}
 							{#if parentHashes !== undefined && parentHashes !== null}
-								<TruncatedValue value={(parentHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={parentHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

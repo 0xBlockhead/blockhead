@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadSwapIntent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSwapIntent> })}
 					{@const blockheadSwapIntentFields = { ...blockheadSwapIntent[EntityMetaKey.Selector], ...blockheadSwapIntent }}
 					<BlockheadSwapIntentView
-						selection={select(EntityType.BlockheadSwapIntent, blockheadSwapIntent[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadSwapIntent, blockheadSwapIntent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadSwapIntentFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eip8004AgentRegistrationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip8004AgentRegistration_Timestamp> })}
 					{@const eip8004AgentRegistrationTimestampFields = { ...eip8004AgentRegistrationTimestamp[EntityMetaKey.Selector], ...eip8004AgentRegistrationTimestamp }}
 					<Eip8004AgentRegistration_TimestampView
-						selection={select(EntityType.Eip8004AgentRegistration_Timestamp, eip8004AgentRegistrationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.Eip8004AgentRegistration_Timestamp, eip8004AgentRegistrationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eip8004AgentRegistrationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

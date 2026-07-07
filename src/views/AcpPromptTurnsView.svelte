@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpPromptTurn }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpPromptTurn> })}
 					{@const acpPromptTurnFields = { ...acpPromptTurn[EntityMetaKey.Selector], ...acpPromptTurn }}
 					<AcpPromptTurnView
-						selection={select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpPromptTurn, acpPromptTurn[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpPromptTurnFields}
 						layout={EntityLayout.Summary}
 						open={false}

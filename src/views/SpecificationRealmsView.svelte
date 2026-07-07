@@ -121,7 +121,7 @@
 					{@const specificationRealmFields = { ...specificationRealm[EntityMetaKey.Selector], ...specificationRealm }}
 					{@const specificationRealmHrefFields = { ...specificationRealm, ...specificationRealm[EntityMetaKey.Selector] }}
 					<SpecificationRealmView
-						selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector])}
+						selection={select(EntityType.SpecificationRealm, specificationRealm[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={specificationRealmFields}
 						href={
 							(specificationRealmHrefFields.realm !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]', {

@@ -2,19 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
 
 
 	// Components
@@ -23,16 +17,16 @@
 </script>
 
 
-<svelte:head>
-	<title>X • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<XNetworkView
 		href={resolve('/(social)/(x)/x')}
 		selection={
-			select(EntityType.XNetwork, data.selector, {
+			select(EntityType.XNetwork, {
+				scope: 'XNetwork',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					protocolName: true,
 					registryName: true,

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: dogecoinAuxPowParentBlockHeader }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DogecoinAuxPowParentBlockHeader> })}
 					{@const dogecoinAuxPowParentBlockHeaderFields = { ...dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector], ...dogecoinAuxPowParentBlockHeader }}
 					<DogecoinAuxPowParentBlockHeaderView
-						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector])}
+						selection={select(EntityType.DogecoinAuxPowParentBlockHeader, dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dogecoinAuxPowParentBlockHeaderFields}
 						layout={EntityLayout.Summary}
 						open={false}

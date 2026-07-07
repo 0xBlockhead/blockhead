@@ -119,7 +119,7 @@
 				{#snippet Item({ item: aiArtifact }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiArtifact> })}
 					{@const aiArtifactFields = { ...aiArtifact[EntityMetaKey.Selector], ...aiArtifact }}
 					<AiArtifactView
-						selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiArtifact, aiArtifact[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiArtifactFields}
 						layout={EntityLayout.Summary}
 						open={false}

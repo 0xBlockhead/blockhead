@@ -12,8 +12,8 @@ import {
 import type { EntitySelector } from '$/schema/$schema.ts'
 import type { CosmosSdkTxResponse } from '$/sources/CosmosSdk/Rest/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
-import { CosmosNetworkSelector } from '$/schema/CosmosNetwork.ts'
-import { CosmosNetwork_TimestampSelector } from '$/schema/CosmosNetwork_Timestamp.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
+import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
 import { CosmosBlockSelector } from '$/schema/CosmosBlock.ts'
 import { CosmosTransactionSelector } from '$/schema/CosmosTransaction.ts'
 import { CosmosAccountSelector } from '$/schema/CosmosAccount.ts'
@@ -232,35 +232,43 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.CosmosSdk_Rest, {
-			entityType: EntityType.CosmosNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[CosmosNetworkSelector.Network]: async ({ $network }) => {
-					assertCosmosHub($network)
+				[NetworkSelector.Caip2]: async (network) => {
+					assertCosmosHub(network)
 					return {
-						$network: {
-							[EntityMetaKey.Selector]: $network,
-						},
-							restEndpoints: [
-								{
-									url: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
-									transportType: TransportType.Http,
-									providerName: 'PublicNode',
-								},
-							],
+						cosmosRestEndpoints: [
+							{
+								url: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								transportType: TransportType.Http,
+								providerName: 'PublicNode',
+							},
+						],
+					}
+				},
+				[NetworkSelector.Slug]: async (network) => {
+					assertCosmosHub(network)
+					return {
+						cosmosRestEndpoints: [
+							{
+								url: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+								transportType: TransportType.Http,
+								providerName: 'PublicNode',
+							},
+						],
 					}
 				}
 			},
 		})({
 			fields: {
-				$network: (network) => network.$network,
-				restEndpoints: (network) => network.restEndpoints,
+				cosmosRestEndpoints: (network) => network.cosmosRestEndpoints,
 			},
 		}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
-			entityType: EntityType.CosmosNetwork_Timestamp,
+			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[CosmosNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({
+				[Network_TimestampSelector.NetworkTimestampMsSource]: async ({
 					$network,
 					timestampMs,
 					source,
@@ -696,14 +704,26 @@ export default {
 		}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
-			entityType: EntityType.CosmosNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[CosmosNetworkSelector.Network]: async ({ $network }) => {
-					assertCosmosHub($network)
+				[NetworkSelector.Caip2]: async (network) => {
+					assertCosmosHub(network)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: $network,
+								$network: network,
+								timestampMs: Date.now(),
+								source: Source.CosmosSdk_Rest,
+							},
+						},
+					]
+				},
+				[NetworkSelector.Slug]: async (network) => {
+					assertCosmosHub(network)
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: network,
 								timestampMs: Date.now(),
 								source: Source.CosmosSdk_Rest,
 							},
@@ -718,10 +738,10 @@ export default {
 		}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
-			entityType: EntityType.CosmosNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[CosmosNetworkSelector.Network]: async ({ $network }, context) => {
-					assertCosmosHub($network)
+				[NetworkSelector.Caip2]: async (network, context) => {
+					assertCosmosHub(network)
 					const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					const latestBlock = await getLatestBlock({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl })
 					const latestBlockHeight = BigInt(latestBlock.block.header.height)
@@ -732,7 +752,30 @@ export default {
 					),
 					}, (_value, blockOffset) => ({
 						[EntityMetaKey.Selector]: {
-							$network: $network,
+							$network: network,
+							height: latestBlockHeight - BigInt(blockOffset),
+						},
+						...(blockOffset === 0 && {
+							hash: latestBlock.block_id.hash,
+							proposerConsensusAddress: latestBlock.block.header.proposer_address,
+							timestampMs: Date.parse(latestBlock.block.header.time),
+							transactionCount: latestBlock.block.data.txs?.length ?? 0,
+						}),
+					}))
+				},
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertCosmosHub(network)
+					const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					const latestBlock = await getLatestBlock({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl })
+					const latestBlockHeight = BigInt(latestBlock.block.header.height)
+					return Array.from({
+						length: Math.min(
+							Number(latestBlockHeight + 1n),
+							resolverContextRowLimit(context)
+					),
+					}, (_value, blockOffset) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
 							height: latestBlockHeight - BigInt(blockOffset),
 						},
 						...(blockOffset === 0 && {
@@ -746,43 +789,59 @@ export default {
 			},
 		})({
 			fields: {
-				$$blocks: (blocks) => blocks,
+				$$cosmosBlocks: (blocks) => blocks,
 			},
 		}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
-			entityType: EntityType.CosmosNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[CosmosNetworkSelector.Network]: async ({ $network }) => {
-					assertCosmosHub($network)
+				[NetworkSelector.Caip2]: async (network) => {
+					assertCosmosHub(network)
 					const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					return cosmosValidatorRows(
-						$network,
+						network,
+						(await getValidators({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl })).validators
+					)
+				},
+				[NetworkSelector.Slug]: async (network) => {
+					assertCosmosHub(network)
+					const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosValidatorRows(
+						network,
 						(await getValidators({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl })).validators
 					)
 				}
 			},
 		})({
 			fields: {
-				$$validators: (validators) => validators,
+				$$cosmosValidators: (validators) => validators,
 			},
 		}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
-			entityType: EntityType.CosmosNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[CosmosNetworkSelector.Network]: async ({ $network }) => {
-					assertCosmosHub($network)
+				[NetworkSelector.Caip2]: async (network) => {
+					assertCosmosHub(network)
 					const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					return cosmosProposalRows(
-						$network,
+						network,
+						(await getProposals({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl })).proposals
+					)
+				},
+				[NetworkSelector.Slug]: async (network) => {
+					assertCosmosHub(network)
+					const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosProposalRows(
+						network,
 						(await getProposals({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl })).proposals
 					)
 				}
 			},
 		})({
 			fields: {
-				$$governanceProposals: (proposals) => proposals,
+				$$cosmosGovernanceProposals: (proposals) => proposals,
 			},
 		}),
 

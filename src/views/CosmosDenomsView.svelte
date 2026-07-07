@@ -117,7 +117,7 @@
 					{@const cosmosDenomFields = { ...cosmosDenom[EntityMetaKey.Selector], ...cosmosDenom }}
 					{@const cosmosDenomHrefFields = { ...cosmosDenom, ...cosmosDenom[EntityMetaKey.Selector] }}
 					<CosmosDenomView
-						selection={select(EntityType.CosmosDenom, cosmosDenom[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosDenom, cosmosDenom[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosDenomFields}
 						href={
 							(cosmosDenomHrefFields.$network !== undefined && cosmosDenomHrefFields.$network.caip2 !== undefined && cosmosDenomHrefFields.$network.caip2.namespace !== undefined && cosmosDenomHrefFields.$network !== undefined && cosmosDenomHrefFields.$network.caip2 !== undefined && cosmosDenomHrefFields.$network.caip2.reference !== undefined && cosmosDenomHrefFields.denom !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/denom/[denom]', {

@@ -132,7 +132,7 @@
 				<dt>channel</dt>
 				<dd>
 					<BlockheadStateChannelView
-						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
+						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel, {})}
 						href={
 							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId]', {
 								channelId: String(selection.entitySelector.$channel.id ?? ''),

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aptosTableItem }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosTableItem> })}
 					{@const aptosTableItemFields = { ...aptosTableItem[EntityMetaKey.Selector], ...aptosTableItem }}
 					<AptosTableItemView
-						selection={select(EntityType.AptosTableItem, aptosTableItem[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosTableItem, aptosTableItem[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosTableItemFields}
 						layout={EntityLayout.Summary}
 						open={false}

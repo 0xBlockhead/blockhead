@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadSource }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSource> })}
 					{@const blockheadSourceFields = { ...blockheadSource[EntityMetaKey.Selector], ...blockheadSource }}
 					<BlockheadSourceView
-						selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadSource, blockheadSource[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadSourceFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: bnbBeaconNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BnbBeaconNetwork_Timestamp> })}
 					{@const bnbBeaconNetworkTimestampFields = { ...bnbBeaconNetworkTimestamp[EntityMetaKey.Selector], ...bnbBeaconNetworkTimestamp }}
 					<BnbBeaconNetwork_TimestampView
-						selection={select(EntityType.BnbBeaconNetwork_Timestamp, bnbBeaconNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BnbBeaconNetwork_Timestamp, bnbBeaconNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bnbBeaconNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

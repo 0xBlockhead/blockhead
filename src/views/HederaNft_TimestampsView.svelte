@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaNftTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaNft_Timestamp> })}
 					{@const hederaNftTimestampFields = { ...hederaNftTimestamp[EntityMetaKey.Selector], ...hederaNftTimestamp }}
 					<HederaNft_TimestampView
-						selection={select(EntityType.HederaNft_Timestamp, hederaNftTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaNft_Timestamp, hederaNftTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaNftTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

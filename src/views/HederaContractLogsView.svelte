@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaContractLog }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaContractLog> })}
 					{@const hederaContractLogFields = { ...hederaContractLog[EntityMetaKey.Selector], ...hederaContractLog }}
 					<HederaContractLogView
-						selection={select(EntityType.HederaContractLog, hederaContractLog[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaContractLog, hederaContractLog[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaContractLogFields}
 						layout={EntityLayout.Summary}
 						open={false}

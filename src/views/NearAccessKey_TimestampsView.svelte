@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearAccessKeyTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearAccessKey_Timestamp> })}
 					{@const nearAccessKeyTimestampFields = { ...nearAccessKeyTimestamp[EntityMetaKey.Selector], ...nearAccessKeyTimestamp }}
 					<NearAccessKey_TimestampView
-						selection={select(EntityType.NearAccessKey_Timestamp, nearAccessKeyTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearAccessKey_Timestamp, nearAccessKeyTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearAccessKeyTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

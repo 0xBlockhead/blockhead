@@ -81,7 +81,7 @@
 				<dt>spot asset</dt>
 				<dd>
 					<HyperliquidSpotAssetView
-						selection={select(EntityType.HyperliquidSpotAsset, selection.entitySelector.$spotAsset)}
+						selection={select(EntityType.HyperliquidSpotAsset, selection.entitySelector.$spotAsset, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

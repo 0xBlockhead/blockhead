@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -43,6 +44,9 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const farcasterCastEmbed = $derived(selection({
+		sources: [
+			Source.Snapchain_Rest,
+		],
 		fields: {
 			$icon: true,
 			title: true,
@@ -114,7 +118,13 @@
 				{/if}
 
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
+					resource={
+						selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast', {
+							sources: [
+								Source.Snapchain_Rest,
+							],
+						})
+					}
 				>
 					{#snippet children(farcasterCast)}
 						{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
@@ -147,7 +157,13 @@
 				{/if}
 
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
+					resource={
+						selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast', {
+							sources: [
+								Source.Snapchain_Rest,
+							],
+						})
+					}
 				>
 					{#snippet children(farcasterCast)}
 						{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
@@ -195,7 +211,7 @@
 				<dt>Cast</dt>
 				<dd>
 					<FarcasterCastView
-						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
+						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast, {})}
 						href={
 							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
 								fid: String(selection.entitySelector.$cast.fid ?? ''),
@@ -245,6 +261,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.Snapchain_Rest,
+						],
 						fields: {
 							url: true,
 						},
@@ -294,7 +313,13 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast')}
+				resource={
+					selection[EntityProxyField]<EntityType.FarcasterCast, false>('$embeddedCast', {
+						sources: [
+							Source.Snapchain_Rest,
+						],
+					})
+				}
 			>
 				{#snippet children(farcasterCast)}
 					{#if farcasterCast != null && farcasterCast[EntityMetaKey.Selector] != null}
@@ -324,6 +349,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.Snapchain_Rest,
+						],
 						fields: {
 							quotedPreviewText: true,
 						},
@@ -360,6 +388,9 @@
 		<ResourceBoundary
 			resource={
 				selection({
+					sources: [
+						Source.Snapchain_Rest,
+					],
 					fields: {
 						description: true,
 					},

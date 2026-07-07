@@ -115,7 +115,7 @@
 				{#snippet Item({ item: gitRemote }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitRemote> })}
 					{@const gitRemoteFields = { ...gitRemote[EntityMetaKey.Selector], ...gitRemote }}
 					<GitRemoteView
-						selection={select(EntityType.GitRemote, gitRemote[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitRemote, gitRemote[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitRemoteFields}
 						layout={EntityLayout.Summary}
 						open={false}

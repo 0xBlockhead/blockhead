@@ -115,7 +115,7 @@
 				{#snippet Item({ item: evmNetworkActorCoinBalanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetworkActorCoinBalance_Timestamp> })}
 					{@const evmNetworkActorCoinBalanceTimestampFields = { ...evmNetworkActorCoinBalanceTimestamp[EntityMetaKey.Selector], ...evmNetworkActorCoinBalanceTimestamp }}
 					<EvmNetworkActorCoinBalance_TimestampView
-						selection={select(EntityType.EvmNetworkActorCoinBalance_Timestamp, evmNetworkActorCoinBalanceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmNetworkActorCoinBalance_Timestamp, evmNetworkActorCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkActorCoinBalanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

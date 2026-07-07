@@ -136,7 +136,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadCodexStorageNodeStateView
-						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadLogosBlockchainNodeState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadLogosBlockchainNodeState> })}
 					{@const blockheadLogosBlockchainNodeStateFields = { ...blockheadLogosBlockchainNodeState[EntityMetaKey.Selector], ...blockheadLogosBlockchainNodeState }}
 					<BlockheadLogosBlockchainNodeStateView
-						selection={select(EntityType.BlockheadLogosBlockchainNodeState, blockheadLogosBlockchainNodeState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLogosBlockchainNodeState, blockheadLogosBlockchainNodeState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLogosBlockchainNodeStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

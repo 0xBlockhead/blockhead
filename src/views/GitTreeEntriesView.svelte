@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitTreeEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitTreeEntry> })}
 					{@const gitTreeEntryFields = { ...gitTreeEntry[EntityMetaKey.Selector], ...gitTreeEntry }}
 					<GitTreeEntryView
-						selection={select(EntityType.GitTreeEntry, gitTreeEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitTreeEntry, gitTreeEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitTreeEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

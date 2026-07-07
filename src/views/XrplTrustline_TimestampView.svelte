@@ -81,7 +81,7 @@
 				<dt>trustline</dt>
 				<dd>
 					<XrplTrustlineView
-						selection={select(EntityType.XrplTrustline, selection.entitySelector.$trustline)}
+						selection={select(EntityType.XrplTrustline, selection.entitySelector.$trustline, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

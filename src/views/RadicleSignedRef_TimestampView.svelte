@@ -82,7 +82,7 @@
 				<dt>signed ref</dt>
 				<dd>
 					<RadicleSignedRefView
-						selection={select(EntityType.RadicleSignedRef, selection.entitySelector.$signedRef)}
+						selection={select(EntityType.RadicleSignedRef, selection.entitySelector.$signedRef, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

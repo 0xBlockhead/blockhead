@@ -114,7 +114,7 @@
 				{#snippet Item({ item: litecoinMwebPegIn }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LitecoinMwebPegIn> })}
 					{@const litecoinMwebPegInFields = { ...litecoinMwebPegIn[EntityMetaKey.Selector], ...litecoinMwebPegIn }}
 					<LitecoinMwebPegInView
-						selection={select(EntityType.LitecoinMwebPegIn, litecoinMwebPegIn[EntityMetaKey.Selector])}
+						selection={select(EntityType.LitecoinMwebPegIn, litecoinMwebPegIn[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={litecoinMwebPegInFields}
 						layout={EntityLayout.Summary}
 						open={false}

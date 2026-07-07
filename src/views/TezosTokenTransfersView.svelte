@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosTokenTransfer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosTokenTransfer> })}
 					{@const tezosTokenTransferFields = { ...tezosTokenTransfer[EntityMetaKey.Selector], ...tezosTokenTransfer }}
 					<TezosTokenTransferView
-						selection={select(EntityType.TezosTokenTransfer, tezosTokenTransfer[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosTokenTransfer, tezosTokenTransfer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosTokenTransferFields}
 						layout={EntityLayout.Summary}
 						open={false}

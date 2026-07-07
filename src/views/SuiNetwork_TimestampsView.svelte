@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiNetwork_Timestamp> })}
 					{@const suiNetworkTimestampFields = { ...suiNetworkTimestamp[EntityMetaKey.Selector], ...suiNetworkTimestamp }}
 					<SuiNetwork_TimestampView
-						selection={select(EntityType.SuiNetwork_Timestamp, suiNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiNetwork_Timestamp, suiNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

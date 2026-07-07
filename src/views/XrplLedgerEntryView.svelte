@@ -82,7 +82,7 @@
 				<dt>ledger</dt>
 				<dd>
 					<XrplLedgerView
-						selection={select(EntityType.XrplLedger, selection.entitySelector.$ledger)}
+						selection={select(EntityType.XrplLedger, selection.entitySelector.$ledger, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

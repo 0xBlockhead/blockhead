@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadAlgorandParticipationKey }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAlgorandParticipationKey> })}
 					{@const blockheadAlgorandParticipationKeyFields = { ...blockheadAlgorandParticipationKey[EntityMetaKey.Selector], ...blockheadAlgorandParticipationKey }}
 					<BlockheadAlgorandParticipationKeyView
-						selection={select(EntityType.BlockheadAlgorandParticipationKey, blockheadAlgorandParticipationKey[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAlgorandParticipationKey, blockheadAlgorandParticipationKey[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAlgorandParticipationKeyFields}
 						layout={EntityLayout.Summary}
 						open={false}

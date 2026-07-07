@@ -116,7 +116,7 @@
 					{@const rssFeedTimestampFields = { ...rssFeedTimestamp[EntityMetaKey.Selector], ...rssFeedTimestamp }}
 					{@const rssFeedTimestampHrefFields = { ...rssFeedTimestamp, ...rssFeedTimestamp[EntityMetaKey.Selector] }}
 					<RssFeed_TimestampView
-						selection={select(EntityType.RssFeed_Timestamp, rssFeedTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.RssFeed_Timestamp, rssFeedTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={rssFeedTimestampFields}
 						href={
 							(rssFeedTimestampHrefFields.$feed !== undefined && rssFeedTimestampHrefFields.$feed.feedUrl !== undefined && rssFeedTimestampHrefFields.timestampMs !== undefined && rssFeedTimestampHrefFields.source !== undefined ? resolve('/(social)/(rss)/rss/feed/[feedKey]/(feed)/observations/[timestampMs=nonNegativeInteger]/[source]', {

@@ -83,7 +83,7 @@
 				<dt>account</dt>
 				<dd>
 					<HyperliquidAccountView
-						selection={select(EntityType.HyperliquidAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.HyperliquidAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,7 +94,7 @@
 				<dt>vault</dt>
 				<dd>
 					<HyperliquidVaultView
-						selection={select(EntityType.HyperliquidVault, selection.entitySelector.$vault)}
+						selection={select(EntityType.HyperliquidVault, selection.entitySelector.$vault, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

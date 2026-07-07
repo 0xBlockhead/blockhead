@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadCashuMintQuoteTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadCashuMintQuote_Timestamp> })}
 					{@const blockheadCashuMintQuoteTimestampFields = { ...blockheadCashuMintQuoteTimestamp[EntityMetaKey.Selector], ...blockheadCashuMintQuoteTimestamp }}
 					<BlockheadCashuMintQuote_TimestampView
-						selection={select(EntityType.BlockheadCashuMintQuote_Timestamp, blockheadCashuMintQuoteTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadCashuMintQuote_Timestamp, blockheadCashuMintQuoteTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadCashuMintQuoteTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

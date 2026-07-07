@@ -117,10 +117,10 @@
 					{@const solanaTokenMintFields = { ...solanaTokenMint[EntityMetaKey.Selector], ...solanaTokenMint }}
 					{@const solanaTokenMintHrefFields = { ...solanaTokenMint, ...solanaTokenMint[EntityMetaKey.Selector] }}
 					<SolanaTokenMintView
-						selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector])}
+						selection={select(EntityType.SolanaTokenMint, solanaTokenMint[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaTokenMintFields}
 						href={
-							(solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined && solanaTokenMintHrefFields.$network.caip2.namespace !== undefined && solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined && solanaTokenMintHrefFields.$network.caip2.reference !== undefined && solanaTokenMintHrefFields.mintAddress !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mint/[mintAddress]', {
+							(solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined && solanaTokenMintHrefFields.$network.caip2.namespace !== undefined && solanaTokenMintHrefFields.$network !== undefined && solanaTokenMintHrefFields.$network.caip2 !== undefined && solanaTokenMintHrefFields.$network.caip2.reference !== undefined && solanaTokenMintHrefFields.mintAddress !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/token-mint/[mintAddress]', {
 								networkSlug: String(networkByCaip2[String(String(solanaTokenMintHrefFields.$network.caip2.namespace) + ':' + String(solanaTokenMintHrefFields.$network.caip2.reference))].slug ?? ''),
 								mintAddress: String(solanaTokenMintHrefFields.mintAddress ?? ''),
 							}) : undefined)

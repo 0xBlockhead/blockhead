@@ -116,7 +116,7 @@
 					{@const globalEnsNetworkTimestampFields = { ...globalEnsNetworkTimestamp[EntityMetaKey.Selector], ...globalEnsNetworkTimestamp }}
 					{@const globalEnsNetworkTimestampHrefFields = { ...globalEnsNetworkTimestamp, ...globalEnsNetworkTimestamp[EntityMetaKey.Selector] }}
 					<GlobalEnsNetwork_TimestampView
-						selection={select(EntityType._GlobalEnsNetwork_Timestamp, globalEnsNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalEnsNetwork_Timestamp, globalEnsNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalEnsNetworkTimestampFields}
 						href={
 							(globalEnsNetworkTimestampHrefFields.timestampMs !== undefined && globalEnsNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ens)/ens/observations/[timestampMs=nonNegativeInteger]/[source]', {

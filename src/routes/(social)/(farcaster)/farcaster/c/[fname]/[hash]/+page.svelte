@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Farcaster cast • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,15 @@
 			})
 		}
 		selection={
-			select(EntityType.FarcasterCast, data.selector, {
+			select(EntityType.FarcasterCast, {
+				username: decodeURIComponent(params.fname),
+				hashPrefix: decodeURIComponent(params.hash),
+			}, {
+				sources: [
+					Source.Snapchain_Rest,
+					Source.Farcaster_Rest,
+					Source.Neynar_Rest,
+				],
 				fields: {
 					text: true,
 					timestamp: true,

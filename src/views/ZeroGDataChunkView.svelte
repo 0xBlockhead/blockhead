@@ -81,7 +81,7 @@
 				<dt>data blob</dt>
 				<dd>
 					<ZeroGDataBlobView
-						selection={select(EntityType.ZeroGDataBlob, selection.entitySelector.$dataBlob)}
+						selection={select(EntityType.ZeroGDataBlob, selection.entitySelector.$dataBlob, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

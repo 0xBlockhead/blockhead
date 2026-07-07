@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tronAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TronAccount_Timestamp> })}
 					{@const tronAccountTimestampFields = { ...tronAccountTimestamp[EntityMetaKey.Selector], ...tronAccountTimestamp }}
 					<TronAccount_TimestampView
-						selection={select(EntityType.TronAccount_Timestamp, tronAccountTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TronAccount_Timestamp, tronAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tronAccountTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

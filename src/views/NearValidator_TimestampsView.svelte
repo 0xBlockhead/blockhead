@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearValidatorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearValidator_Timestamp> })}
 					{@const nearValidatorTimestampFields = { ...nearValidatorTimestamp[EntityMetaKey.Selector], ...nearValidatorTimestamp }}
 					<NearValidator_TimestampView
-						selection={select(EntityType.NearValidator_Timestamp, nearValidatorTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearValidator_Timestamp, nearValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearValidatorTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

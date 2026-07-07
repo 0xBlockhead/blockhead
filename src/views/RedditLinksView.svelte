@@ -118,7 +118,7 @@
 				{#snippet Item({ item: redditLink }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditLink> })}
 					{@const redditLinkFields = { ...redditLink[EntityMetaKey.Selector], ...redditLink }}
 					<RedditLinkView
-						selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector])}
+						selection={select(EntityType.RedditLink, redditLink[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={redditLinkFields}
 						layout={EntityLayout.Title}
 						open={false}

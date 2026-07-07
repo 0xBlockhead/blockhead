@@ -304,7 +304,7 @@
 						{#snippet Pending()}
 							{@const topics = prefetched.topics}
 							{#if topics !== undefined && topics !== null}
-								{(topics?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{topics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -312,7 +312,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const topics = resolvedEntity.topics}
 							{#if topics !== undefined && topics !== null}
-								{(topics?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{topics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

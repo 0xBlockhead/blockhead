@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandAssetHoldingRound }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandAssetHolding_Round> })}
 					{@const algorandAssetHoldingRoundFields = { ...algorandAssetHoldingRound[EntityMetaKey.Selector], ...algorandAssetHoldingRound }}
 					<AlgorandAssetHolding_RoundView
-						selection={select(EntityType.AlgorandAssetHolding_Round, algorandAssetHoldingRound[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandAssetHolding_Round, algorandAssetHoldingRound[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandAssetHoldingRoundFields}
 						layout={EntityLayout.Summary}
 						open={false}

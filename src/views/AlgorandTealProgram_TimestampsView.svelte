@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandTealProgramTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandTealProgram_Timestamp> })}
 					{@const algorandTealProgramTimestampFields = { ...algorandTealProgramTimestamp[EntityMetaKey.Selector], ...algorandTealProgramTimestamp }}
 					<AlgorandTealProgram_TimestampView
-						selection={select(EntityType.AlgorandTealProgram_Timestamp, algorandTealProgramTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandTealProgram_Timestamp, algorandTealProgramTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandTealProgramTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

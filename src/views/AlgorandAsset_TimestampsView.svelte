@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandAssetTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandAsset_Timestamp> })}
 					{@const algorandAssetTimestampFields = { ...algorandAssetTimestamp[EntityMetaKey.Selector], ...algorandAssetTimestamp }}
 					<AlgorandAsset_TimestampView
-						selection={select(EntityType.AlgorandAsset_Timestamp, algorandAssetTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandAsset_Timestamp, algorandAssetTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandAssetTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

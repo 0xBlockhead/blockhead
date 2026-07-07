@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -82,7 +83,7 @@
 				<dt>Witness</dt>
 				<dd>
 					<TronWitnessView
-						selection={select(EntityType.TronWitness, selection.entitySelector.$witness)}
+						selection={select(EntityType.TronWitness, selection.entitySelector.$witness, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

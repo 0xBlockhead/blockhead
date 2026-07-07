@@ -110,7 +110,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadLogosBlockchainNodeStateView
-						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

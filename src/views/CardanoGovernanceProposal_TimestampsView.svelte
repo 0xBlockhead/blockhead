@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoGovernanceProposalTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoGovernanceProposal_Timestamp> })}
 					{@const cardanoGovernanceProposalTimestampFields = { ...cardanoGovernanceProposalTimestamp[EntityMetaKey.Selector], ...cardanoGovernanceProposalTimestamp }}
 					<CardanoGovernanceProposal_TimestampView
-						selection={select(EntityType.CardanoGovernanceProposal_Timestamp, cardanoGovernanceProposalTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoGovernanceProposal_Timestamp, cardanoGovernanceProposalTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoGovernanceProposalTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

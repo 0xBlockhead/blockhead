@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoTxOutput }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoTxOutput> })}
 					{@const cardanoTxOutputFields = { ...cardanoTxOutput[EntityMetaKey.Selector], ...cardanoTxOutput }}
 					<CardanoTxOutputView
-						selection={select(EntityType.CardanoTxOutput, cardanoTxOutput[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoTxOutput, cardanoTxOutput[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoTxOutputFields}
 						layout={EntityLayout.Summary}
 						open={false}

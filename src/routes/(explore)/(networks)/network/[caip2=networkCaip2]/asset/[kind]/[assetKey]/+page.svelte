@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +23,6 @@
 	import Page from '$/components/Page.svelte'
 	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Asset instance • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +35,16 @@
 			})
 		}
 		selection={
-			select(EntityType.AssetInstance, data.selector, {
+			select(EntityType.AssetInstance, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				kind: decodeURIComponent(params.kind),
+				assetKey: decodeURIComponent(params.assetKey),
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					symbol: true,
 					name: true,

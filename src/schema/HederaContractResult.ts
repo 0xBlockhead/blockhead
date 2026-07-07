@@ -106,14 +106,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$actions',
+			name: '$$actions',
 			label: 'actions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HederaContractAction,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$logs',
+			name: '$$logs',
 			label: 'logs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HederaContractLog,

@@ -81,7 +81,7 @@
 				<dt>signer</dt>
 				<dd>
 					<StellarAccountSignerView
-						selection={select(EntityType.StellarAccountSigner, selection.entitySelector.$signer)}
+						selection={select(EntityType.StellarAccountSigner, selection.entitySelector.$signer, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

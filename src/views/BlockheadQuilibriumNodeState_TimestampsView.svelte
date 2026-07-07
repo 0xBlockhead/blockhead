@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadQuilibriumNodeStateTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadQuilibriumNodeState_Timestamp> })}
 					{@const blockheadQuilibriumNodeStateTimestampFields = { ...blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadQuilibriumNodeStateTimestamp }}
 					<BlockheadQuilibriumNodeState_TimestampView
-						selection={select(EntityType.BlockheadQuilibriumNodeState_Timestamp, blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadQuilibriumNodeState_Timestamp, blockheadQuilibriumNodeStateTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadQuilibriumNodeStateTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

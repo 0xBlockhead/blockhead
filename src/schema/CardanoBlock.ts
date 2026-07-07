@@ -88,7 +88,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$transactions',
+			name: '$$transactions',
 			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CardanoTransaction,

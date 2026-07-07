@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosMichelsonScript }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosMichelsonScript> })}
 					{@const tezosMichelsonScriptFields = { ...tezosMichelsonScript[EntityMetaKey.Selector], ...tezosMichelsonScript }}
 					<TezosMichelsonScriptView
-						selection={select(EntityType.TezosMichelsonScript, tezosMichelsonScript[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosMichelsonScript, tezosMichelsonScript[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosMichelsonScriptFields}
 						layout={EntityLayout.Summary}
 						open={false}

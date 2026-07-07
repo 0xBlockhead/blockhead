@@ -36,6 +36,7 @@ import { NearContract_TimestampSelector } from '$/schema/NearContract_Timestamp.
 import { NearAccessKey_TimestampSelector } from '$/schema/NearAccessKey_Timestamp.ts'
 import { NearNetwork_TimestampSelector } from '$/schema/NearNetwork_Timestamp.ts'
 import { NearValidator_TimestampSelector } from '$/schema/NearValidator_Timestamp.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 
 const nearMainnetRpcUrl = async () =>
 	(await import('$/sources/NearRpc/JsonRpc/queries.ts')).nearMainnetRpcEndpoints[0].url
@@ -759,6 +760,30 @@ export default {
 		}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertNearMainnet(network)
+					const timestamp = await getNearNetworkTimestampFields()
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								timestampMs: timestamp.timestampMs,
+								source: Source.NearRpc_JsonRpc,
+							},
+							...timestamp,
+						},
+					]
+				}
+			},
+		})({
+			fields: {
+				$$nearTimestamps: (timestamps) => timestamps,
+			},
+		}),
+
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork_Timestamp,
 			resolve: {
 				[NearNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }) => {
@@ -804,6 +829,39 @@ export default {
 		}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertNearMainnet(network)
+					const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+					const headBlock = await getBlock({
+						rpcUrl: await nearMainnetRpcUrl(),
+						blockId: 'final',
+					})
+					const headBlockHeight = BigInt(headBlock.header.height)
+					return Array.from({
+						length: Math.min(
+							Number(headBlockHeight + 1n),
+							resolverContextRowLimit(context)
+						),
+					}, (_value, blockOffset) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							height: headBlockHeight - BigInt(blockOffset),
+							...(blockOffset === 0 && {
+								hash: headBlock.header.hash,
+							}),
+						},
+					}))
+				}
+			},
+		})({
+			fields: {
+				$$nearBlocks: (blocks) => blocks,
+			},
+		}),
+
+		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
 			resolve: {
 				[NearNetworkSelector.Slug]: async (entitySelector, context) => {
@@ -825,6 +883,31 @@ export default {
 		})({
 			fields: {
 				$$validators: (validators) => validators,
+			},
+		}),
+
+		defineResolver(Source.NearRpc_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertNearMainnet(network)
+					const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+					return (await getValidators({
+						rpcUrl: await nearMainnetRpcUrl(),
+					})).current_validators
+						.slice(0, resolverContextRowLimit(context))
+						.map((validator) => ({
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								accountId: validator.account_id,
+							},
+							...nearValidatorFields(validator),
+						}))
+				}
+			},
+		})({
+			fields: {
+				$$nearValidators: (validators) => validators,
 			},
 		}),
 

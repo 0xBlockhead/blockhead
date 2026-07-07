@@ -112,7 +112,7 @@
 				{#snippet Item({ item: celestiaNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CelestiaNetwork> })}
 					{@const celestiaNetworkFields = { ...celestiaNetwork[EntityMetaKey.Selector], ...celestiaNetwork }}
 					<CelestiaNetworkView
-						selection={select(EntityType.CelestiaNetwork, celestiaNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.CelestiaNetwork, celestiaNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={celestiaNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

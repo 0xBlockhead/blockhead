@@ -114,7 +114,7 @@
 				{#snippet Item({ item: arweaveBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ArweaveBlock> })}
 					{@const arweaveBlockFields = { ...arweaveBlock[EntityMetaKey.Selector], ...arweaveBlock }}
 					<ArweaveBlockView
-						selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.ArweaveBlock, arweaveBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={arweaveBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

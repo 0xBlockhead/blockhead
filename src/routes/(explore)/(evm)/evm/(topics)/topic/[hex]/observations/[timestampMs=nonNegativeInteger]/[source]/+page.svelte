@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmTopic_TimestampView from '$/views/EvmTopic_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM topic observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,8 +34,20 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmTopic_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.EvmTopic_Timestamp, {
+				$topic: {
+					hex: decodeURIComponent(params.hex),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$topic: {
+					hex: decodeURIComponent(params.hex),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					signatures: true,
 					filteredSignatureCount: true,

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: regulatedAssetProfileTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RegulatedAssetProfile_Timestamp> })}
 					{@const regulatedAssetProfileTimestampFields = { ...regulatedAssetProfileTimestamp[EntityMetaKey.Selector], ...regulatedAssetProfileTimestamp }}
 					<RegulatedAssetProfile_TimestampView
-						selection={select(EntityType.RegulatedAssetProfile_Timestamp, regulatedAssetProfileTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.RegulatedAssetProfile_Timestamp, regulatedAssetProfileTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={regulatedAssetProfileTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>UTXO block • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +33,13 @@
 			})
 		}
 		selection={
-			select(EntityType.UtxoBlock, data.selector, {
+			select(EntityType.UtxoBlock, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				height: BigInt(params.height),
+				hash: decodeURIComponent(params.hash),
+			}, {
 				fields: {
 					transactionCount: true,
 					timestampMs: true,

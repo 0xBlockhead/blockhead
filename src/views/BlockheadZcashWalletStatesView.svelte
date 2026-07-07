@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadZcashWalletState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadZcashWalletState> })}
 					{@const blockheadZcashWalletStateFields = { ...blockheadZcashWalletState[EntityMetaKey.Selector], ...blockheadZcashWalletState }}
 					<BlockheadZcashWalletStateView
-						selection={select(EntityType.BlockheadZcashWalletState, blockheadZcashWalletState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadZcashWalletState, blockheadZcashWalletState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadZcashWalletStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

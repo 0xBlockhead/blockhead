@@ -2,6 +2,10 @@ import { readdir } from 'node:fs/promises'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import {
+	e2eRouteFixtureMetadataByRouteId,
+	type E2eRouteFixtureMetadata,
+} from './_generatedRouteFixtureMetadata.ts'
 import * as routeParamFixtures from './_routeParamFixtures.ts'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..')
@@ -81,36 +85,55 @@ const bracketExpressionToMatcherKey = (expression: string) => (
 	expression.includes('=') ? expression.slice(expression.indexOf('=') + 1) : undefined
 )
 
+const unique = <_Value>(values: readonly _Value[]) => [...new Set(values)]
+
+const routeParamNames = (href: string) => unique(
+	Array.from(href.matchAll(/\[(?:\.\.\.)?([^=\]]+)(?:=[^\]]+)?\]/g))
+		.map((match) => match[1])
+)
+
+const publicRouteIdFromSegments = (segments: readonly string[]) => `/${segments
+	.filter((segment) => !isRouteGroup(segment))
+	.join('/')}`.replaceAll('//', '/')
+
+const generatedRouteFixtureMetadata = (routeId: string): E2eRouteFixtureMetadata => {
+	const metadata = Object.entries(e2eRouteFixtureMetadataByRouteId)
+		.find(([fixtureRouteId]) => fixtureRouteId === routeId)?.[1]
+	if (metadata == null)
+		throw new Error(`Missing generated E2E route fixture metadata for ${routeId}`)
+
+	return metadata
+}
+
 const dynamicFixture = (
+	routeId: string,
+	routeFixtureMetadata: E2eRouteFixtureMetadata,
 	paramKey: string,
-	matcherKey: string | undefined,
-	staticSegments: readonly string[]
+	_matcherKey: string | undefined
 ) => {
 	if (paramKey.startsWith('...'))
 		return (
 			getRouteParamFixtures().e2eRouteRestSegmentFixtures[paramKey.slice(3)]
-			?? getRouteParamFixtures().e2eRouteParamFixtureForContext(paramKey.slice(3), staticSegments)
+			?? getRouteParamFixtures().e2eRouteParamFixtureForMetadata(
+				routeId,
+				routeFixtureMetadata,
+				paramKey.slice(3)
+			)
 		)
 
-	if (matcherKey === 'eip155Caip2Namespace') return 'eip155'
-	if (matcherKey === 'eip155Caip2Reference') return '1'
-	if (matcherKey === 'eip155NetworkCaip2')
-		return paramKey === 'toCaip2' && staticSegments.includes('bridges') ? 'eip155:42161' : 'eip155:1'
-	if (matcherKey === 'networkCaip2')
-		return staticSegments.includes('cosmos') ? 'cosmos:cosmoshub-4' : 'bip122:000000000019d6689c085ae165831e93'
-
-	const contextual = getRouteParamFixtures().e2eRouteParamFixtureForContext(paramKey, staticSegments)
-	return (
-		contextual
-
+	return getRouteParamFixtures().e2eRouteParamFixtureForMetadata(
+		routeId,
+		routeFixtureMetadata,
+		paramKey
 	)
 }
 
 const expandMixedSegment = (
+	routeId: string,
+	routeFixtureMetadata: E2eRouteFixtureMetadata,
 	segment: string,
 	contexts: {
 		urlSegments: string[]
-		staticSegments: string[]
 		params: Record<string, string>
 	}[]
 ) => {
@@ -126,34 +149,11 @@ const expandMixedSegment = (
 		const paramKey = bracketExpressionToParamKey(expression)
 		const matcherKey = bracketExpressionToMatcherKey(expression)
 		expandedContexts = expandedContexts.flatMap((expandedContext) => (
-			(
-				matcherKey === 'eip155Caip2Namespace' ?
-					['eip155']
-	:
-		matcherKey === 'eip155Caip2Reference' ?
-					['1']
-	:
-		matcherKey === 'eip155NetworkCaip2' ?
-					[
-						paramKey === 'toCaip2' && expandedContext.context.staticSegments.includes('bridges') ?
-							'eip155:42161'
-						:
-							'eip155:1',
-					]
-	:
-				matcherKey === 'networkCaip2' ?
-					[
-						expandedContext.context.staticSegments.includes('cosmos') ?
-							'cosmos:cosmoshub-4'
-						:
-							'bip122:000000000019d6689c085ae165831e93',
-					]
-				:
-					getRouteParamFixtures().e2eRouteParamFixtureVariantsForContext(
-						paramKey,
-						expandedContext.context.staticSegments,
-						expandedContext.context.params
-					)
+			getRouteParamFixtures().e2eRouteParamFixtureVariantsForMetadata(
+				routeId,
+				routeFixtureMetadata,
+				paramKey,
+				expandedContext.context.params
 			).map((fixture) => ({
 				context: {
 					...expandedContext.context,
@@ -188,18 +188,14 @@ const pageFileToPathname = (absPath: string) => {
 	const rel = relative(routesDir, absPath).replaceAll('\\', '/')
 	const dir = rel.replace(/(\/+)?\+page\.svelte$/, '')
 	const segments = dir === '' ? [] : dir.split('/').filter(Boolean)
-	const routeStaticSegments = segments.filter((segment) => (
-		!isRouteGroup(segment)
-		&& !segment.includes('[')
-	))
+	const routeId = publicRouteIdFromSegments(segments)
+	const routeFixtureMetadata = routeParamNames(routeId).length === 0 ? undefined : generatedRouteFixtureMetadata(routeId)
 	let contexts: {
 		urlSegments: string[]
-		staticSegments: string[]
 		params: Record<string, string>
 	}[] = [
 		{
 			urlSegments: [],
-			staticSegments: [],
 			params: {},
 		},
 	]
@@ -208,14 +204,18 @@ const pageFileToPathname = (absPath: string) => {
 		if (isRouteGroup(segment)) continue
 
 		if (segment.startsWith('[...')) {
+			if (routeFixtureMetadata == null)
+				throw new Error(`Missing generated E2E route fixture metadata for ${routeId}`)
+
 			contexts = contexts.map((context) => ({
 				...context,
 				urlSegments: [
 					...context.urlSegments,
 					...dynamicFixture(
+						routeId,
+						routeFixtureMetadata,
 						bracketSegmentToParamKey(segment),
-						bracketSegmentToMatcherKey(segment),
-						context.staticSegments
+						bracketSegmentToMatcherKey(segment)
 					)
 						.split('/')
 						.filter(Boolean)
@@ -226,71 +226,18 @@ const pageFileToPathname = (absPath: string) => {
 		}
 
 		if (/^\[[^\]]+\]$/.test(segment)) {
+			if (routeFixtureMetadata == null)
+				throw new Error(`Missing generated E2E route fixture metadata for ${routeId}`)
+
 			const paramKey = bracketSegmentToParamKey(segment)
 			const matcherKey = bracketSegmentToMatcherKey(segment)
 			contexts = contexts.flatMap((context) => (
-				paramKey === 'networkSlug' && routeStaticSegments.includes('polkadot') ?
-					['polkadot']
-			:
-				paramKey === 'networkSlug' && routeStaticSegments.includes('solana') ?
-					['solana']
-			:
-				paramKey === 'networkSlug' && routeStaticSegments.includes('shielded-action') ?
-					['zcash']
-			:
-				paramKey === 'networkSlug' && routeStaticSegments.includes('shielded-pool') ?
-					['zcash']
-			:
-				paramKey === 'networkSlug' && (
-					routeStaticSegments.includes('channels')
-					|| routeStaticSegments.includes('invoices')
-					|| routeStaticSegments.includes('payments')
-					|| routeStaticSegments.includes('nodes')
-				) ?
-					['lightning']
-			:
-				paramKey === 'networkSlug' && routeStaticSegments.includes('cash-token') ?
-					['bitcoin-cash']
-			:
-				paramKey === 'txId' && routeStaticSegments.includes('cash-token') ?
-					['9c3f790921eab71fe9b210a9884c81708dc55d9444bba8c54394b827e2cf7f5a']
-			:
-				paramKey === 'txId' && routeStaticSegments.includes('shielded-action') ?
-					['7fb6c4d3e2a1908070605040302010ffeeddccbbaa99887766554433221100ff']
-			:
-				paramKey === 'txId' && routeStaticSegments.includes('utxo') ?
-					['4d3e4007c50313d031ffb3f180d0bd6b37192e1c852ec9f9a16ad1db957707c6']
-			:
-				paramKey === 'txId' && routeStaticSegments.includes('transactions') ?
-					['4d3e4007c50313d031ffb3f180d0bd6b37192e1c852ec9f9a16ad1db957707c6']
-			:
-				matcherKey === 'eip155Caip2Namespace' ?
-					['eip155']
-	:
-		matcherKey === 'eip155Caip2Reference' ?
-					['1']
-	:
-				matcherKey === 'eip155NetworkCaip2' ?
-					[
-						paramKey === 'toCaip2' && context.staticSegments.includes('bridges') ?
-							'eip155:42161'
-						:
-							'eip155:1',
-					]
-	:
-		matcherKey === 'networkCaip2' ?
-					[
-						routeStaticSegments.includes('cosmos') ?
-							'cosmos:cosmoshub-4'
-						:
-							'bip122:000000000019d6689c085ae165831e93',
-					]
-				:
-					getRouteParamFixtures().e2eRouteParamFixtureVariantsForContext(
-						paramKey,
-						context.staticSegments,
-						context.params
-					)
+				getRouteParamFixtures().e2eRouteParamFixtureVariantsForMetadata(
+					routeId,
+					routeFixtureMetadata,
+					paramKey,
+					context.params
+				)
 			).map((fixture) => ({
 				...context,
 				urlSegments: [
@@ -306,16 +253,20 @@ const pageFileToPathname = (absPath: string) => {
 		}
 
 		if (segment.includes('[') && segment.includes(']')) {
-			contexts = expandMixedSegment(segment, contexts)
+			if (routeFixtureMetadata == null)
+				throw new Error(`Missing generated E2E route fixture metadata for ${routeId}`)
+
+			contexts = expandMixedSegment(
+				routeId,
+				routeFixtureMetadata,
+				segment,
+				contexts
+			)
 			continue
 		}
 
 		contexts = contexts.map((context) => ({
 			...context,
-			staticSegments: [
-				...context.staticSegments,
-				segment,
-			],
 			urlSegments: [
 				...context.urlSegments,
 				encodeUrlSegment(segment),

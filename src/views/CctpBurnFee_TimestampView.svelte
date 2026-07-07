@@ -149,7 +149,7 @@
 				<dt>Source domain</dt>
 				<dd>
 					<CctpDomainSupportView
-						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$sourceDomain)}
+						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$sourceDomain, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -160,7 +160,7 @@
 				<dt>Destination domain</dt>
 				<dd>
 					<CctpDomainSupportView
-						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$destinationDomain)}
+						selection={select(EntityType.CctpDomainSupport, selection.entitySelector.$destinationDomain, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

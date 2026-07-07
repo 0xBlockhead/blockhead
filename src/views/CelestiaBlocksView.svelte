@@ -114,7 +114,7 @@
 				{#snippet Item({ item: celestiaBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CelestiaBlock> })}
 					{@const celestiaBlockFields = { ...celestiaBlock[EntityMetaKey.Selector], ...celestiaBlock }}
 					<CelestiaBlockView
-						selection={select(EntityType.CelestiaBlock, celestiaBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.CelestiaBlock, celestiaBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={celestiaBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

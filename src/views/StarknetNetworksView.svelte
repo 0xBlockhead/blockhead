@@ -113,7 +113,7 @@
 				{#snippet Item({ item: starknetNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetNetwork> })}
 					{@const starknetNetworkFields = { ...starknetNetwork[EntityMetaKey.Selector], ...starknetNetwork }}
 					<StarknetNetworkView
-						selection={select(EntityType.StarknetNetwork, starknetNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetNetwork, starknetNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

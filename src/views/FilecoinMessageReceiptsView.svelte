@@ -114,7 +114,7 @@
 				{#snippet Item({ item: filecoinMessageReceipt }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinMessageReceipt> })}
 					{@const filecoinMessageReceiptFields = { ...filecoinMessageReceipt[EntityMetaKey.Selector], ...filecoinMessageReceipt }}
 					<FilecoinMessageReceiptView
-						selection={select(EntityType.FilecoinMessageReceipt, filecoinMessageReceipt[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinMessageReceipt, filecoinMessageReceipt[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={filecoinMessageReceiptFields}
 						layout={EntityLayout.Summary}
 						open={false}

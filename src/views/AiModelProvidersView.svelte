@@ -115,7 +115,7 @@
 				{#snippet Item({ item: aiModelProvider }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiModelProvider> })}
 					{@const aiModelProviderFields = { ...aiModelProvider[EntityMetaKey.Selector], ...aiModelProvider }}
 					<AiModelProviderView
-						selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiModelProvider, aiModelProvider[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiModelProviderFields}
 						layout={EntityLayout.Summary}
 						open={false}

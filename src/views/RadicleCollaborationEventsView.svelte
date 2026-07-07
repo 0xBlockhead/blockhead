@@ -106,7 +106,7 @@
 				{#snippet Item({ item: radicleCollaborationEvent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RadicleCollaborationEvent> })}
 					{@const radicleCollaborationEventFields = { ...radicleCollaborationEvent[EntityMetaKey.Selector], ...radicleCollaborationEvent }}
 					<RadicleCollaborationEventView
-						selection={select(EntityType.RadicleCollaborationEvent, radicleCollaborationEvent[EntityMetaKey.Selector])}
+						selection={select(EntityType.RadicleCollaborationEvent, radicleCollaborationEvent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={radicleCollaborationEventFields}
 						layout={EntityLayout.Summary}
 						open={false}

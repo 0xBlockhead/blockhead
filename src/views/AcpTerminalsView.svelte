@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpTerminal }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpTerminal> })}
 					{@const acpTerminalFields = { ...acpTerminal[EntityMetaKey.Selector], ...acpTerminal }}
 					<AcpTerminalView
-						selection={select(EntityType.AcpTerminal, acpTerminal[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpTerminal, acpTerminal[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpTerminalFields}
 						layout={EntityLayout.Summary}
 						open={false}

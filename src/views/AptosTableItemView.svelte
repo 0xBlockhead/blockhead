@@ -107,7 +107,7 @@
 				<dt>network</dt>
 				<dd>
 					<AptosNetworkView
-						selection={select(EntityType.AptosNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.AptosNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

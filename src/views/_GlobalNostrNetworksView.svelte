@@ -106,7 +106,7 @@
 				{#snippet Item({ item: globalNostrNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalNostrNetwork> })}
 					{@const globalNostrNetworkFields = { ...globalNostrNetwork[EntityMetaKey.Selector], ...globalNostrNetwork }}
 					<GlobalNostrNetworkView
-						selection={select(EntityType._GlobalNostrNetwork, globalNostrNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalNostrNetwork, globalNostrNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalNostrNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

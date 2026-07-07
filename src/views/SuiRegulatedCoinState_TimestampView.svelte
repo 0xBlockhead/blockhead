@@ -82,7 +82,7 @@
 				<dt>coin type</dt>
 				<dd>
 					<SuiCoinTypeView
-						selection={select(EntityType.SuiCoinType, selection.entitySelector.$coinType)}
+						selection={select(EntityType.SuiCoinType, selection.entitySelector.$coinType, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

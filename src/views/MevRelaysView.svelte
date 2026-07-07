@@ -115,7 +115,7 @@
 					{@const mevRelayFields = { ...mevRelay[EntityMetaKey.Selector], ...mevRelay }}
 					{@const mevRelayHrefFields = { ...mevRelay, ...mevRelay[EntityMetaKey.Selector] }}
 					<MevRelayView
-						selection={select(EntityType.MevRelay, mevRelay[EntityMetaKey.Selector])}
+						selection={select(EntityType.MevRelay, mevRelay[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mevRelayFields}
 						href={
 							(mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.caip2 !== undefined && mevRelayHrefFields.$network.caip2.namespace !== undefined && mevRelayHrefFields.$network !== undefined && mevRelayHrefFields.$network.caip2 !== undefined && mevRelayHrefFields.$network.caip2.reference !== undefined && mevRelayHrefFields.host !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]', {

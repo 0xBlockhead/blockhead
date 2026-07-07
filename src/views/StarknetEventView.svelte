@@ -163,7 +163,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<StarknetTransactionView
-						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -235,7 +235,7 @@
 						{#snippet Pending()}
 							{@const keys = prefetched.keys}
 							{#if keys !== undefined && keys !== null}
-								{(keys?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{keys.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -243,7 +243,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const keys = resolvedEntity.keys}
 							{#if keys !== undefined && keys !== null}
-								{(keys?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{keys.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -265,7 +265,7 @@
 						{#snippet Pending()}
 							{@const data = prefetched.data}
 							{#if data !== undefined && data !== null}
-								{(data?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{data.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -273,7 +273,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const data = resolvedEntity.data}
 							{#if data !== undefined && data !== null}
-								{(data?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{data.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

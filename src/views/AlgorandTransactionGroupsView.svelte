@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandTransactionGroup }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandTransactionGroup> })}
 					{@const algorandTransactionGroupFields = { ...algorandTransactionGroup[EntityMetaKey.Selector], ...algorandTransactionGroup }}
 					<AlgorandTransactionGroupView
-						selection={select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandTransactionGroup, algorandTransactionGroup[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandTransactionGroupFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: easAttestation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EasAttestation> })}
 					{@const easAttestationFields = { ...easAttestation[EntityMetaKey.Selector], ...easAttestation }}
 					<EasAttestationView
-						selection={select(EntityType.EasAttestation, easAttestation[EntityMetaKey.Selector])}
+						selection={select(EntityType.EasAttestation, easAttestation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={easAttestationFields}
 						layout={EntityLayout.Summary}
 						open={false}

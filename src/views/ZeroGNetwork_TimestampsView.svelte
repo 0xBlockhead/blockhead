@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGNetwork_Timestamp> })}
 					{@const zeroGNetworkTimestampFields = { ...zeroGNetworkTimestamp[EntityMetaKey.Selector], ...zeroGNetworkTimestamp }}
 					<ZeroGNetwork_TimestampView
-						selection={select(EntityType.ZeroGNetwork_Timestamp, zeroGNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGNetwork_Timestamp, zeroGNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

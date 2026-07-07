@@ -113,7 +113,7 @@
 				{#snippet Item({ item: gitPackfile }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitPackfile> })}
 					{@const gitPackfileFields = { ...gitPackfile[EntityMetaKey.Selector], ...gitPackfile }}
 					<GitPackfileView
-						selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitPackfile, gitPackfile[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitPackfileFields}
 						layout={EntityLayout.Summary}
 						open={false}

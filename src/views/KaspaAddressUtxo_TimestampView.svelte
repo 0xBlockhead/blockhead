@@ -88,7 +88,7 @@
 				<dt>Address</dt>
 				<dd>
 					<KaspaAddressView
-						selection={select(EntityType.KaspaAddress, selection.entitySelector.$address)}
+						selection={select(EntityType.KaspaAddress, selection.entitySelector.$address, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

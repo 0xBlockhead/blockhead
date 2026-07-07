@@ -118,7 +118,7 @@
 					{@const assetInstanceFields = { ...assetInstance[EntityMetaKey.Selector], ...assetInstance }}
 					{@const assetInstanceHrefFields = { ...assetInstance, ...assetInstance[EntityMetaKey.Selector] }}
 					<AssetInstanceView
-						selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
+						selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={assetInstanceFields}
 						href={
 							(assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined && assetInstanceHrefFields.$network.caip2.namespace !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined && assetInstanceHrefFields.$network.caip2.reference !== undefined && assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {

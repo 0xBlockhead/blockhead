@@ -119,7 +119,7 @@
 					{@const farcasterCastEmbedFields = { ...farcasterCastEmbed[EntityMetaKey.Selector], ...farcasterCastEmbed }}
 					{@const farcasterCastEmbedHrefFields = { ...farcasterCastEmbed, ...farcasterCastEmbed[EntityMetaKey.Selector] }}
 					<FarcasterCastEmbedView
-						selection={select(EntityType.FarcasterCastEmbed, farcasterCastEmbed[EntityMetaKey.Selector])}
+						selection={select(EntityType.FarcasterCastEmbed, farcasterCastEmbed[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterCastEmbedFields}
 						href={
 							(farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.fid !== undefined && farcasterCastEmbedHrefFields.$cast !== undefined && farcasterCastEmbedHrefFields.$cast.hash !== undefined && farcasterCastEmbedHrefFields.indexInCast !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]/embed/[indexInCast=nonNegativeInteger]', {

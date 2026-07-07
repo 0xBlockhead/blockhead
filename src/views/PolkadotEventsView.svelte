@@ -118,7 +118,7 @@
 					{@const polkadotEventFields = { ...polkadotEvent[EntityMetaKey.Selector], ...polkadotEvent }}
 					{@const polkadotEventHrefFields = { ...polkadotEvent, ...polkadotEvent[EntityMetaKey.Selector] }}
 					<PolkadotEventView
-						selection={select(EntityType.PolkadotEvent, polkadotEvent[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotEvent, polkadotEvent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotEventFields}
 						href={
 							(polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.caip2 !== undefined && polkadotEventHrefFields.$block.$network.caip2.namespace !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.$network !== undefined && polkadotEventHrefFields.$block.$network.caip2 !== undefined && polkadotEventHrefFields.$block.$network.caip2.reference !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.blockNumber !== undefined && polkadotEventHrefFields.$block !== undefined && polkadotEventHrefFields.$block.hash !== undefined && polkadotEventHrefFields.indexInBlock !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]/event/[eventIndex=nonNegativeInteger]', {

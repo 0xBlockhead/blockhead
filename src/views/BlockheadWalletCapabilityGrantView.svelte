@@ -290,7 +290,7 @@
 						{#snippet Pending()}
 							{@const methods = prefetched.methods}
 							{#if methods !== undefined && methods !== null}
-								{(methods?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{methods.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -298,7 +298,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const methods = resolvedEntity.methods}
 							{#if methods !== undefined && methods !== null}
-								{(methods?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{methods.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -320,7 +320,7 @@
 						{#snippet Pending()}
 							{@const resources = prefetched.resources}
 							{#if resources !== undefined && resources !== null}
-								{(resources?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{resources.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -328,7 +328,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const resources = resolvedEntity.resources}
 							{#if resources !== undefined && resources !== null}
-								{(resources?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{resources.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

@@ -82,7 +82,7 @@
 				<dt>result</dt>
 				<dd>
 					<HederaContractResultView
-						selection={select(EntityType.HederaContractResult, selection.entitySelector.$result)}
+						selection={select(EntityType.HederaContractResult, selection.entitySelector.$result, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

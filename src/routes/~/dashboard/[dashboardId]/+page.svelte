@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>dashboard • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<BlockheadPanelTreeView
 		href={
@@ -36,6 +31,14 @@
 				dashboardId: params.dashboardId,
 			})
 		}
-		selection={select(EntityType.BlockheadPanelTree, data.selector)}
+		selection={
+			select(EntityType.BlockheadPanelTree, {
+				id: params.dashboardId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
+			})
+		}
 	/>
 </Page>

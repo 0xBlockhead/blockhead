@@ -115,7 +115,7 @@
 				{#snippet Item({ item: oracleFeedTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.OracleFeed_Timestamp> })}
 					{@const oracleFeedTimestampFields = { ...oracleFeedTimestamp[EntityMetaKey.Selector], ...oracleFeedTimestamp }}
 					<OracleFeed_TimestampView
-						selection={select(EntityType.OracleFeed_Timestamp, oracleFeedTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.OracleFeed_Timestamp, oracleFeedTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={oracleFeedTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoCertificate }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoCertificate> })}
 					{@const cardanoCertificateFields = { ...cardanoCertificate[EntityMetaKey.Selector], ...cardanoCertificate }}
 					<CardanoCertificateView
-						selection={select(EntityType.CardanoCertificate, cardanoCertificate[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoCertificate, cardanoCertificate[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoCertificateFields}
 						layout={EntityLayout.Summary}
 						open={false}

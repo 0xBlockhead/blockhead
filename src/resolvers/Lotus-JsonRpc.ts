@@ -24,6 +24,7 @@ import { FilecoinMinerSelector } from '$/schema/FilecoinMiner.ts'
 import { FilecoinActor_TimestampSelector } from '$/schema/FilecoinActor_Timestamp.ts'
 import { FilecoinMiner_TimestampSelector } from '$/schema/FilecoinMiner_Timestamp.ts'
 import { FilecoinSector_TimestampSelector } from '$/schema/FilecoinSector_Timestamp.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
 
@@ -123,6 +124,28 @@ export default {
 			fields: {
 				$network: (network) => network.$network,
 				rpcEndpoints: (network) => network.rpcEndpoints,
+			},
+		}),
+
+		defineResolver(Source.Lotus_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertFilecoinMainnet(network)
+					return {
+						filecoinRpcEndpoints: [
+							{
+								url: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+								transportType: TransportType.Http,
+								providerName: 'GLIF',
+							},
+						],
+					}
+				}
+			},
+		})({
+			fields: {
+				filecoinRpcEndpoints: (network) => network.filecoinRpcEndpoints,
 			},
 		}),
 
@@ -449,6 +472,28 @@ export default {
 		}),
 
 		defineResolver(Source.Lotus_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertFilecoinMainnet(network)
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								timestampMs: Date.now(),
+								source: Source.Lotus_JsonRpc,
+							},
+						},
+					]
+				}
+			},
+		})({
+			fields: {
+				$$filecoinTimestamps: (timestamps) => timestamps,
+			},
+		}),
+
+		defineResolver(Source.Lotus_JsonRpc, {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: {
 				[FilecoinNetworkSelector.Network]: async ({ $network }, context) => {
@@ -491,6 +536,49 @@ export default {
 		})({
 			fields: {
 				$$tipsets: (tipsets) => tipsets,
+			},
+		}),
+
+		defineResolver(Source.Lotus_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertFilecoinMainnet(network)
+					const {
+						getTipSetByHeight,
+						getHead,
+					} = await import('$/sources/Lotus/JsonRpc/queries.ts')
+					const head = await getHead({ rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl })
+					return Promise.all(Array.from({
+						length: Math.min(
+							Number(BigInt(head.Height) + 1n),
+							resolverContextRowLimit(context)
+						),
+					}, async (_value, tipsetOffset) => {
+						const tipset = (
+							tipsetOffset === 0 ?
+								head
+							:
+								await getTipSetByHeight({
+									rpcUrl: filecoinNetworkBySlug.filecoin.lotusRpcUrl,
+									height: BigInt(head.Height) - BigInt(tipsetOffset),
+								})
+						)
+
+						return {
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								height: BigInt(tipset.Height),
+								tipsetKey: tipsetKey(tipset.Cids),
+							},
+							timestampMs: tipset.Blocks[0].Timestamp * 1000,
+						}
+					}))
+				}
+			},
+		})({
+			fields: {
+				$$filecoinTipsets: (tipsets) => tipsets,
 			},
 		}),
 

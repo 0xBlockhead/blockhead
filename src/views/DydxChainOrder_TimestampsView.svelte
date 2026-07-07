@@ -113,7 +113,7 @@
 				{#snippet Item({ item: dydxChainOrderTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DydxChainOrder_Timestamp> })}
 					{@const dydxChainOrderTimestampFields = { ...dydxChainOrderTimestamp[EntityMetaKey.Selector], ...dydxChainOrderTimestamp }}
 					<DydxChainOrder_TimestampView
-						selection={select(EntityType.DydxChainOrder_Timestamp, dydxChainOrderTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.DydxChainOrder_Timestamp, dydxChainOrderTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dydxChainOrderTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

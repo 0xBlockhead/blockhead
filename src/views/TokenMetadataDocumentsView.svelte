@@ -118,7 +118,7 @@
 				{#snippet Item({ item: tokenMetadataDocument }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TokenMetadataDocument> })}
 					{@const tokenMetadataDocumentFields = { ...tokenMetadataDocument[EntityMetaKey.Selector], ...tokenMetadataDocument }}
 					<TokenMetadataDocumentView
-						selection={select(EntityType.TokenMetadataDocument, tokenMetadataDocument[EntityMetaKey.Selector])}
+						selection={select(EntityType.TokenMetadataDocument, tokenMetadataDocument[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tokenMetadataDocumentFields}
 						layout={EntityLayout.Summary}
 						open={false}

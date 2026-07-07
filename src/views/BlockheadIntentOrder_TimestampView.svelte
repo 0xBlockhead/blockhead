@@ -135,7 +135,7 @@
 				<dt>order</dt>
 				<dd>
 					<BlockheadIntentOrderView
-						selection={select(EntityType.BlockheadIntentOrder, selection.entitySelector.$order)}
+						selection={select(EntityType.BlockheadIntentOrder, selection.entitySelector.$order, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

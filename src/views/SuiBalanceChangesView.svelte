@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiBalanceChange }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiBalanceChange> })}
 					{@const suiBalanceChangeFields = { ...suiBalanceChange[EntityMetaKey.Selector], ...suiBalanceChange }}
 					<SuiBalanceChangeView
-						selection={select(EntityType.SuiBalanceChange, suiBalanceChange[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiBalanceChange, suiBalanceChange[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiBalanceChangeFields}
 						layout={EntityLayout.Summary}
 						open={false}

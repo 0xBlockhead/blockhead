@@ -128,7 +128,7 @@
 				<dt>melt quote</dt>
 				<dd>
 					<BlockheadCashuMeltQuoteView
-						selection={select(EntityType.BlockheadCashuMeltQuote, selection.entitySelector.$meltQuote)}
+						selection={select(EntityType.BlockheadCashuMeltQuote, selection.entitySelector.$meltQuote, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

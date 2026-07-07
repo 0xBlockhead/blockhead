@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { specificationRealmBySlug, proposalCategoryBySlug } from '$/constants/SpecificationProposal.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import SpecificationProposalView from '$/views/SpecificationProposalView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Specification proposal • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +34,11 @@
 			})
 		}
 		selection={
-			select(EntityType.SpecificationProposal, data.selector, {
+			select(EntityType.SpecificationProposal, {
+				realm: specificationRealmBySlug[params.specificationRealmSlug].id,
+				category: proposalCategoryBySlug[params.proposalKindSlug].id,
+				number: Number(params.proposalRef.slice(params.proposalRef.lastIndexOf('-') + 1)),
+			}, {
 				fields: {
 					documentTitle: true,
 					documentCategory: true,

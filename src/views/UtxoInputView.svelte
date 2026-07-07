@@ -218,7 +218,7 @@
 				<dt>Transaction</dt>
 				<dd>
 					<UtxoTransactionView
-						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction, {})}
 						href={
 							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$transaction.$network.caip2.reference))].slug ?? ''),
@@ -353,7 +353,7 @@
 						{#snippet Pending()}
 							{@const witness = prefetched.witness}
 							{#if witness !== undefined && witness !== null}
-								{(witness?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{witness.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -361,7 +361,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const witness = resolvedEntity.witness}
 							{#if witness !== undefined && witness !== null}
-								{(witness?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{witness.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

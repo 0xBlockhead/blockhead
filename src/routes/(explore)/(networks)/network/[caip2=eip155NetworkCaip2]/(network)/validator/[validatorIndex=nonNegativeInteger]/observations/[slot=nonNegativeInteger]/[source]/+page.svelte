@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import BeaconValidator_TimestampView from '$/views/BeaconValidator_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>beacon validator timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,8 +35,26 @@
 			})
 		}
 		selection={
-			select(EntityType.BeaconValidator_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.BeaconValidator_Timestamp, {
+				$validator: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					indexInNetwork: Number(params.validatorIndex),
+				},
+				slot: Number(params.slot),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$validator: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					indexInNetwork: Number(params.validatorIndex),
+				},
+				slot: Number(params.slot),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					status: true,
 					balanceGwei: true,

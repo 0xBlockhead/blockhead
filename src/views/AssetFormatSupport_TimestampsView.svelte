@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -69,9 +68,6 @@
 				fields: {
 					formatId: true,
 					confidence: true,
-					$assetInstance: true,
-					timestampMs: true,
-					source: true,
 				},
 			})
 		}
@@ -116,20 +112,9 @@
 
 				{#snippet Item({ item: assetFormatSupportTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetFormatSupport_Timestamp> })}
 					{@const assetFormatSupportTimestampFields = { ...assetFormatSupportTimestamp[EntityMetaKey.Selector], ...assetFormatSupportTimestamp }}
-					{@const assetFormatSupportTimestampHrefFields = { ...assetFormatSupportTimestamp, ...assetFormatSupportTimestamp[EntityMetaKey.Selector] }}
 					<AssetFormatSupport_TimestampView
-						selection={select(EntityType.AssetFormatSupport_Timestamp, assetFormatSupportTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AssetFormatSupport_Timestamp, assetFormatSupportTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={assetFormatSupportTimestampFields}
-						href={
-							(assetFormatSupportTimestampHrefFields.$assetInstance !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2 !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2.namespace !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2 !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2.reference !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.kind !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance !== undefined && assetFormatSupportTimestampHrefFields.$assetInstance.assetKey !== undefined && assetFormatSupportTimestampHrefFields.formatId !== undefined && assetFormatSupportTimestampHrefFields.timestampMs !== undefined && assetFormatSupportTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/formats/[formatId]/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2.namespace ?? '')}:${String(assetFormatSupportTimestampHrefFields.$assetInstance.$network.caip2.reference ?? '')}`,
-								kind: String(assetFormatSupportTimestampHrefFields.$assetInstance.kind ?? ''),
-								assetKey: String(assetFormatSupportTimestampHrefFields.$assetInstance.assetKey ?? ''),
-								formatId: String(assetFormatSupportTimestampHrefFields.formatId ?? ''),
-								timestampMs: String(assetFormatSupportTimestampHrefFields.timestampMs ?? ''),
-								source: String(assetFormatSupportTimestampHrefFields.source ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

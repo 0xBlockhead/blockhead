@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadStateChannelState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadStateChannelState> })}
 					{@const blockheadStateChannelStateFields = { ...blockheadStateChannelState[EntityMetaKey.Selector], ...blockheadStateChannelState }}
 					<BlockheadStateChannelStateView
-						selection={select(EntityType.BlockheadStateChannelState, blockheadStateChannelState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadStateChannelState, blockheadStateChannelState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadStateChannelStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

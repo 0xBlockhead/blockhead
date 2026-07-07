@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import CoinBridgeCapabilityView from '$/views/CoinBridgeCapabilityView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Coin bridge capability • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -41,7 +35,37 @@
 			})
 		}
 		selection={
-			select(EntityType.CoinBridgeCapability, data.selector, {
+			select(EntityType.CoinBridgeCapability, {
+				$fromInstance: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.fromChainId,
+						},
+					},
+					type: (
+					params.fromCoinInstanceSlug === 'native' ?
+						'NativeCurrency'
+					:
+						params.fromCoinInstanceSlug
+					),
+				},
+				$toInstance: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.toChainId,
+						},
+					},
+					type: (
+					params.toCoinInstanceSlug === 'native' ?
+						'NativeCurrency'
+					:
+						params.toCoinInstanceSlug
+					),
+				},
+				toolKey: decodeURIComponent(params.toolKey),
+			}, {
 				fields: {
 					railId: true,
 					settlementModel: true,

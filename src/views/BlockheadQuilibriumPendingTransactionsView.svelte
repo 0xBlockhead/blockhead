@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadQuilibriumPendingTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadQuilibriumPendingTransaction> })}
 					{@const blockheadQuilibriumPendingTransactionFields = { ...blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector], ...blockheadQuilibriumPendingTransaction }}
 					<BlockheadQuilibriumPendingTransactionView
-						selection={select(EntityType.BlockheadQuilibriumPendingTransaction, blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadQuilibriumPendingTransaction, blockheadQuilibriumPendingTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadQuilibriumPendingTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

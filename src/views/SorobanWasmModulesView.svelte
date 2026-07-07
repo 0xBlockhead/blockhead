@@ -106,7 +106,7 @@
 				{#snippet Item({ item: sorobanWasm }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SorobanWasm> })}
 					{@const sorobanWasmFields = { ...sorobanWasm[EntityMetaKey.Selector], ...sorobanWasm }}
 					<SorobanWasmView
-						selection={select(EntityType.SorobanWasm, sorobanWasm[EntityMetaKey.Selector])}
+						selection={select(EntityType.SorobanWasm, sorobanWasm[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={sorobanWasmFields}
 						layout={EntityLayout.Summary}
 						open={false}

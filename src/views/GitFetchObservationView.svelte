@@ -137,7 +137,7 @@
 				<dt>repository</dt>
 				<dd>
 					<GitRepositoryView
-						selection={select(EntityType.GitRepository, selection.entitySelector.$repository)}
+						selection={select(EntityType.GitRepository, selection.entitySelector.$repository, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

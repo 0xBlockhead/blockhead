@@ -114,7 +114,7 @@
 					{@const evmCalldataFields = { ...evmCalldata[EntityMetaKey.Selector], ...evmCalldata }}
 					{@const evmCalldataHrefFields = { ...evmCalldata, ...evmCalldata[EntityMetaKey.Selector] }}
 					<EvmCalldataView
-						selection={select(EntityType.EvmCalldata, evmCalldata[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmCalldata, evmCalldata[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmCalldataFields}
 						href={resolve('/(explore)/(evm)/evm/(calldata)/calldata')}
 						layout={EntityLayout.Summary}

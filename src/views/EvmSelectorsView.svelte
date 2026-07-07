@@ -118,7 +118,7 @@
 					{@const evmSelectorFields = { ...evmSelector[EntityMetaKey.Selector], ...evmSelector }}
 					{@const evmSelectorHrefFields = { ...evmSelector, ...evmSelector[EntityMetaKey.Selector] }}
 					<EvmSelectorView
-						selection={select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmSelector, evmSelector[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmSelectorFields}
 						href={
 							(evmSelectorHrefFields.hex !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {

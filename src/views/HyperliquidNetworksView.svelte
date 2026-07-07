@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidNetwork> })}
 					{@const hyperliquidNetworkFields = { ...hyperliquidNetwork[EntityMetaKey.Selector], ...hyperliquidNetwork }}
 					<HyperliquidNetworkView
-						selection={select(EntityType.HyperliquidNetwork, hyperliquidNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidNetwork, hyperliquidNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

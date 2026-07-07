@@ -83,7 +83,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<CardanoTransactionView
-						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.CardanoTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

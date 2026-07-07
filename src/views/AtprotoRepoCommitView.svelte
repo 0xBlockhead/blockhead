@@ -680,7 +680,7 @@
 						{#snippet Pending()}
 							{@const operationPaths = prefetched.operationPaths}
 							{#if operationPaths !== undefined && operationPaths !== null}
-								{(operationPaths?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{operationPaths.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -688,7 +688,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const operationPaths = resolvedEntity.operationPaths}
 							{#if operationPaths !== undefined && operationPaths !== null}
-								{(operationPaths?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{operationPaths.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -710,7 +710,7 @@
 						{#snippet Pending()}
 							{@const createdRecordCids = prefetched.createdRecordCids}
 							{#if createdRecordCids !== undefined && createdRecordCids !== null}
-								{(createdRecordCids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{createdRecordCids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -718,7 +718,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const createdRecordCids = resolvedEntity.createdRecordCids}
 							{#if createdRecordCids !== undefined && createdRecordCids !== null}
-								{(createdRecordCids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{createdRecordCids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -740,7 +740,7 @@
 						{#snippet Pending()}
 							{@const updatedRecordCids = prefetched.updatedRecordCids}
 							{#if updatedRecordCids !== undefined && updatedRecordCids !== null}
-								{(updatedRecordCids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{updatedRecordCids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -748,7 +748,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const updatedRecordCids = resolvedEntity.updatedRecordCids}
 							{#if updatedRecordCids !== undefined && updatedRecordCids !== null}
-								{(updatedRecordCids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{updatedRecordCids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -770,7 +770,7 @@
 						{#snippet Pending()}
 							{@const deletedRecordPaths = prefetched.deletedRecordPaths}
 							{#if deletedRecordPaths !== undefined && deletedRecordPaths !== null}
-								{(deletedRecordPaths?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{deletedRecordPaths.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -778,7 +778,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const deletedRecordPaths = resolvedEntity.deletedRecordPaths}
 							{#if deletedRecordPaths !== undefined && deletedRecordPaths !== null}
-								{(deletedRecordPaths?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{deletedRecordPaths.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nostrArticle }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrArticle> })}
 					{@const nostrArticleFields = { ...nostrArticle[EntityMetaKey.Selector], ...nostrArticle }}
 					<NostrArticleView
-						selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrArticle, nostrArticle[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nostrArticleFields}
 						layout={EntityLayout.Title}
 						open={false}

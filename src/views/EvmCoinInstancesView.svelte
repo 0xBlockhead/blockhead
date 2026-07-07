@@ -118,7 +118,7 @@
 					{@const evmCoinInstanceFields = { ...evmCoinInstance[EntityMetaKey.Selector], ...evmCoinInstance }}
 					{@const evmCoinInstanceHrefFields = { ...evmCoinInstance, ...evmCoinInstance[EntityMetaKey.Selector] }}
 					<EvmCoinInstanceView
-						selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmCoinInstanceFields}
 						href={
 							(evmCoinInstanceHrefFields.$network !== undefined && evmCoinInstanceHrefFields.$network.caip2 !== undefined && evmCoinInstanceHrefFields.$network.caip2.reference !== undefined && (evmCoinInstanceHrefFields.type !== undefined && (evmCoinInstanceHrefFields.type === 'NativeCurrency' ? true : evmCoinInstanceHrefFields.$contract !== undefined && evmCoinInstanceHrefFields.$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {

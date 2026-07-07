@@ -2,19 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
 
 
 	// Components
@@ -23,16 +17,16 @@
 </script>
 
 
-<svelte:head>
-	<title>XMTP • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<XmtpNetworkView
 		href={resolve('/(social)/(xmtp)/xmtp')}
 		selection={
-			select(EntityType.XmtpNetwork, data.selector, {
+			select(EntityType.XmtpNetwork, {
+				scope: 'XmtpNetwork',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					protocolName: true,
 					registryName: true,

@@ -12,7 +12,7 @@
   },
   "servers" : [ {
     "url" : "https://api.opensea.io",
-    "description" : "Production server"
+    "description" : "OpenSea API server"
   } ],
   "security" : [ {
     "ApiKeyAuth" : [ ]
@@ -1164,6 +1164,14 @@
             "type" : "string"
           }
         }, {
+          "name" : "source",
+          "in" : "query",
+          "description" : "Filter by source: onchain, x402_bazaar, x402_bankr. Defaults to all sources when omitted.",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "limit",
           "in" : "query",
           "description" : "Number of items to return per page",
@@ -1222,7 +1230,7 @@
         }, {
           "name" : "registry_addr",
           "in" : "path",
-          "description" : "Registry contract address",
+          "description" : "Registry contract address: an onchain EVM address, or x402_bazaar / x402_bankr for x402 tools",
           "required" : true,
           "schema" : {
             "type" : "string"
@@ -1243,6 +1251,89 @@
               "*/*" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/RegisteredToolResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/BadRequest"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/NotFound"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v2/tools/{registry_chain}/{registry_addr}/{tool_id}/activity" : {
+      "get" : {
+        "tags" : [ "Tool Endpoints [Beta]" ],
+        "summary" : "[Beta] Get activity for a registered tool",
+        "description" : "[Beta] Returns merged x402 payment events and usage reports for a tool, deduplicated by transaction hash. Each event includes an attribution field indicating confidence level. This endpoint is under active development and may change without notice.",
+        "operationId" : "get_tool_activity",
+        "parameters" : [ {
+          "name" : "registry_chain",
+          "in" : "path",
+          "description" : "Registry chain ID (e.g. 1, 8453)",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "registry_addr",
+          "in" : "path",
+          "description" : "Registry contract address: an onchain EVM address, or x402_bazaar / x402_bankr for x402 tools",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "tool_id",
+          "in" : "path",
+          "description" : "Numeric tool ID",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "include_creator_payments",
+          "in" : "query",
+          "description" : "Include payments attributed only by creator address",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "description" : "Maximum number of results (1-100)",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 25
+          }
+        }, {
+          "name" : "offset",
+          "in" : "query",
+          "description" : "Offset for pagination",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ToolActivityPaginatedResponse"
                 }
               }
             }
@@ -1304,6 +1395,22 @@
           "name" : "creator",
           "in" : "query",
           "description" : "Filter by creator address",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "source",
+          "in" : "query",
+          "description" : "Filter by source: onchain, x402_bazaar, x402_bankr. Defaults to all sources when omitted.",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "collection",
+          "in" : "query",
+          "description" : "Filter to tools gated by owning an NFT in this collection (slug). Unknown slugs return no results.",
           "required" : false,
           "schema" : {
             "type" : "string"
@@ -4712,6 +4819,179 @@
         }
       }
     },
+    "/api/v2/account/{address}/pnl" : {
+      "get" : {
+        "tags" : [ "Account Endpoints" ],
+        "summary" : "Get trading P&L for an account",
+        "description" : "Get aggregated realized and unrealized trading profit and loss across all currencies held by a wallet address. Returns 200 with figures (which may be zero for a real but flat wallet) when OpenSea has indexed P&L for the wallet, and 404 only when no P&L has been indexed for it — letting consumers distinguish \"indexed but flat\" from \"not indexed\".",
+        "operationId" : "get_wallet_pnl",
+        "parameters" : [ {
+          "name" : "address",
+          "in" : "path",
+          "description" : "The wallet address",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Wallet trading P&L. Indexed wallets return 200 even when all figures are zero (real but flat).",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WalletPnlResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/BadRequest"
+          },
+          "404" : {
+            "$ref" : "#/components/responses/NotFound"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v2/account/{address}/pnl/token-transfers" : {
+      "get" : {
+        "tags" : [ "Account Endpoints" ],
+        "summary" : "Get token transfers for a wallet's position in a currency",
+        "description" : "Get a paginated, transfer-level breakdown of a wallet's position in a single currency (identified by contract_address + chain). Combine `direction` and `transfer_type` to distinguish zero-cost acquisitions (airdrops, CEX transfers) from buys.",
+        "operationId" : "get_wallet_token_transfers",
+        "parameters" : [ {
+          "name" : "address",
+          "in" : "path",
+          "description" : "The wallet address",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+        }, {
+          "name" : "contract_address",
+          "in" : "query",
+          "description" : "The currency's contract address",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+        }, {
+          "name" : "chain",
+          "in" : "query",
+          "description" : "The chain the currency is on",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "ethereum"
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "description" : "Number of results to return per page (1-200, default 20)",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "next",
+          "in" : "query",
+          "description" : "Cursor for the next page of results",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Position token transfers",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PositionTokenTransfersResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/BadRequest"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api/v2/account/{address}/pnl/closed-positions" : {
+      "get" : {
+        "tags" : [ "Account Endpoints" ],
+        "summary" : "Get closed (realized) trading positions for an account",
+        "description" : "Get a paginated, per-trade breakdown of a wallet's realized P&L. Each closed position reflects FIFO (first-in, first-out) cost-basis lot matching.",
+        "operationId" : "get_wallet_closed_positions",
+        "parameters" : [ {
+          "name" : "address",
+          "in" : "path",
+          "description" : "The wallet address",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+        }, {
+          "name" : "sort_by",
+          "in" : "query",
+          "description" : "Sort order: TOP_TRADES (default) or RECENT",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "description" : "Number of results to return per page (1-200, default 20)",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "name" : "next",
+          "in" : "query",
+          "description" : "Cursor for the next page of results",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Closed positions",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClosedPositionsResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "$ref" : "#/components/responses/BadRequest"
+          },
+          "500" : {
+            "$ref" : "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
     "/api/v2/account/{address}/offers_received" : {
       "get" : {
         "tags" : [ "Account Endpoints" ],
@@ -5000,92 +5280,6 @@
         }
       }
     },
-    "/api/v2/account/{address}/favorites" : {
-      "get" : {
-        "tags" : [ "Account Endpoints" ],
-        "summary" : "Get items favorited by an account",
-        "description" : "Get a paginated list of items favorited by a wallet address.",
-        "operationId" : "get_profile_favorites",
-        "parameters" : [ {
-          "name" : "address",
-          "in" : "path",
-          "description" : "The wallet address",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          },
-          "example" : "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
-        }, {
-          "name" : "after",
-          "in" : "query",
-          "description" : "Cursor for pagination",
-          "required" : false,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "limit",
-          "in" : "query",
-          "description" : "Number of results to return",
-          "required" : false,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "default" : 50
-          }
-        }, {
-          "name" : "sort_by",
-          "in" : "query",
-          "description" : "Sort by field",
-          "required" : false,
-          "schema" : {
-            "type" : "string",
-            "default" : "CREATED_DATE",
-            "enum" : [ "CREATED_DATE", "PRICE", "RARITY", "LISTING_CREATED_DATE", "LAST_SALE" ]
-          }
-        }, {
-          "name" : "sort_direction",
-          "in" : "query",
-          "description" : "Sort direction",
-          "required" : false,
-          "schema" : {
-            "type" : "string",
-            "default" : "desc",
-            "enum" : [ "asc", "desc" ]
-          }
-        }, {
-          "name" : "chains",
-          "in" : "query",
-          "description" : "Filter by chains",
-          "required" : false,
-          "schema" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/ChainIdentifier"
-            },
-            "uniqueItems" : true
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Favorited items",
-            "content" : {
-              "*/*" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/NftListResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "$ref" : "#/components/responses/BadRequest"
-          },
-          "500" : {
-            "$ref" : "#/components/responses/InternalError"
-          }
-        }
-      }
-    },
     "/api/v2/account/{address}/collections" : {
       "get" : {
         "tags" : [ "Account Endpoints" ],
@@ -5158,7 +5352,7 @@
         "type" : "string",
         "default" : "ethereum",
         "description" : "Blockchain chain identifier. Use the chain slug (e.g., 'ethereum', 'polygon', 'arbitrum', 'optimism', 'base')",
-        "enum" : [ "blast", "base", "ethereum", "zora", "arbitrum", "sei", "avalanche", "polygon", "optimism", "ape_chain", "flow", "b3", "soneium", "ronin", "bera_chain", "solana", "shape", "unichain", "gunzilla", "abstract", "animechain", "hyperevm", "somnia", "monad", "hyperliquid", "megaeth", "ink" ],
+        "enum" : [ "blast", "base", "ethereum", "zora", "arbitrum", "sei", "avalanche", "polygon", "optimism", "ape_chain", "flow", "b3", "soneium", "ronin", "bera_chain", "solana", "shape", "unichain", "gunzilla", "abstract", "animechain", "hyperevm", "somnia", "monad", "hyperliquid", "megaeth", "ink", "robinhood" ],
         "example" : "ethereum"
       },
       "AssetQuantityInput" : {
@@ -5921,7 +6115,11 @@
           },
           "value" : {
             "type" : "string",
-            "description" : "The native token value to send with the transaction"
+            "description" : "The native token value to send with the transaction (decimal)"
+          },
+          "value_hex" : {
+            "type" : "string",
+            "description" : "The native token value to send with the transaction (hex, 0x-prefixed)"
           }
         },
         "required" : [ "chain", "data" ]
@@ -7082,6 +7280,9 @@
           "value" : {
             "type" : "string"
           },
+          "value_hex" : {
+            "type" : "string"
+          },
           "input_data" : {
             "oneOf" : [ {
               "$ref" : "#/components/schemas/FulfillAdvancedOrder"
@@ -7098,6 +7299,10 @@
             }, {
               "$ref" : "#/components/schemas/MatchOrders"
             } ]
+          },
+          "calldata_suffix" : {
+            "type" : "string",
+            "description" : "4-byte hex attribution suffix (e.g. 0xcdb44011) to append to the ABI-encoded calldata before submitting the transaction onchain. Appending this suffix attributes the fill to OpenSea; omitting it does not affect execution."
           }
         },
         "required" : [ "chain", "function", "input_data", "to", "value" ]
@@ -7774,7 +7979,7 @@
             "example" : 1
           },
           "price" : {
-            "$ref" : "#/components/schemas/ListingPrice",
+            "$ref" : "#/components/schemas/ListingPriceInput",
             "description" : "Price per item"
           },
           "start_time" : {
@@ -7789,6 +7994,23 @@
           }
         },
         "required" : [ "chain", "contract", "price", "quantity", "token_id" ]
+      },
+      "ListingPriceInput" : {
+        "type" : "object",
+        "description" : "Price for a listing item",
+        "properties" : {
+          "amount" : {
+            "type" : "string",
+            "description" : "Price amount in the currency's unit (e.g. '5.0' for 5 ETH)",
+            "example" : 5.0
+          },
+          "currency" : {
+            "type" : "string",
+            "description" : "Contract address of the payment currency (use 0x0000000000000000000000000000000000000000 for native token)",
+            "example" : "0x0000000000000000000000000000000000000000"
+          }
+        },
+        "required" : [ "amount", "currency" ]
       },
       "CreateListingActionsResponse" : {
         "type" : "object",
@@ -8351,6 +8573,15 @@
           "name" : {
             "type" : "string"
           },
+          "display_name" : {
+            "type" : "string"
+          },
+          "health_status" : {
+            "type" : "string"
+          },
+          "access_tier" : {
+            "type" : "string"
+          },
           "description" : {
             "type" : "string"
           },
@@ -8384,7 +8615,7 @@
             }
           }
         },
-        "required" : [ "created_at", "creator", "is_active", "manifest_hash", "manifest_hash_verified", "metadata_uri", "pricing_recipients", "registry_addr", "registry_chain", "tool_id", "updated_at" ]
+        "required" : [ "access_tier", "created_at", "creator", "display_name", "health_status", "is_active", "manifest_hash", "manifest_hash_verified", "metadata_uri", "pricing_recipients", "registry_addr", "registry_chain", "tool_id", "updated_at" ]
       },
       "ToolAccessResponse" : {
         "type" : "object",
@@ -8448,6 +8679,19 @@
           },
           "created_at" : {
             "type" : "string"
+          },
+          "asset_symbol" : {
+            "type" : "string"
+          },
+          "asset_decimals" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "asset_image_url" : {
+            "type" : "string"
+          },
+          "amount_per_call_usd" : {
+            "type" : "string"
           }
         },
         "required" : [ "amount_per_call", "asset", "created_at", "payment_chain", "protocol", "recipient" ]
@@ -8494,6 +8738,67 @@
           }
         },
         "required" : [ "kind", "type" ]
+      },
+      "ToolActivityEventResponse" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "attribution" : {
+            "type" : "string"
+          },
+          "paid" : {
+            "type" : "boolean"
+          },
+          "caller_address" : {
+            "type" : "string"
+          },
+          "seller_address" : {
+            "type" : "string"
+          },
+          "timestamp" : {
+            "type" : "string"
+          },
+          "amount" : {
+            "type" : "string"
+          },
+          "asset" : {
+            "type" : "string"
+          },
+          "chain_id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tx_hash" : {
+            "type" : "string"
+          },
+          "candidate_tool_slugs" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "attribution", "caller_address", "candidate_tool_slugs", "id", "paid", "timestamp", "type" ]
+      },
+      "ToolActivityPaginatedResponse" : {
+        "type" : "object",
+        "properties" : {
+          "activity" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ToolActivityEventResponse"
+            }
+          },
+          "next" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "activity" ]
       },
       "ToolPaymentStatsResponse" : {
         "type" : "object",
@@ -8551,6 +8856,9 @@
           "name" : {
             "type" : "string"
           },
+          "display_name" : {
+            "type" : "string"
+          },
           "description" : {
             "type" : "string"
           },
@@ -8594,7 +8902,7 @@
             "$ref" : "#/components/schemas/ToolAccessResponse"
           }
         },
-        "required" : [ "access_type", "created_at", "creator", "creator_display_name", "description", "endpoint_domain", "name", "registry_addr", "registry_chain", "tags", "tool_id" ]
+        "required" : [ "access_type", "created_at", "creator", "creator_display_name", "description", "display_name", "endpoint_domain", "name", "registry_addr", "registry_chain", "tags", "tool_id" ]
       },
       "TokenPaginatedResponse" : {
         "type" : "object",
@@ -10728,6 +11036,186 @@
           }
         },
         "required" : [ "data_points", "timeframe" ]
+      },
+      "WalletPnlResponse" : {
+        "type" : "object",
+        "description" : "Aggregated realized and unrealized trading P&L across all currencies held by a wallet",
+        "properties" : {
+          "realized_pnl_usd" : {
+            "type" : "string",
+            "description" : "Realized P&L in USD from closed positions",
+            "example" : "+1840.25"
+          },
+          "unrealized_pnl_usd" : {
+            "type" : "string",
+            "description" : "Unrealized P&L in USD from open positions",
+            "example" : -320.1
+          },
+          "total_pnl_usd" : {
+            "type" : "string",
+            "description" : "Total P&L in USD (realized + unrealized)",
+            "example" : "+1520.15"
+          },
+          "net_invested_usd" : {
+            "type" : "string",
+            "description" : "Net amount invested in USD",
+            "example" : 12500.0
+          },
+          "current_value_usd" : {
+            "type" : "string",
+            "description" : "Current USD value of the wallet's open positions (net_invested + unrealized P&L). Provides a visible anchor for the unrealized figure.",
+            "example" : 12179.9
+          },
+          "return_percentage" : {
+            "type" : "string",
+            "description" : "Total return as a signed percentage in percent units (e.g. +12.16 means +12.16%, -8.40 means -8.40%). Not a 0-1 ratio.",
+            "example" : "+12.16"
+          }
+        },
+        "required" : [ "current_value_usd", "net_invested_usd", "realized_pnl_usd", "return_percentage", "total_pnl_usd", "unrealized_pnl_usd" ]
+      },
+      "PositionTokenTransferResponse" : {
+        "type" : "object",
+        "description" : "A single token transfer that contributed to a wallet's position in a currency. Combine `direction` and `transfer_type` to distinguish zero-cost acquisitions (e.g. AIRDROP, CEX_TRANSFER) from buys (e.g. SWAP_BUY).",
+        "properties" : {
+          "direction" : {
+            "type" : "string",
+            "description" : "Transfer direction relative to the wallet (e.g. IN, OUT).",
+            "example" : "IN"
+          },
+          "quantity_raw" : {
+            "type" : "string",
+            "description" : "Raw token quantity transferred, in token base units, as a string to preserve precision.",
+            "example" : 1500000000
+          },
+          "price_usd" : {
+            "type" : "string",
+            "description" : "Token price in USD at the time of the transfer, or null if unknown.",
+            "example" : 0.0425
+          },
+          "value_usd" : {
+            "type" : "string",
+            "description" : "USD value of the transfer, or null if unknown.",
+            "example" : 63.75
+          },
+          "tx_signature" : {
+            "type" : "string",
+            "description" : "Transaction hash/signature of the transfer.",
+            "example" : "0xabc123"
+          },
+          "block_time" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "Block time of the transfer, or null if unknown.",
+            "example" : "2026-04-28T00:00:00Z"
+          },
+          "transfer_type" : {
+            "type" : "string",
+            "description" : "Type of transfer, used to distinguish zero-cost acquisitions (e.g. AIRDROP, CEX_TRANSFER) from buys/sells (e.g. SWAP_BUY, SWAP_SELL). Null if unclassified.",
+            "example" : "SWAP_BUY"
+          }
+        },
+        "required" : [ "direction", "quantity_raw", "tx_signature" ]
+      },
+      "PositionTokenTransfersResponse" : {
+        "type" : "object",
+        "description" : "A page of token transfers contributing to a wallet's position in a currency",
+        "properties" : {
+          "token_transfers" : {
+            "type" : "array",
+            "description" : "The token transfers for this page",
+            "items" : {
+              "$ref" : "#/components/schemas/PositionTokenTransferResponse"
+            }
+          },
+          "total_count" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Total number of token transfers for the position across all pages",
+            "example" : 17
+          },
+          "next" : {
+            "type" : "string",
+            "description" : "Cursor for the next page of results, or null if there are no more pages"
+          }
+        },
+        "required" : [ "token_transfers", "total_count" ]
+      },
+      "ClosedPositionResponse" : {
+        "type" : "object",
+        "description" : "A single realized (closed) trading position. Realized P&L and cost basis are computed via FIFO (first-in, first-out) lot matching.",
+        "properties" : {
+          "currency" : {
+            "$ref" : "#/components/schemas/TokenBaseResponse",
+            "description" : "The currency that was traded. Null if the currency is no longer surfaced (e.g. under trust & safety enforcement)."
+          },
+          "realized_pnl_usd" : {
+            "type" : "string",
+            "description" : "Realized profit or loss in USD for this position (FIFO). Signed.",
+            "example" : "+1840.25"
+          },
+          "return_percentage" : {
+            "type" : "string",
+            "description" : "Realized return as a signed percentage in percent units (e.g. +12.16 means +12.16%). Not a 0-1 ratio.",
+            "example" : "+12.16"
+          },
+          "total_proceeds_usd" : {
+            "type" : "string",
+            "description" : "Total USD proceeds from the sells that closed this position.",
+            "example" : 5200.0
+          },
+          "total_cost_basis_usd" : {
+            "type" : "string",
+            "description" : "Total USD cost basis of the tokens sold, via FIFO lot matching.",
+            "example" : 3359.75
+          },
+          "avg_cost_per_token_usd" : {
+            "type" : "string",
+            "description" : "Average cost per token in USD (FIFO).",
+            "example" : 0.0425
+          },
+          "closed_at" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "When the position was closed (last sell). Null if unknown.",
+            "example" : "2026-04-28T00:00:00Z"
+          },
+          "is_opensea_trade" : {
+            "type" : "boolean",
+            "description" : "Whether this was a round-trip OpenSea trade (bought and sold on OpenSea)."
+          },
+          "first_acquired_at" : {
+            "type" : "string",
+            "format" : "date-time",
+            "description" : "When the tokens in this position were first acquired. Null if unknown.",
+            "example" : "2026-01-15T00:00:00Z"
+          }
+        },
+        "required" : [ "avg_cost_per_token_usd", "is_opensea_trade", "realized_pnl_usd", "return_percentage", "total_cost_basis_usd", "total_proceeds_usd" ]
+      },
+      "ClosedPositionsResponse" : {
+        "type" : "object",
+        "description" : "A page of a wallet's closed (realized) trading positions",
+        "properties" : {
+          "closed_positions" : {
+            "type" : "array",
+            "description" : "The closed positions for this page",
+            "items" : {
+              "$ref" : "#/components/schemas/ClosedPositionResponse"
+            }
+          },
+          "total_count" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Total number of closed positions for the wallet across all pages",
+            "example" : 42
+          },
+          "next" : {
+            "type" : "string",
+            "description" : "Cursor for the next page of results, or null if there are no more pages"
+          }
+        },
+        "required" : [ "closed_positions", "total_count" ]
       },
       "ProfileCollectionResponse" : {
         "type" : "object",

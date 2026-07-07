@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiDynamicFieldEdge }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiDynamicFieldEdge> })}
 					{@const suiDynamicFieldEdgeFields = { ...suiDynamicFieldEdge[EntityMetaKey.Selector], ...suiDynamicFieldEdge }}
 					<SuiDynamicFieldEdgeView
-						selection={select(EntityType.SuiDynamicFieldEdge, suiDynamicFieldEdge[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiDynamicFieldEdge, suiDynamicFieldEdge[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiDynamicFieldEdgeFields}
 						layout={EntityLayout.Summary}
 						open={false}

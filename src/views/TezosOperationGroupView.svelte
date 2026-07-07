@@ -83,7 +83,7 @@
 				<dt>network</dt>
 				<dd>
 					<TezosNetworkView
-						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.TezosNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -130,7 +130,7 @@
 				<dt>torrent</dt>
 				<dd>
 					<BitTorrentMetainfoView
-						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
+						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

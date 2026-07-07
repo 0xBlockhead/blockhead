@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidValidatorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidValidator_Timestamp> })}
 					{@const hyperliquidValidatorTimestampFields = { ...hyperliquidValidatorTimestamp[EntityMetaKey.Selector], ...hyperliquidValidatorTimestamp }}
 					<HyperliquidValidator_TimestampView
-						selection={select(EntityType.HyperliquidValidator_Timestamp, hyperliquidValidatorTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidValidator_Timestamp, hyperliquidValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidValidatorTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

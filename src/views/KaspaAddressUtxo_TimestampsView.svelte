@@ -106,7 +106,7 @@
 				{#snippet Item({ item: kaspaAddressUtxoTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaAddressUtxo_Timestamp> })}
 					{@const kaspaAddressUtxoTimestampFields = { ...kaspaAddressUtxoTimestamp[EntityMetaKey.Selector], ...kaspaAddressUtxoTimestamp }}
 					<KaspaAddressUtxo_TimestampView
-						selection={select(EntityType.KaspaAddressUtxo_Timestamp, kaspaAddressUtxoTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.KaspaAddressUtxo_Timestamp, kaspaAddressUtxoTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={kaspaAddressUtxoTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

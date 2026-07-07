@@ -113,7 +113,7 @@
 				{#snippet Item({ item: bitTorrentFile }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitTorrentFile> })}
 					{@const bitTorrentFileFields = { ...bitTorrentFile[EntityMetaKey.Selector], ...bitTorrentFile }}
 					<BitTorrentFileView
-						selection={select(EntityType.BitTorrentFile, bitTorrentFile[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitTorrentFile, bitTorrentFile[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitTorrentFileFields}
 						layout={EntityLayout.Summary}
 						open={false}

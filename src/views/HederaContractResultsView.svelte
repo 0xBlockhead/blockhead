@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaContractResult }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaContractResult> })}
 					{@const hederaContractResultFields = { ...hederaContractResult[EntityMetaKey.Selector], ...hederaContractResult }}
 					<HederaContractResultView
-						selection={select(EntityType.HederaContractResult, hederaContractResult[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaContractResult, hederaContractResult[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaContractResultFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -44,14 +44,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$cycleTimestamps',
+			name: '$$cycleTimestamps',
 			label: 'cycle timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosBaker_Cycle_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosBaker_Timestamp,

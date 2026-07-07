@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eip8004CrossRegistration }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip8004CrossRegistration> })}
 					{@const eip8004CrossRegistrationFields = { ...eip8004CrossRegistration[EntityMetaKey.Selector], ...eip8004CrossRegistration }}
 					<Eip8004CrossRegistrationView
-						selection={select(EntityType.Eip8004CrossRegistration, eip8004CrossRegistration[EntityMetaKey.Selector])}
+						selection={select(EntityType.Eip8004CrossRegistration, eip8004CrossRegistration[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eip8004CrossRegistrationFields}
 						layout={EntityLayout.Summary}
 						open={false}

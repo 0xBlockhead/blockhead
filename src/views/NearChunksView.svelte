@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearChunk }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearChunk> })}
 					{@const nearChunkFields = { ...nearChunk[EntityMetaKey.Selector], ...nearChunk }}
 					<NearChunkView
-						selection={select(EntityType.NearChunk, nearChunk[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearChunk, nearChunk[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearChunkFields}
 						layout={EntityLayout.Summary}
 						open={false}

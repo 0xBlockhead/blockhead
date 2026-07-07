@@ -136,7 +136,7 @@
 				<dt>message</dt>
 				<dd>
 					<AcpMessageView
-						selection={select(EntityType.AcpMessage, selection.entitySelector.$message)}
+						selection={select(EntityType.AcpMessage, selection.entitySelector.$message, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

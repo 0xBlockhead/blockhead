@@ -115,7 +115,7 @@
 					{@const currencyFields = { ...currency[EntityMetaKey.Selector], ...currency }}
 					{@const currencyHrefFields = { ...currency, ...currency[EntityMetaKey.Selector] }}
 					<CurrencyView
-						selection={select(EntityType.Currency, currency[EntityMetaKey.Selector])}
+						selection={select(EntityType.Currency, currency[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={currencyFields}
 						href={
 							(currencyHrefFields.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {

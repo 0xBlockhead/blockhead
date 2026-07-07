@@ -106,7 +106,7 @@
 				{#snippet Item({ item: globalAiArtifactCatalog }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAiArtifactCatalog> })}
 					{@const globalAiArtifactCatalogFields = { ...globalAiArtifactCatalog[EntityMetaKey.Selector], ...globalAiArtifactCatalog }}
 					<GlobalAiArtifactCatalogView
-						selection={select(EntityType._GlobalAiArtifactCatalog, globalAiArtifactCatalog[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalAiArtifactCatalog, globalAiArtifactCatalog[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalAiArtifactCatalogFields}
 						layout={EntityLayout.Summary}
 						open={false}

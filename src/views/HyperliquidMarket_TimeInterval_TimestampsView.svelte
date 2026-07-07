@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidMarketTimeIntervalTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidMarket_TimeInterval_Timestamp> })}
 					{@const hyperliquidMarketTimeIntervalTimestampFields = { ...hyperliquidMarketTimeIntervalTimestamp[EntityMetaKey.Selector], ...hyperliquidMarketTimeIntervalTimestamp }}
 					<HyperliquidMarket_TimeInterval_TimestampView
-						selection={select(EntityType.HyperliquidMarket_TimeInterval_Timestamp, hyperliquidMarketTimeIntervalTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidMarket_TimeInterval_Timestamp, hyperliquidMarketTimeIntervalTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidMarketTimeIntervalTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

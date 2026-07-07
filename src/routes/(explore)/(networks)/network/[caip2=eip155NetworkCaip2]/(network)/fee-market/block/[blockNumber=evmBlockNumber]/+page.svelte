@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmNetwork_GasFee_BlockView from '$/views/EvmNetwork_GasFee_BlockView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM network gas fee block • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,12 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmNetwork_GasFee_Block, data.selector, {
+			select(EntityType.EvmNetwork_GasFee_Block, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				blockNumber: BigInt(params.blockNumber),
+			}, {
 				fields: {
 					baseFeePerGas: true,
 					legacyGasPrice: true,

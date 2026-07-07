@@ -113,7 +113,7 @@
 				{#snippet Item({ item: nostrRepost }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrRepost> })}
 					{@const nostrRepostFields = { ...nostrRepost[EntityMetaKey.Selector], ...nostrRepost }}
 					<NostrRepostView
-						selection={select(EntityType.NostrRepost, nostrRepost[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrRepost, nostrRepost[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nostrRepostFields}
 						layout={EntityLayout.Title}
 						open={false}

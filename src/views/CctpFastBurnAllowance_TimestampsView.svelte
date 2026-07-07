@@ -114,7 +114,7 @@
 				{#snippet Item({ item: cctpFastBurnAllowanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CctpFastBurnAllowance_Timestamp> })}
 					{@const cctpFastBurnAllowanceTimestampFields = { ...cctpFastBurnAllowanceTimestamp[EntityMetaKey.Selector], ...cctpFastBurnAllowanceTimestamp }}
 					<CctpFastBurnAllowance_TimestampView
-						selection={select(EntityType.CctpFastBurnAllowance_Timestamp, cctpFastBurnAllowanceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CctpFastBurnAllowance_Timestamp, cctpFastBurnAllowanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cctpFastBurnAllowanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

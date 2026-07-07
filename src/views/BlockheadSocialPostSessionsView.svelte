@@ -116,7 +116,7 @@
 				{#snippet Item({ item: blockheadSocialPostSession }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSocialPostSession> })}
 					{@const blockheadSocialPostSessionFields = { ...blockheadSocialPostSession[EntityMetaKey.Selector], ...blockheadSocialPostSession }}
 					<BlockheadSocialPostSessionView
-						selection={select(EntityType.BlockheadSocialPostSession, blockheadSocialPostSession[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadSocialPostSession, blockheadSocialPostSession[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadSocialPostSessionFields}
 						layout={EntityLayout.Summary}
 						open={false}

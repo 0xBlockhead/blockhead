@@ -82,7 +82,7 @@
 				<dt>account</dt>
 				<dd>
 					<SuiAccountView
-						selection={select(EntityType.SuiAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.SuiAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

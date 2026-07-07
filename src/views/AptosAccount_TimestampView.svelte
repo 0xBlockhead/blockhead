@@ -136,7 +136,7 @@
 				<dt>account</dt>
 				<dd>
 					<AptosAccountView
-						selection={select(EntityType.AptosAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.AptosAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

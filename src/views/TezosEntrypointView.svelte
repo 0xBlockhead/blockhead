@@ -81,7 +81,7 @@
 				<dt>contract</dt>
 				<dd>
 					<TezosContractView
-						selection={select(EntityType.TezosContract, selection.entitySelector.$contract)}
+						selection={select(EntityType.TezosContract, selection.entitySelector.$contract, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -133,7 +133,7 @@
 						{#snippet Pending()}
 							{@const annotations = prefetched.annotations}
 							{#if annotations !== undefined && annotations !== null}
-								{(annotations?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{annotations.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -141,7 +141,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const annotations = resolvedEntity.annotations}
 							{#if annotations !== undefined && annotations !== null}
-								{(annotations?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{annotations.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

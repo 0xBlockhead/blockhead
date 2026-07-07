@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import PolkadotBlockView from '$/views/PolkadotBlockView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Polkadot block • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +33,13 @@
 			})
 		}
 		selection={
-			select(EntityType.PolkadotBlock, data.selector, {
+			select(EntityType.PolkadotBlock, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				blockNumber: BigInt(params.blockNumber),
+				hash: decodeURIComponent(params.hash),
+			}, {
 				fields: {
 					stateRoot: true,
 					extrinsicsRoot: true,

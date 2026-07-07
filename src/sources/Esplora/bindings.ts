@@ -24,6 +24,7 @@ export const liquidMainnetEsploraRestEndpoints = [
 
 export const esploraRestBaseUrlByNetworkKey = {
 	[`${bitcoinNetworkBySlug.bitcoin.caip2.namespace}:${bitcoinNetworkBySlug.bitcoin.caip2.reference}`]: bitcoinNetworkBySlug.bitcoin.esploraRestBaseUrl,
+	bitcoin: bitcoinNetworkBySlug.bitcoin.esploraRestBaseUrl,
 	liquid: liquidMainnetEsploraRestEndpoints[0].restBaseUrl,
 } as const satisfies Partial<Record<string, string>>
 

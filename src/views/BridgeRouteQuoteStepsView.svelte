@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bridgeRouteQuoteStep }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BridgeRouteQuoteStep> })}
 					{@const bridgeRouteQuoteStepFields = { ...bridgeRouteQuoteStep[EntityMetaKey.Selector], ...bridgeRouteQuoteStep }}
 					<BridgeRouteQuoteStepView
-						selection={select(EntityType.BridgeRouteQuoteStep, bridgeRouteQuoteStep[EntityMetaKey.Selector])}
+						selection={select(EntityType.BridgeRouteQuoteStep, bridgeRouteQuoteStep[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bridgeRouteQuoteStepFields}
 						layout={EntityLayout.Summary}
 						open={false}

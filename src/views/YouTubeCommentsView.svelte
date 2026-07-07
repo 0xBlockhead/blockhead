@@ -114,7 +114,7 @@
 				{#snippet Item({ item: youtubeComment }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubeComment> })}
 					{@const youtubeCommentFields = { ...youtubeComment[EntityMetaKey.Selector], ...youtubeComment }}
 					<YoutubeCommentView
-						selection={select(EntityType.YoutubeComment, youtubeComment[EntityMetaKey.Selector])}
+						selection={select(EntityType.YoutubeComment, youtubeComment[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubeCommentFields}
 						layout={EntityLayout.Summary}
 						open={false}

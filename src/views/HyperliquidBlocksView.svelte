@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidBlock> })}
 					{@const hyperliquidBlockFields = { ...hyperliquidBlock[EntityMetaKey.Selector], ...hyperliquidBlock }}
 					<HyperliquidBlockView
-						selection={select(EntityType.HyperliquidBlock, hyperliquidBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidBlock, hyperliquidBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

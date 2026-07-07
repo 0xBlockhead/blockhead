@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadMoneroSubaddressStateTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadMoneroSubaddressState_Timestamp> })}
 					{@const blockheadMoneroSubaddressStateTimestampFields = { ...blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.Selector], ...blockheadMoneroSubaddressStateTimestamp }}
 					<BlockheadMoneroSubaddressState_TimestampView
-						selection={select(EntityType.BlockheadMoneroSubaddressState_Timestamp, blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadMoneroSubaddressState_Timestamp, blockheadMoneroSubaddressStateTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadMoneroSubaddressStateTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

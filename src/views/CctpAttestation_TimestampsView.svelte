@@ -114,7 +114,7 @@
 				{#snippet Item({ item: cctpAttestationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CctpAttestation_Timestamp> })}
 					{@const cctpAttestationTimestampFields = { ...cctpAttestationTimestamp[EntityMetaKey.Selector], ...cctpAttestationTimestamp }}
 					<CctpAttestation_TimestampView
-						selection={select(EntityType.CctpAttestation_Timestamp, cctpAttestationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CctpAttestation_Timestamp, cctpAttestationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cctpAttestationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

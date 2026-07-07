@@ -130,7 +130,7 @@
 				<dt>ref</dt>
 				<dd>
 					<GitRefView
-						selection={select(EntityType.GitRef, selection.entitySelector.$ref)}
+						selection={select(EntityType.GitRef, selection.entitySelector.$ref, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

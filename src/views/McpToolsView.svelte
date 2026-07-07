@@ -114,7 +114,7 @@
 				{#snippet Item({ item: mcpTool }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.McpTool> })}
 					{@const mcpToolFields = { ...mcpTool[EntityMetaKey.Selector], ...mcpTool }}
 					<McpToolView
-						selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector])}
+						selection={select(EntityType.McpTool, mcpTool[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mcpToolFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -118,7 +118,7 @@
 					{@const utxoBlockFields = { ...utxoBlock[EntityMetaKey.Selector], ...utxoBlock }}
 					{@const utxoBlockHrefFields = { ...utxoBlock, ...utxoBlock[EntityMetaKey.Selector] }}
 					<UtxoBlockView
-						selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.UtxoBlock, utxoBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoBlockFields}
 						href={
 							(utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined && utxoBlockHrefFields.$network.caip2.namespace !== undefined && utxoBlockHrefFields.$network !== undefined && utxoBlockHrefFields.$network.caip2 !== undefined && utxoBlockHrefFields.$network.caip2.reference !== undefined && utxoBlockHrefFields.height !== undefined && utxoBlockHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/block/[height=nonNegativeInteger]/[hash]', {

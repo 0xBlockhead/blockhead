@@ -83,7 +83,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<HederaTransactionView
-						selection={select(EntityType.HederaTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.HederaTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

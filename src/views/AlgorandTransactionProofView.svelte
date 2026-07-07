@@ -83,7 +83,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<AlgorandTransactionView
-						selection={select(EntityType.AlgorandTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.AlgorandTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

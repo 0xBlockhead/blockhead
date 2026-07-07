@@ -2,9 +2,10 @@ import {
 	type ActionType,
 	actionTypeDefinitionByActionType,
 } from '$/constants/actions.ts'
-import type { WalletCandidate, WalletConnection } from '$/state/wallets/adapters/types.ts'
+import type { WalletCapability, WalletDiscoveryKind, WalletProtocol, WalletTransportKind } from '$/constants/Wallet.ts'
 import type { EntityCollectionsContext } from '$/client/$client.svelte.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
+import type { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts'
 import { EntityMetaKey } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import type { Entity, EntitySelector } from '$/schema/$schema.ts'
@@ -20,6 +21,38 @@ export type LocalMutationContext = Pick<
 >
 
 type LocalPrimitiveFieldValue = object | string | number | boolean | bigint
+type LocalWalletCandidate = {
+	id: string
+	name: string
+	icon: string
+	protocol: WalletProtocol
+	discoveryKind: WalletDiscoveryKind
+	transportKind: WalletTransportKind
+	rdns?: string
+	capabilities: WalletCapability[]
+}
+type LocalWalletAccount = {
+	namespace: string
+	reference: string
+	accountAddress: string
+	capabilities: WalletCapability[]
+}
+type LocalWalletConnection = {
+	walletId: string
+	status: BlockheadConnectionStatus
+	protocol: WalletProtocol
+	transportKind: WalletTransportKind
+	scopes: {
+		namespace: string
+		reference: string
+		methods: string[]
+		events: string[]
+	}[]
+	accounts: LocalWalletAccount[]
+	selected: boolean
+	connectedAt: number
+	error?: string
+}
 
 const writeLocalPresence = (
 	context: LocalMutationContext,
@@ -205,7 +238,7 @@ export const updateLocalBlockheadSessionActionType = (
 
 export const writeLocalBlockheadWallet = (
 	context: LocalMutationContext,
-	candidate: WalletCandidate
+	candidate: LocalWalletCandidate
 ) => {
 	const entitySelector = {
 		id: candidate.id,
@@ -231,7 +264,7 @@ export const writeLocalBlockheadWallet = (
 
 export const writeLocalBlockheadWalletAccount = (
 	context: LocalMutationContext,
-	account: WalletConnection['accounts'][number]
+	account: LocalWalletConnection['accounts'][number]
 ) => {
 	const entitySelector = {
 		caip10: {
@@ -268,7 +301,7 @@ export const writeLocalBlockheadWalletAccount = (
 
 export const writeLocalBlockheadWalletConnection = (
 	context: LocalMutationContext,
-	connection: WalletConnection
+	connection: LocalWalletConnection
 ) => {
 	const activeAccount = connection.accounts.at(0)
 	const entitySelector = {

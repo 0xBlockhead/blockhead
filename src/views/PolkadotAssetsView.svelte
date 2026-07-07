@@ -114,7 +114,7 @@
 				{#snippet Item({ item: polkadotAsset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotAsset> })}
 					{@const polkadotAssetFields = { ...polkadotAsset[EntityMetaKey.Selector], ...polkadotAsset }}
 					<PolkadotAssetView
-						selection={select(EntityType.PolkadotAsset, polkadotAsset[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotAsset, polkadotAsset[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotAssetFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -135,7 +135,7 @@
 				<dt>client state</dt>
 				<dd>
 					<BlockheadFedimintClientStateView
-						selection={select(EntityType.BlockheadFedimintClientState, selection.entitySelector.$clientState)}
+						selection={select(EntityType.BlockheadFedimintClientState, selection.entitySelector.$clientState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

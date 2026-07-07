@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadStateChannelTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadStateChannel_Timestamp> })}
 					{@const blockheadStateChannelTimestampFields = { ...blockheadStateChannelTimestamp[EntityMetaKey.Selector], ...blockheadStateChannelTimestamp }}
 					<BlockheadStateChannel_TimestampView
-						selection={select(EntityType.BlockheadStateChannel_Timestamp, blockheadStateChannelTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadStateChannel_Timestamp, blockheadStateChannelTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadStateChannelTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

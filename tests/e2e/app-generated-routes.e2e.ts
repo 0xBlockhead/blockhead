@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test'
 
 import {
+	assertNoGeneratedRouteArtifacts,
 	assertMainSettled,
+	snapshotGeneratedRouteArtifacts,
 	collectBrowserCorsPolicyViolations,
 	setupPageRuntimeDiagnostics,
 } from '../_e2eBrowserHelpers.ts'
@@ -81,27 +83,6 @@ if (
 )
 	throw new Error('E2E app-generated route filters matched no routes')
 
-const slopPatterns = [
-	/\bEntityType\.Unknown\b/,
-	/<title>\{'Entity'\}<\/title>/,
-	/\bNo rows\b/,
-	/\/venues\b/,
-	/\$base.*\$quote.*\$marketVenue/,
-	/devalue|EntityView-\{/,
-]
-
-const checkPageSlop = async (page: import('@playwright/test').Page) => (
-	page.evaluate(() => ({
-		html: document.documentElement.outerHTML.slice(0, 50_000),
-		title: document.title,
-		bodyText: document.body.textContent.replace(/\s+/g, ' ').trim().slice(0, 2_000),
-		entityViewCount: document.querySelectorAll('.entity-view-summary, [class*="entity-view"]').length,
-		plainLinkListCount: document.querySelectorAll('#main ul:not(:has(.entity-view-summary)) > li > a:only-child').length,
-		notFoundCount: document.querySelectorAll('#main [id$="not-found"]').length,
-		errorCount: document.querySelectorAll('#main [data-error]').length,
-	}))
-)
-
 test.describe('APP-generated routes spot check', () => {
 	test.describe.configure({ mode: 'serial' })
 
@@ -127,13 +108,6 @@ test.describe('APP-generated routes spot check', () => {
 
 			await step(page.waitForTimeout(2_000))
 
-			const slop = await checkPageSlop(page)
-			const slopHits = slopPatterns.filter((pattern) => (
-				pattern.test(slop.html)
-				|| pattern.test(slop.title)
-				|| pattern.test(slop.bodyText)
-			))
-
 			if (route.expectNotFound !== true) {
 				await step(expect(page.locator('#main [id$="not-found"]')).toHaveCount(0))
 				await step(expect(page.locator('#main [data-error]')).toHaveCount(0))
@@ -142,10 +116,7 @@ test.describe('APP-generated routes spot check', () => {
 			if (route.expectEntityRows)
 				await step(expect(page.locator('#main .entity-view-summary').first()).toBeAttached(attach))
 
-			expect(
-				slopHits.map((pattern) => pattern.toString()),
-				`${route.path} slop markers in DOM/title`
-			).toEqual([])
+			await step(assertNoGeneratedRouteArtifacts(page, route.path))
 
 			expect(
 				corsViolations,
@@ -166,9 +137,7 @@ test.describe('APP-generated routes spot check', () => {
 				body: JSON.stringify({
 					path: route.path,
 					finalUrl: page.url(),
-					title: slop.title,
-					entityViewCount: slop.entityViewCount,
-					bodyTextPreview: slop.bodyText.slice(0, 500),
+					...await snapshotGeneratedRouteArtifacts(page),
 					consoleIssues: issues,
 					corsViolations,
 				}, null, 2),

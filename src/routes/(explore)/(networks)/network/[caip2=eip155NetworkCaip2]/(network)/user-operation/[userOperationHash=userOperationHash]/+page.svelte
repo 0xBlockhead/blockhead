@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +23,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmUserOperationView from '$/views/EvmUserOperationView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>User operation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +34,15 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmUserOperation, data.selector, {
+			select(EntityType.EvmUserOperation, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				hash: decodeURIComponent(params.userOperationHash),
+			}, {
+				sources: [
+					Source.Blockscout_Rest,
+				],
 				fields: {
 					successful: true,
 					timestampMs: true,

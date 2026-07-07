@@ -36,14 +36,14 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$updates',
+			name: '$$updates',
 			label: 'updates',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosBigMapDiff,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosBigMapKey_Timestamp,

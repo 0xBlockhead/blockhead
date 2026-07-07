@@ -124,7 +124,7 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalSwarmAccessView
-						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalSwarmAccess, selection.entitySelector.$hub, {})}
 						href={resolve('/(explore)/(swarm)/swarm/access')}
 						layout={EntityLayout.Value}
 						open={false}

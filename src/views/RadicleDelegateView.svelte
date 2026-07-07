@@ -81,7 +81,7 @@
 				<dt>repository</dt>
 				<dd>
 					<RadicleRepositoryView
-						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository)}
+						selection={select(EntityType.RadicleRepository, selection.entitySelector.$repository, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

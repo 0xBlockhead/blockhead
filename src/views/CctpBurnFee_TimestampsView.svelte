@@ -115,7 +115,7 @@
 				{#snippet Item({ item: cctpBurnFeeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CctpBurnFee_Timestamp> })}
 					{@const cctpBurnFeeTimestampFields = { ...cctpBurnFeeTimestamp[EntityMetaKey.Selector], ...cctpBurnFeeTimestamp }}
 					<CctpBurnFee_TimestampView
-						selection={select(EntityType.CctpBurnFee_Timestamp, cctpBurnFeeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CctpBurnFee_Timestamp, cctpBurnFeeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cctpBurnFeeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

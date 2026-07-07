@@ -114,7 +114,7 @@
 				{#snippet Item({ item: availBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvailBlock> })}
 					{@const availBlockFields = { ...availBlock[EntityMetaKey.Selector], ...availBlock }}
 					<AvailBlockView
-						selection={select(EntityType.AvailBlock, availBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvailBlock, availBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={availBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

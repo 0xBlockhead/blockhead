@@ -65,14 +65,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$shards',
+			name: '$$shards',
 			label: 'shards',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonShard_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$blocks',
+			name: '$$blocks',
 			label: 'blocks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonBlock,

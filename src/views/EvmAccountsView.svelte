@@ -115,7 +115,7 @@
 					{@const evmAccountFields = { ...evmAccount[EntityMetaKey.Selector], ...evmAccount }}
 					{@const evmAccountHrefFields = { ...evmAccount, ...evmAccount[EntityMetaKey.Selector] }}
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmAccountFields}
 						href={
 							(evmAccountHrefFields.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {

@@ -82,7 +82,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<StellarTransactionView
-						selection={select(EntityType.StellarTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.StellarTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -479,7 +479,7 @@
 						{#snippet Pending()}
 							{@const signatures = prefetched.signatures}
 							{#if signatures !== undefined && signatures !== null}
-								<TruncatedValue value={(signatures?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={signatures.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -487,7 +487,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signatures = resolvedEntity.signatures}
 							{#if signatures !== undefined && signatures !== null}
-								<TruncatedValue value={(signatures?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={signatures.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

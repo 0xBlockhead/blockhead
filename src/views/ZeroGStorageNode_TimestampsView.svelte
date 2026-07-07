@@ -113,7 +113,7 @@
 				{#snippet Item({ item: zeroGStorageNodeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGStorageNode_Timestamp> })}
 					{@const zeroGStorageNodeTimestampFields = { ...zeroGStorageNodeTimestamp[EntityMetaKey.Selector], ...zeroGStorageNodeTimestamp }}
 					<ZeroGStorageNode_TimestampView
-						selection={select(EntityType.ZeroGStorageNode_Timestamp, zeroGStorageNodeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGStorageNode_Timestamp, zeroGStorageNodeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGStorageNodeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

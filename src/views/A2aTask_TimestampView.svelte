@@ -133,7 +133,7 @@
 				<dt>task</dt>
 				<dd>
 					<A2aTaskView
-						selection={select(EntityType.A2aTask, selection.entitySelector.$task)}
+						selection={select(EntityType.A2aTask, selection.entitySelector.$task, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

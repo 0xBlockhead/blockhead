@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aptosEvent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosEvent> })}
 					{@const aptosEventFields = { ...aptosEvent[EntityMetaKey.Selector], ...aptosEvent }}
 					<AptosEventView
-						selection={select(EntityType.AptosEvent, aptosEvent[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosEvent, aptosEvent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosEventFields}
 						layout={EntityLayout.Summary}
 						open={false}

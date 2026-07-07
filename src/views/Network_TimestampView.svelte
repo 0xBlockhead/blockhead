@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -56,6 +57,7 @@
 	import NumberValue from '$/components/NumberValue.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -291,6 +293,146 @@
 				resource={
 					selection({
 						fields: {
+							latestBlockHeight: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const latestBlockHeight = prefetched.latestBlockHeight}
+					{#if latestBlockHeight !== undefined && latestBlockHeight !== null}
+						<div>
+							<dt>Latest block height</dt>
+							<dd>
+								<NumberValue value={Number(latestBlockHeight)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const latestBlockHeight = resolvedEntity.latestBlockHeight}
+					{#if latestBlockHeight !== undefined && latestBlockHeight !== null}
+						<div>
+							<dt>Latest block height</dt>
+							<dd>
+								<NumberValue value={Number(latestBlockHeight)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							latestBlockHash: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const latestBlockHash = prefetched.latestBlockHash}
+					{#if latestBlockHash !== undefined && latestBlockHash !== null}
+						<div>
+							<dt>Latest block hash</dt>
+							<dd>
+								<TruncatedValue value={String((latestBlockHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const latestBlockHash = resolvedEntity.latestBlockHash}
+					{#if latestBlockHash !== undefined && latestBlockHash !== null}
+						<div>
+							<dt>Latest block hash</dt>
+							<dd>
+								<TruncatedValue value={String((latestBlockHash) ?? '')} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							latestBlockTimeMs: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const latestBlockTimeMs = prefetched.latestBlockTimeMs}
+					{#if latestBlockTimeMs !== undefined && latestBlockTimeMs !== null}
+						<div>
+							<dt>Latest block time</dt>
+							<dd>
+								<Timestamp timestamp={Number(latestBlockTimeMs)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const latestBlockTimeMs = resolvedEntity.latestBlockTimeMs}
+					{#if latestBlockTimeMs !== undefined && latestBlockTimeMs !== null}
+						<div>
+							<dt>Latest block time</dt>
+							<dd>
+								<Timestamp timestamp={Number(latestBlockTimeMs)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							latestBlockTransactionCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const latestBlockTransactionCount = prefetched.latestBlockTransactionCount}
+					{#if latestBlockTransactionCount !== undefined && latestBlockTransactionCount !== null}
+						<div>
+							<dt>Latest block transactions</dt>
+							<dd>
+								<NumberValue value={Number(latestBlockTransactionCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const latestBlockTransactionCount = resolvedEntity.latestBlockTransactionCount}
+					{#if latestBlockTransactionCount !== undefined && latestBlockTransactionCount !== null}
+						<div>
+							<dt>Latest block transactions</dt>
+							<dd>
+								<NumberValue value={Number(latestBlockTransactionCount)} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
 							health: true,
 						},
 					})
@@ -324,13 +466,410 @@
 		</dl>
 
 		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							chainId: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const chainId = prefetched.chainId}
+					{#if chainId !== undefined && chainId !== null}
+						<div>
+							<dt>Chain ID</dt>
+							<dd>
+								{String((chainId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const chainId = resolvedEntity.chainId}
+					{#if chainId !== undefined && chainId !== null}
+						<div>
+							<dt>Chain ID</dt>
+							<dd>
+								{String((chainId) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							nodeNetwork: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const nodeNetwork = prefetched.nodeNetwork}
+					{#if nodeNetwork !== undefined && nodeNetwork !== null}
+						<div>
+							<dt>Node network</dt>
+							<dd>
+								{String((nodeNetwork) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const nodeNetwork = resolvedEntity.nodeNetwork}
+					{#if nodeNetwork !== undefined && nodeNetwork !== null}
+						<div>
+							<dt>Node network</dt>
+							<dd>
+								{String((nodeNetwork) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							applicationName: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const applicationName = prefetched.applicationName}
+					{#if applicationName !== undefined && applicationName !== null}
+						<div>
+							<dt>Application name</dt>
+							<dd>
+								{String((applicationName) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const applicationName = resolvedEntity.applicationName}
+					{#if applicationName !== undefined && applicationName !== null}
+						<div>
+							<dt>Application name</dt>
+							<dd>
+								{String((applicationName) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							applicationVersion: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const applicationVersion = prefetched.applicationVersion}
+					{#if applicationVersion !== undefined && applicationVersion !== null}
+						<div>
+							<dt>Application version</dt>
+							<dd>
+								{String((applicationVersion) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const applicationVersion = resolvedEntity.applicationVersion}
+					{#if applicationVersion !== undefined && applicationVersion !== null}
+						<div>
+							<dt>Application version</dt>
+							<dd>
+								{String((applicationVersion) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							cosmosSdkVersion: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const cosmosSdkVersion = prefetched.cosmosSdkVersion}
+					{#if cosmosSdkVersion !== undefined && cosmosSdkVersion !== null}
+						<div>
+							<dt>Cosmos SDK version</dt>
+							<dd>
+								{String((cosmosSdkVersion) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const cosmosSdkVersion = resolvedEntity.cosmosSdkVersion}
+					{#if cosmosSdkVersion !== undefined && cosmosSdkVersion !== null}
+						<div>
+							<dt>Cosmos SDK version</dt>
+							<dd>
+								{String((cosmosSdkVersion) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							isSyncing: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const isSyncing = prefetched.isSyncing}
+					{#if isSyncing !== undefined && isSyncing !== null}
+						<div>
+							<dt>Syncing</dt>
+							<dd>
+								{isSyncing ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const isSyncing = resolvedEntity.isSyncing}
+					{#if isSyncing !== undefined && isSyncing !== null}
+						<div>
+							<dt>Syncing</dt>
+							<dd>
+								{isSyncing ? 'Yes' : 'No'}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							validatorCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const validatorCount = prefetched.validatorCount}
+					{#if validatorCount !== undefined && validatorCount !== null}
+						<div>
+							<dt>Validator count</dt>
+							<dd>
+								{String((validatorCount) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const validatorCount = resolvedEntity.validatorCount}
+					{#if validatorCount !== undefined && validatorCount !== null}
+						<div>
+							<dt>Validator count</dt>
+							<dd>
+								{String((validatorCount) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							bondedValidatorCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const bondedValidatorCount = prefetched.bondedValidatorCount}
+					{#if bondedValidatorCount !== undefined && bondedValidatorCount !== null}
+						<div>
+							<dt>Bonded validators</dt>
+							<dd>
+								{String((bondedValidatorCount) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const bondedValidatorCount = resolvedEntity.bondedValidatorCount}
+					{#if bondedValidatorCount !== undefined && bondedValidatorCount !== null}
+						<div>
+							<dt>Bonded validators</dt>
+							<dd>
+								{String((bondedValidatorCount) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							bondedTokens: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const bondedTokens = prefetched.bondedTokens}
+					{#if bondedTokens !== undefined && bondedTokens !== null}
+						<div>
+							<dt>Bonded tokens</dt>
+							<dd>
+								{String((bondedTokens) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const bondedTokens = resolvedEntity.bondedTokens}
+					{#if bondedTokens !== undefined && bondedTokens !== null}
+						<div>
+							<dt>Bonded tokens</dt>
+							<dd>
+								{String((bondedTokens) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							notBondedTokens: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const notBondedTokens = prefetched.notBondedTokens}
+					{#if notBondedTokens !== undefined && notBondedTokens !== null}
+						<div>
+							<dt>Not bonded tokens</dt>
+							<dd>
+								{String((notBondedTokens) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const notBondedTokens = resolvedEntity.notBondedTokens}
+					{#if notBondedTokens !== undefined && notBondedTokens !== null}
+						<div>
+							<dt>Not bonded tokens</dt>
+							<dd>
+								{String((notBondedTokens) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<ResourceBoundary
+				resource={
+					selection({
+						fields: {
+							governanceProposalCount: true,
+						},
+					})
+				}
+			>
+				{#snippet Pending()}
+					{@const governanceProposalCount = prefetched.governanceProposalCount}
+					{#if governanceProposalCount !== undefined && governanceProposalCount !== null}
+						<div>
+							<dt>Governance proposals</dt>
+							<dd>
+								{String((governanceProposalCount) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+
+				{#snippet children(entity)}
+					{@const resolvedEntity = { ...pendingEntity, ...entity }}
+					{@const governanceProposalCount = resolvedEntity.governanceProposalCount}
+					{#if governanceProposalCount !== undefined && governanceProposalCount !== null}
+						<div>
+							<dt>Governance proposals</dt>
+							<dd>
+								{String((governanceProposalCount) ?? '')}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div>
 				<dt>Network</dt>
 				<dd>
 					<NetworkView
-						selection={select(EntityType.Network, selection.entitySelector.$network)}
+						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
 						href={
-							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
+							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
 								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
 							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
 								networkSlug: String(selection.entitySelector.$network.slug ?? ''),

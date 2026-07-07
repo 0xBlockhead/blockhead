@@ -36,7 +36,7 @@ export default {
 			name: 'pool',
 			label: 'Pool',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type.enumerated(...Object.values(ZcashShieldedPoolKind)),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

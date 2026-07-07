@@ -134,7 +134,7 @@
 				<dt>Note</dt>
 				<dd>
 					<ActivityPubNoteView
-						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note)}
+						selection={select(EntityType.ActivityPubNote, selection.entitySelector.$note, {})}
 						href={
 							(selection.entitySelector.$note.instanceOrigin !== undefined && selection.entitySelector.$note.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
 								instanceOrigin: String(selection.entitySelector.$note.instanceOrigin ?? ''),

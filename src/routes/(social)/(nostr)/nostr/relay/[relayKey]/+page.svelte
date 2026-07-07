@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Nostr relay • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<NostrRelayView
 		href={
@@ -37,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.NostrRelay, data.selector, {
+			select(EntityType.NostrRelay, {
+				relayUrl: decodeURIComponent(params.relayKey),
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					name: true,
 					description: true,

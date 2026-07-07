@@ -84,7 +84,7 @@
 				<dt>stake credential</dt>
 				<dd>
 					<CardanoStakeCredentialView
-						selection={select(EntityType.CardanoStakeCredential, selection.entitySelector.$stakeCredential)}
+						selection={select(EntityType.CardanoStakeCredential, selection.entitySelector.$stakeCredential, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

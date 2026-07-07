@@ -82,7 +82,7 @@
 				<dt>workchain</dt>
 				<dd>
 					<TonWorkchainView
-						selection={select(EntityType.TonWorkchain, selection.entitySelector.$workchain)}
+						selection={select(EntityType.TonWorkchain, selection.entitySelector.$workchain, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

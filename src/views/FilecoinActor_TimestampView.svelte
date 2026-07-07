@@ -141,7 +141,7 @@
 				<dt>Actor</dt>
 				<dd>
 					<FilecoinActorView
-						selection={select(EntityType.FilecoinActor, selection.entitySelector.$actor)}
+						selection={select(EntityType.FilecoinActor, selection.entitySelector.$actor, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

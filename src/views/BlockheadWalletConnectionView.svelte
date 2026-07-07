@@ -117,7 +117,7 @@
 				<dt>Wallet</dt>
 				<dd>
 					<BlockheadWalletView
-						selection={select(EntityType.BlockheadWallet, selection.entitySelector.$wallet)}
+						selection={select(EntityType.BlockheadWallet, selection.entitySelector.$wallet, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

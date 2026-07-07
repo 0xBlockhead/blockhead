@@ -130,7 +130,7 @@
 				<dt>Upgrade</dt>
 				<dd>
 					<NetworkUpgradeView
-						selection={select(EntityType.NetworkUpgrade, selection.entitySelector.$upgrade)}
+						selection={select(EntityType.NetworkUpgrade, selection.entitySelector.$upgrade, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -116,7 +116,7 @@
 				{#snippet Item({ item: contractInterfaceMember }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ContractInterfaceMember> })}
 					{@const contractInterfaceMemberFields = { ...contractInterfaceMember[EntityMetaKey.Selector], ...contractInterfaceMember }}
 					<ContractInterfaceMemberView
-						selection={select(EntityType.ContractInterfaceMember, contractInterfaceMember[EntityMetaKey.Selector])}
+						selection={select(EntityType.ContractInterfaceMember, contractInterfaceMember[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={contractInterfaceMemberFields}
 						layout={EntityLayout.Summary}
 						open={false}

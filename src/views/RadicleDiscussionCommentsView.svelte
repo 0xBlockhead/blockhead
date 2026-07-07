@@ -106,7 +106,7 @@
 				{#snippet Item({ item: radicleDiscussionComment }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RadicleDiscussionComment> })}
 					{@const radicleDiscussionCommentFields = { ...radicleDiscussionComment[EntityMetaKey.Selector], ...radicleDiscussionComment }}
 					<RadicleDiscussionCommentView
-						selection={select(EntityType.RadicleDiscussionComment, radicleDiscussionComment[EntityMetaKey.Selector])}
+						selection={select(EntityType.RadicleDiscussionComment, radicleDiscussionComment[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={radicleDiscussionCommentFields}
 						layout={EntityLayout.Summary}
 						open={false}

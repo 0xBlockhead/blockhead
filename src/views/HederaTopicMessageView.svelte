@@ -82,7 +82,7 @@
 				<dt>topic</dt>
 				<dd>
 					<HederaTopicView
-						selection={select(EntityType.HederaTopic, selection.entitySelector.$topic)}
+						selection={select(EntityType.HederaTopic, selection.entitySelector.$topic, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

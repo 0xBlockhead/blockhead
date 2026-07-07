@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import AtprotoPost_TimestampView from '$/views/AtprotoPost_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>AT Protocol post observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.AtprotoPost_Timestamp, data.selector, {
+			select(EntityType.AtprotoPost_Timestamp, {
+				$post: {
+					uri: decodeURIComponent(params.uri),
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
 				fields: {
 					likeCount: true,
 					repostCount: true,

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: blockheadLightningNodeState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadLightningNodeState> })}
 					{@const blockheadLightningNodeStateFields = { ...blockheadLightningNodeState[EntityMetaKey.Selector], ...blockheadLightningNodeState }}
 					<BlockheadLightningNodeStateView
-						selection={select(EntityType.BlockheadLightningNodeState, blockheadLightningNodeState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLightningNodeState, blockheadLightningNodeState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLightningNodeStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

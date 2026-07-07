@@ -117,10 +117,10 @@
 					{@const solanaTransactionFields = { ...solanaTransaction[EntityMetaKey.Selector], ...solanaTransaction }}
 					{@const solanaTransactionHrefFields = { ...solanaTransaction, ...solanaTransaction[EntityMetaKey.Selector] }}
 					<SolanaTransactionView
-						selection={select(EntityType.SolanaTransaction, solanaTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.SolanaTransaction, solanaTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaTransactionFields}
 						href={
-							(solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined && solanaTransactionHrefFields.$network.caip2.namespace !== undefined && solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined && solanaTransactionHrefFields.$network.caip2.reference !== undefined && solanaTransactionHrefFields.signature !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/tx/[signature]', {
+							(solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined && solanaTransactionHrefFields.$network.caip2.namespace !== undefined && solanaTransactionHrefFields.$network !== undefined && solanaTransactionHrefFields.$network.caip2 !== undefined && solanaTransactionHrefFields.$network.caip2.reference !== undefined && solanaTransactionHrefFields.signature !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/tx/[signature]', {
 								networkSlug: String(networkByCaip2[String(String(solanaTransactionHrefFields.$network.caip2.namespace) + ':' + String(solanaTransactionHrefFields.$network.caip2.reference))].slug ?? ''),
 								signature: String(solanaTransactionHrefFields.signature ?? ''),
 							}) : undefined)

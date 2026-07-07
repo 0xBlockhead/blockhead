@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Blockhead Farcaster account connection • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<BlockheadFarcasterAccountConnectionView
 		href={
@@ -37,7 +32,14 @@
 			})
 		}
 		selection={
-			select(EntityType.BlockheadFarcasterAccountConnection, data.selector, {
+			select(EntityType.BlockheadFarcasterAccountConnection, {
+				fid: Number(params.accountId),
+			}, {
+				sources: [
+					Source.Local_Internal,
+					Source.Neynar_Rest,
+					Source.Snapchain_Rest,
+				],
 				fields: {
 					$icon: true,
 					displayName: true,

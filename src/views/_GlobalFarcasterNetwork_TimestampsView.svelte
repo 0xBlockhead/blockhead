@@ -113,7 +113,7 @@
 				{#snippet Item({ item: globalFarcasterNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalFarcasterNetwork_Timestamp> })}
 					{@const globalFarcasterNetworkTimestampFields = { ...globalFarcasterNetworkTimestamp[EntityMetaKey.Selector], ...globalFarcasterNetworkTimestamp }}
 					<GlobalFarcasterNetwork_TimestampView
-						selection={select(EntityType._GlobalFarcasterNetwork_Timestamp, globalFarcasterNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalFarcasterNetwork_Timestamp, globalFarcasterNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalFarcasterNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

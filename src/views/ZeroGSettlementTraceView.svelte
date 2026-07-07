@@ -137,7 +137,7 @@
 				<dt>service request</dt>
 				<dd>
 					<ZeroGServiceRequestView
-						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest)}
+						selection={select(EntityType.ZeroGServiceRequest, selection.entitySelector.$serviceRequest, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

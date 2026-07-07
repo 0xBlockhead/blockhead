@@ -7,6 +7,7 @@ import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { ZeroGDataBlobSelector } from '$/schema/ZeroGDataBlob.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
 import { ZeroGNetwork_TimestampSelector } from '$/schema/ZeroGNetwork_Timestamp.ts'
@@ -249,6 +250,27 @@ export default {
 		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertZeroGMainnet(network)
+					return [
+						{
+							[EntityMetaKey.Selector]: zeroGNetworkTimestampSelector(
+								network,
+								Date.now()
+							),
+						},
+					]
+				},
+			},
+		})({
+			fields: {
+				$$zeroGTimestamps: (timestamps) => timestamps,
+			},
+		}),
+
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: {
 				[ZeroGStorageNodeSelector.NetworkNodeId]: async ({
@@ -323,6 +345,30 @@ export default {
 		}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertZeroGMainnet(network)
+					const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					return (await listStorageMiners({
+						limit: resolverContextRowLimit(context),
+					})).list.map((miner) => zeroGStorageNodeRow({
+						$network: network,
+						nodeId: miner.miner,
+						totalReward: miner.totalReward,
+						winCount: miner.winCount,
+						miningAttempts: miner.miningAttempts,
+						timestampMs: Date.now(),
+					}))
+				},
+			},
+		})({
+			fields: {
+				$$zeroGStorageNodes: (storageNodes) => storageNodes,
+			},
+		}),
+
+		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: {
 				[ZeroGDataBlobSelector.NetworkDataRoot]: async ({
@@ -346,6 +392,28 @@ export default {
 		})({
 			fields: {
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
+			},
+		}),
+
+		defineResolver(Source.ZeroGStorageScan_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertZeroGMainnet(network)
+					const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					return (await listStorageTransactions({
+						limit: resolverContextRowLimit(context),
+					})).list.map((transaction) => zeroGDataBlobRow({
+						$network: network,
+						dataRoot: transaction.rootHash,
+						dataSize: transaction.dataSize,
+						txSeq: transaction.txSeq,
+					}))
+				},
+			},
+		})({
+			fields: {
+				$$zeroGDataBlobs: (dataBlobs) => dataBlobs,
 			},
 		}),
 
@@ -374,6 +442,27 @@ export default {
 				$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
 				sequenceNumber: (snapshot) => snapshot.sequenceNumber,
 				commitment: (snapshot) => snapshot.commitment,
+			},
+		}),
+
+		defineResolver(Source.ZeroGStorageScan_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertZeroGMainnet(network)
+					const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+					return (await listStorageTransactions({
+						limit: resolverContextRowLimit(context),
+					})).list.map((transaction) => zeroGStorageLogEntryFields({
+						$network: network,
+						txSeq: transaction.txSeq,
+						rootHash: transaction.rootHash,
+					}))
+				},
+			},
+		})({
+			fields: {
+				$$zeroGStorageLogEntries: (storageLogEntries) => storageLogEntries,
 			},
 		}),
 

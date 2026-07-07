@@ -106,7 +106,7 @@
 				{#snippet Item({ item: radicleSignedRef }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RadicleSignedRef> })}
 					{@const radicleSignedRefFields = { ...radicleSignedRef[EntityMetaKey.Selector], ...radicleSignedRef }}
 					<RadicleSignedRefView
-						selection={select(EntityType.RadicleSignedRef, radicleSignedRef[EntityMetaKey.Selector])}
+						selection={select(EntityType.RadicleSignedRef, radicleSignedRef[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={radicleSignedRefFields}
 						layout={EntityLayout.Summary}
 						open={false}

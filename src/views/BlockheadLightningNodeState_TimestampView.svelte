@@ -137,7 +137,7 @@
 				<dt>local node state</dt>
 				<dd>
 					<BlockheadLightningNodeStateView
-						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
+						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

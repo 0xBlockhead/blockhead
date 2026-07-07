@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -115,19 +114,9 @@
 
 				{#snippet Item({ item: assetClass }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetClass> })}
 					{@const assetClassFields = { ...assetClass[EntityMetaKey.Selector], ...assetClass }}
-					{@const assetClassHrefFields = { ...assetClass, ...assetClass[EntityMetaKey.Selector] }}
 					<AssetClassView
-						selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
+						selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={assetClassFields}
-						href={
-							(assetClassHrefFields.$assetInstance !== undefined && assetClassHrefFields.$assetInstance.$network !== undefined && assetClassHrefFields.$assetInstance.$network.caip2 !== undefined && assetClassHrefFields.$assetInstance.$network.caip2.namespace !== undefined && assetClassHrefFields.$assetInstance !== undefined && assetClassHrefFields.$assetInstance.$network !== undefined && assetClassHrefFields.$assetInstance.$network.caip2 !== undefined && assetClassHrefFields.$assetInstance.$network.caip2.reference !== undefined && assetClassHrefFields.$assetInstance !== undefined && assetClassHrefFields.$assetInstance.kind !== undefined && assetClassHrefFields.$assetInstance !== undefined && assetClassHrefFields.$assetInstance.assetKey !== undefined && assetClassHrefFields.classKind !== undefined && assetClassHrefFields.classKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/class/[classKind]/[classKey]', {
-								caip2: `${String(assetClassHrefFields.$assetInstance.$network.caip2.namespace ?? '')}:${String(assetClassHrefFields.$assetInstance.$network.caip2.reference ?? '')}`,
-								kind: String(assetClassHrefFields.$assetInstance.kind ?? ''),
-								assetKey: String(assetClassHrefFields.$assetInstance.assetKey ?? ''),
-								classKind: String(assetClassHrefFields.classKind ?? ''),
-								classKey: String(assetClassHrefFields.classKey ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

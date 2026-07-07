@@ -85,7 +85,7 @@
 				<dt>proposal</dt>
 				<dd>
 					<CardanoGovernanceProposalView
-						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal)}
+						selection={select(EntityType.CardanoGovernanceProposal, selection.entitySelector.$proposal, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

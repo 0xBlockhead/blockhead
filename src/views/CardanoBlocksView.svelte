@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoBlock> })}
 					{@const cardanoBlockFields = { ...cardanoBlock[EntityMetaKey.Selector], ...cardanoBlock }}
 					<CardanoBlockView
-						selection={select(EntityType.CardanoBlock, cardanoBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoBlock, cardanoBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

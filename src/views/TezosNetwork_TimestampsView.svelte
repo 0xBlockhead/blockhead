@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosNetwork_Timestamp> })}
 					{@const tezosNetworkTimestampFields = { ...tezosNetworkTimestamp[EntityMetaKey.Selector], ...tezosNetworkTimestamp }}
 					<TezosNetwork_TimestampView
-						selection={select(EntityType.TezosNetwork_Timestamp, tezosNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosNetwork_Timestamp, tezosNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -116,7 +116,7 @@
 				{#snippet Item({ item: nostrRelayTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrRelay_Timestamp> })}
 					{@const nostrRelayTimestampFields = { ...nostrRelayTimestamp[EntityMetaKey.Selector], ...nostrRelayTimestamp }}
 					<NostrRelay_TimestampView
-						selection={select(EntityType.NostrRelay_Timestamp, nostrRelayTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrRelay_Timestamp, nostrRelayTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nostrRelayTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

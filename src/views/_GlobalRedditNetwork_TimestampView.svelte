@@ -438,7 +438,7 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalRedditNetworkView
-						selection={select(EntityType._GlobalRedditNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalRedditNetwork, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: elementsAssetTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ElementsAsset_Timestamp> })}
 					{@const elementsAssetTimestampFields = { ...elementsAssetTimestamp[EntityMetaKey.Selector], ...elementsAssetTimestamp }}
 					<ElementsAsset_TimestampView
-						selection={select(EntityType.ElementsAsset_Timestamp, elementsAssetTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.ElementsAsset_Timestamp, elementsAssetTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={elementsAssetTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

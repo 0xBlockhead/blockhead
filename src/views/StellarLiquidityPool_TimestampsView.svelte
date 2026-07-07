@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarLiquidityPoolTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarLiquidityPool_Timestamp> })}
 					{@const stellarLiquidityPoolTimestampFields = { ...stellarLiquidityPoolTimestamp[EntityMetaKey.Selector], ...stellarLiquidityPoolTimestamp }}
 					<StellarLiquidityPool_TimestampView
-						selection={select(EntityType.StellarLiquidityPool_Timestamp, stellarLiquidityPoolTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarLiquidityPool_Timestamp, stellarLiquidityPoolTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarLiquidityPoolTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

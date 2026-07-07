@@ -118,7 +118,7 @@
 					{@const evmTopicFields = { ...evmTopic[EntityMetaKey.Selector], ...evmTopic }}
 					{@const evmTopicHrefFields = { ...evmTopic, ...evmTopic[EntityMetaKey.Selector] }}
 					<EvmTopicView
-						selection={select(EntityType.EvmTopic, evmTopic[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmTopic, evmTopic[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmTopicFields}
 						href={
 							(evmTopicHrefFields.hex !== undefined ? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {

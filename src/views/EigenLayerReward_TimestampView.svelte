@@ -143,7 +143,7 @@
 				<dt>earner</dt>
 				<dd>
 					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner)}
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$earner, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

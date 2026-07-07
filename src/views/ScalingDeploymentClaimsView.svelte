@@ -115,7 +115,7 @@
 				{#snippet Item({ item: scalingDeploymentClaim }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ScalingDeploymentClaim> })}
 					{@const scalingDeploymentClaimFields = { ...scalingDeploymentClaim[EntityMetaKey.Selector], ...scalingDeploymentClaim }}
 					<ScalingDeploymentClaimView
-						selection={select(EntityType.ScalingDeploymentClaim, scalingDeploymentClaim[EntityMetaKey.Selector])}
+						selection={select(EntityType.ScalingDeploymentClaim, scalingDeploymentClaim[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={scalingDeploymentClaimFields}
 						layout={EntityLayout.Title}
 						open={false}

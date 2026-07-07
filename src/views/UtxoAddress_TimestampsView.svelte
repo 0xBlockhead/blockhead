@@ -118,7 +118,7 @@
 					{@const utxoAddressTimestampFields = { ...utxoAddressTimestamp[EntityMetaKey.Selector], ...utxoAddressTimestamp }}
 					{@const utxoAddressTimestampHrefFields = { ...utxoAddressTimestamp, ...utxoAddressTimestamp[EntityMetaKey.Selector] }}
 					<UtxoAddress_TimestampView
-						selection={select(EntityType.UtxoAddress_Timestamp, utxoAddressTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.UtxoAddress_Timestamp, utxoAddressTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoAddressTimestampFields}
 						href={
 							(utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.caip2 !== undefined && utxoAddressTimestampHrefFields.$address.caip2.namespace !== undefined && utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.caip2 !== undefined && utxoAddressTimestampHrefFields.$address.caip2.reference !== undefined && utxoAddressTimestampHrefFields.$address !== undefined && utxoAddressTimestampHrefFields.$address.address !== undefined && utxoAddressTimestampHrefFields.timestampMs !== undefined && utxoAddressTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/address/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadActionReadinessCheck }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadActionReadinessCheck> })}
 					{@const blockheadActionReadinessCheckFields = { ...blockheadActionReadinessCheck[EntityMetaKey.Selector], ...blockheadActionReadinessCheck }}
 					<BlockheadActionReadinessCheckView
-						selection={select(EntityType.BlockheadActionReadinessCheck, blockheadActionReadinessCheck[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadActionReadinessCheck, blockheadActionReadinessCheck[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadActionReadinessCheckFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -141,7 +141,7 @@
 				<dt>wallet key state</dt>
 				<dd>
 					<BlockheadLogosBlockchainWalletKeyStateView
-						selection={select(EntityType.BlockheadLogosBlockchainWalletKeyState, selection.entitySelector.$walletKeyState)}
+						selection={select(EntityType.BlockheadLogosBlockchainWalletKeyState, selection.entitySelector.$walletKeyState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

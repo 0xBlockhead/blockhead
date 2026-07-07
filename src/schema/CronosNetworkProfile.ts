@@ -38,7 +38,7 @@ export default {
 			name: '$cosmosNetwork',
 			label: 'Cosmos network',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CosmosNetwork,
+			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

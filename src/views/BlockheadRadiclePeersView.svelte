@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadRadiclePeer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadRadiclePeer> })}
 					{@const blockheadRadiclePeerFields = { ...blockheadRadiclePeer[EntityMetaKey.Selector], ...blockheadRadiclePeer }}
 					<BlockheadRadiclePeerView
-						selection={select(EntityType.BlockheadRadiclePeer, blockheadRadiclePeer[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadRadiclePeer, blockheadRadiclePeer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadRadiclePeerFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -117,7 +117,7 @@
 					{@const swarmResourceFields = { ...swarmResource[EntityMetaKey.Selector], ...swarmResource }}
 					{@const swarmResourceHrefFields = { ...swarmResource, ...swarmResource[EntityMetaKey.Selector] }}
 					<SwarmResourceView
-						selection={select(EntityType.SwarmResource, swarmResource[EntityMetaKey.Selector])}
+						selection={select(EntityType.SwarmResource, swarmResource[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={swarmResourceFields}
 						href={
 							(swarmResourceHrefFields.reference !== undefined ? resolve('/(explore)/(swarm)/swarm/[reference]', {

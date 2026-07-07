@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EnsRecordView from '$/views/EnsRecordView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>ENS record • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,16 @@
 			})
 		}
 		selection={
-			select(EntityType.EnsRecord, data.selector, {
+			select(EntityType.EnsRecord, {
+				$name: {
+					name: decodeURIComponent(params.ensName),
+				},
+				recordKey: decodeURIComponent(params.recordId),
+			}, {
+				sources: [
+					Source.TheGraph_Graphql,
+					Source.Voltaire_JsonRpc,
+				],
 				fields: {
 					recordKind: true,
 					coinType: true,

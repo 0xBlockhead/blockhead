@@ -114,7 +114,7 @@
 				{#snippet Item({ item: cashuMint }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CashuMint> })}
 					{@const cashuMintFields = { ...cashuMint[EntityMetaKey.Selector], ...cashuMint }}
 					<CashuMintView
-						selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector])}
+						selection={select(EntityType.CashuMint, cashuMint[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cashuMintFields}
 						layout={EntityLayout.Summary}
 						open={false}

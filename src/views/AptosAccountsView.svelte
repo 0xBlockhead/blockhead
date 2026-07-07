@@ -113,7 +113,7 @@
 				{#snippet Item({ item: aptosAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosAccount> })}
 					{@const aptosAccountFields = { ...aptosAccount[EntityMetaKey.Selector], ...aptosAccount }}
 					<AptosAccountView
-						selection={select(EntityType.AptosAccount, aptosAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosAccount, aptosAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosAccountFields}
 						layout={EntityLayout.Summary}
 						open={false}

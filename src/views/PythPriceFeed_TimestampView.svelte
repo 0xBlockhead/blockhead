@@ -138,7 +138,7 @@
 				<dt>Feed</dt>
 				<dd>
 					<PythPriceFeedView
-						selection={select(EntityType.PythPriceFeed, selection.entitySelector.$feed)}
+						selection={select(EntityType.PythPriceFeed, selection.entitySelector.$feed, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

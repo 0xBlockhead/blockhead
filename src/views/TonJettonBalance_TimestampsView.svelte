@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonJettonBalanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonJettonBalance_Timestamp> })}
 					{@const tonJettonBalanceTimestampFields = { ...tonJettonBalanceTimestamp[EntityMetaKey.Selector], ...tonJettonBalanceTimestamp }}
 					<TonJettonBalance_TimestampView
-						selection={select(EntityType.TonJettonBalance_Timestamp, tonJettonBalanceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonJettonBalance_Timestamp, tonJettonBalanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonJettonBalanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

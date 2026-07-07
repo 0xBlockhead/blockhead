@@ -74,8 +74,6 @@ export default {
 		},
 		{
 			name: '$$metadata',
-			label: 'metadata',
-			labelPlural: 'metadata',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TokenMetadataDocument,
 			cardinality: EntityFieldCardinality.Many,

@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +23,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmTokenTransferView from '$/views/EvmTokenTransferView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Token transfer • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,7 +36,21 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmTokenTransfer, data.selector, {
+			select(EntityType.EvmTokenTransfer, {
+				$log: {
+					$transaction: {
+						$network: {
+							caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+						},
+						txHash: decodeURIComponent(params.transactionId),
+					},
+					indexInTransaction: Number(params.indexInTransaction),
+				},
+				indexInLog: Number(params.indexInLog),
+			}, {
+				sources: [
+					Source.Blockscout_Rest,
+				],
 				fields: {
 					standard: true,
 					amount: true,

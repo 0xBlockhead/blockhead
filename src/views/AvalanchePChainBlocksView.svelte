@@ -114,7 +114,7 @@
 				{#snippet Item({ item: avalanchePChainBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalanchePChainBlock> })}
 					{@const avalanchePChainBlockFields = { ...avalanchePChainBlock[EntityMetaKey.Selector], ...avalanchePChainBlock }}
 					<AvalanchePChainBlockView
-						selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalanchePChainBlock, avalanchePChainBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalanchePChainBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

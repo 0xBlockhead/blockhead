@@ -106,7 +106,7 @@
 				{#snippet Item({ item: global }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._Global> })}
 					{@const globalFields = { ...global[EntityMetaKey.Selector], ...global }}
 					<GlobalView
-						selection={select(EntityType._Global, global[EntityMetaKey.Selector])}
+						selection={select(EntityType._Global, global[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalFields}
 						layout={EntityLayout.Summary}
 						open={false}

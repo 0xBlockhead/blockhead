@@ -119,7 +119,7 @@
 					{@const coinTimestampFields = { ...coinTimestamp[EntityMetaKey.Selector], ...coinTimestamp }}
 					{@const coinTimestampHrefFields = { ...coinTimestamp, ...coinTimestamp[EntityMetaKey.Selector] }}
 					<Coin_TimestampView
-						selection={select(EntityType.Coin_Timestamp, coinTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.Coin_Timestamp, coinTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={coinTimestampFields}
 						href={
 							(coinTimestampHrefFields.$coin !== undefined && coinTimestampHrefFields.$coin.coinId !== undefined && coinTimestampHrefFields.timestampMs !== undefined && coinTimestampHrefFields.source !== undefined ? resolve('/(assets)/coin/[coinId]/observations/[timestampMs=nonNegativeInteger]/[source]', {

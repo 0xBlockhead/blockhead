@@ -113,7 +113,7 @@
 				{#snippet Item({ item: lensAccountManager }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensAccountManager> })}
 					{@const lensAccountManagerFields = { ...lensAccountManager[EntityMetaKey.Selector], ...lensAccountManager }}
 					<LensAccountManagerView
-						selection={select(EntityType.LensAccountManager, lensAccountManager[EntityMetaKey.Selector])}
+						selection={select(EntityType.LensAccountManager, lensAccountManager[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lensAccountManagerFields}
 						layout={EntityLayout.Summary}
 						open={false}

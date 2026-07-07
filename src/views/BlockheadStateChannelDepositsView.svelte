@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadStateChannelDeposit }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadStateChannelDeposit> })}
 					{@const blockheadStateChannelDepositFields = { ...blockheadStateChannelDeposit[EntityMetaKey.Selector], ...blockheadStateChannelDeposit }}
 					<BlockheadStateChannelDepositView
-						selection={select(EntityType.BlockheadStateChannelDeposit, blockheadStateChannelDeposit[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadStateChannelDeposit, blockheadStateChannelDeposit[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadStateChannelDepositFields}
 						layout={EntityLayout.Summary}
 						open={false}

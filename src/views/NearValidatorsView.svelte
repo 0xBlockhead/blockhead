@@ -118,7 +118,7 @@
 				{#snippet Item({ item: nearValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearValidator> })}
 					{@const nearValidatorFields = { ...nearValidator[EntityMetaKey.Selector], ...nearValidator }}
 					<NearValidatorView
-						selection={select(EntityType.NearValidator, nearValidator[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearValidator, nearValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearValidatorFields}
 						layout={EntityLayout.Summary}
 						open={false}

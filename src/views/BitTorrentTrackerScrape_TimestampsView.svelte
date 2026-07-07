@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bitTorrentTrackerScrapeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitTorrentTrackerScrape_Timestamp> })}
 					{@const bitTorrentTrackerScrapeTimestampFields = { ...bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector], ...bitTorrentTrackerScrapeTimestamp }}
 					<BitTorrentTrackerScrape_TimestampView
-						selection={select(EntityType.BitTorrentTrackerScrape_Timestamp, bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitTorrentTrackerScrape_Timestamp, bitTorrentTrackerScrapeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitTorrentTrackerScrapeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

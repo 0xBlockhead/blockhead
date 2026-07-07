@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarClaimableBalance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarClaimableBalance> })}
 					{@const stellarClaimableBalanceFields = { ...stellarClaimableBalance[EntityMetaKey.Selector], ...stellarClaimableBalance }}
 					<StellarClaimableBalanceView
-						selection={select(EntityType.StellarClaimableBalance, stellarClaimableBalance[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarClaimableBalance, stellarClaimableBalance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarClaimableBalanceFields}
 						layout={EntityLayout.Summary}
 						open={false}

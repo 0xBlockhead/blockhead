@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import Currency_TimestampView from '$/views/Currency_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>currency timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.Currency_Timestamp, data.selector, {
+			select(EntityType.Currency_Timestamp, {
+				$currency: {
+					iso4217: decodeURIComponent(params.iso4217),
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
 				fields: {
 					marketCap: true,
 				},

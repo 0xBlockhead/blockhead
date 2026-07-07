@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -37,7 +37,13 @@
 			})
 		}
 		selection={
-			select(EntityType.EnsName, data.selector, {
+			select(EntityType.EnsName, {
+				name: decodeURIComponent(params.ensName),
+			}, {
+				sources: [
+					Source.TheGraph_Graphql,
+					Source.Voltaire_JsonRpc,
+				],
 				fields: {
 					normalizedName: true,
 					node: true,

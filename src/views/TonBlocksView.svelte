@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonBlock> })}
 					{@const tonBlockFields = { ...tonBlock[EntityMetaKey.Selector], ...tonBlock }}
 					<TonBlockView
-						selection={select(EntityType.TonBlock, tonBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonBlock, tonBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

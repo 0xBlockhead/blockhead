@@ -11,6 +11,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -138,9 +139,9 @@
 				<dt>Mint</dt>
 				<dd>
 					<SolanaTokenMintView
-						selection={select(EntityType.SolanaTokenMint, selection.entitySelector.$mint)}
+						selection={select(EntityType.SolanaTokenMint, selection.entitySelector.$mint, {})}
 						href={
-							(selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.caip2 !== undefined && selection.entitySelector.$mint.$network.caip2.namespace !== undefined && selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.caip2 !== undefined && selection.entitySelector.$mint.$network.caip2.reference !== undefined && selection.entitySelector.$mint.mintAddress !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-mint/[mintAddress]', {
+							(selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.caip2 !== undefined && selection.entitySelector.$mint.$network.caip2.namespace !== undefined && selection.entitySelector.$mint.$network !== undefined && selection.entitySelector.$mint.$network.caip2 !== undefined && selection.entitySelector.$mint.$network.caip2.reference !== undefined && selection.entitySelector.$mint.mintAddress !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/token-mint/[mintAddress]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$mint.$network.caip2.namespace) + ':' + String(selection.entitySelector.$mint.$network.caip2.reference))].slug ?? ''),
 								mintAddress: String(selection.entitySelector.$mint.mintAddress ?? ''),
 							}) : undefined)

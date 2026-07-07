@@ -149,7 +149,7 @@
 				<dt>Registration file</dt>
 				<dd>
 					<Eip8004AgentRegistrationFileView
-						selection={select(EntityType.Eip8004AgentRegistrationFile, selection.entitySelector.$registrationFile)}
+						selection={select(EntityType.Eip8004AgentRegistrationFile, selection.entitySelector.$registrationFile, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

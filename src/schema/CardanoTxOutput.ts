@@ -94,7 +94,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$assets',
+			name: '$$assets',
 			label: 'assets',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CardanoTxOutputAsset,

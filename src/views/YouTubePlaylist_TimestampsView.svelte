@@ -115,7 +115,7 @@
 					{@const youtubePlaylistTimestampFields = { ...youtubePlaylistTimestamp[EntityMetaKey.Selector], ...youtubePlaylistTimestamp }}
 					{@const youtubePlaylistTimestampHrefFields = { ...youtubePlaylistTimestamp, ...youtubePlaylistTimestamp[EntityMetaKey.Selector] }}
 					<YoutubePlaylist_TimestampView
-						selection={select(EntityType.YoutubePlaylist_Timestamp, youtubePlaylistTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.YoutubePlaylist_Timestamp, youtubePlaylistTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubePlaylistTimestampFields}
 						href={
 							(youtubePlaylistTimestampHrefFields.$playlist !== undefined && youtubePlaylistTimestampHrefFields.$playlist.playlistId !== undefined && youtubePlaylistTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/playlist/[playlistId]/observations/[timestampMs]', {

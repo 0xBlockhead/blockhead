@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidPerpMarketTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidPerpMarket_Timestamp> })}
 					{@const hyperliquidPerpMarketTimestampFields = { ...hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector], ...hyperliquidPerpMarketTimestamp }}
 					<HyperliquidPerpMarket_TimestampView
-						selection={select(EntityType.HyperliquidPerpMarket_Timestamp, hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidPerpMarket_Timestamp, hyperliquidPerpMarketTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidPerpMarketTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

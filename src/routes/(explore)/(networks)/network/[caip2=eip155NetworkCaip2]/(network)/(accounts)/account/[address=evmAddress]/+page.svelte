@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,24 +14,18 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import EvmAccountView from '$/views/EvmAccountView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 </script>
 
 
-<svelte:head>
-	<title>EVM account • Blockhead</title>
-</svelte:head>
-
-
 <Page>
-	<EvmAccountView
+	<EvmNetworkAccountView
 		href={
 			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(accounts)/account/[address=evmAddress]', {
 				caip2: params.caip2,
@@ -38,11 +33,12 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmAccount, data.selector, {
-				fields: {
-					$avatar: true,
-					avatarUrl: true,
-					$primaryName: true,
+			select(EntityType.EvmNetworkAccount, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				$actor: {
+					address: params.address,
 				},
 			})
 		}

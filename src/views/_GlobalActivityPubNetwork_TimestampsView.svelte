@@ -116,7 +116,7 @@
 				{#snippet Item({ item: globalActivityPubNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalActivityPubNetwork_Timestamp> })}
 					{@const globalActivityPubNetworkTimestampFields = { ...globalActivityPubNetworkTimestamp[EntityMetaKey.Selector], ...globalActivityPubNetworkTimestamp }}
 					<GlobalActivityPubNetwork_TimestampView
-						selection={select(EntityType._GlobalActivityPubNetwork_Timestamp, globalActivityPubNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalActivityPubNetwork_Timestamp, globalActivityPubNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalActivityPubNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

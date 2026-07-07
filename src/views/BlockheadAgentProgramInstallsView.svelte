@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadAgentProgramInstall }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAgentProgramInstall> })}
 					{@const blockheadAgentProgramInstallFields = { ...blockheadAgentProgramInstall[EntityMetaKey.Selector], ...blockheadAgentProgramInstall }}
 					<BlockheadAgentProgramInstallView
-						selection={select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAgentProgramInstall, blockheadAgentProgramInstall[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAgentProgramInstallFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosInternalOperation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosInternalOperation> })}
 					{@const tezosInternalOperationFields = { ...tezosInternalOperation[EntityMetaKey.Selector], ...tezosInternalOperation }}
 					<TezosInternalOperationView
-						selection={select(EntityType.TezosInternalOperation, tezosInternalOperation[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosInternalOperation, tezosInternalOperation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosInternalOperationFields}
 						layout={EntityLayout.Summary}
 						open={false}

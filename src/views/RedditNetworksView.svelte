@@ -112,7 +112,7 @@
 				{#snippet Item({ item: redditNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditNetwork> })}
 					{@const redditNetworkFields = { ...redditNetwork[EntityMetaKey.Selector], ...redditNetwork }}
 					<RedditNetworkView
-						selection={select(EntityType.RedditNetwork, redditNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.RedditNetwork, redditNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={redditNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

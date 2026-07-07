@@ -115,7 +115,7 @@
 				{#snippet Item({ item: aptosTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosTransaction> })}
 					{@const aptosTransactionFields = { ...aptosTransaction[EntityMetaKey.Selector], ...aptosTransaction }}
 					<AptosTransactionView
-						selection={select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosTransaction, aptosTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

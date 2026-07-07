@@ -115,7 +115,7 @@
 					{@const xUserTimestampFields = { ...xUserTimestamp[EntityMetaKey.Selector], ...xUserTimestamp }}
 					{@const xUserTimestampHrefFields = { ...xUserTimestamp, ...xUserTimestamp[EntityMetaKey.Selector] }}
 					<XUser_TimestampView
-						selection={select(EntityType.XUser_Timestamp, xUserTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.XUser_Timestamp, xUserTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xUserTimestampFields}
 						href={
 							(xUserTimestampHrefFields.$user !== undefined && xUserTimestampHrefFields.$user.id !== undefined && xUserTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(x)/x/user/[userId]/observations/[timestampMs=nonNegativeInteger]', {

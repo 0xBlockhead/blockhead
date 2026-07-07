@@ -135,7 +135,7 @@
 				<dt>artifact</dt>
 				<dd>
 					<AiArtifactView
-						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact)}
+						selection={select(EntityType.AiArtifact, selection.entitySelector.$artifact, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

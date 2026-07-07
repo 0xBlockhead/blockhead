@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpCanisterMethod }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpCanisterMethod> })}
 					{@const icpCanisterMethodFields = { ...icpCanisterMethod[EntityMetaKey.Selector], ...icpCanisterMethod }}
 					<IcpCanisterMethodView
-						selection={select(EntityType.IcpCanisterMethod, icpCanisterMethod[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpCanisterMethod, icpCanisterMethod[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpCanisterMethodFields}
 						layout={EntityLayout.Summary}
 						open={false}

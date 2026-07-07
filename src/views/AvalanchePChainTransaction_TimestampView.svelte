@@ -131,7 +131,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<AvalanchePChainTransactionView
-						selection={select(EntityType.AvalanchePChainTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.AvalanchePChainTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -82,7 +82,7 @@
 				<dt>collection</dt>
 				<dd>
 					<TonNftCollectionView
-						selection={select(EntityType.TonNftCollection, selection.entitySelector.$collection)}
+						selection={select(EntityType.TonNftCollection, selection.entitySelector.$collection, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

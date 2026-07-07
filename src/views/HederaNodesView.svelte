@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaNode }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaNode> })}
 					{@const hederaNodeFields = { ...hederaNode[EntityMetaKey.Selector], ...hederaNode }}
 					<HederaNodeView
-						selection={select(EntityType.HederaNode, hederaNode[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaNode, hederaNode[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaNodeFields}
 						layout={EntityLayout.Summary}
 						open={false}

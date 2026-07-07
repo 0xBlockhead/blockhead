@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bitTorrentDhtLookupTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitTorrentDhtLookup_Timestamp> })}
 					{@const bitTorrentDhtLookupTimestampFields = { ...bitTorrentDhtLookupTimestamp[EntityMetaKey.Selector], ...bitTorrentDhtLookupTimestamp }}
 					<BitTorrentDhtLookup_TimestampView
-						selection={select(EntityType.BitTorrentDhtLookup_Timestamp, bitTorrentDhtLookupTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitTorrentDhtLookup_Timestamp, bitTorrentDhtLookupTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitTorrentDhtLookupTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

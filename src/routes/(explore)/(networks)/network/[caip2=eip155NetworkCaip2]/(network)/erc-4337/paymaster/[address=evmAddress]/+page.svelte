@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import Erc4337PaymasterView from '$/views/Erc4337PaymasterView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>ERC-4337 paymaster • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,12 @@
 			})
 		}
 		selection={
-			select(EntityType.Erc4337Paymaster, data.selector, {
+			select(EntityType.Erc4337Paymaster, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				address: decodeURIComponent(params.address),
+			}, {
 				fields: {
 					$contract: true,
 				},

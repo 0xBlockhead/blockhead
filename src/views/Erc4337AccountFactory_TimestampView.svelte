@@ -292,7 +292,7 @@
 				<dt>Factory</dt>
 				<dd>
 					<Erc4337AccountFactoryView
-						selection={select(EntityType.Erc4337AccountFactory, selection.entitySelector.$factory)}
+						selection={select(EntityType.Erc4337AccountFactory, selection.entitySelector.$factory, {})}
 						href={
 							(selection.entitySelector.$factory.$network !== undefined && selection.entitySelector.$factory.$network.caip2 !== undefined && selection.entitySelector.$factory.$network.caip2.namespace !== undefined && selection.entitySelector.$factory.$network !== undefined && selection.entitySelector.$factory.$network.caip2 !== undefined && selection.entitySelector.$factory.$network.caip2.reference !== undefined && selection.entitySelector.$factory.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/account-factory/[address=evmAddress]', {
 								caip2: `${String(selection.entitySelector.$factory.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$factory.$network.caip2.reference ?? '')}`,

@@ -63,7 +63,14 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					$network: true,
+					$$timestamps: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -104,9 +111,9 @@
 				{/snippet}
 
 				{#snippet Item({ item: icpNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpNetwork> })}
-					{@const icpNetworkFields = { ...icpNetwork[EntityMetaKey.Selector], ...icpNetwork }}
+					{@const icpNetworkFields = { ...icpNetwork[EntityMetaKey.Selector], ...icpNetwork, $$timestamps: icpNetwork.$$timestamps }}
 					<IcpNetworkView
-						selection={select(EntityType.IcpNetwork, icpNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpNetwork, icpNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

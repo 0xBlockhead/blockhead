@@ -22,7 +22,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import EvmPrecompilesView from '$/views/EvmPrecompilesView.svelte'
+	import EvmContractsView from '$/views/EvmContractsView.svelte'
 </script>
 
 
@@ -32,7 +32,7 @@
 
 
 <Page>
-	<EvmPrecompilesView
+	<EvmContractsView
 		href={
 			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/precompiles', {
 				caip2: params.caip2,

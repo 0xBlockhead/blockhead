@@ -114,7 +114,7 @@
 				{#snippet Item({ item: arweaveResource }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ArweaveResource> })}
 					{@const arweaveResourceFields = { ...arweaveResource[EntityMetaKey.Selector], ...arweaveResource }}
 					<ArweaveResourceView
-						selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector])}
+						selection={select(EntityType.ArweaveResource, arweaveResource[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={arweaveResourceFields}
 						layout={EntityLayout.Summary}
 						open={false}

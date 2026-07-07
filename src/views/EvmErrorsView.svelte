@@ -118,7 +118,7 @@
 					{@const evmErrorFields = { ...evmError[EntityMetaKey.Selector], ...evmError }}
 					{@const evmErrorHrefFields = { ...evmError, ...evmError[EntityMetaKey.Selector] }}
 					<EvmErrorView
-						selection={select(EntityType.EvmError, evmError[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmError, evmError[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmErrorFields}
 						href={
 							(evmErrorHrefFields.hex !== undefined ? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {

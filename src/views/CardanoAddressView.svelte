@@ -83,7 +83,7 @@
 				<dt>network</dt>
 				<dd>
 					<CardanoNetworkView
-						selection={select(EntityType.CardanoNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.CardanoNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

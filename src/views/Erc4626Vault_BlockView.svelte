@@ -106,7 +106,7 @@
 				<dt>Vault</dt>
 				<dd>
 					<Erc4626VaultView
-						selection={select(EntityType.Erc4626Vault, selection.entitySelector.$vault)}
+						selection={select(EntityType.Erc4626Vault, selection.entitySelector.$vault, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

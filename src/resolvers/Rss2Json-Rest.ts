@@ -10,7 +10,9 @@ import {
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
 import { RssFeedSelector } from '$/schema/RssFeed.ts'
+import { RssFeed_TimestampSelector } from '$/schema/RssFeed_Timestamp.ts'
 import { RssItemSelector } from '$/schema/RssItem.ts'
+import { RssItem_TimestampSelector } from '$/schema/RssItem_Timestamp.ts'
 import { RssNetworkSelector } from '$/schema/RssNetwork.ts'
 
 
@@ -175,6 +177,70 @@ export default {
 		})({
 				fields: {
 			$$items: (snapshot) => snapshot,
+		},
+			}),
+
+		defineResolver(Source.Rss2Json_Rest, {
+			entityType: EntityType.RssFeed_Timestamp,
+			resolve: {
+				[RssFeed_TimestampSelector.FeedTimestampMsSource]: async ({ $feed }, context) => {
+				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
+				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
+				const feed = await getFeed(
+					normalizeRssFeedUrl($feed.feedUrl),
+					50,
+					context.publicEnv
+				)
+				return {
+					reachable: true,
+					observedItemCount: feed.items?.length ?? 0,
+					fetchWindowKind: 'feed',
+				}
+			}
+			}
+		})({
+				fields: {
+			reachable: (snapshot) => snapshot.reachable,
+			observedItemCount: (snapshot) => snapshot.observedItemCount,
+			fetchWindowKind: (snapshot) => snapshot.fetchWindowKind,
+		},
+			}),
+
+		defineResolver(Source.Rss2Json_Rest, {
+			entityType: EntityType.RssItem_Timestamp,
+			resolve: {
+				[RssItem_TimestampSelector.ItemTimestampMsSource]: async ({ $item }, context) => {
+				const {
+					normalizeRssFeedUrl,
+					rssItemGuidFromParts,
+					rssPublishedAtMs,
+				} = await import('$/sources/Rss/Rest/constants.ts')
+				const { getFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
+				const feedItem = (
+					(await getFeed(
+						normalizeRssFeedUrl($item.feedUrl),
+						50,
+						context.publicEnv
+					)).items ?? []
+				).find((candidate) => (
+					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === $item.guid
+				))
+				if (feedItem == null) throw new Error('Rss2Json_Rest: feed item not found')
+				const title = optionalNonemptyString(feedItem.title)
+				const link = optionalNonemptyString(feedItem.link)
+				const publishedAt = rssPublishedAtMs(feedItem.pubDate)
+				return {
+					...(title != null && { title }),
+					...(link != null && { link }),
+					...(publishedAt != null && { publishedAt }),
+				}
+			}
+			}
+		})({
+				fields: {
+			title: (snapshot) => snapshot.title,
+			link: (snapshot) => snapshot.link,
+			publishedAt: (snapshot) => snapshot.publishedAt,
 		},
 			}),
 	],

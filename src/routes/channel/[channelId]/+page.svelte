@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>blockhead state channel • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<BlockheadStateChannelView
 		href={
@@ -37,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.BlockheadStateChannel, data.selector, {
+			select(EntityType.BlockheadStateChannel, {
+				id: decodeURIComponent(params.channelId),
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
 				fields: {
 					createdAt: true,
 					$network: true,

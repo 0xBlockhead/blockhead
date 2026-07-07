@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidPerpMarket }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidPerpMarket> })}
 					{@const hyperliquidPerpMarketFields = { ...hyperliquidPerpMarket[EntityMetaKey.Selector], ...hyperliquidPerpMarket }}
 					<HyperliquidPerpMarketView
-						selection={select(EntityType.HyperliquidPerpMarket, hyperliquidPerpMarket[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidPerpMarket, hyperliquidPerpMarket[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidPerpMarketFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: aiProviderApiOperation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiProviderApiOperation> })}
 					{@const aiProviderApiOperationFields = { ...aiProviderApiOperation[EntityMetaKey.Selector], ...aiProviderApiOperation }}
 					<AiProviderApiOperationView
-						selection={select(EntityType.AiProviderApiOperation, aiProviderApiOperation[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiProviderApiOperation, aiProviderApiOperation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiProviderApiOperationFields}
 						layout={EntityLayout.Summary}
 						open={false}

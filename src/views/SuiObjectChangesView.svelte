@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiObjectChange }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiObjectChange> })}
 					{@const suiObjectChangeFields = { ...suiObjectChange[EntityMetaKey.Selector], ...suiObjectChange }}
 					<SuiObjectChangeView
-						selection={select(EntityType.SuiObjectChange, suiObjectChange[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiObjectChange, suiObjectChange[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiObjectChangeFields}
 						layout={EntityLayout.Summary}
 						open={false}

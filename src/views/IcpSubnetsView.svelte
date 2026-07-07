@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpSubnet }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpSubnet> })}
 					{@const icpSubnetFields = { ...icpSubnet[EntityMetaKey.Selector], ...icpSubnet }}
 					<IcpSubnetView
-						selection={select(EntityType.IcpSubnet, icpSubnet[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpSubnet, icpSubnet[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpSubnetFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Lens post • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<LensPostView
 		href={
@@ -37,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.LensPost, data.selector, {
+			select(EntityType.LensPost, {
+				id: decodeURIComponent(params.postId),
+			}, {
+				sources: [
+					Source.Lens_Graphql,
+				],
 				fields: {
 					text: true,
 					timestamp: true,

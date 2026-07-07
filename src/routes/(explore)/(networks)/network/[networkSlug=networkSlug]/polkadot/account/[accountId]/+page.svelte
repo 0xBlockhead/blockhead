@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Polkadot account • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<PolkadotAccountView
 		href={
@@ -37,6 +32,17 @@
 				accountId: params.accountId,
 			})
 		}
-		selection={select(EntityType.PolkadotAccount, data.selector)}
+		selection={
+			select(EntityType.PolkadotAccount, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				accountId: decodeURIComponent(params.accountId),
+			}, {
+				sources: [
+					Source.SubstrateSidecar_Rest,
+				],
+			})
+		}
 	/>
 </Page>

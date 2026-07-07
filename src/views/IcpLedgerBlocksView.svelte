@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpLedgerBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpLedgerBlock> })}
 					{@const icpLedgerBlockFields = { ...icpLedgerBlock[EntityMetaKey.Selector], ...icpLedgerBlock }}
 					<IcpLedgerBlockView
-						selection={select(EntityType.IcpLedgerBlock, icpLedgerBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpLedgerBlock, icpLedgerBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpLedgerBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

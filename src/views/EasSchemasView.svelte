@@ -114,7 +114,7 @@
 				{#snippet Item({ item: easSchema }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EasSchema> })}
 					{@const easSchemaFields = { ...easSchema[EntityMetaKey.Selector], ...easSchema }}
 					<EasSchemaView
-						selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector])}
+						selection={select(EntityType.EasSchema, easSchema[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={easSchemaFields}
 						layout={EntityLayout.Summary}
 						open={false}

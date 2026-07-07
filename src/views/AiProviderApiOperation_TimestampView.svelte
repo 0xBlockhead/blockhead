@@ -136,7 +136,7 @@
 				<dt>operation</dt>
 				<dd>
 					<AiProviderApiOperationView
-						selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation)}
+						selection={select(EntityType.AiProviderApiOperation, selection.entitySelector.$operation, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

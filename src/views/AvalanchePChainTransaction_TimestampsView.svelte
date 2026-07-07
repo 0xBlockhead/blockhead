@@ -115,7 +115,7 @@
 				{#snippet Item({ item: avalanchePChainTransactionTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalanchePChainTransaction_Timestamp> })}
 					{@const avalanchePChainTransactionTimestampFields = { ...avalanchePChainTransactionTimestamp[EntityMetaKey.Selector], ...avalanchePChainTransactionTimestamp }}
 					<AvalanchePChainTransaction_TimestampView
-						selection={select(EntityType.AvalanchePChainTransaction_Timestamp, avalanchePChainTransactionTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalanchePChainTransaction_Timestamp, avalanchePChainTransactionTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalanchePChainTransactionTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarTrade }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarTrade> })}
 					{@const stellarTradeFields = { ...stellarTrade[EntityMetaKey.Selector], ...stellarTrade }}
 					<StellarTradeView
-						selection={select(EntityType.StellarTrade, stellarTrade[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarTrade, stellarTrade[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarTradeFields}
 						layout={EntityLayout.Summary}
 						open={false}

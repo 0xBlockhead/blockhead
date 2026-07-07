@@ -117,7 +117,7 @@
 					{@const redditCommentTimestampFields = { ...redditCommentTimestamp[EntityMetaKey.Selector], ...redditCommentTimestamp }}
 					{@const redditCommentTimestampHrefFields = { ...redditCommentTimestamp, ...redditCommentTimestamp[EntityMetaKey.Selector] }}
 					<RedditComment_TimestampView
-						selection={select(EntityType.RedditComment_Timestamp, redditCommentTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.RedditComment_Timestamp, redditCommentTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={redditCommentTimestampFields}
 						href={
 							(redditCommentTimestampHrefFields.$comment !== undefined && redditCommentTimestampHrefFields.$comment.fullname !== undefined && redditCommentTimestampHrefFields.timestampMs !== undefined && redditCommentTimestampHrefFields.source !== undefined ? resolve('/(social)/(reddit)/reddit/comment/[fullname]/(comment)/observations/[timestampMs=nonNegativeInteger]/[source]', {

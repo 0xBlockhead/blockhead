@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadCashuProofTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadCashuProof_Timestamp> })}
 					{@const blockheadCashuProofTimestampFields = { ...blockheadCashuProofTimestamp[EntityMetaKey.Selector], ...blockheadCashuProofTimestamp }}
 					<BlockheadCashuProof_TimestampView
-						selection={select(EntityType.BlockheadCashuProof_Timestamp, blockheadCashuProofTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadCashuProof_Timestamp, blockheadCashuProofTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadCashuProofTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

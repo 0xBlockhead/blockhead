@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Zcash shielded action • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<ZcashShieldedActionView
 		href={

@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { xUserSelectorFromRouteParam } from '$/lib/x.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +25,6 @@
 </script>
 
 
-<svelte:head>
-	<title>X user • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<XUserView
 		href={
@@ -37,7 +33,11 @@
 			})
 		}
 		selection={
-			select(EntityType.XUser, data.selector, {
+			select(EntityType.XUser, xUserSelectorFromRouteParam(decodeURIComponent(params.userId)), {
+				sources: [
+					Source.X_Rest,
+					Source.X_FxEmbed_Rest,
+				],
 				fields: {
 					$icon: true,
 					name: true,

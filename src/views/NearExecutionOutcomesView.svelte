@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearExecutionOutcome }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearExecutionOutcome> })}
 					{@const nearExecutionOutcomeFields = { ...nearExecutionOutcome[EntityMetaKey.Selector], ...nearExecutionOutcome }}
 					<NearExecutionOutcomeView
-						selection={select(EntityType.NearExecutionOutcome, nearExecutionOutcome[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearExecutionOutcome, nearExecutionOutcome[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearExecutionOutcomeFields}
 						layout={EntityLayout.Summary}
 						open={false}

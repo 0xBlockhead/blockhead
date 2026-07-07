@@ -57,14 +57,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$signatures',
+			name: '$$signatures',
 			label: 'signatures',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HederaScheduleSignature,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HederaSchedule_Timestamp,

@@ -124,7 +124,7 @@
 				<dt>Record</dt>
 				<dd>
 					<EnsRecordView
-						selection={select(EntityType.EnsRecord, selection.entitySelector.$record)}
+						selection={select(EntityType.EnsRecord, selection.entitySelector.$record, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

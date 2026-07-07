@@ -81,7 +81,7 @@
 				<dt>edge</dt>
 				<dd>
 					<SuiDynamicFieldEdgeView
-						selection={select(EntityType.SuiDynamicFieldEdge, selection.entitySelector.$edge)}
+						selection={select(EntityType.SuiDynamicFieldEdge, selection.entitySelector.$edge, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

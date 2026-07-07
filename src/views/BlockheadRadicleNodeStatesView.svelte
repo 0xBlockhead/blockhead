@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadRadicleNodeState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadRadicleNodeState> })}
 					{@const blockheadRadicleNodeStateFields = { ...blockheadRadicleNodeState[EntityMetaKey.Selector], ...blockheadRadicleNodeState }}
 					<BlockheadRadicleNodeStateView
-						selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadRadicleNodeState, blockheadRadicleNodeState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadRadicleNodeStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

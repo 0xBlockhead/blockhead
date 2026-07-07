@@ -117,7 +117,7 @@
 					{@const ethereumExecutionUpgradeFields = { ...ethereumExecutionUpgrade[EntityMetaKey.Selector], ...ethereumExecutionUpgrade }}
 					{@const ethereumExecutionUpgradeHrefFields = { ...ethereumExecutionUpgrade, ...ethereumExecutionUpgrade[EntityMetaKey.Selector] }}
 					<EthereumExecutionUpgradeView
-						selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector])}
+						selection={select(EntityType.EthereumExecutionUpgrade, ethereumExecutionUpgrade[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ethereumExecutionUpgradeFields}
 						href={
 							(ethereumExecutionUpgradeHrefFields.$network !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2 !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2.namespace !== undefined && ethereumExecutionUpgradeHrefFields.$network !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2 !== undefined && ethereumExecutionUpgradeHrefFields.$network.caip2.reference !== undefined && ethereumExecutionUpgradeHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/execution/[upgradeSlug]', {

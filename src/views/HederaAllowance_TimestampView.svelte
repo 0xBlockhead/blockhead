@@ -81,7 +81,7 @@
 				<dt>allowance</dt>
 				<dd>
 					<HederaAllowanceView
-						selection={select(EntityType.HederaAllowance, selection.entitySelector.$allowance)}
+						selection={select(EntityType.HederaAllowance, selection.entitySelector.$allowance, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

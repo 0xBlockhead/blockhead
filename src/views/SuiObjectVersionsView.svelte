@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiObjectVersion }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiObjectVersion> })}
 					{@const suiObjectVersionFields = { ...suiObjectVersion[EntityMetaKey.Selector], ...suiObjectVersion }}
 					<SuiObjectVersionView
-						selection={select(EntityType.SuiObjectVersion, suiObjectVersion[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiObjectVersion, suiObjectVersion[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiObjectVersionFields}
 						layout={EntityLayout.Summary}
 						open={false}

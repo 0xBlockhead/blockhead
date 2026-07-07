@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiDynamicFieldEdgeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiDynamicFieldEdge_Timestamp> })}
 					{@const suiDynamicFieldEdgeTimestampFields = { ...suiDynamicFieldEdgeTimestamp[EntityMetaKey.Selector], ...suiDynamicFieldEdgeTimestamp }}
 					<SuiDynamicFieldEdge_TimestampView
-						selection={select(EntityType.SuiDynamicFieldEdge_Timestamp, suiDynamicFieldEdgeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiDynamicFieldEdge_Timestamp, suiDynamicFieldEdgeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiDynamicFieldEdgeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

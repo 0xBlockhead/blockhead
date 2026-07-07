@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -109,7 +110,7 @@
 				<dt>Node</dt>
 				<dd>
 					<LightningNodeView
-						selection={select(EntityType.LightningNode, selection.entitySelector.$node)}
+						selection={select(EntityType.LightningNode, selection.entitySelector.$node, {})}
 						href={
 							(selection.entitySelector.$node.$network !== undefined && selection.entitySelector.$node.$network.slug !== undefined && selection.entitySelector.$node.publicKey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/nodes/[pubkey]', {
 								networkSlug: String(selection.entitySelector.$node.$network.slug ?? ''),
@@ -400,7 +401,7 @@
 						{#snippet Pending()}
 							{@const networkAddresses = prefetched.networkAddresses}
 							{#if networkAddresses !== undefined && networkAddresses !== null}
-								<TruncatedValue value={(networkAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={networkAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -408,7 +409,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const networkAddresses = resolvedEntity.networkAddresses}
 							{#if networkAddresses !== undefined && networkAddresses !== null}
-								<TruncatedValue value={(networkAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={networkAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: a2aMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aMessage> })}
 					{@const a2aMessageFields = { ...a2aMessage[EntityMetaKey.Selector], ...a2aMessage }}
 					<A2aMessageView
-						selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aMessage, a2aMessage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aMessageFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: ibcPacket }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IbcPacket> })}
 					{@const ibcPacketFields = { ...ibcPacket[EntityMetaKey.Selector], ...ibcPacket }}
 					<IbcPacketView
-						selection={select(EntityType.IbcPacket, ibcPacket[EntityMetaKey.Selector])}
+						selection={select(EntityType.IbcPacket, ibcPacket[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ibcPacketFields}
 						layout={EntityLayout.Summary}
 						open={false}

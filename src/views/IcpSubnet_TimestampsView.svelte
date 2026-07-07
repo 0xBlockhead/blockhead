@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpSubnetTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpSubnet_Timestamp> })}
 					{@const icpSubnetTimestampFields = { ...icpSubnetTimestamp[EntityMetaKey.Selector], ...icpSubnetTimestamp }}
 					<IcpSubnet_TimestampView
-						selection={select(EntityType.IcpSubnet_Timestamp, icpSubnetTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpSubnet_Timestamp, icpSubnetTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpSubnetTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

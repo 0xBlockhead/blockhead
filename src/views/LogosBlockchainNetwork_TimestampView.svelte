@@ -137,7 +137,7 @@
 				<dt>Network</dt>
 				<dd>
 					<LogosBlockchainNetworkView
-						selection={select(EntityType.LogosBlockchainNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.LogosBlockchainNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

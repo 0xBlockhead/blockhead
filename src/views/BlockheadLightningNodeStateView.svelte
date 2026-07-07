@@ -205,7 +205,7 @@
 				<dt>network</dt>
 				<dd>
 					<LightningNetworkView
-						selection={select(EntityType.LightningNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.LightningNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

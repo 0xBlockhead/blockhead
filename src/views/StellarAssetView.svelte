@@ -83,7 +83,7 @@
 				<dt>network</dt>
 				<dd>
 					<StellarNetworkView
-						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.StellarNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

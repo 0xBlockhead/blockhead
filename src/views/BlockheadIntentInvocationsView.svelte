@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadIntentInvocation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadIntentInvocation> })}
 					{@const blockheadIntentInvocationFields = { ...blockheadIntentInvocation[EntityMetaKey.Selector], ...blockheadIntentInvocation }}
 					<BlockheadIntentInvocationView
-						selection={select(EntityType.BlockheadIntentInvocation, blockheadIntentInvocation[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadIntentInvocation, blockheadIntentInvocation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadIntentInvocationFields}
 						layout={EntityLayout.Summary}
 						open={false}

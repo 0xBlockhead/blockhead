@@ -114,7 +114,7 @@
 				{#snippet Item({ item: dydxChainMarket }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DydxChainMarket> })}
 					{@const dydxChainMarketFields = { ...dydxChainMarket[EntityMetaKey.Selector], ...dydxChainMarket }}
 					<DydxChainMarketView
-						selection={select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector])}
+						selection={select(EntityType.DydxChainMarket, dydxChainMarket[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dydxChainMarketFields}
 						layout={EntityLayout.Summary}
 						open={false}

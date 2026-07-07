@@ -128,7 +128,7 @@
 					{@const evmInternalTransferFields = { ...evmInternalTransfer[EntityMetaKey.Selector], ...evmInternalTransfer }}
 					{@const evmInternalTransferHrefFields = { ...evmInternalTransfer, ...evmInternalTransfer[EntityMetaKey.Selector] }}
 					<EvmInternalTransferView
-						selection={select(EntityType.EvmInternalTransfer, evmInternalTransfer[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmInternalTransfer, evmInternalTransfer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmInternalTransferFields}
 						href={
 							(evmInternalTransferHrefFields.$transaction !== undefined && evmInternalTransferHrefFields.$transaction.$network !== undefined && evmInternalTransferHrefFields.$transaction.$network.caip2 !== undefined && evmInternalTransferHrefFields.$transaction.$network.caip2.namespace !== undefined && evmInternalTransferHrefFields.$transaction !== undefined && evmInternalTransferHrefFields.$transaction.$network !== undefined && evmInternalTransferHrefFields.$transaction.$network.caip2 !== undefined && evmInternalTransferHrefFields.$transaction.$network.caip2.reference !== undefined && evmInternalTransferHrefFields.$transaction !== undefined && evmInternalTransferHrefFields.$transaction.txHash !== undefined && evmInternalTransferHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/internal-transfer/[indexInTransaction=nonNegativeInteger]', {

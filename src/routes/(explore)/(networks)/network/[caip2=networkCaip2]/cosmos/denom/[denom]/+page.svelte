@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import CosmosDenomView from '$/views/CosmosDenomView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Cosmos denom • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,12 @@
 			})
 		}
 		selection={
-			select(EntityType.CosmosDenom, data.selector, {
+			select(EntityType.CosmosDenom, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				denom: decodeURIComponent(params.denom),
+			}, {
 				fields: {
 					symbol: true,
 					display: true,

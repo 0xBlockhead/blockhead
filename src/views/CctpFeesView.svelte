@@ -114,7 +114,7 @@
 				{#snippet Item({ item: cctpFee }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CctpFee> })}
 					{@const cctpFeeFields = { ...cctpFee[EntityMetaKey.Selector], ...cctpFee }}
 					<CctpFeeView
-						selection={select(EntityType.CctpFee, cctpFee[EntityMetaKey.Selector])}
+						selection={select(EntityType.CctpFee, cctpFee[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cctpFeeFields}
 						layout={EntityLayout.Summary}
 						open={false}

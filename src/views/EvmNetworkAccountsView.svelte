@@ -113,7 +113,7 @@
 				{#snippet Item({ item: evmNetworkAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetworkAccount> })}
 					{@const evmNetworkAccountFields = { ...evmNetworkAccount[EntityMetaKey.Selector], ...evmNetworkAccount }}
 					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmNetworkAccount, evmNetworkAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkAccountFields}
 						layout={EntityLayout.Summary}
 						open={false}

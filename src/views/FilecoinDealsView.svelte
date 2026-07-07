@@ -115,7 +115,7 @@
 				{#snippet Item({ item: filecoinDeal }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinDeal> })}
 					{@const filecoinDealFields = { ...filecoinDeal[EntityMetaKey.Selector], ...filecoinDeal }}
 					<FilecoinDealView
-						selection={select(EntityType.FilecoinDeal, filecoinDeal[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinDeal, filecoinDeal[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={filecoinDealFields}
 						layout={EntityLayout.Summary}
 						open={false}

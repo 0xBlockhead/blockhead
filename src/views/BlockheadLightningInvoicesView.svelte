@@ -117,7 +117,7 @@
 					{@const blockheadLightningInvoiceFields = { ...blockheadLightningInvoice[EntityMetaKey.Selector], ...blockheadLightningInvoice }}
 					{@const blockheadLightningInvoiceHrefFields = { ...blockheadLightningInvoice, ...blockheadLightningInvoice[EntityMetaKey.Selector] }}
 					<BlockheadLightningInvoiceView
-						selection={select(EntityType.BlockheadLightningInvoice, blockheadLightningInvoice[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLightningInvoice, blockheadLightningInvoice[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLightningInvoiceFields}
 						href={
 							(blockheadLightningInvoiceHrefFields.$network !== undefined && blockheadLightningInvoiceHrefFields.$network.slug !== undefined && blockheadLightningInvoiceHrefFields.paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/invoices/[paymentHash]', {

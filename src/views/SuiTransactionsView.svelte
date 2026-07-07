@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiTransaction> })}
 					{@const suiTransactionFields = { ...suiTransaction[EntityMetaKey.Selector], ...suiTransaction }}
 					<SuiTransactionView
-						selection={select(EntityType.SuiTransaction, suiTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiTransaction, suiTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eigenLayerOperator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EigenLayerOperator> })}
 					{@const eigenLayerOperatorFields = { ...eigenLayerOperator[EntityMetaKey.Selector], ...eigenLayerOperator }}
 					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerOperator, eigenLayerOperator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eigenLayerOperatorFields}
 						layout={EntityLayout.Summary}
 						open={false}

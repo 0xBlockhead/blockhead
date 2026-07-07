@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import BlockheadLightningInvoiceView from '$/views/BlockheadLightningInvoiceView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Lightning invoice • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,15 @@
 			})
 		}
 		selection={
-			select(EntityType.BlockheadLightningInvoice, data.selector, {
+			select(EntityType.BlockheadLightningInvoice, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				paymentHash: params.paymentHash,
+			}, {
+				sources: [
+					Source.LightningLnd_Rest,
+				],
 				fields: {
 					memo: true,
 					valueMsat: true,

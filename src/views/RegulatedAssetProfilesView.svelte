@@ -113,7 +113,7 @@
 				{#snippet Item({ item: regulatedAssetProfile }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RegulatedAssetProfile> })}
 					{@const regulatedAssetProfileFields = { ...regulatedAssetProfile[EntityMetaKey.Selector], ...regulatedAssetProfile }}
 					<RegulatedAssetProfileView
-						selection={select(EntityType.RegulatedAssetProfile, regulatedAssetProfile[EntityMetaKey.Selector])}
+						selection={select(EntityType.RegulatedAssetProfile, regulatedAssetProfile[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={regulatedAssetProfileFields}
 						layout={EntityLayout.Summary}
 						open={false}

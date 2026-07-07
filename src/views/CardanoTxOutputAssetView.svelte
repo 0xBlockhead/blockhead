@@ -82,7 +82,7 @@
 				<dt>output</dt>
 				<dd>
 					<CardanoTxOutputView
-						selection={select(EntityType.CardanoTxOutput, selection.entitySelector.$output)}
+						selection={select(EntityType.CardanoTxOutput, selection.entitySelector.$output, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -93,7 +93,7 @@
 				<dt>asset</dt>
 				<dd>
 					<CardanoNativeAssetView
-						selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset)}
+						selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

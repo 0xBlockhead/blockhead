@@ -114,7 +114,7 @@
 				{#snippet Item({ item: litecoinMwebPegOut }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LitecoinMwebPegOut> })}
 					{@const litecoinMwebPegOutFields = { ...litecoinMwebPegOut[EntityMetaKey.Selector], ...litecoinMwebPegOut }}
 					<LitecoinMwebPegOutView
-						selection={select(EntityType.LitecoinMwebPegOut, litecoinMwebPegOut[EntityMetaKey.Selector])}
+						selection={select(EntityType.LitecoinMwebPegOut, litecoinMwebPegOut[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={litecoinMwebPegOutFields}
 						layout={EntityLayout.Summary}
 						open={false}

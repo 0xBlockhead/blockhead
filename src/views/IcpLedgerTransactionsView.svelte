@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpLedgerTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpLedgerTransaction> })}
 					{@const icpLedgerTransactionFields = { ...icpLedgerTransaction[EntityMetaKey.Selector], ...icpLedgerTransaction }}
 					<IcpLedgerTransactionView
-						selection={select(EntityType.IcpLedgerTransaction, icpLedgerTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpLedgerTransaction, icpLedgerTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpLedgerTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

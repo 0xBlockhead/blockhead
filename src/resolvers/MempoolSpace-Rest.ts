@@ -12,7 +12,8 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { UtxoNetworkSelector } from '$/schema/UtxoNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
+import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { UtxoInputSelector } from '$/schema/UtxoInput.ts'
@@ -58,20 +59,18 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.MempoolSpace_Rest, {
-			entityType: EntityType.UtxoNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async ({ $network }) => {
-					assertBitcoinMainnet($network)
+				[NetworkSelector.Slug]: async (network) => {
+					assertBitcoinMainnet(network)
 					return {
-						$network: {
-							[EntityMetaKey.Selector]: $network,
-						},
+						[EntityMetaKey.Selector]: network,
 					}
 				}
 			},
 		})({
 			fields: {
-				$network: (network) => network.$network,
+				slug: (network) => network.slug,
 			},
 		}),
 
@@ -313,26 +312,77 @@ export default {
 		}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
-			entityType: EntityType.UtxoNetwork,
+			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async ({ $network }) => {
+				[Network_TimestampSelector.NetworkTimestampMsSource]: async ({
+					$network,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.MempoolSpace_Rest)
+						throw new Error(`MempoolSpace_Rest: unsupported network timestamp source ${source}`)
+
 					assertBitcoinMainnet($network)
+					const {
+						getBlocks,
+						getMempoolStats,
+						getRecommendedFees,
+					} = await import('$/sources/MempoolSpace/Rest/queries.ts')
+					const [blocks, mempoolStats, fees] = await Promise.all([
+						getBlocks({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl }),
+						getMempoolStats({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl }),
+						getRecommendedFees({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl }),
+					])
+					const block = blocks.at(0)
+					if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
 					return {
-						[EntityMetaKey.Selector]: $network,
+						$network: {
+							[EntityMetaKey.Selector]: $network,
+						},
+						timestampMs,
+						source,
+						bestBlockHeight: BigInt(block.height),
+						bestBlockHash: block.id,
+						mempoolTransactionCount: mempoolStats.count,
+						mempoolSizeBytes: BigInt(Math.ceil(mempoolStats.vsize)),
+						suggestedTransactionFeePerByteSats: fees.hourFee,
 					}
 				}
 			},
 		})({
 			fields: {
-				$network: (network) => network,
+				$network: (timestamp) => timestamp.$network,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
+				bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
+				bestBlockHash: (timestamp) => timestamp.bestBlockHash,
+				mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
+				mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
+				suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
 			},
 		}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
-			entityType: EntityType.UtxoNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async ({ $network }) => {
-					assertBitcoinMainnet($network)
+				[NetworkSelector.Slug]: async (network) => {
+					assertBitcoinMainnet(network)
+					return {
+						[EntityMetaKey.Selector]: network,
+					}
+				}
+			},
+		})({
+			fields: {
+				slug: (network) => network.slug,
+			},
+		}),
+
+		defineResolver(Source.MempoolSpace_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertBitcoinMainnet(network)
 					const {
 						getBlocks,
 						getMempoolStats,
@@ -348,7 +398,7 @@ export default {
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: $network,
+								$network: network,
 								timestampMs: Date.now(),
 								source: Source.MempoolSpace_Rest,
 							},
@@ -368,15 +418,15 @@ export default {
 		}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
-			entityType: EntityType.UtxoNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async ({ $network }, context) => {
-					assertBitcoinMainnet($network)
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertBitcoinMainnet(network)
 					const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 					const blocks = await getBlocks({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl })
 					return blocks.slice(0, resolverContextRowLimit(context)).map((block) => ({
 						[EntityMetaKey.Selector]: {
-							$network: $network,
+							$network: network,
 							height: BigInt(block.height),
 							hash: block.id,
 						},
@@ -385,20 +435,20 @@ export default {
 			},
 		})({
 			fields: {
-				$$blocks: (blocks) => blocks,
+				$$utxoBlocks: (blocks) => blocks,
 			},
 		}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
-			entityType: EntityType.UtxoNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[UtxoNetworkSelector.Network]: async ({ $network }, context) => {
-					assertBitcoinMainnet($network)
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertBitcoinMainnet(network)
 					const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
 					const txids = await getMempoolTxids({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl })
 					return txids.slice(0, resolverContextRowLimit(context)).map((txId) => ({
 						[EntityMetaKey.Selector]: {
-							$network: $network,
+							$network: network,
 							txId,
 						},
 					}))
@@ -406,7 +456,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$transactions: (transactions) => transactions,
+				$$utxoTransactions: (transactions) => transactions,
 			},
 		}),
 

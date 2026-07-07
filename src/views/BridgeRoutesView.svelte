@@ -123,7 +123,7 @@
 					{@const bridgeRouteFields = { ...bridgeRoute[EntityMetaKey.Selector], ...bridgeRoute }}
 					{@const bridgeRouteHrefFields = { ...bridgeRoute, ...bridgeRoute[EntityMetaKey.Selector] }}
 					<BridgeRouteView
-						selection={select(EntityType.BridgeRoute, bridgeRoute[EntityMetaKey.Selector])}
+						selection={select(EntityType.BridgeRoute, bridgeRoute[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bridgeRouteFields}
 						href={
 							(bridgeRouteHrefFields.fromChainId !== undefined && bridgeRouteHrefFields.toChainId !== undefined && bridgeRouteHrefFields.fromToken !== undefined && bridgeRouteHrefFields.toToken !== undefined && bridgeRouteHrefFields.fromAmount !== undefined && bridgeRouteHrefFields.fromAddress !== undefined && bridgeRouteHrefFields.slippage !== undefined && bridgeRouteHrefFields.toAddress !== undefined ? resolve('/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]', {

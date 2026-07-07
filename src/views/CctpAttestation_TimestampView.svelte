@@ -134,7 +134,7 @@
 				<dt>Message</dt>
 				<dd>
 					<CctpMessageView
-						selection={select(EntityType.CctpMessage, selection.entitySelector.$message)}
+						selection={select(EntityType.CctpMessage, selection.entitySelector.$message, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

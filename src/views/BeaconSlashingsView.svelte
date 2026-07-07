@@ -117,7 +117,7 @@
 					{@const beaconSlashingFields = { ...beaconSlashing[EntityMetaKey.Selector], ...beaconSlashing }}
 					{@const beaconSlashingHrefFields = { ...beaconSlashing, ...beaconSlashing[EntityMetaKey.Selector] }}
 					<BeaconSlashingView
-						selection={select(EntityType.BeaconSlashing, beaconSlashing[EntityMetaKey.Selector])}
+						selection={select(EntityType.BeaconSlashing, beaconSlashing[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconSlashingFields}
 						href={
 							(beaconSlashingHrefFields.$network !== undefined && beaconSlashingHrefFields.$network.caip2 !== undefined && beaconSlashingHrefFields.$network.caip2.namespace !== undefined && beaconSlashingHrefFields.$network !== undefined && beaconSlashingHrefFields.$network.caip2 !== undefined && beaconSlashingHrefFields.$network.caip2.reference !== undefined && beaconSlashingHrefFields.slot !== undefined && beaconSlashingHrefFields.kind !== undefined && beaconSlashingHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/slashing/[kind]/[index=nonNegativeInteger]', {

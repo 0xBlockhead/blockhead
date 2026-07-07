@@ -131,7 +131,7 @@
 				<dt>model</dt>
 				<dd>
 					<AiModelView
-						selection={select(EntityType.AiModel, selection.entitySelector.$model)}
+						selection={select(EntityType.AiModel, selection.entitySelector.$model, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

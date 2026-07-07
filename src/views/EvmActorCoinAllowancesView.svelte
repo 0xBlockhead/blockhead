@@ -113,7 +113,7 @@
 				{#snippet Item({ item: evmActorCoinAllowance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmActorCoinAllowance> })}
 					{@const evmActorCoinAllowanceFields = { ...evmActorCoinAllowance[EntityMetaKey.Selector], ...evmActorCoinAllowance }}
 					<EvmActorCoinAllowanceView
-						selection={select(EntityType.EvmActorCoinAllowance, evmActorCoinAllowance[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmActorCoinAllowance, evmActorCoinAllowance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmActorCoinAllowanceFields}
 						layout={EntityLayout.Summary}
 						open={false}

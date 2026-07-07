@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaNetworkFeeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaNetworkFee_Timestamp> })}
 					{@const hederaNetworkFeeTimestampFields = { ...hederaNetworkFeeTimestamp[EntityMetaKey.Selector], ...hederaNetworkFeeTimestamp }}
 					<HederaNetworkFee_TimestampView
-						selection={select(EntityType.HederaNetworkFee_Timestamp, hederaNetworkFeeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaNetworkFee_Timestamp, hederaNetworkFeeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaNetworkFeeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

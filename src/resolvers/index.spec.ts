@@ -35,7 +35,7 @@ import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
 import { EvmBlobSelector } from '$/schema/EvmBlob.ts'
 import { EvmLogSelector } from '$/schema/EvmLog.ts'
 import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
-import { UtxoNetworkSelector } from '$/schema/UtxoNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { UtxoBlockSelector } from '$/schema/UtxoBlock.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { bitcoinNetworkBySlug } from '$/constants/BitcoinNetwork.ts'
@@ -616,7 +616,7 @@ describe('resolver registry live resolver architecture', () => {
 			const appEntity = appEntityByEntityType[entityType]
 
 			return (
-				(appEntity.singularView?.query?.sources?.length ?? 0) > 0
+				(appEntity.views.singular?.query?.sources?.length ?? 0) > 0
 				|| appEntity.fields.some((fieldDefinition) => (
 					(fieldDefinition.defaultSources?.length ?? 0) > 0
 				))
@@ -633,16 +633,16 @@ describe('resolver registry live resolver architecture', () => {
 			sourceBackedExamples: unresolvedSourceBackedEntityTypes.slice(0, 20),
 		}).toEqual({
 			all: {
-				count: 678,
-				sha256: '59007a232ac3800ba12a3fde80de9fe5fdf83fb09de60f0c60f448b82666bb41',
+				count: 673,
+				sha256: 'da8aebcedf6b5daf3b197adb180adc27f6b9d9f8097e7c8c1ce29526dad9c590',
 			},
 			sourceBacked: {
-				count: 224,
-				sha256: 'e1595c444ea85624ede220b31971f13761fe9ec0fe13851e1cdade6a4779e049',
+				count: 222,
+				sha256: '1cbdf9624759c52f9970487fd2138fa076e64a71a717b90d3f53c57092eb24c3',
 			},
 			noDeclaredSource: {
-				count: 454,
-				sha256: 'c299a5fda174f05ad3a19c39eb0d1a063884877141c1a789dd408a139ff25cbe',
+				count: 451,
+				sha256: '558fd5a162f007389cbd546560c2c5dc1db729f218a310cb806de0bee213bd7e',
 			},
 			sourceBackedExamples: [
 				'_GlobalActivityPubNetwork_Timestamp',
@@ -1196,6 +1196,9 @@ describe('resolver registry live resolver architecture', () => {
 		const bitcoinNetworkSelector = {
 			caip2: bitcoinNetworkBySlug.bitcoin.caip2,
 		}
+		const bitcoinNetworkSlugSelector = {
+			slug: 'bitcoin',
+		}
 		const litecoinNetworkSelector = {
 			caip2: bitcoinNetworkBySlug.litecoin.caip2,
 		}
@@ -1381,28 +1384,24 @@ describe('resolver registry live resolver architecture', () => {
 		} of [
 			{
 				source: Source.Blockchair_Rest,
-				entityType: EntityType.UtxoNetwork,
-				selectorName: UtxoNetworkSelector.Network,
-				entitySelector: {
-					$network: bitcoinNetworkSelector,
-				},
-				fieldName: '$$blocks',
+				entityType: EntityType.Network,
+				selectorName: NetworkSelector.Slug,
+				entitySelector: bitcoinNetworkSlugSelector,
+				fieldName: '$$utxoBlocks',
 				expectedSelectors: [{
-					$network: bitcoinNetworkSelector,
+					$network: bitcoinNetworkSlugSelector,
 					height: 840_000n,
 					hash: '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5',
 				}],
 			},
 			{
 				source: Source.Blockchair_Rest,
-				entityType: EntityType.UtxoNetwork,
-				selectorName: UtxoNetworkSelector.Network,
-				entitySelector: {
-					$network: bitcoinNetworkSelector,
-				},
-				fieldName: '$$transactions',
+				entityType: EntityType.Network,
+				selectorName: NetworkSelector.Slug,
+				entitySelector: bitcoinNetworkSlugSelector,
+				fieldName: '$$utxoTransactions',
 				expectedSelectors: [{
-					$network: bitcoinNetworkSelector,
+					$network: bitcoinNetworkSlugSelector,
 					txId: 'blockchair-network-transaction',
 				}],
 			},
@@ -1457,28 +1456,24 @@ describe('resolver registry live resolver architecture', () => {
 			},
 			{
 				source: Source.MempoolSpace_Rest,
-				entityType: EntityType.UtxoNetwork,
-				selectorName: UtxoNetworkSelector.Network,
-				entitySelector: {
-					$network: bitcoinNetworkSelector,
-				},
-				fieldName: '$$blocks',
+				entityType: EntityType.Network,
+				selectorName: NetworkSelector.Slug,
+				entitySelector: bitcoinNetworkSlugSelector,
+				fieldName: '$$utxoBlocks',
 				expectedSelectors: [{
-					$network: bitcoinNetworkSelector,
+					$network: bitcoinNetworkSlugSelector,
 					height: 840_000n,
 					hash: '0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5',
 				}],
 			},
 			{
 				source: Source.MempoolSpace_Rest,
-				entityType: EntityType.UtxoNetwork,
-				selectorName: UtxoNetworkSelector.Network,
-				entitySelector: {
-					$network: bitcoinNetworkSelector,
-				},
-				fieldName: '$$transactions',
+				entityType: EntityType.Network,
+				selectorName: NetworkSelector.Slug,
+				entitySelector: bitcoinNetworkSlugSelector,
+				fieldName: '$$utxoTransactions',
 				expectedSelectors: [{
-					$network: bitcoinNetworkSelector,
+					$network: bitcoinNetworkSlugSelector,
 					txId: 'mempoolspace-network-transaction',
 				}],
 			},

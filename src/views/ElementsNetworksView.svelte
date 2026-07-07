@@ -113,7 +113,7 @@
 				{#snippet Item({ item: elementsNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ElementsNetwork> })}
 					{@const elementsNetworkFields = { ...elementsNetwork[EntityMetaKey.Selector], ...elementsNetwork }}
 					<ElementsNetworkView
-						selection={select(EntityType.ElementsNetwork, elementsNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.ElementsNetwork, elementsNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={elementsNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

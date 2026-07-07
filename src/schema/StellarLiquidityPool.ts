@@ -64,7 +64,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StellarLiquidityPool_Timestamp,

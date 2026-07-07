@@ -82,7 +82,7 @@
 				<dt>pool</dt>
 				<dd>
 					<CardanoStakePoolView
-						selection={select(EntityType.CardanoStakePool, selection.entitySelector.$pool)}
+						selection={select(EntityType.CardanoStakePool, selection.entitySelector.$pool, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -374,7 +374,7 @@
 						{#snippet Pending()}
 							{@const owners = prefetched.owners}
 							{#if owners !== undefined && owners !== null}
-								{(owners?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{owners.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -382,7 +382,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const owners = resolvedEntity.owners}
 							{#if owners !== undefined && owners !== null}
-								{(owners?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{owners.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

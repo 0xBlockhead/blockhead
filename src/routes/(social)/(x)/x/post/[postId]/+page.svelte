@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>X post • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<XPostView
 		href={
@@ -37,7 +32,13 @@
 			})
 		}
 		selection={
-			select(EntityType.XPost, data.selector, {
+			select(EntityType.XPost, {
+				id: decodeURIComponent(params.postId),
+			}, {
+				sources: [
+					Source.X_Rest,
+					Source.X_FxEmbed_Rest,
+				],
 				fields: {
 					text: true,
 					createdAt: true,

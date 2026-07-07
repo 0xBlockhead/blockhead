@@ -288,7 +288,7 @@
 				<dt>From instance</dt>
 				<dd>
 					<EvmCoinInstanceView
-						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$fromInstance)}
+						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$fromInstance, {})}
 						href={
 							(selection.entitySelector.$fromInstance.$network !== undefined && selection.entitySelector.$fromInstance.$network.caip2 !== undefined && selection.entitySelector.$fromInstance.$network.caip2.reference !== undefined && (selection.entitySelector.$fromInstance.type !== undefined && (selection.entitySelector.$fromInstance.type === 'NativeCurrency' ? true : selection.entitySelector.$fromInstance.$contract !== undefined && selection.entitySelector.$fromInstance.$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
 								chainId: String(selection.entitySelector.$fromInstance.$network.caip2.reference ?? ''),
@@ -305,7 +305,7 @@
 				<dt>To instance</dt>
 				<dd>
 					<EvmCoinInstanceView
-						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$toInstance)}
+						selection={select(EntityType.EvmCoinInstance, selection.entitySelector.$toInstance, {})}
 						href={
 							(selection.entitySelector.$toInstance.$network !== undefined && selection.entitySelector.$toInstance.$network.caip2 !== undefined && selection.entitySelector.$toInstance.$network.caip2.reference !== undefined && (selection.entitySelector.$toInstance.type !== undefined && (selection.entitySelector.$toInstance.type === 'NativeCurrency' ? true : selection.entitySelector.$toInstance.$contract !== undefined && selection.entitySelector.$toInstance.$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
 								chainId: String(selection.entitySelector.$toInstance.$network.caip2.reference ?? ''),

@@ -112,7 +112,7 @@
 				{#snippet Item({ item: aptosNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosNetwork> })}
 					{@const aptosNetworkFields = { ...aptosNetwork[EntityMetaKey.Selector], ...aptosNetwork }}
 					<AptosNetworkView
-						selection={select(EntityType.AptosNetwork, aptosNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosNetwork, aptosNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

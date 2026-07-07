@@ -115,7 +115,7 @@
 					{@const mevBuilderFields = { ...mevBuilder[EntityMetaKey.Selector], ...mevBuilder }}
 					{@const mevBuilderHrefFields = { ...mevBuilder, ...mevBuilder[EntityMetaKey.Selector] }}
 					<MevBuilderView
-						selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector])}
+						selection={select(EntityType.MevBuilder, mevBuilder[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mevBuilderFields}
 						href={
 							(mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.caip2 !== undefined && mevBuilderHrefFields.$network.caip2.namespace !== undefined && mevBuilderHrefFields.$network !== undefined && mevBuilderHrefFields.$network.caip2 !== undefined && mevBuilderHrefFields.$network.caip2.reference !== undefined && mevBuilderHrefFields.builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {

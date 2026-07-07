@@ -115,7 +115,7 @@
 				{#snippet Item({ item: celestiaNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CelestiaNetwork_Timestamp> })}
 					{@const celestiaNetworkTimestampFields = { ...celestiaNetworkTimestamp[EntityMetaKey.Selector], ...celestiaNetworkTimestamp }}
 					<CelestiaNetwork_TimestampView
-						selection={select(EntityType.CelestiaNetwork_Timestamp, celestiaNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CelestiaNetwork_Timestamp, celestiaNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={celestiaNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: xrplLedgerEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplLedgerEntry> })}
 					{@const xrplLedgerEntryFields = { ...xrplLedgerEntry[EntityMetaKey.Selector], ...xrplLedgerEntry }}
 					<XrplLedgerEntryView
-						selection={select(EntityType.XrplLedgerEntry, xrplLedgerEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.XrplLedgerEntry, xrplLedgerEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xrplLedgerEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

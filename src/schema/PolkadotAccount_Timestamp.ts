@@ -2,6 +2,7 @@
 
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum PolkadotAccount_TimestampSelector {
@@ -51,6 +52,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.SubstrateSidecar_Rest,
+			],
 		},
 		{
 			name: 'freeBalancePlancks',
@@ -58,6 +62,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.SubstrateSidecar_Rest,
+			],
 		},
 	],
 } as const satisfies EntityDefinition

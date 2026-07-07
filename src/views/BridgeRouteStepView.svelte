@@ -257,11 +257,6 @@
 								<EvmNetworkView
 									selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
 									prefetched={evmNetwork}
-									href={
-										(evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.namespace !== undefined && evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(evmNetwork[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(evmNetwork[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -282,11 +277,6 @@
 								<EvmNetworkView
 									selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
 									prefetched={evmNetwork}
-									href={
-										(evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.namespace !== undefined && evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(evmNetwork[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(evmNetwork[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -494,7 +484,7 @@
 				<dt>Route</dt>
 				<dd>
 					<BridgeRouteView
-						selection={select(EntityType.BridgeRoute, selection.entitySelector.$route)}
+						selection={select(EntityType.BridgeRoute, selection.entitySelector.$route, {})}
 						href={
 							(selection.entitySelector.$route.fromChainId !== undefined && selection.entitySelector.$route.toChainId !== undefined && selection.entitySelector.$route.fromToken !== undefined && selection.entitySelector.$route.toToken !== undefined && selection.entitySelector.$route.fromAmount !== undefined && selection.entitySelector.$route.fromAddress !== undefined && selection.entitySelector.$route.slippage !== undefined && selection.entitySelector.$route.toAddress !== undefined ? resolve('/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]', {
 								fromChainId: String(selection.entitySelector.$route.fromChainId ?? ''),

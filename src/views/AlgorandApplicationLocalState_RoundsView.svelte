@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandApplicationLocalStateRound }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandApplicationLocalState_Round> })}
 					{@const algorandApplicationLocalStateRoundFields = { ...algorandApplicationLocalStateRound[EntityMetaKey.Selector], ...algorandApplicationLocalStateRound }}
 					<AlgorandApplicationLocalState_RoundView
-						selection={select(EntityType.AlgorandApplicationLocalState_Round, algorandApplicationLocalStateRound[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandApplicationLocalState_Round, algorandApplicationLocalStateRound[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandApplicationLocalStateRoundFields}
 						layout={EntityLayout.Summary}
 						open={false}

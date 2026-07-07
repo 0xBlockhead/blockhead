@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpSubnetCanisterRangeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpSubnetCanisterRange_Timestamp> })}
 					{@const icpSubnetCanisterRangeTimestampFields = { ...icpSubnetCanisterRangeTimestamp[EntityMetaKey.Selector], ...icpSubnetCanisterRangeTimestamp }}
 					<IcpSubnetCanisterRange_TimestampView
-						selection={select(EntityType.IcpSubnetCanisterRange_Timestamp, icpSubnetCanisterRangeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpSubnetCanisterRange_Timestamp, icpSubnetCanisterRangeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpSubnetCanisterRangeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

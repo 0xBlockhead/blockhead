@@ -63,7 +63,14 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					$network: true,
+					$$timestamps: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -104,9 +111,9 @@
 				{/snippet}
 
 				{#snippet Item({ item: xrplNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplNetwork> })}
-					{@const xrplNetworkFields = { ...xrplNetwork[EntityMetaKey.Selector], ...xrplNetwork }}
+					{@const xrplNetworkFields = { ...xrplNetwork[EntityMetaKey.Selector], ...xrplNetwork, $$timestamps: xrplNetwork.$$timestamps }}
 					<XrplNetworkView
-						selection={select(EntityType.XrplNetwork, xrplNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.XrplNetwork, xrplNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xrplNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

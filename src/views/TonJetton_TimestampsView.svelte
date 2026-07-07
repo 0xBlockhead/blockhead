@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonJettonTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonJetton_Timestamp> })}
 					{@const tonJettonTimestampFields = { ...tonJettonTimestamp[EntityMetaKey.Selector], ...tonJettonTimestamp }}
 					<TonJetton_TimestampView
-						selection={select(EntityType.TonJetton_Timestamp, tonJettonTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonJetton_Timestamp, tonJettonTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonJettonTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

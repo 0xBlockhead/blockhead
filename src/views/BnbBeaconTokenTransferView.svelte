@@ -132,7 +132,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<BnbBeaconTransactionView
-						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.BnbBeaconTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

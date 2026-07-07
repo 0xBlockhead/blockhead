@@ -113,7 +113,7 @@
 				{#snippet Item({ item: globalRssNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalRssNetwork_Timestamp> })}
 					{@const globalRssNetworkTimestampFields = { ...globalRssNetworkTimestamp[EntityMetaKey.Selector], ...globalRssNetworkTimestamp }}
 					<GlobalRssNetwork_TimestampView
-						selection={select(EntityType._GlobalRssNetwork_Timestamp, globalRssNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalRssNetwork_Timestamp, globalRssNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalRssNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

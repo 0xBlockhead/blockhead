@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpAgentRuntimeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpAgentRuntime_Timestamp> })}
 					{@const acpAgentRuntimeTimestampFields = { ...acpAgentRuntimeTimestamp[EntityMetaKey.Selector], ...acpAgentRuntimeTimestamp }}
 					<AcpAgentRuntime_TimestampView
-						selection={select(EntityType.AcpAgentRuntime_Timestamp, acpAgentRuntimeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpAgentRuntime_Timestamp, acpAgentRuntimeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpAgentRuntimeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

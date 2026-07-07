@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaTopicMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaTopicMessage> })}
 					{@const hederaTopicMessageFields = { ...hederaTopicMessage[EntityMetaKey.Selector], ...hederaTopicMessage }}
 					<HederaTopicMessageView
-						selection={select(EntityType.HederaTopicMessage, hederaTopicMessage[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaTopicMessage, hederaTopicMessage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaTopicMessageFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -108,7 +108,7 @@
 					{@const globalIpfsAccessFields = { ...globalIpfsAccess[EntityMetaKey.Selector], ...globalIpfsAccess }}
 					{@const globalIpfsAccessHrefFields = { ...globalIpfsAccess, ...globalIpfsAccess[EntityMetaKey.Selector] }}
 					<GlobalIpfsAccessView
-						selection={select(EntityType._GlobalIpfsAccess, globalIpfsAccess[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalIpfsAccess, globalIpfsAccess[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalIpfsAccessFields}
 						href={resolve('/(explore)/(ipfs)/ipfs/access')}
 						layout={EntityLayout.Title}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bnbBeaconTokenMigration }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BnbBeaconTokenMigration> })}
 					{@const bnbBeaconTokenMigrationFields = { ...bnbBeaconTokenMigration[EntityMetaKey.Selector], ...bnbBeaconTokenMigration }}
 					<BnbBeaconTokenMigrationView
-						selection={select(EntityType.BnbBeaconTokenMigration, bnbBeaconTokenMigration[EntityMetaKey.Selector])}
+						selection={select(EntityType.BnbBeaconTokenMigration, bnbBeaconTokenMigration[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bnbBeaconTokenMigrationFields}
 						layout={EntityLayout.Summary}
 						open={false}

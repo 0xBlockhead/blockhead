@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import CosmosMessageView from '$/views/CosmosMessageView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Cosmos message • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +34,15 @@
 			})
 		}
 		selection={
-			select(EntityType.CosmosMessage, data.selector, {
+			select(EntityType.CosmosMessage, {
+				$transaction: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					txHash: decodeURIComponent(params.txHash),
+				},
+				indexInTransaction: Number(params.messageIndex),
+			}, {
 				fields: {
 					typeUrl: true,
 					moduleName: true,

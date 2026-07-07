@@ -107,7 +107,7 @@
 				<dt>keyset</dt>
 				<dd>
 					<CashuKeysetView
-						selection={select(EntityType.CashuKeyset, selection.entitySelector.$keyset)}
+						selection={select(EntityType.CashuKeyset, selection.entitySelector.$keyset, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

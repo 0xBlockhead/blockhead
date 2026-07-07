@@ -116,7 +116,7 @@
 					{@const beaconAttestationFields = { ...beaconAttestation[EntityMetaKey.Selector], ...beaconAttestation }}
 					{@const beaconAttestationHrefFields = { ...beaconAttestation, ...beaconAttestation[EntityMetaKey.Selector] }}
 					<BeaconAttestationView
-						selection={select(EntityType.BeaconAttestation, beaconAttestation[EntityMetaKey.Selector])}
+						selection={select(EntityType.BeaconAttestation, beaconAttestation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconAttestationFields}
 						href={
 							(beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.caip2 !== undefined && beaconAttestationHrefFields.$network.caip2.namespace !== undefined && beaconAttestationHrefFields.$network !== undefined && beaconAttestationHrefFields.$network.caip2 !== undefined && beaconAttestationHrefFields.$network.caip2.reference !== undefined && beaconAttestationHrefFields.slot !== undefined && beaconAttestationHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/attestation/[index=nonNegativeInteger]', {

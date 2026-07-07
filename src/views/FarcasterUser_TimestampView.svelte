@@ -122,7 +122,7 @@
 				<dt>User</dt>
 				<dd>
 					<FarcasterUserView
-						selection={select(EntityType.FarcasterUser, selection.entitySelector.$user)}
+						selection={select(EntityType.FarcasterUser, selection.entitySelector.$user, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

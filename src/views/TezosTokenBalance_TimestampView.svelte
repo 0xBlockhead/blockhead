@@ -83,7 +83,7 @@
 				<dt>account</dt>
 				<dd>
 					<TezosAccountView
-						selection={select(EntityType.TezosAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.TezosAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,7 +94,7 @@
 				<dt>token</dt>
 				<dd>
 					<TezosTokenView
-						selection={select(EntityType.TezosToken, selection.entitySelector.$token)}
+						selection={select(EntityType.TezosToken, selection.entitySelector.$token, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

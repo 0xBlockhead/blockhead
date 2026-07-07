@@ -114,7 +114,7 @@
 				{#snippet Item({ item: evmStorageReadTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmStorageRead_Timestamp> })}
 					{@const evmStorageReadTimestampFields = { ...evmStorageReadTimestamp[EntityMetaKey.Selector], ...evmStorageReadTimestamp }}
 					<EvmStorageRead_TimestampView
-						selection={select(EntityType.EvmStorageRead_Timestamp, evmStorageReadTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmStorageRead_Timestamp, evmStorageReadTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmStorageReadTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

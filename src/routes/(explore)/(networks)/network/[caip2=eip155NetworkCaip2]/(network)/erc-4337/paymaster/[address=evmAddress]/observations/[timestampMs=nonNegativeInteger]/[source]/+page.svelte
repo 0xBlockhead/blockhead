@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import Erc4337Paymaster_TimestampView from '$/views/Erc4337Paymaster_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>ERC-4337 paymaster timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,8 +35,26 @@
 			})
 		}
 		selection={
-			select(EntityType.Erc4337Paymaster_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.Erc4337Paymaster_Timestamp, {
+				$paymaster: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					address: decodeURIComponent(params.address),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$paymaster: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					address: decodeURIComponent(params.address),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					userOperationsCount: true,
 				},

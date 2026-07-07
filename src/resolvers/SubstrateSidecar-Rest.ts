@@ -13,7 +13,7 @@ import { PolkadotEventSelector } from '$/schema/PolkadotEvent.ts'
 import { PolkadotAccountSelector } from '$/schema/PolkadotAccount.ts'
 import { PolkadotAccount_TimestampSelector } from '$/schema/PolkadotAccount_Timestamp.ts'
 import { PolkadotPalletSelector } from '$/schema/PolkadotPallet.ts'
-import { PolkadotNetworkSelector } from '$/schema/PolkadotNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 
 type SidecarBlockEvent = {
 	method: string
@@ -383,10 +383,10 @@ export default {
 		}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
-			entityType: EntityType.PolkadotNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async (entitySelector) => {
-					assertPolkadotMainnet(entitySelector)
+				[NetworkSelector.Slug]: async (network) => {
+					assertPolkadotMainnet(network)
 					const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
 					return ((await getStakingValidators({ restBaseUrl: await substrateSidecarRestBaseUrl() })).validators ?? [])
 						.slice(0, 64)
@@ -398,7 +398,7 @@ export default {
 							[
 								{
 									[EntityMetaKey.Selector]: {
-										$network: entitySelector.$network,
+										$network: network,
 										stashAccountId,
 									},
 								},
@@ -408,7 +408,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$validators: (validators) => validators.map((validator) => ({
+				$$polkadotValidators: (validators) => validators.map((validator) => ({
 					[EntityMetaKey.Selector]: validator[EntityMetaKey.Selector],
 				})),
 			},

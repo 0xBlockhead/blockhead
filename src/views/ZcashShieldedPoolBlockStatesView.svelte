@@ -113,7 +113,7 @@
 				{#snippet Item({ item: zcashShieldedPoolBlockState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZcashShieldedPoolBlockState> })}
 					{@const zcashShieldedPoolBlockStateFields = { ...zcashShieldedPoolBlockState[EntityMetaKey.Selector], ...zcashShieldedPoolBlockState }}
 					<ZcashShieldedPoolBlockStateView
-						selection={select(EntityType.ZcashShieldedPoolBlockState, zcashShieldedPoolBlockState[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZcashShieldedPoolBlockState, zcashShieldedPoolBlockState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zcashShieldedPoolBlockStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

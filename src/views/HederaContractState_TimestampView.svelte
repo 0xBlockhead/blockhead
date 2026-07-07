@@ -81,7 +81,7 @@
 				<dt>contract</dt>
 				<dd>
 					<HederaContractView
-						selection={select(EntityType.HederaContract, selection.entitySelector.$contract)}
+						selection={select(EntityType.HederaContract, selection.entitySelector.$contract, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

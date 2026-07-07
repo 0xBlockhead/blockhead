@@ -383,7 +383,7 @@
 				<dt>Rollup</dt>
 				<dd>
 					<EvmRollupView
-						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup)}
+						selection={select(EntityType.EvmRollup, selection.entitySelector.$rollup, {})}
 						href={
 							(selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.namespace !== undefined && selection.entitySelector.$rollup.$network !== undefined && selection.entitySelector.$rollup.$network.caip2 !== undefined && selection.entitySelector.$rollup.$network.caip2.reference !== undefined && selection.entitySelector.$rollup.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
 								caip2: `${String(selection.entitySelector.$rollup.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$rollup.$network.caip2.reference ?? '')}`,

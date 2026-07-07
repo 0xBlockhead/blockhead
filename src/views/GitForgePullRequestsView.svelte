@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitForgePullRequest }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitForgePullRequest> })}
 					{@const gitForgePullRequestFields = { ...gitForgePullRequest[EntityMetaKey.Selector], ...gitForgePullRequest }}
 					<GitForgePullRequestView
-						selection={select(EntityType.GitForgePullRequest, gitForgePullRequest[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitForgePullRequest, gitForgePullRequest[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitForgePullRequestFields}
 						layout={EntityLayout.Summary}
 						open={false}

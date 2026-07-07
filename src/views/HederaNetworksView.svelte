@@ -63,7 +63,15 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					$network: true,
+					shard: true,
+					realm: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -106,7 +114,7 @@
 				{#snippet Item({ item: hederaNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaNetwork> })}
 					{@const hederaNetworkFields = { ...hederaNetwork[EntityMetaKey.Selector], ...hederaNetwork }}
 					<HederaNetworkView
-						selection={select(EntityType.HederaNetwork, hederaNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaNetwork, hederaNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

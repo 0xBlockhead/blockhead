@@ -108,7 +108,7 @@
 					{@const globalSwarmAccessFields = { ...globalSwarmAccess[EntityMetaKey.Selector], ...globalSwarmAccess }}
 					{@const globalSwarmAccessHrefFields = { ...globalSwarmAccess, ...globalSwarmAccess[EntityMetaKey.Selector] }}
 					<GlobalSwarmAccessView
-						selection={select(EntityType._GlobalSwarmAccess, globalSwarmAccess[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalSwarmAccess, globalSwarmAccess[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalSwarmAccessFields}
 						href={resolve('/(explore)/(swarm)/swarm/access')}
 						layout={EntityLayout.Title}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bnbValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BnbValidator> })}
 					{@const bnbValidatorFields = { ...bnbValidator[EntityMetaKey.Selector], ...bnbValidator }}
 					<BnbValidatorView
-						selection={select(EntityType.BnbValidator, bnbValidator[EntityMetaKey.Selector])}
+						selection={select(EntityType.BnbValidator, bnbValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bnbValidatorFields}
 						layout={EntityLayout.Summary}
 						open={false}

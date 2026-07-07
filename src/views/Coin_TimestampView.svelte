@@ -473,7 +473,7 @@
 				<dt>Coin</dt>
 				<dd>
 					<CoinView
-						selection={select(EntityType.Coin, selection.entitySelector.$coin)}
+						selection={select(EntityType.Coin, selection.entitySelector.$coin, {})}
 						href={
 							(selection.entitySelector.$coin.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
 								coinId: String(selection.entitySelector.$coin.coinId ?? ''),

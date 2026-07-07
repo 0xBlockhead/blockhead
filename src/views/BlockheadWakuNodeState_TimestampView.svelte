@@ -135,7 +135,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadWakuNodeStateView
-						selection={select(EntityType.BlockheadWakuNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadWakuNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -324,7 +324,7 @@
 						{#snippet Pending()}
 							{@const listenAddresses = prefetched.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -332,7 +332,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const listenAddresses = resolvedEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -582,7 +582,7 @@
 						{#snippet Pending()}
 							{@const subscribedPubsubTopics = prefetched.subscribedPubsubTopics}
 							{#if subscribedPubsubTopics !== undefined && subscribedPubsubTopics !== null}
-								{(subscribedPubsubTopics?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{subscribedPubsubTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -590,7 +590,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const subscribedPubsubTopics = resolvedEntity.subscribedPubsubTopics}
 							{#if subscribedPubsubTopics !== undefined && subscribedPubsubTopics !== null}
-								{(subscribedPubsubTopics?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{subscribedPubsubTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -612,7 +612,7 @@
 						{#snippet Pending()}
 							{@const subscribedContentTopics = prefetched.subscribedContentTopics}
 							{#if subscribedContentTopics !== undefined && subscribedContentTopics !== null}
-								{(subscribedContentTopics?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{subscribedContentTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -620,7 +620,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const subscribedContentTopics = resolvedEntity.subscribedContentTopics}
 							{#if subscribedContentTopics !== undefined && subscribedContentTopics !== null}
-								{(subscribedContentTopics?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{subscribedContentTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

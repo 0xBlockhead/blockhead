@@ -82,7 +82,7 @@
 				<dt>big map</dt>
 				<dd>
 					<TezosBigMapView
-						selection={select(EntityType.TezosBigMap, selection.entitySelector.$bigMap)}
+						selection={select(EntityType.TezosBigMap, selection.entitySelector.$bigMap, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

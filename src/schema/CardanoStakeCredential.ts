@@ -50,14 +50,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$delegationEpochs',
+			name: '$$delegationEpochs',
 			label: 'delegation epochs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CardanoStakeDelegation_Epoch,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$addresses',
+			name: '$$addresses',
 			label: 'addresses',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CardanoAddress,

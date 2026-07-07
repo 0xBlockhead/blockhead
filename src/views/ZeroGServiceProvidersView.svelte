@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGServiceProvider }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGServiceProvider> })}
 					{@const zeroGServiceProviderFields = { ...zeroGServiceProvider[EntityMetaKey.Selector], ...zeroGServiceProvider }}
 					<ZeroGServiceProviderView
-						selection={select(EntityType.ZeroGServiceProvider, zeroGServiceProvider[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGServiceProvider, zeroGServiceProvider[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGServiceProviderFields}
 						layout={EntityLayout.Summary}
 						open={false}

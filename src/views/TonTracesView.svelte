@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonTrace }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonTrace> })}
 					{@const tonTraceFields = { ...tonTrace[EntityMetaKey.Selector], ...tonTrace }}
 					<TonTraceView
-						selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonTrace, tonTrace[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonTraceFields}
 						layout={EntityLayout.Summary}
 						open={false}

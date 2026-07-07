@@ -120,7 +120,7 @@
 					{@const evmNftFields = { ...evmNft[EntityMetaKey.Selector], ...evmNft }}
 					{@const evmNftHrefFields = { ...evmNft, ...evmNft[EntityMetaKey.Selector] }}
 					<EvmNftView
-						selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmNft, evmNft[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNftFields}
 						href={
 							(evmNftHrefFields.$contract !== undefined && evmNftHrefFields.$contract.$network !== undefined && evmNftHrefFields.$contract.$network.caip2 !== undefined && evmNftHrefFields.$contract.$network.caip2.reference !== undefined && evmNftHrefFields.$contract !== undefined && evmNftHrefFields.$contract.address !== undefined && evmNftHrefFields.tokenId !== undefined ? resolve('/services/agent/[chainId=eip155ChainId]/[contractAddress=evmAddress]/[tokenId]', {

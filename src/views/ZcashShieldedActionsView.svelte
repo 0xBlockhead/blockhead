@@ -120,7 +120,7 @@
 					{@const zcashShieldedActionFields = { ...zcashShieldedAction[EntityMetaKey.Selector], ...zcashShieldedAction }}
 					{@const zcashShieldedActionHrefFields = { ...zcashShieldedAction, ...zcashShieldedAction[EntityMetaKey.Selector] }}
 					<ZcashShieldedActionView
-						selection={select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZcashShieldedAction, zcashShieldedAction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zcashShieldedActionFields}
 						href={
 							(zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.$network !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2 !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2.namespace !== undefined && zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.$network !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2 !== undefined && zcashShieldedActionHrefFields.$transaction.$network.caip2.reference !== undefined && zcashShieldedActionHrefFields.$transaction !== undefined && zcashShieldedActionHrefFields.$transaction.txId !== undefined && zcashShieldedActionHrefFields.pool !== undefined && zcashShieldedActionHrefFields.actionKind !== undefined && zcashShieldedActionHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/shielded-action/[pool]/[actionKind]/[actionIndex=nonNegativeInteger]', {

@@ -83,7 +83,7 @@
 				<dt>application</dt>
 				<dd>
 					<AlgorandApplicationView
-						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application)}
+						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

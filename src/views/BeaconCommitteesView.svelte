@@ -116,7 +116,7 @@
 					{@const beaconCommitteeFields = { ...beaconCommittee[EntityMetaKey.Selector], ...beaconCommittee }}
 					{@const beaconCommitteeHrefFields = { ...beaconCommittee, ...beaconCommittee[EntityMetaKey.Selector] }}
 					<BeaconCommitteeView
-						selection={select(EntityType.BeaconCommittee, beaconCommittee[EntityMetaKey.Selector])}
+						selection={select(EntityType.BeaconCommittee, beaconCommittee[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconCommitteeFields}
 						href={
 							(beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.caip2 !== undefined && beaconCommitteeHrefFields.$network.caip2.namespace !== undefined && beaconCommitteeHrefFields.$network !== undefined && beaconCommitteeHrefFields.$network.caip2 !== undefined && beaconCommitteeHrefFields.$network.caip2.reference !== undefined && beaconCommitteeHrefFields.slot !== undefined && beaconCommitteeHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/committee/[index=nonNegativeInteger]', {

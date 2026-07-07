@@ -114,7 +114,7 @@
 				{#snippet Item({ item: cctpAllowance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CctpAllowance> })}
 					{@const cctpAllowanceFields = { ...cctpAllowance[EntityMetaKey.Selector], ...cctpAllowance }}
 					<CctpAllowanceView
-						selection={select(EntityType.CctpAllowance, cctpAllowance[EntityMetaKey.Selector])}
+						selection={select(EntityType.CctpAllowance, cctpAllowance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cctpAllowanceFields}
 						layout={EntityLayout.Summary}
 						open={false}

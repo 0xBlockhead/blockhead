@@ -403,7 +403,7 @@
 				<dt>Validator</dt>
 				<dd>
 					<CosmosValidatorView
-						selection={select(EntityType.CosmosValidator, selection.entitySelector.$validator)}
+						selection={select(EntityType.CosmosValidator, selection.entitySelector.$validator, {})}
 						href={
 							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.namespace !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.reference !== undefined && selection.entitySelector.$validator.operatorAddress !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {
 								caip2: `${String(selection.entitySelector.$validator.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$validator.$network.caip2.reference ?? '')}`,

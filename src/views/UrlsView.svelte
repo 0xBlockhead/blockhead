@@ -114,7 +114,7 @@
 					{@const urlFields = { ...url[EntityMetaKey.Selector], ...url }}
 					{@const urlHrefFields = { ...url, ...url[EntityMetaKey.Selector] }}
 					<UrlView
-						selection={select(EntityType.Url, url[EntityMetaKey.Selector])}
+						selection={select(EntityType.Url, url[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={urlFields}
 						href={
 							(urlHrefFields.url !== undefined ? resolve('/(explore)/url/[url]', {

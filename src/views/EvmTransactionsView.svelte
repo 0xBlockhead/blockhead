@@ -115,7 +115,7 @@
 					{@const evmTransactionFields = { ...evmTransaction[EntityMetaKey.Selector], ...evmTransaction }}
 					{@const evmTransactionHrefFields = { ...evmTransaction, ...evmTransaction[EntityMetaKey.Selector] }}
 					<EvmTransactionView
-						selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmTransaction, evmTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmTransactionFields}
 						href={
 							(evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.caip2 !== undefined && evmTransactionHrefFields.$network.caip2.namespace !== undefined && evmTransactionHrefFields.$network !== undefined && evmTransactionHrefFields.$network.caip2 !== undefined && evmTransactionHrefFields.$network.caip2.reference !== undefined && evmTransactionHrefFields.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {

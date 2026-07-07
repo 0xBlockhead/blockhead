@@ -39,7 +39,7 @@
 		}
 		title='Block explorers'
 		selection={
-			select(EntityType.EvmNetwork, {
+			select(EntityType.Network, {
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 			})[EntityProxyField]<EntityType.Url>('$$blockExplorerUrls')
 		}

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: moneroNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoneroNetwork_Timestamp> })}
 					{@const moneroNetworkTimestampFields = { ...moneroNetworkTimestamp[EntityMetaKey.Selector], ...moneroNetworkTimestamp }}
 					<MoneroNetwork_TimestampView
-						selection={select(EntityType.MoneroNetwork_Timestamp, moneroNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoneroNetwork_Timestamp, moneroNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moneroNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

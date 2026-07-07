@@ -113,7 +113,7 @@
 				{#snippet Item({ item: gitForgeRelease }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitForgeRelease> })}
 					{@const gitForgeReleaseFields = { ...gitForgeRelease[EntityMetaKey.Selector], ...gitForgeRelease }}
 					<GitForgeReleaseView
-						selection={select(EntityType.GitForgeRelease, gitForgeRelease[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitForgeRelease, gitForgeRelease[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitForgeReleaseFields}
 						layout={EntityLayout.Summary}
 						open={false}

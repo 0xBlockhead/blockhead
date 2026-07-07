@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eip7702Authorization }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip7702Authorization> })}
 					{@const eip7702AuthorizationFields = { ...eip7702Authorization[EntityMetaKey.Selector], ...eip7702Authorization }}
 					<Eip7702AuthorizationView
-						selection={select(EntityType.Eip7702Authorization, eip7702Authorization[EntityMetaKey.Selector])}
+						selection={select(EntityType.Eip7702Authorization, eip7702Authorization[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eip7702AuthorizationFields}
 						layout={EntityLayout.Summary}
 						open={false}

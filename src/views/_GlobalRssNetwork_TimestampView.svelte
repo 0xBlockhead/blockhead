@@ -116,7 +116,7 @@
 				<dt>hub</dt>
 				<dd>
 					<GlobalRssNetworkView
-						selection={select(EntityType._GlobalRssNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalRssNetwork, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

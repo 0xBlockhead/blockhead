@@ -141,7 +141,7 @@
 				<dt>Network</dt>
 				<dd>
 					<NearNetworkView
-						selection={select(EntityType.NearNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.NearNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -74,6 +74,7 @@ declare global {
 		__blockheadClientProbe?: ClientProbe
 		__blockheadPersistenceTrace?: PersistenceTraceEvent[]
 		__blockheadWaSqliteDatabaseNameOverride?: string
+		__blockheadWaSqliteVfsNameOverride?: string
 		__blockheadPersistedCollectionSchemaVersionOverride?: number
 	}
 }
@@ -85,6 +86,15 @@ export const e2eDatabaseName = (
 		window.__blockheadWaSqliteDatabaseNameOverride ?? defaultDatabaseName
 	:
 		defaultDatabaseName
+)
+
+export const e2eVfsName = (
+	defaultVfsName?: string
+) => (
+	typeof window !== 'undefined' ?
+		window.__blockheadWaSqliteVfsNameOverride ?? defaultVfsName
+	:
+		defaultVfsName
 )
 
 export const e2eSchemaVersion = (

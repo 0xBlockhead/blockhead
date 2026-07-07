@@ -137,7 +137,7 @@
 				<dt>account state</dt>
 				<dd>
 					<BlockheadQuilibriumAccountStateView
-						selection={select(EntityType.BlockheadQuilibriumAccountState, selection.entitySelector.$accountState)}
+						selection={select(EntityType.BlockheadQuilibriumAccountState, selection.entitySelector.$accountState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

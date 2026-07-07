@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiCoinType }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiCoinType> })}
 					{@const suiCoinTypeFields = { ...suiCoinType[EntityMetaKey.Selector], ...suiCoinType }}
 					<SuiCoinTypeView
-						selection={select(EntityType.SuiCoinType, suiCoinType[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiCoinType, suiCoinType[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiCoinTypeFields}
 						layout={EntityLayout.Summary}
 						open={false}

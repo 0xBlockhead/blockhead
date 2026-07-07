@@ -82,7 +82,7 @@
 				<dt>asset</dt>
 				<dd>
 					<CardanoNativeAssetView
-						selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset)}
+						selection={select(EntityType.CardanoNativeAsset, selection.entitySelector.$asset, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

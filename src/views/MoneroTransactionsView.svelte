@@ -114,7 +114,7 @@
 				{#snippet Item({ item: moneroTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoneroTransaction> })}
 					{@const moneroTransactionFields = { ...moneroTransaction[EntityMetaKey.Selector], ...moneroTransaction }}
 					<MoneroTransactionView
-						selection={select(EntityType.MoneroTransaction, moneroTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoneroTransaction, moneroTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moneroTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

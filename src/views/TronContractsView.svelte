@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tronContract }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TronContract> })}
 					{@const tronContractFields = { ...tronContract[EntityMetaKey.Selector], ...tronContract }}
 					<TronContractView
-						selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector])}
+						selection={select(EntityType.TronContract, tronContract[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tronContractFields}
 						layout={EntityLayout.Summary}
 						open={false}

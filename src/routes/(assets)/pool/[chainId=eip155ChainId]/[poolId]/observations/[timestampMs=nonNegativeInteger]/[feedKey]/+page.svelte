@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import LiquidityPool_TimestampView from '$/views/LiquidityPool_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>liquidity pool timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,7 +35,22 @@
 			})
 		}
 		selection={
-			select(EntityType.LiquidityPool_Timestamp, data.selector, {
+			select(EntityType.LiquidityPool_Timestamp, {
+				$liquidityPool: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.chainId,
+						},
+					},
+					id: decodeURIComponent(params.poolId),
+				},
+				timestampMs: Number(params.timestampMs),
+				feedKey: decodeURIComponent(params.feedKey),
+			}, {
+				sources: [
+					Source.Dexscreener_OpenApi,
+				],
 				fields: {
 					baseTokenSymbol: true,
 					quoteTokenSymbol: true,

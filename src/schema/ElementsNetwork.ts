@@ -33,7 +33,7 @@ export default {
 			name: '$settlementNetwork',
 			label: 'Settlement network',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoNetwork,
+			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Constants_Internal,

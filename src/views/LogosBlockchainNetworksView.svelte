@@ -112,7 +112,7 @@
 				{#snippet Item({ item: logosBlockchainNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LogosBlockchainNetwork> })}
 					{@const logosBlockchainNetworkFields = { ...logosBlockchainNetwork[EntityMetaKey.Selector], ...logosBlockchainNetwork }}
 					<LogosBlockchainNetworkView
-						selection={select(EntityType.LogosBlockchainNetwork, logosBlockchainNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.LogosBlockchainNetwork, logosBlockchainNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={logosBlockchainNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

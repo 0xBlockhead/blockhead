@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -113,16 +112,9 @@
 
 				{#snippet Item({ item: globalYoutubeNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalYoutubeNetwork_Timestamp> })}
 					{@const globalYoutubeNetworkTimestampFields = { ...globalYoutubeNetworkTimestamp[EntityMetaKey.Selector], ...globalYoutubeNetworkTimestamp }}
-					{@const globalYoutubeNetworkTimestampHrefFields = { ...globalYoutubeNetworkTimestamp, ...globalYoutubeNetworkTimestamp[EntityMetaKey.Selector] }}
 					<GlobalYoutubeNetwork_TimestampView
-						selection={select(EntityType._GlobalYoutubeNetwork_Timestamp, globalYoutubeNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalYoutubeNetwork_Timestamp, globalYoutubeNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalYoutubeNetworkTimestampFields}
-						href={
-							(globalYoutubeNetworkTimestampHrefFields.timestampMs !== undefined && globalYoutubeNetworkTimestampHrefFields.source !== undefined ? resolve('/(social)/(youtube)/youtube/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								timestampMs: String(globalYoutubeNetworkTimestampHrefFields.timestampMs ?? ''),
-								source: String(globalYoutubeNetworkTimestampHrefFields.source ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

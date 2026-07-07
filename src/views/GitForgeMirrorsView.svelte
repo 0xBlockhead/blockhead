@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitForgeMirror }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitForgeMirror> })}
 					{@const gitForgeMirrorFields = { ...gitForgeMirror[EntityMetaKey.Selector], ...gitForgeMirror }}
 					<GitForgeMirrorView
-						selection={select(EntityType.GitForgeMirror, gitForgeMirror[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitForgeMirror, gitForgeMirror[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitForgeMirrorFields}
 						layout={EntityLayout.Summary}
 						open={false}

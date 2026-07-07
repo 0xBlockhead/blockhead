@@ -63,7 +63,14 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					$network: true,
+					$$timestamps: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -104,9 +111,9 @@
 				{/snippet}
 
 				{#snippet Item({ item: cardanoNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoNetwork> })}
-					{@const cardanoNetworkFields = { ...cardanoNetwork[EntityMetaKey.Selector], ...cardanoNetwork }}
+					{@const cardanoNetworkFields = { ...cardanoNetwork[EntityMetaKey.Selector], ...cardanoNetwork, $$timestamps: cardanoNetwork.$$timestamps }}
 					<CardanoNetworkView
-						selection={select(EntityType.CardanoNetwork, cardanoNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoNetwork, cardanoNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

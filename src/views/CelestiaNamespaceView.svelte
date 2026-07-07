@@ -109,7 +109,7 @@
 				<dt>network</dt>
 				<dd>
 					<CelestiaNetworkView
-						selection={select(EntityType.CelestiaNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.CelestiaNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

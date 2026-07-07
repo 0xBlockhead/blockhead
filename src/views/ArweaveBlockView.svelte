@@ -114,7 +114,7 @@
 				<dt>network</dt>
 				<dd>
 					<ArweaveNetworkView
-						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.ArweaveNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

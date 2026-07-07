@@ -108,7 +108,7 @@
 					{@const globalEnsNetworkFields = { ...globalEnsNetwork[EntityMetaKey.Selector], ...globalEnsNetwork }}
 					{@const globalEnsNetworkHrefFields = { ...globalEnsNetwork, ...globalEnsNetwork[EntityMetaKey.Selector] }}
 					<GlobalEnsNetworkView
-						selection={select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalEnsNetwork, globalEnsNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalEnsNetworkFields}
 						href={resolve('/(explore)/(ens)/ens')}
 						layout={EntityLayout.Summary}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearContract }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearContract> })}
 					{@const nearContractFields = { ...nearContract[EntityMetaKey.Selector], ...nearContract }}
 					<NearContractView
-						selection={select(EntityType.NearContract, nearContract[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearContract, nearContract[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearContractFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: polkadotReferendumTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotReferendum_Timestamp> })}
 					{@const polkadotReferendumTimestampFields = { ...polkadotReferendumTimestamp[EntityMetaKey.Selector], ...polkadotReferendumTimestamp }}
 					<PolkadotReferendum_TimestampView
-						selection={select(EntityType.PolkadotReferendum_Timestamp, polkadotReferendumTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotReferendum_Timestamp, polkadotReferendumTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotReferendumTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

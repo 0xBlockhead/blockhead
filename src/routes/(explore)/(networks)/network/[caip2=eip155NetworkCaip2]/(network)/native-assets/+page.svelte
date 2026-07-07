@@ -6,7 +6,6 @@
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,13 +39,9 @@
 		}
 		title='Native assets'
 		selection={
-			select(EntityType.EvmNetwork, {
+			select(EntityType.Network, {
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-			})[EntityProxyField]<EntityType.AssetInstance>('$$nativeAssets', {
-				sources: [
-					Source.Constants_Internal,
-				],
-			})
+			})[EntityProxyField]<EntityType.AssetInstance>('$$nativeAssets')
 		}
 		id='native-assets'
 	/>

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: blockheadLogosBlockchainWalletKeyState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadLogosBlockchainWalletKeyState> })}
 					{@const blockheadLogosBlockchainWalletKeyStateFields = { ...blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector], ...blockheadLogosBlockchainWalletKeyState }}
 					<BlockheadLogosBlockchainWalletKeyStateView
-						selection={select(EntityType.BlockheadLogosBlockchainWalletKeyState, blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLogosBlockchainWalletKeyState, blockheadLogosBlockchainWalletKeyState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLogosBlockchainWalletKeyStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

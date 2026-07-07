@@ -2,19 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
 
 
 	// Components
@@ -23,16 +17,16 @@
 </script>
 
 
-<svelte:head>
-	<title>Swarm protocol • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<SwarmProtocolView
 		href={resolve('/(explore)/(swarm)/swarm')}
 		selection={
-			select(EntityType.SwarmProtocol, data.selector, {
+			select(EntityType.SwarmProtocol, {
+				scope: 'SwarmProtocol',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					protocolName: true,
 					relationshipModel: true,

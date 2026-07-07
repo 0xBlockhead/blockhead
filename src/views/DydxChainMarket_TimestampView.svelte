@@ -111,7 +111,7 @@
 				<dt>market</dt>
 				<dd>
 					<DydxChainMarketView
-						selection={select(EntityType.DydxChainMarket, selection.entitySelector.$market)}
+						selection={select(EntityType.DydxChainMarket, selection.entitySelector.$market, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

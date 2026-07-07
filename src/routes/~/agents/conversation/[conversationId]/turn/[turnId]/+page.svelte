@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -38,7 +38,15 @@
 			})
 		}
 		selection={
-			select(EntityType.BlockheadAgentConversationTurn, data.selector, {
+			select(EntityType.BlockheadAgentConversationTurn, {
+				$conversation: {
+					id: params.conversationId,
+				},
+				id: params.turnId,
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
 				fields: {
 					userPrompt: true,
 					createdAt: true,

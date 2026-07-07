@@ -115,7 +115,7 @@
 				{#snippet Item({ item: a2aArtifact }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aArtifact> })}
 					{@const a2aArtifactFields = { ...a2aArtifact[EntityMetaKey.Selector], ...a2aArtifact }}
 					<A2aArtifactView
-						selection={select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aArtifact, a2aArtifact[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aArtifactFields}
 						layout={EntityLayout.Summary}
 						open={false}

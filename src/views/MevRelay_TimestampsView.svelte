@@ -118,7 +118,7 @@
 					{@const mevRelayTimestampFields = { ...mevRelayTimestamp[EntityMetaKey.Selector], ...mevRelayTimestamp }}
 					{@const mevRelayTimestampHrefFields = { ...mevRelayTimestamp, ...mevRelayTimestamp[EntityMetaKey.Selector] }}
 					<MevRelay_TimestampView
-						selection={select(EntityType.MevRelay_Timestamp, mevRelayTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.MevRelay_Timestamp, mevRelayTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mevRelayTimestampFields}
 						href={
 							(mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2 !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2.namespace !== undefined && mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.$network !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2 !== undefined && mevRelayTimestampHrefFields.$relay.$network.caip2.reference !== undefined && mevRelayTimestampHrefFields.$relay !== undefined && mevRelayTimestampHrefFields.$relay.host !== undefined && mevRelayTimestampHrefFields.timestampMs !== undefined && mevRelayTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {

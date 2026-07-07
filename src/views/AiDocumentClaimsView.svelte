@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aiDocumentClaim }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiDocumentClaim> })}
 					{@const aiDocumentClaimFields = { ...aiDocumentClaim[EntityMetaKey.Selector], ...aiDocumentClaim }}
 					<AiDocumentClaimView
-						selection={select(EntityType.AiDocumentClaim, aiDocumentClaim[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiDocumentClaim, aiDocumentClaim[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiDocumentClaimFields}
 						layout={EntityLayout.Summary}
 						open={false}

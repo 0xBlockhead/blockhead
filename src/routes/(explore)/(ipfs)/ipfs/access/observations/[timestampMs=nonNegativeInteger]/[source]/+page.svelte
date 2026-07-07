@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import GlobalIpfsAccess_TimestampView from '$/views/_GlobalIpfsAccess_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>global IPFS access timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,8 +33,20 @@
 			})
 		}
 		selection={
-			select(EntityType._GlobalIpfsAccess_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType._GlobalIpfsAccess_Timestamp, {
+				$hub: {
+					scope: '_GlobalIpfsAccess',
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$hub: {
+					scope: '_GlobalIpfsAccess',
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					declaredAccessEndpointCount: true,
 					reachableAccessEndpointCount: true,

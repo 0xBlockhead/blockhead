@@ -159,7 +159,7 @@
 				<dt>local node state</dt>
 				<dd>
 					<BlockheadLightningNodeStateView
-						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState)}
+						selection={select(EntityType.BlockheadLightningNodeState, selection.entitySelector.$localNodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -170,7 +170,7 @@
 				<dt>channel</dt>
 				<dd>
 					<LightningChannelView
-						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
+						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel, {})}
 						href={
 							(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
 								networkSlug: String(selection.entitySelector.$channel.$network.slug ?? ''),

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadAgentConnectionTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAgentConnection_Timestamp> })}
 					{@const blockheadAgentConnectionTimestampFields = { ...blockheadAgentConnectionTimestamp[EntityMetaKey.Selector], ...blockheadAgentConnectionTimestamp }}
 					<BlockheadAgentConnection_TimestampView
-						selection={select(EntityType.BlockheadAgentConnection_Timestamp, blockheadAgentConnectionTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAgentConnection_Timestamp, blockheadAgentConnectionTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAgentConnectionTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

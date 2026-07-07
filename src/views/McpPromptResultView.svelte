@@ -142,7 +142,7 @@
 				<dt>prompt</dt>
 				<dd>
 					<McpPromptView
-						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt)}
+						selection={select(EntityType.McpPrompt, selection.entitySelector.$prompt, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

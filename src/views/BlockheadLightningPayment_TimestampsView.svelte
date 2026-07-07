@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadLightningPaymentTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadLightningPayment_Timestamp> })}
 					{@const blockheadLightningPaymentTimestampFields = { ...blockheadLightningPaymentTimestamp[EntityMetaKey.Selector], ...blockheadLightningPaymentTimestamp }}
 					<BlockheadLightningPayment_TimestampView
-						selection={select(EntityType.BlockheadLightningPayment_Timestamp, blockheadLightningPaymentTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLightningPayment_Timestamp, blockheadLightningPaymentTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLightningPaymentTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

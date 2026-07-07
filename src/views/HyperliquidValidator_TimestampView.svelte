@@ -83,7 +83,7 @@
 				<dt>validator</dt>
 				<dd>
 					<HyperliquidValidatorView
-						selection={select(EntityType.HyperliquidValidator, selection.entitySelector.$validator)}
+						selection={select(EntityType.HyperliquidValidator, selection.entitySelector.$validator, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

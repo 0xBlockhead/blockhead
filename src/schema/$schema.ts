@@ -103,6 +103,11 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 		description?: string
 		defaultSources?: readonly _Source[]
 		when?: EntityFieldCondition
+		facet?: {
+			readonly id: string
+			readonly predicateFields: readonly string[]
+			readonly predicate?: EntityFacetPredicate
+		}
 		normalize?: EntityFieldValueNormalizer
 	}
 	& (
@@ -126,6 +131,22 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 		}
 		)
 )
+
+export type EntityFacetPredicate =
+	| {
+		readonly field: string
+		readonly equals: string | number | boolean | null
+	}
+	| {
+		readonly field: string
+		readonly contains: string | number | boolean | null
+	}
+	| {
+		readonly all: readonly EntityFacetPredicate[]
+	}
+	| {
+		readonly any: readonly EntityFacetPredicate[]
+	}
 
 export type EntityFieldDefinitions<_EntityDefinition extends EntityDefinition> = (
 	_EntityDefinition['fields'][number]
@@ -596,6 +617,46 @@ export type EntityFieldName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>['name']
+
+export type EntityFacetId<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = Extract<
+	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
+	{ facet: { id: string } }
+>['facet']['id']
+
+export type EntityFacetFieldDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetId extends EntityFacetId<_Schema, _EntityType>,
+> = Extract<
+	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
+	{ facet: { id: _FacetId } }
+>
+
+export type EntityFacetFieldName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetId extends EntityFacetId<_Schema, _EntityType>,
+> = EntityFacetFieldDefinition<
+	_Schema,
+	_EntityType,
+	_FacetId
+>['name']
+
+export type EntityNonFacetFieldDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = Exclude<
+	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
+	{ facet: { id: string } }
+>
+
+export type EntityNonFacetFieldName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = EntityNonFacetFieldDefinition<_Schema, _EntityType>['name']
 
 export type EntityBaseFieldDefinition<
 	_Schema extends Schema,

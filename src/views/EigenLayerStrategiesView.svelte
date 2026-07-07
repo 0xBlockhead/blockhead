@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eigenLayerStrategy }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EigenLayerStrategy> })}
 					{@const eigenLayerStrategyFields = { ...eigenLayerStrategy[EntityMetaKey.Selector], ...eigenLayerStrategy }}
 					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerStrategy, eigenLayerStrategy[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eigenLayerStrategyFields}
 						layout={EntityLayout.Summary}
 						open={false}

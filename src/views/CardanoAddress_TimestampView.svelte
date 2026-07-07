@@ -82,7 +82,7 @@
 				<dt>Address</dt>
 				<dd>
 					<CardanoAddressView
-						selection={select(EntityType.CardanoAddress, selection.entitySelector.$address)}
+						selection={select(EntityType.CardanoAddress, selection.entitySelector.$address, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

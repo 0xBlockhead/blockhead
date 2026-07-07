@@ -122,7 +122,7 @@
 				<dt>User</dt>
 				<dd>
 					<XUserView
-						selection={select(EntityType.XUser, selection.entitySelector.$user)}
+						selection={select(EntityType.XUser, selection.entitySelector.$user, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

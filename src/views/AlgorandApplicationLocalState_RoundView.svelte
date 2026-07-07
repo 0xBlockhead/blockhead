@@ -83,7 +83,7 @@
 				<dt>account</dt>
 				<dd>
 					<AlgorandAccountView
-						selection={select(EntityType.AlgorandAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.AlgorandAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,7 +94,7 @@
 				<dt>application</dt>
 				<dd>
 					<AlgorandApplicationView
-						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application)}
+						selection={select(EntityType.AlgorandApplication, selection.entitySelector.$application, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

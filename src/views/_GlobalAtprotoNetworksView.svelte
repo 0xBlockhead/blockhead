@@ -113,7 +113,7 @@
 				{#snippet Item({ item: globalAtprotoNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAtprotoNetwork> })}
 					{@const globalAtprotoNetworkFields = { ...globalAtprotoNetwork[EntityMetaKey.Selector], ...globalAtprotoNetwork }}
 					<GlobalAtprotoNetworkView
-						selection={select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalAtprotoNetwork, globalAtprotoNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalAtprotoNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

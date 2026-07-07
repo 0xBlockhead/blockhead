@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoConstitutionEpoch }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoConstitution_Epoch> })}
 					{@const cardanoConstitutionEpochFields = { ...cardanoConstitutionEpoch[EntityMetaKey.Selector], ...cardanoConstitutionEpoch }}
 					<CardanoConstitution_EpochView
-						selection={select(EntityType.CardanoConstitution_Epoch, cardanoConstitutionEpoch[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoConstitution_Epoch, cardanoConstitutionEpoch[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoConstitutionEpochFields}
 						layout={EntityLayout.Summary}
 						open={false}

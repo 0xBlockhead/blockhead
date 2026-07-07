@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiPackageUpgrade }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiPackageUpgrade> })}
 					{@const suiPackageUpgradeFields = { ...suiPackageUpgrade[EntityMetaKey.Selector], ...suiPackageUpgrade }}
 					<SuiPackageUpgradeView
-						selection={select(EntityType.SuiPackageUpgrade, suiPackageUpgrade[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiPackageUpgrade, suiPackageUpgrade[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiPackageUpgradeFields}
 						layout={EntityLayout.Summary}
 						open={false}

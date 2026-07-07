@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoNativeAsset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoNativeAsset> })}
 					{@const cardanoNativeAssetFields = { ...cardanoNativeAsset[EntityMetaKey.Selector], ...cardanoNativeAsset }}
 					<CardanoNativeAssetView
-						selection={select(EntityType.CardanoNativeAsset, cardanoNativeAsset[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoNativeAsset, cardanoNativeAsset[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoNativeAssetFields}
 						layout={EntityLayout.Summary}
 						open={false}

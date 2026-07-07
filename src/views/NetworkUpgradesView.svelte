@@ -114,7 +114,7 @@
 				{#snippet Item({ item: networkUpgrade }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NetworkUpgrade> })}
 					{@const networkUpgradeFields = { ...networkUpgrade[EntityMetaKey.Selector], ...networkUpgrade }}
 					<NetworkUpgradeView
-						selection={select(EntityType.NetworkUpgrade, networkUpgrade[EntityMetaKey.Selector])}
+						selection={select(EntityType.NetworkUpgrade, networkUpgrade[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={networkUpgradeFields}
 						layout={EntityLayout.Summary}
 						open={false}

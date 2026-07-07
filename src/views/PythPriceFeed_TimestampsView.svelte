@@ -114,7 +114,7 @@
 				{#snippet Item({ item: pythPriceFeedTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PythPriceFeed_Timestamp> })}
 					{@const pythPriceFeedTimestampFields = { ...pythPriceFeedTimestamp[EntityMetaKey.Selector], ...pythPriceFeedTimestamp }}
 					<PythPriceFeed_TimestampView
-						selection={select(EntityType.PythPriceFeed_Timestamp, pythPriceFeedTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.PythPriceFeed_Timestamp, pythPriceFeedTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={pythPriceFeedTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

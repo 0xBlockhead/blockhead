@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearContractStorageEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearContractStorageEntry> })}
 					{@const nearContractStorageEntryFields = { ...nearContractStorageEntry[EntityMetaKey.Selector], ...nearContractStorageEntry }}
 					<NearContractStorageEntryView
-						selection={select(EntityType.NearContractStorageEntry, nearContractStorageEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearContractStorageEntry, nearContractStorageEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearContractStorageEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

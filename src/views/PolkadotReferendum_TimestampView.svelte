@@ -130,7 +130,7 @@
 				<dt>Referendum</dt>
 				<dd>
 					<PolkadotReferendumView
-						selection={select(EntityType.PolkadotReferendum, selection.entitySelector.$referendum)}
+						selection={select(EntityType.PolkadotReferendum, selection.entitySelector.$referendum, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

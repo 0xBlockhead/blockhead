@@ -83,7 +83,7 @@
 				<dt>box</dt>
 				<dd>
 					<AlgorandBoxView
-						selection={select(EntityType.AlgorandBox, selection.entitySelector.$box)}
+						selection={select(EntityType.AlgorandBox, selection.entitySelector.$box, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: networkStack }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NetworkStack> })}
 					{@const networkStackFields = { ...networkStack[EntityMetaKey.Selector], ...networkStack }}
 					<NetworkStackView
-						selection={select(EntityType.NetworkStack, networkStack[EntityMetaKey.Selector])}
+						selection={select(EntityType.NetworkStack, networkStack[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={networkStackFields}
 						layout={EntityLayout.Title}
 						open={false}

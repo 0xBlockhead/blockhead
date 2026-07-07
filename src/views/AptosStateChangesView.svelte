@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aptosStateChange }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosStateChange> })}
 					{@const aptosStateChangeFields = { ...aptosStateChange[EntityMetaKey.Selector], ...aptosStateChange }}
 					<AptosStateChangeView
-						selection={select(EntityType.AptosStateChange, aptosStateChange[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosStateChange, aptosStateChange[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosStateChangeFields}
 						layout={EntityLayout.Summary}
 						open={false}

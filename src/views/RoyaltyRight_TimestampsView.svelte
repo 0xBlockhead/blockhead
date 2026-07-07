@@ -106,7 +106,7 @@
 				{#snippet Item({ item: royaltyRightTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RoyaltyRight_Timestamp> })}
 					{@const royaltyRightTimestampFields = { ...royaltyRightTimestamp[EntityMetaKey.Selector], ...royaltyRightTimestamp }}
 					<RoyaltyRight_TimestampView
-						selection={select(EntityType.RoyaltyRight_Timestamp, royaltyRightTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.RoyaltyRight_Timestamp, royaltyRightTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={royaltyRightTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

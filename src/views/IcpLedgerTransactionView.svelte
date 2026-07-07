@@ -83,7 +83,7 @@
 				<dt>block</dt>
 				<dd>
 					<IcpLedgerBlockView
-						selection={select(EntityType.IcpLedgerBlock, selection.entitySelector.$block)}
+						selection={select(EntityType.IcpLedgerBlock, selection.entitySelector.$block, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

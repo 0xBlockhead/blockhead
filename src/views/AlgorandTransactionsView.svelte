@@ -114,7 +114,7 @@
 				{#snippet Item({ item: algorandTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandTransaction> })}
 					{@const algorandTransactionFields = { ...algorandTransaction[EntityMetaKey.Selector], ...algorandTransaction }}
 					<AlgorandTransactionView
-						selection={select(EntityType.AlgorandTransaction, algorandTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandTransaction, algorandTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nostrReaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrReaction> })}
 					{@const nostrReactionFields = { ...nostrReaction[EntityMetaKey.Selector], ...nostrReaction }}
 					<NostrReactionView
-						selection={select(EntityType.NostrReaction, nostrReaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrReaction, nostrReaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nostrReactionFields}
 						layout={EntityLayout.Title}
 						open={false}

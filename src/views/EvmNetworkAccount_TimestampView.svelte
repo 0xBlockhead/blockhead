@@ -138,7 +138,7 @@
 				<dt>account</dt>
 				<dd>
 					<EvmNetworkAccountView
-						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.EvmNetworkAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -122,7 +122,7 @@
 				<dt>Post</dt>
 				<dd>
 					<XPostView
-						selection={select(EntityType.XPost, selection.entitySelector.$post)}
+						selection={select(EntityType.XPost, selection.entitySelector.$post, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -140,7 +140,7 @@
 				<dt>entry</dt>
 				<dd>
 					<StarknetStorageEntryView
-						selection={select(EntityType.StarknetStorageEntry, selection.entitySelector.$entry)}
+						selection={select(EntityType.StarknetStorageEntry, selection.entitySelector.$entry, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

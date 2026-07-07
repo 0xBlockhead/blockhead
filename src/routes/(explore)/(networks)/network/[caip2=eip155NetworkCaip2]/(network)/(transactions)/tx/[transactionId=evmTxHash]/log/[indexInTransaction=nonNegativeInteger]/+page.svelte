@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +23,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmLogView from '$/views/EvmLogView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM log • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +35,18 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmLog, data.selector, {
+			select(EntityType.EvmLog, {
+				$transaction: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					txHash: decodeURIComponent(params.transactionId),
+				},
+				indexInTransaction: Number(params.indexInTransaction),
+			}, {
+				sources: [
+					Source.Blockscout_Rest,
+				],
 				fields: {
 					$emitter: true,
 					$block: true,

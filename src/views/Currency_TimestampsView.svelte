@@ -116,7 +116,7 @@
 					{@const currencyTimestampFields = { ...currencyTimestamp[EntityMetaKey.Selector], ...currencyTimestamp }}
 					{@const currencyTimestampHrefFields = { ...currencyTimestamp, ...currencyTimestamp[EntityMetaKey.Selector] }}
 					<Currency_TimestampView
-						selection={select(EntityType.Currency_Timestamp, currencyTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.Currency_Timestamp, currencyTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={currencyTimestampFields}
 						href={
 							(currencyTimestampHrefFields.$currency !== undefined && currencyTimestampHrefFields.$currency.iso4217 !== undefined && currencyTimestampHrefFields.timestampMs !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]/observations/[timestampMs=nonNegativeInteger]', {

@@ -117,7 +117,7 @@
 				{#snippet Item({ item: evmContractCompilation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmContractCompilation> })}
 					{@const evmContractCompilationFields = { ...evmContractCompilation[EntityMetaKey.Selector], ...evmContractCompilation }}
 					<EvmContractCompilationView
-						selection={select(EntityType.EvmContractCompilation, evmContractCompilation[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmContractCompilation, evmContractCompilation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmContractCompilationFields}
 						layout={EntityLayout.Summary}
 						open={false}

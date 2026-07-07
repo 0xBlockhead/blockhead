@@ -230,7 +230,7 @@
 				<dt>Currency</dt>
 				<dd>
 					<CurrencyView
-						selection={select(EntityType.Currency, selection.entitySelector.$currency)}
+						selection={select(EntityType.Currency, selection.entitySelector.$currency, {})}
 						href={
 							(selection.entitySelector.$currency.iso4217 !== undefined ? resolve('/(assets)/(currencies)/currency/[iso4217=iso4217]', {
 								iso4217: String(selection.entitySelector.$currency.iso4217 ?? ''),

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import MevRelay_TimestampView from '$/views/MevRelay_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>MEV relay timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,8 +35,26 @@
 			})
 		}
 		selection={
-			select(EntityType.MevRelay_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.MevRelay_Timestamp, {
+				$relay: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					host: decodeURIComponent(params.host),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$relay: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					host: decodeURIComponent(params.host),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					reachable: true,
 					statusCode: true,

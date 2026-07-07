@@ -434,7 +434,7 @@
 				<dt>Builder</dt>
 				<dd>
 					<MevBuilderView
-						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder)}
+						selection={select(EntityType.MevBuilder, selection.entitySelector.$builder, {})}
 						href={
 							(selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined && selection.entitySelector.$builder.$network.caip2.namespace !== undefined && selection.entitySelector.$builder.$network !== undefined && selection.entitySelector.$builder.$network.caip2 !== undefined && selection.entitySelector.$builder.$network.caip2.reference !== undefined && selection.entitySelector.$builder.builderPubkey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]', {
 								caip2: `${String(selection.entitySelector.$builder.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$builder.$network.caip2.reference ?? '')}`,

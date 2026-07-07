@@ -81,7 +81,7 @@
 				<dt>network</dt>
 				<dd>
 					<SuiNetworkView
-						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.SuiNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

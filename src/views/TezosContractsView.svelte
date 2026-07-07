@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosContract }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosContract> })}
 					{@const tezosContractFields = { ...tezosContract[EntityMetaKey.Selector], ...tezosContract }}
 					<TezosContractView
-						selection={select(EntityType.TezosContract, tezosContract[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosContract, tezosContract[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosContractFields}
 						layout={EntityLayout.Summary}
 						open={false}

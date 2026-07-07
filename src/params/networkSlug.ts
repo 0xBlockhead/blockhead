@@ -9,5 +9,4 @@ import {
 export const match = ((param: string) => (
 	networkBySlug[param] != null
 	&& networkBySlug[param].namespace !== NetworkNamespace.Evm
-	&& networkBySlug[param].namespace !== NetworkNamespace.Solana
 )) satisfies ParamMatcher

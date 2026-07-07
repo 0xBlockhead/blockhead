@@ -115,7 +115,7 @@
 				{#snippet Item({ item: blockheadFarcasterAccountConnection }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadFarcasterAccountConnection> })}
 					{@const blockheadFarcasterAccountConnectionFields = { ...blockheadFarcasterAccountConnection[EntityMetaKey.Selector], ...blockheadFarcasterAccountConnection }}
 					<BlockheadFarcasterAccountConnectionView
-						selection={select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadFarcasterAccountConnection, blockheadFarcasterAccountConnection[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadFarcasterAccountConnectionFields}
 						layout={EntityLayout.Summary}
 						open={false}

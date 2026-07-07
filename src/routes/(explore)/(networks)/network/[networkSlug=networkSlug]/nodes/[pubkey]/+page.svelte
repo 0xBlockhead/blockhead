@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import LightningNodeView from '$/views/LightningNodeView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Lightning node • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,16 @@
 			})
 		}
 		selection={
-			select(EntityType.LightningNode, data.selector, {
+			select(EntityType.LightningNode, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				publicKey: params.pubkey,
+			}, {
+				sources: [
+					Source.LightningMempoolSpace_Rest,
+					Source.LightningLnd_Rest,
+				],
 				fields: {
 					alias: true,
 					channelCount: true,

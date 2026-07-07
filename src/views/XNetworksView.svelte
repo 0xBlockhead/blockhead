@@ -112,7 +112,7 @@
 				{#snippet Item({ item: xNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XNetwork> })}
 					{@const xNetworkFields = { ...xNetwork[EntityMetaKey.Selector], ...xNetwork }}
 					<XNetworkView
-						selection={select(EntityType.XNetwork, xNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.XNetwork, xNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

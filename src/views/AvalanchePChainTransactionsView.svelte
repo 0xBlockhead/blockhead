@@ -114,7 +114,7 @@
 				{#snippet Item({ item: avalanchePChainTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalanchePChainTransaction> })}
 					{@const avalanchePChainTransactionFields = { ...avalanchePChainTransaction[EntityMetaKey.Selector], ...avalanchePChainTransaction }}
 					<AvalanchePChainTransactionView
-						selection={select(EntityType.AvalanchePChainTransaction, avalanchePChainTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalanchePChainTransaction, avalanchePChainTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalanchePChainTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

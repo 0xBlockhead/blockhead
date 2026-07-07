@@ -114,7 +114,7 @@
 				{#snippet Item({ item: quilibriumProver }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.QuilibriumProver> })}
 					{@const quilibriumProverFields = { ...quilibriumProver[EntityMetaKey.Selector], ...quilibriumProver }}
 					<QuilibriumProverView
-						selection={select(EntityType.QuilibriumProver, quilibriumProver[EntityMetaKey.Selector])}
+						selection={select(EntityType.QuilibriumProver, quilibriumProver[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={quilibriumProverFields}
 						layout={EntityLayout.Summary}
 						open={false}

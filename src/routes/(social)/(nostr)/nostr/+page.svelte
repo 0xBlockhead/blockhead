@@ -2,19 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
 
 
 	// Components
@@ -23,16 +17,16 @@
 </script>
 
 
-<svelte:head>
-	<title>Nostr • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<GlobalNostrNetworkView
 		href={resolve('/(social)/(nostr)/nostr')}
 		selection={
-			select(EntityType._GlobalNostrNetwork, data.selector, {
+			select(EntityType._GlobalNostrNetwork, {
+				scope: '_GlobalNostrNetwork',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					registryName: true,
 					protocolName: true,

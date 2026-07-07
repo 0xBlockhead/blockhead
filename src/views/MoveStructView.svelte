@@ -124,7 +124,7 @@
 				<dt>module</dt>
 				<dd>
 					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+						selection={select(EntityType.MoveModule, selection.entitySelector.$module, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -246,7 +246,7 @@
 						{#snippet Pending()}
 							{@const abilities = prefetched.abilities}
 							{#if abilities !== undefined && abilities !== null}
-								{(abilities?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{abilities.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -254,7 +254,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const abilities = resolvedEntity.abilities}
 							{#if abilities !== undefined && abilities !== null}
-								{(abilities?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{abilities.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

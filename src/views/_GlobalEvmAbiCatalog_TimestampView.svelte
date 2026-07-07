@@ -115,7 +115,7 @@
 				<dt>hub</dt>
 				<dd>
 					<GlobalEvmAbiCatalogView
-						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalEvmAbiCatalog, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

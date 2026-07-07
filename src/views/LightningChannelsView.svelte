@@ -117,7 +117,7 @@
 					{@const lightningChannelFields = { ...lightningChannel[EntityMetaKey.Selector], ...lightningChannel }}
 					{@const lightningChannelHrefFields = { ...lightningChannel, ...lightningChannel[EntityMetaKey.Selector] }}
 					<LightningChannelView
-						selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector])}
+						selection={select(EntityType.LightningChannel, lightningChannel[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lightningChannelFields}
 						href={
 							(lightningChannelHrefFields.$network !== undefined && lightningChannelHrefFields.$network.slug !== undefined && lightningChannelHrefFields.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {

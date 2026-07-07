@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiCheckpoint }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiCheckpoint> })}
 					{@const suiCheckpointFields = { ...suiCheckpoint[EntityMetaKey.Selector], ...suiCheckpoint }}
 					<SuiCheckpointView
-						selection={select(EntityType.SuiCheckpoint, suiCheckpoint[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiCheckpoint, suiCheckpoint[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiCheckpointFields}
 						layout={EntityLayout.Summary}
 						open={false}

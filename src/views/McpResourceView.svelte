@@ -131,7 +131,7 @@
 				<dt>server</dt>
 				<dd>
 					<McpServerView
-						selection={select(EntityType.McpServer, selection.entitySelector.$server)}
+						selection={select(EntityType.McpServer, selection.entitySelector.$server, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

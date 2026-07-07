@@ -117,7 +117,7 @@
 					{@const polkadotBlockFields = { ...polkadotBlock[EntityMetaKey.Selector], ...polkadotBlock }}
 					{@const polkadotBlockHrefFields = { ...polkadotBlock, ...polkadotBlock[EntityMetaKey.Selector] }}
 					<PolkadotBlockView
-						selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotBlock, polkadotBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotBlockFields}
 						href={
 							(polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.caip2 !== undefined && polkadotBlockHrefFields.$network.caip2.namespace !== undefined && polkadotBlockHrefFields.$network !== undefined && polkadotBlockHrefFields.$network.caip2 !== undefined && polkadotBlockHrefFields.$network.caip2.reference !== undefined && polkadotBlockHrefFields.blockNumber !== undefined && polkadotBlockHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]', {

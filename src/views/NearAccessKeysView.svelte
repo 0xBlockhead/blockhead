@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearAccessKey }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearAccessKey> })}
 					{@const nearAccessKeyFields = { ...nearAccessKey[EntityMetaKey.Selector], ...nearAccessKey }}
 					<NearAccessKeyView
-						selection={select(EntityType.NearAccessKey, nearAccessKey[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearAccessKey, nearAccessKey[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearAccessKeyFields}
 						layout={EntityLayout.Summary}
 						open={false}

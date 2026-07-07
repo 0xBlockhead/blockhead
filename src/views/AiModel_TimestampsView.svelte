@@ -115,7 +115,7 @@
 				{#snippet Item({ item: aiModelTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiModel_Timestamp> })}
 					{@const aiModelTimestampFields = { ...aiModelTimestamp[EntityMetaKey.Selector], ...aiModelTimestamp }}
 					<AiModel_TimestampView
-						selection={select(EntityType.AiModel_Timestamp, aiModelTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiModel_Timestamp, aiModelTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiModelTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

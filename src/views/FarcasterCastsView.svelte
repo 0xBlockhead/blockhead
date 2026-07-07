@@ -117,7 +117,7 @@
 					{@const farcasterCastFields = { ...farcasterCast[EntityMetaKey.Selector], ...farcasterCast }}
 					{@const farcasterCastHrefFields = { ...farcasterCast, ...farcasterCast[EntityMetaKey.Selector] }}
 					<FarcasterCastView
-						selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector])}
+						selection={select(EntityType.FarcasterCast, farcasterCast[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterCastFields}
 						href={
 							(farcasterCastHrefFields.fid !== undefined && farcasterCastHrefFields.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {

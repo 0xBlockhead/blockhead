@@ -82,7 +82,7 @@
 				<dt>account</dt>
 				<dd>
 					<XrplAccountView
-						selection={select(EntityType.XrplAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.XrplAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

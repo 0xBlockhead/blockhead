@@ -106,7 +106,7 @@
 				{#snippet Item({ item: nftToken }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NftToken> })}
 					{@const nftTokenFields = { ...nftToken[EntityMetaKey.Selector], ...nftToken }}
 					<NftTokenView
-						selection={select(EntityType.NftToken, nftToken[EntityMetaKey.Selector])}
+						selection={select(EntityType.NftToken, nftToken[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nftTokenFields}
 						layout={EntityLayout.Summary}
 						open={false}

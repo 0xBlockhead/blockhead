@@ -113,7 +113,7 @@
 				{#snippet Item({ item: blockheadEnsNameSearch }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadEnsNameSearch> })}
 					{@const blockheadEnsNameSearchFields = { ...blockheadEnsNameSearch[EntityMetaKey.Selector], ...blockheadEnsNameSearch }}
 					<BlockheadEnsNameSearchView
-						selection={select(EntityType.BlockheadEnsNameSearch, blockheadEnsNameSearch[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadEnsNameSearch, blockheadEnsNameSearch[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadEnsNameSearchFields}
 						layout={EntityLayout.Summary}
 						open={false}

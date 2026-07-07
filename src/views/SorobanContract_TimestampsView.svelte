@@ -106,7 +106,7 @@
 				{#snippet Item({ item: sorobanContractTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SorobanContract_Timestamp> })}
 					{@const sorobanContractTimestampFields = { ...sorobanContractTimestamp[EntityMetaKey.Selector], ...sorobanContractTimestamp }}
 					<SorobanContract_TimestampView
-						selection={select(EntityType.SorobanContract_Timestamp, sorobanContractTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SorobanContract_Timestamp, sorobanContractTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={sorobanContractTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -140,7 +140,7 @@
 				<dt>Attestation</dt>
 				<dd>
 					<EasAttestationView
-						selection={select(EntityType.EasAttestation, selection.entitySelector.$attestation)}
+						selection={select(EntityType.EasAttestation, selection.entitySelector.$attestation, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

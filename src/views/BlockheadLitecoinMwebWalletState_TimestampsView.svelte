@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadLitecoinMwebWalletStateTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadLitecoinMwebWalletState_Timestamp> })}
 					{@const blockheadLitecoinMwebWalletStateTimestampFields = { ...blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.Selector], ...blockheadLitecoinMwebWalletStateTimestamp }}
 					<BlockheadLitecoinMwebWalletState_TimestampView
-						selection={select(EntityType.BlockheadLitecoinMwebWalletState_Timestamp, blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLitecoinMwebWalletState_Timestamp, blockheadLitecoinMwebWalletStateTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLitecoinMwebWalletStateTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: nftCollection }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NftCollection> })}
 					{@const nftCollectionFields = { ...nftCollection[EntityMetaKey.Selector], ...nftCollection }}
 					<NftCollectionView
-						selection={select(EntityType.NftCollection, nftCollection[EntityMetaKey.Selector])}
+						selection={select(EntityType.NftCollection, nftCollection[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nftCollectionFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -28,14 +28,14 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonContract_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$getMethods',
+			name: '$$getMethods',
 			label: 'get methods',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonContractGetMethod,

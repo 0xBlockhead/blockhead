@@ -116,7 +116,7 @@
 				{#snippet Item({ item: assetEligibility }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetEligibility> })}
 					{@const assetEligibilityFields = { ...assetEligibility[EntityMetaKey.Selector], ...assetEligibility }}
 					<AssetEligibilityView
-						selection={select(EntityType.AssetEligibility, assetEligibility[EntityMetaKey.Selector])}
+						selection={select(EntityType.AssetEligibility, assetEligibility[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={assetEligibilityFields}
 						layout={EntityLayout.Summary}
 						open={false}

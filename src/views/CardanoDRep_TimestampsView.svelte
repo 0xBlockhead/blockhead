@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoDRepTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoDRep_Timestamp> })}
 					{@const cardanoDRepTimestampFields = { ...cardanoDRepTimestamp[EntityMetaKey.Selector], ...cardanoDRepTimestamp }}
 					<CardanoDRep_TimestampView
-						selection={select(EntityType.CardanoDRep_Timestamp, cardanoDRepTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoDRep_Timestamp, cardanoDRepTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoDRepTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

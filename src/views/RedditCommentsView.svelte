@@ -118,7 +118,7 @@
 				{#snippet Item({ item: redditComment }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RedditComment> })}
 					{@const redditCommentFields = { ...redditComment[EntityMetaKey.Selector], ...redditComment }}
 					<RedditCommentView
-						selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector])}
+						selection={select(EntityType.RedditComment, redditComment[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={redditCommentFields}
 						layout={EntityLayout.Summary}
 						open={false}

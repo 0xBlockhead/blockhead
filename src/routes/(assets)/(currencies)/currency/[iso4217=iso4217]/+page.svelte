@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>currency • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<CurrencyView
 		href={
@@ -37,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.Currency, data.selector, {
+			select(EntityType.Currency, {
+				iso4217: decodeURIComponent(params.iso4217),
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					name: true,
 					symbol: true,

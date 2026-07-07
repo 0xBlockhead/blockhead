@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidAccount> })}
 					{@const hyperliquidAccountFields = { ...hyperliquidAccount[EntityMetaKey.Selector], ...hyperliquidAccount }}
 					<HyperliquidAccountView
-						selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidAccount, hyperliquidAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidAccountFields}
 						layout={EntityLayout.Summary}
 						open={false}

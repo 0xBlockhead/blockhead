@@ -137,7 +137,7 @@
 				<dt>connection</dt>
 				<dd>
 					<BlockheadAgentConnectionView
-						selection={select(EntityType.BlockheadAgentConnection, selection.entitySelector.$connection)}
+						selection={select(EntityType.BlockheadAgentConnection, selection.entitySelector.$connection, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

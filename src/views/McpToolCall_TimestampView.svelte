@@ -135,7 +135,7 @@
 				<dt>tool call</dt>
 				<dd>
 					<McpToolCallView
-						selection={select(EntityType.McpToolCall, selection.entitySelector.$toolCall)}
+						selection={select(EntityType.McpToolCall, selection.entitySelector.$toolCall, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

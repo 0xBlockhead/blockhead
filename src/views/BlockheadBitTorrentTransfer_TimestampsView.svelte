@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadBitTorrentTransferTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadBitTorrentTransfer_Timestamp> })}
 					{@const blockheadBitTorrentTransferTimestampFields = { ...blockheadBitTorrentTransferTimestamp[EntityMetaKey.Selector], ...blockheadBitTorrentTransferTimestamp }}
 					<BlockheadBitTorrentTransfer_TimestampView
-						selection={select(EntityType.BlockheadBitTorrentTransfer_Timestamp, blockheadBitTorrentTransferTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadBitTorrentTransfer_Timestamp, blockheadBitTorrentTransferTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadBitTorrentTransferTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

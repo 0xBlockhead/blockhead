@@ -134,7 +134,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadRadicleNodeStateView
-						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -323,7 +323,7 @@
 						{#snippet Pending()}
 							{@const listenAddresses = prefetched.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -331,7 +331,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const listenAddresses = resolvedEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -353,7 +353,7 @@
 						{#snippet Pending()}
 							{@const externalAddresses = prefetched.externalAddresses}
 							{#if externalAddresses !== undefined && externalAddresses !== null}
-								<TruncatedValue value={(externalAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={externalAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -361,7 +361,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const externalAddresses = resolvedEntity.externalAddresses}
 							{#if externalAddresses !== undefined && externalAddresses !== null}
-								<TruncatedValue value={(externalAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={externalAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

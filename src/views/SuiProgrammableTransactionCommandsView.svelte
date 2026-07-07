@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiProgrammableTransactionCommand }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiProgrammableTransactionCommand> })}
 					{@const suiProgrammableTransactionCommandFields = { ...suiProgrammableTransactionCommand[EntityMetaKey.Selector], ...suiProgrammableTransactionCommand }}
 					<SuiProgrammableTransactionCommandView
-						selection={select(EntityType.SuiProgrammableTransactionCommand, suiProgrammableTransactionCommand[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiProgrammableTransactionCommand, suiProgrammableTransactionCommand[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiProgrammableTransactionCommandFields}
 						layout={EntityLayout.Summary}
 						open={false}

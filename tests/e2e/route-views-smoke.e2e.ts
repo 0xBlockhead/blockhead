@@ -17,10 +17,7 @@ const routeViewSmokeEntries = Object.entries(pathByLabel)
 		&& (!process.env.E2E_ROUTE_VIEW_LABEL_PATTERN || new RegExp(process.env.E2E_ROUTE_VIEW_LABEL_PATTERN).test(label))
 	))
 
-if (
-	(process.env.E2E_ROUTE_VIEW_PATTERN || process.env.E2E_ROUTE_VIEW_LABEL_PATTERN)
-	&& routeViewSmokeEntries.length === 0
-)
+if (routeViewSmokeEntries.length === 0)
 	throw new Error('No route view smoke rows matched E2E_ROUTE_VIEW_PATTERN / E2E_ROUTE_VIEW_LABEL_PATTERN')
 
 

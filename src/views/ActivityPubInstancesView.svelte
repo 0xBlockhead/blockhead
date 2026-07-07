@@ -115,7 +115,7 @@
 				{#snippet Item({ item: activityPubInstance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubInstance> })}
 					{@const activityPubInstanceFields = { ...activityPubInstance[EntityMetaKey.Selector], ...activityPubInstance }}
 					<ActivityPubInstanceView
-						selection={select(EntityType.ActivityPubInstance, activityPubInstance[EntityMetaKey.Selector])}
+						selection={select(EntityType.ActivityPubInstance, activityPubInstance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={activityPubInstanceFields}
 						layout={EntityLayout.Summary}
 						open={false}

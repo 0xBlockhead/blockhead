@@ -83,7 +83,7 @@
 				<dt>account</dt>
 				<dd>
 					<HederaAccountView
-						selection={select(EntityType.HederaAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.HederaAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,7 +94,7 @@
 				<dt>token</dt>
 				<dd>
 					<HederaTokenView
-						selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
+						selection={select(EntityType.HederaToken, selection.entitySelector.$token, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

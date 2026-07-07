@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +23,6 @@
 </script>
 
 
-<svelte:head>
-	<title>UTXO address • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<UtxoAddressView
 		href={
@@ -37,6 +31,13 @@
 				address: params.address,
 			})
 		}
-		selection={select(EntityType.UtxoAddress, data.selector)}
+		selection={
+			select(EntityType.UtxoAddress, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				address: decodeURIComponent(params.address),
+			})
+		}
 	/>
 </Page>

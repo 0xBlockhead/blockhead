@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadCashuMeltQuote }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadCashuMeltQuote> })}
 					{@const blockheadCashuMeltQuoteFields = { ...blockheadCashuMeltQuote[EntityMetaKey.Selector], ...blockheadCashuMeltQuote }}
 					<BlockheadCashuMeltQuoteView
-						selection={select(EntityType.BlockheadCashuMeltQuote, blockheadCashuMeltQuote[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadCashuMeltQuote, blockheadCashuMeltQuote[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadCashuMeltQuoteFields}
 						layout={EntityLayout.Summary}
 						open={false}

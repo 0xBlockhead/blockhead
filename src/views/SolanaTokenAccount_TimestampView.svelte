@@ -139,9 +139,9 @@
 				<dt>Token account</dt>
 				<dd>
 					<SolanaTokenAccountView
-						selection={select(EntityType.SolanaTokenAccount, selection.entitySelector.$tokenAccount)}
+						selection={select(EntityType.SolanaTokenAccount, selection.entitySelector.$tokenAccount, {})}
 						href={
-							(selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.caip2 !== undefined && selection.entitySelector.$tokenAccount.$network.caip2.namespace !== undefined && selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.caip2 !== undefined && selection.entitySelector.$tokenAccount.$network.caip2.reference !== undefined && selection.entitySelector.$tokenAccount.tokenAccountPubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/token-account/[tokenAccountPubkey]', {
+							(selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.caip2 !== undefined && selection.entitySelector.$tokenAccount.$network.caip2.namespace !== undefined && selection.entitySelector.$tokenAccount.$network !== undefined && selection.entitySelector.$tokenAccount.$network.caip2 !== undefined && selection.entitySelector.$tokenAccount.$network.caip2.reference !== undefined && selection.entitySelector.$tokenAccount.tokenAccountPubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/token-account/[tokenAccountPubkey]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$tokenAccount.$network.caip2.namespace) + ':' + String(selection.entitySelector.$tokenAccount.$network.caip2.reference))].slug ?? ''),
 								tokenAccountPubkey: String(selection.entitySelector.$tokenAccount.tokenAccountPubkey ?? ''),
 							}) : undefined)

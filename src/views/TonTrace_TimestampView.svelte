@@ -81,7 +81,7 @@
 				<dt>trace</dt>
 				<dd>
 					<TonTraceView
-						selection={select(EntityType.TonTrace, selection.entitySelector.$trace)}
+						selection={select(EntityType.TonTrace, selection.entitySelector.$trace, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

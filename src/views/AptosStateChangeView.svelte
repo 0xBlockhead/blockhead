@@ -133,7 +133,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<AptosTransactionView
-						selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.AptosTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

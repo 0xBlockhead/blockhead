@@ -115,7 +115,7 @@
 				{#snippet Item({ item: farcasterChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterChannel> })}
 					{@const farcasterChannelFields = { ...farcasterChannel[EntityMetaKey.Selector], ...farcasterChannel }}
 					<FarcasterChannelView
-						selection={select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector])}
+						selection={select(EntityType.FarcasterChannel, farcasterChannel[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterChannelFields}
 						layout={EntityLayout.Summary}
 						open={false}

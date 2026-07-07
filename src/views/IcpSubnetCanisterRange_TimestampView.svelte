@@ -81,7 +81,7 @@
 				<dt>subnet</dt>
 				<dd>
 					<IcpSubnetView
-						selection={select(EntityType.IcpSubnet, selection.entitySelector.$subnet)}
+						selection={select(EntityType.IcpSubnet, selection.entitySelector.$subnet, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

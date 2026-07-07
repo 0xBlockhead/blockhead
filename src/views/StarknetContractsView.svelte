@@ -113,7 +113,7 @@
 				{#snippet Item({ item: starknetContract }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetContract> })}
 					{@const starknetContractFields = { ...starknetContract[EntityMetaKey.Selector], ...starknetContract }}
 					<StarknetContractView
-						selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetContract, starknetContract[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetContractFields}
 						layout={EntityLayout.Summary}
 						open={false}

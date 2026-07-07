@@ -240,7 +240,7 @@
 				<dt>Paymaster</dt>
 				<dd>
 					<Erc4337PaymasterView
-						selection={select(EntityType.Erc4337Paymaster, selection.entitySelector.$paymaster)}
+						selection={select(EntityType.Erc4337Paymaster, selection.entitySelector.$paymaster, {})}
 						href={
 							(selection.entitySelector.$paymaster.$network !== undefined && selection.entitySelector.$paymaster.$network.caip2 !== undefined && selection.entitySelector.$paymaster.$network.caip2.namespace !== undefined && selection.entitySelector.$paymaster.$network !== undefined && selection.entitySelector.$paymaster.$network.caip2 !== undefined && selection.entitySelector.$paymaster.$network.caip2.reference !== undefined && selection.entitySelector.$paymaster.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymaster/[address=evmAddress]', {
 								caip2: `${String(selection.entitySelector.$paymaster.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$paymaster.$network.caip2.reference ?? '')}`,

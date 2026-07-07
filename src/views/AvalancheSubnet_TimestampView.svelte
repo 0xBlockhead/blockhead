@@ -130,7 +130,7 @@
 				<dt>subnet</dt>
 				<dd>
 					<AvalancheSubnetView
-						selection={select(EntityType.AvalancheSubnet, selection.entitySelector.$subnet)}
+						selection={select(EntityType.AvalancheSubnet, selection.entitySelector.$subnet, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

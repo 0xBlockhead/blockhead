@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import YoutubeComment_TimestampView from '$/views/YoutubeComment_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>YouTube comment observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,6 +32,14 @@
 				timestampMs: params.timestampMs,
 			})
 		}
-		selection={select(EntityType.YoutubeComment_Timestamp, data.selector)}
+		selection={
+			select(EntityType.YoutubeComment_Timestamp, {
+				$comment: {
+					videoId: decodeURIComponent(params.videoId),
+					commentId: decodeURIComponent(params.commentId),
+				},
+				timestampMs: Number(params.timestampMs),
+			})
+		}
 	/>
 </Page>

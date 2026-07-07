@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpFileOperation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpFileOperation> })}
 					{@const acpFileOperationFields = { ...acpFileOperation[EntityMetaKey.Selector], ...acpFileOperation }}
 					<AcpFileOperationView
-						selection={select(EntityType.AcpFileOperation, acpFileOperation[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpFileOperation, acpFileOperation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpFileOperationFields}
 						layout={EntityLayout.Summary}
 						open={false}

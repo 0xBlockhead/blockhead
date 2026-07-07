@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadWalletRequestTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadWalletRequest_Timestamp> })}
 					{@const blockheadWalletRequestTimestampFields = { ...blockheadWalletRequestTimestamp[EntityMetaKey.Selector], ...blockheadWalletRequestTimestamp }}
 					<BlockheadWalletRequest_TimestampView
-						selection={select(EntityType.BlockheadWalletRequest_Timestamp, blockheadWalletRequestTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadWalletRequest_Timestamp, blockheadWalletRequestTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadWalletRequestTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosToken }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosToken> })}
 					{@const tezosTokenFields = { ...tezosToken[EntityMetaKey.Selector], ...tezosToken }}
 					<TezosTokenView
-						selection={select(EntityType.TezosToken, tezosToken[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosToken, tezosToken[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosTokenFields}
 						layout={EntityLayout.Summary}
 						open={false}

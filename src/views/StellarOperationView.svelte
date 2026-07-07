@@ -82,7 +82,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<StellarTransactionView
-						selection={select(EntityType.StellarTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.StellarTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

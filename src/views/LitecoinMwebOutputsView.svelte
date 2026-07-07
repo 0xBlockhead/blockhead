@@ -114,7 +114,7 @@
 				{#snippet Item({ item: litecoinMwebOutput }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LitecoinMwebOutput> })}
 					{@const litecoinMwebOutputFields = { ...litecoinMwebOutput[EntityMetaKey.Selector], ...litecoinMwebOutput }}
 					<LitecoinMwebOutputView
-						selection={select(EntityType.LitecoinMwebOutput, litecoinMwebOutput[EntityMetaKey.Selector])}
+						selection={select(EntityType.LitecoinMwebOutput, litecoinMwebOutput[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={litecoinMwebOutputFields}
 						layout={EntityLayout.Summary}
 						open={false}

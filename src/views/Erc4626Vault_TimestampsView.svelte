@@ -113,7 +113,7 @@
 				{#snippet Item({ item: erc4626VaultTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4626Vault_Timestamp> })}
 					{@const erc4626VaultTimestampFields = { ...erc4626VaultTimestamp[EntityMetaKey.Selector], ...erc4626VaultTimestamp }}
 					<Erc4626Vault_TimestampView
-						selection={select(EntityType.Erc4626Vault_Timestamp, erc4626VaultTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.Erc4626Vault_Timestamp, erc4626VaultTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={erc4626VaultTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: zeroGDataChunk }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGDataChunk> })}
 					{@const zeroGDataChunkFields = { ...zeroGDataChunk[EntityMetaKey.Selector], ...zeroGDataChunk }}
 					<ZeroGDataChunkView
-						selection={select(EntityType.ZeroGDataChunk, zeroGDataChunk[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGDataChunk, zeroGDataChunk[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGDataChunkFields}
 						layout={EntityLayout.Summary}
 						open={false}

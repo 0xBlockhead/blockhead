@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadCodexStoredDataTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadCodexStoredData_Timestamp> })}
 					{@const blockheadCodexStoredDataTimestampFields = { ...blockheadCodexStoredDataTimestamp[EntityMetaKey.Selector], ...blockheadCodexStoredDataTimestamp }}
 					<BlockheadCodexStoredData_TimestampView
-						selection={select(EntityType.BlockheadCodexStoredData_Timestamp, blockheadCodexStoredDataTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadCodexStoredData_Timestamp, blockheadCodexStoredDataTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadCodexStoredDataTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

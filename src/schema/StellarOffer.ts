@@ -57,14 +57,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StellarOffer_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$trades',
+			name: '$$trades',
 			label: 'trades',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StellarTrade,

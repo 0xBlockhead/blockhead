@@ -143,7 +143,7 @@
 				<dt>MWEB block</dt>
 				<dd>
 					<LitecoinMwebBlockView
-						selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock)}
+						selection={select(EntityType.LitecoinMwebBlock, selection.entitySelector.$mwebBlock, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

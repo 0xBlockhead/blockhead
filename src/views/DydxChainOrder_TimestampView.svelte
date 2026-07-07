@@ -110,7 +110,7 @@
 				<dt>order</dt>
 				<dd>
 					<DydxChainOrderView
-						selection={select(EntityType.DydxChainOrder, selection.entitySelector.$order)}
+						selection={select(EntityType.DydxChainOrder, selection.entitySelector.$order, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

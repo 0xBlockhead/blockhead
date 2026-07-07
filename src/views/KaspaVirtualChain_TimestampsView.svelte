@@ -106,7 +106,7 @@
 				{#snippet Item({ item: kaspaVirtualChainTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaVirtualChain_Timestamp> })}
 					{@const kaspaVirtualChainTimestampFields = { ...kaspaVirtualChainTimestamp[EntityMetaKey.Selector], ...kaspaVirtualChainTimestamp }}
 					<KaspaVirtualChain_TimestampView
-						selection={select(EntityType.KaspaVirtualChain_Timestamp, kaspaVirtualChainTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.KaspaVirtualChain_Timestamp, kaspaVirtualChainTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={kaspaVirtualChainTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

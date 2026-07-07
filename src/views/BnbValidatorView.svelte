@@ -101,7 +101,7 @@
 				<dt>network</dt>
 				<dd>
 					<BnbBeaconNetworkView
-						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.BnbBeaconNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

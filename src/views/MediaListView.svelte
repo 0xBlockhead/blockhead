@@ -114,7 +114,7 @@
 					{@const mediaFields = { ...media[EntityMetaKey.Selector], ...media }}
 					{@const mediaHrefFields = { ...media, ...media[EntityMetaKey.Selector] }}
 					<MediaView
-						selection={select(EntityType.Media, media[EntityMetaKey.Selector])}
+						selection={select(EntityType.Media, media[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mediaFields}
 						href={
 							(mediaHrefFields.url !== undefined ? resolve('/(explore)/media/[url]', {

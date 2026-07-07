@@ -115,7 +115,7 @@
 				{#snippet Item({ item: aiRelationshipClaim }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiRelationshipClaim> })}
 					{@const aiRelationshipClaimFields = { ...aiRelationshipClaim[EntityMetaKey.Selector], ...aiRelationshipClaim }}
 					<AiRelationshipClaimView
-						selection={select(EntityType.AiRelationshipClaim, aiRelationshipClaim[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiRelationshipClaim, aiRelationshipClaim[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiRelationshipClaimFields}
 						layout={EntityLayout.Summary}
 						open={false}

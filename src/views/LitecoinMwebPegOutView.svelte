@@ -177,7 +177,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<LitecoinMwebTransactionView
-						selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.LitecoinMwebTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

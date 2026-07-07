@@ -117,7 +117,7 @@
 					{@const evmNetworkTimestampFields = { ...evmNetworkTimestamp[EntityMetaKey.Selector], ...evmNetworkTimestamp }}
 					{@const evmNetworkTimestampHrefFields = { ...evmNetworkTimestamp, ...evmNetworkTimestamp[EntityMetaKey.Selector] }}
 					<EvmNetwork_TimestampView
-						selection={select(EntityType.EvmNetwork_Timestamp, evmNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmNetwork_Timestamp, evmNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkTimestampFields}
 						href={
 							(evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTimestampHrefFields.$network.caip2.namespace !== undefined && evmNetworkTimestampHrefFields.$network !== undefined && evmNetworkTimestampHrefFields.$network.caip2 !== undefined && evmNetworkTimestampHrefFields.$network.caip2.reference !== undefined && evmNetworkTimestampHrefFields.timestampMs !== undefined && evmNetworkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/observations/[timestampMs=nonNegativeInteger]/[source]', {

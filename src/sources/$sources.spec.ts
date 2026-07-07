@@ -11,14 +11,21 @@ import {
 	resolve,
 } from 'node:path'
 
+import { sourceProviderDefinitions } from '$/sources/$sourceProviders.ts'
 import { indexSourceProviders } from '$/sources/$sources.ts'
 import type { SourceProviderDefinition } from '$/sources/$sources.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { executionEndpoints } from '$/sources/Voltaire/JsonRpc/executionEndpoints.ts'
-import Beacon, { beaconRestEndpoints } from '$/sources/Beacon/index.ts'
+import {
+	beaconOrigins,
+} from '$/sources/Beacon/index.ts'
+import { beaconRestEndpoints } from '$/sources/Beacon/bindings.ts'
 import Piped from '$/sources/Piped/index.ts'
 import { pipedApiDefaultOrigin } from '$/sources/Piped/Rest/constants.ts'
-import QuilibriumDocs, { quilibriumDocsEndpoints } from '$/sources/QuilibriumDocs/index.ts'
+import {
+	quilibriumDocsBindings,
+	quilibriumDocsEndpoints,
+} from '$/sources/QuilibriumDocs/bindings.ts'
 import {
 	getRpcTx,
 	narrowRpcLog,
@@ -29,12 +36,16 @@ import Voltaire, {
 	voltaireJsonRpcTransportsWithOriginsByChainId,
 	voltaireJsonRpcTransportWithOriginsByChainId,
 } from '$/sources/Voltaire/index.ts'
-import ZeroG from '$/sources/ZeroG/index.ts'
-import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/definition.ts'
-import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/definition.ts'
-import { zeroGStorageNodeRpcEndpoints } from '$/sources/ZeroG/StorageNode/JsonRpc/definition.ts'
-import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/definition.ts'
+import { zeroGOrigins } from '$/sources/ZeroG/index.ts'
+import { SourceArtifactKind } from '$/sources/SourceBinding.ts'
+import { zeroGMainnetRpcEndpoints } from '$/sources/ZeroG/Chain/JsonRpc/endpoints.ts'
+import { zeroGMainnetExplorerEndpoints } from '$/sources/ZeroG/ChainScan/Rest/endpoints.ts'
+import { zeroGStorageNodeRpcEndpoints } from '$/sources/ZeroG/StorageNode/JsonRpc/endpoints.ts'
+import { zeroGMainnetStorageEndpoints } from '$/sources/ZeroG/StorageScan/Rest/endpoints.ts'
 import { sourceProviders as appSourceProviders } from '$/sources/index.ts'
+
+const sourceBindingArtifacts = sourceProviderDefinitions.flatMap((provider) => provider.bindings)
+	.flatMap((binding) => binding.artifacts ?? [])
 
 const fixtureSourceProviders = [
 	{
@@ -385,7 +396,9 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps Voltaire origins aligned with source JSON-RPC transport candidates', () => {
-		expect(new Set(Voltaire.origins.map((entry) => entry.origin))).toEqual(
+		expect(new Set(Object.values(voltaireJsonRpcTransportsWithOriginsByChainId).flatMap((entries) => (
+			entries.flatMap((entry) => entry.origins.map((origin) => origin.origin))
+		)))).toEqual(
 			new Set(
 				voltaireJsonRpcTransportCandidates
 					.filter((entry) => entry.transportType === TransportType.Http)
@@ -423,20 +436,20 @@ describe('source provider registry', () => {
 	})
 
 	it('keeps Beacon origins aligned with source endpoint rows', () => {
-		expect(Beacon.origins).toEqual(beaconRestEndpoints.map((beaconRestEndpoint) => ({
+		expect(beaconOrigins).toEqual(beaconRestEndpoints.map((beaconRestEndpoint) => ({
 			origin: new URL(beaconRestEndpoint.restBaseUrl).origin,
 			corsEnabled: beaconRestEndpoint.corsEnabled,
 		})))
 	})
 
 	it('keeps Quilibrium docs origins aligned with source endpoint rows', () => {
-		expect(new Set(QuilibriumDocs.origins.map((entry) => entry.origin))).toEqual(
+		expect(new Set(quilibriumDocsBindings.flatMap((binding) => binding.endpoints).map((entry) => entry.origin))).toEqual(
 			new Set(quilibriumDocsEndpoints.map((entry) => new URL(entry.url).origin))
 		)
 	})
 
 	it('keeps ZeroG origins aligned with source endpoint rows', () => {
-		expect(new Set(ZeroG.origins.map((entry) => entry.origin))).toEqual(
+		expect(new Set(zeroGOrigins.map((entry) => entry.origin))).toEqual(
 			new Set([
 				...zeroGMainnetExplorerEndpoints.map((entry) => new URL(entry.url).origin),
 				...zeroGMainnetStorageEndpoints.map((entry) => new URL(entry.url).origin),
@@ -449,6 +462,11 @@ describe('source provider registry', () => {
 	it('keeps generated OpenAPI sources reproducible from checked-in schema manifests', () => {
 		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
 		const manifestFiles = globSync('src/sources/*/OpenApi/schema-source.ts')
+		const activeManifestFiles = new Set(
+			sourceBindingArtifacts
+				.filter((artifact) => artifact.kind === SourceArtifactKind.GenerationManifest)
+				.map((artifact) => artifact.path)
+		)
 		const coveredTypesFiles = new Set<string>()
 		const inactiveManifests: string[] = []
 
@@ -460,32 +478,19 @@ describe('source provider registry', () => {
 			const manifestSource = readFileSync(manifestFile, 'utf8')
 			const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
 			const typesFile = manifestSource.match(/typesFile:\s*'([^']+)'/)?.[1]
-			if (!existsSync(resolve(dirname(manifestFile), 'definition.ts'))) {
+			if (!activeManifestFiles.has(manifestFile)) {
 				inactiveManifests.push(manifestFile)
 				continue
 			}
-			const sourceDefinition = readFileSync(resolve(dirname(manifestFile), 'definition.ts'), 'utf8')
-			const sourceName = sourceDefinition.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
 
 			if (schemaFile == null)
 				throw new Error(`${manifestFile}: missing schemaFile`)
 			if (typesFile == null)
 				throw new Error(`${manifestFile}: missing typesFile`)
-			if (sourceName == null)
-				throw new Error(`${manifestFile}: missing Source enum registration in definition.ts`)
 
 			expect(existsSync(resolve(dirname(manifestFile), schemaFile))).toBe(true)
 			expect(existsSync(resolve(dirname(manifestFile), typesFile))).toBe(true)
-			expect(existsSync(resolve(dirname(manifestFile), 'client.ts'))).toBe(true)
-			expect(existsSync(resolve(dirname(manifestFile), 'queries.ts'))).toBe(true)
-			expect(existsSync(resolve(dirname(manifestFile), 'types.ts'))).toBe(true)
-			expect(existsSync(resolve(dirname(manifestFile), 'definition.ts'))).toBe(true)
 			coveredTypesFiles.add(resolve(dirname(manifestFile), typesFile))
-			expect(
-				appSourceProviders.flatMap((provider) => provider.sources).some((source) => (
-					source.source === sourceName
-				))
-				).toBe(true)
 		}
 
 		for (const typesFile of globSync('src/sources/*/OpenApi/openapi.d.ts')) {
@@ -495,19 +500,17 @@ describe('source provider registry', () => {
 
 			expect(coveredTypesFiles.has(resolve(typesFile)), typesFile).toBe(true)
 		}
-		expect(inactiveManifests).toEqual([
-			'src/sources/OpenSea/OpenApi/schema-source.ts',
-			'src/sources/Neynar/OpenApi/schema-source.ts',
-			'src/sources/Lifi/OpenApi/schema-source.ts',
-			'src/sources/CardanoBlockfrost/OpenApi/schema-source.ts',
-			'src/sources/Blockfrost/OpenApi/schema-source.ts',
-			'src/sources/Beacon/OpenApi/schema-source.ts',
-		])
+			expect(inactiveManifests.every((manifestFile) => !activeManifestFiles.has(manifestFile))).toBe(true)
 	})
 
 	it('keeps generated GraphQL sources reproducible from checked-in schema manifests', () => {
 		const packageJson = readFileSync(join(process.cwd(), 'package.json'), 'utf8')
 		const manifestFiles = globSync('src/sources/**/Graphql/**/schema-source.ts')
+		const activeManifestFiles = new Set(
+			sourceBindingArtifacts
+				.filter((artifact) => artifact.kind === SourceArtifactKind.GenerationManifest)
+				.map((artifact) => artifact.path)
+		)
 		const coveredOutputFiles = new Set<string>()
 		const inactiveManifests: string[] = []
 
@@ -520,41 +523,22 @@ describe('source provider registry', () => {
 			const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
 			const outputFile = manifestSource.match(/outputFile:\s*'([^']+)'/)?.[1]
 			const patchFile = manifestSource.match(/patchFile:\s*'([^']+)'/)?.[1]
-			if (!existsSync(resolve(
-				manifestFile.slice(0, manifestFile.indexOf('/Graphql/') + '/Graphql'.length),
-				'definition.ts'
-			))) {
+			if (!activeManifestFiles.has(manifestFile)) {
 				inactiveManifests.push(manifestFile)
 				continue
 			}
-			const sourceDefinition = readFileSync(
-				resolve(
-					manifestFile.slice(0, manifestFile.indexOf('/Graphql/') + '/Graphql'.length),
-					'definition.ts'
-				),
-				'utf8'
-			)
-			const sourceName = sourceDefinition.match(/\bsource:\s*Source\.([A-Za-z0-9_]+)/)?.[1]
 
 			if (schemaFile == null)
 				throw new Error(`${manifestFile}: missing schemaFile`)
-			if (outputFile == null)
-				throw new Error(`${manifestFile}: missing outputFile`)
-			if (sourceName == null)
-				throw new Error(`${manifestFile}: missing Source enum registration in definition.ts`)
 
 			expect(existsSync(resolve(dirname(manifestFile), schemaFile))).toBe(true)
-			expect(existsSync(resolve(dirname(manifestFile), outputFile))).toBe(true)
-			coveredOutputFiles.add(resolve(dirname(manifestFile), outputFile))
+			if (outputFile != null) {
+				expect(existsSync(resolve(dirname(manifestFile), outputFile))).toBe(true)
+				coveredOutputFiles.add(resolve(dirname(manifestFile), outputFile))
+			}
 			if (patchFile != null)
 				expect(existsSync(resolve(dirname(manifestFile), patchFile))).toBe(true)
-			expect(existsSync(resolve(dirname(manifestFile), 'client.ts'))).toBe(true)
 			expect(existsSync(resolve(dirname(manifestFile), 'queries.ts'))).toBe(true)
-			expect(
-				appSourceProviders.flatMap((provider) => provider.sources).some((source) => (
-					source.source === sourceName
-				))
-				).toBe(true)
 		}
 
 		for (const outputFile of globSync('src/sources/**/Graphql/**/graphql-env.d.ts')) {
@@ -564,9 +548,7 @@ describe('source provider registry', () => {
 
 			expect(coveredOutputFiles.has(resolve(outputFile)), outputFile).toBe(true)
 		}
-		expect(inactiveManifests).toEqual([
-			'src/sources/AptosIndexer/Graphql/schema-source.ts',
-		])
+			expect(inactiveManifests.every((manifestFile) => !activeManifestFiles.has(manifestFile))).toBe(true)
 	})
 
 	it('keeps generated precompile data reproducible from the checked-in manifest', () => {

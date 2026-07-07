@@ -21,7 +21,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import CosmosNetwork_TimestampsView from '$/views/CosmosNetwork_TimestampsView.svelte'
+	import Network_TimestampsView from '$/views/Network_TimestampsView.svelte'
 </script>
 
 
@@ -31,7 +31,7 @@
 
 
 <Page>
-	<CosmosNetwork_TimestampsView
+	<Network_TimestampsView
 		href={
 			resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/observations', {
 				caip2: params.caip2,
@@ -39,11 +39,9 @@
 		}
 		title='Cosmos network observations'
 		selection={
-			select(EntityType.CosmosNetwork, {
-				$network: {
-					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-				},
-			})[EntityProxyField]<EntityType.CosmosNetwork_Timestamp>('$$timestamps')
+			select(EntityType.Network, {
+				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+			})[EntityProxyField]<EntityType.Network_Timestamp>('$$timestamps')
 		}
 		id='timestamps'
 	/>

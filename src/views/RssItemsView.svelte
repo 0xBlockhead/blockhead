@@ -114,7 +114,7 @@
 				{#snippet Item({ item: rssItem }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RssItem> })}
 					{@const rssItemFields = { ...rssItem[EntityMetaKey.Selector], ...rssItem }}
 					<RssItemView
-						selection={select(EntityType.RssItem, rssItem[EntityMetaKey.Selector])}
+						selection={select(EntityType.RssItem, rssItem[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={rssItemFields}
 						layout={EntityLayout.Summary}
 						open={false}

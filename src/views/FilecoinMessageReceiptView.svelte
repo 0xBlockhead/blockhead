@@ -135,7 +135,7 @@
 				<dt>Message</dt>
 				<dd>
 					<FilecoinMessageView
-						selection={select(EntityType.FilecoinMessage, selection.entitySelector.$message)}
+						selection={select(EntityType.FilecoinMessage, selection.entitySelector.$message, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

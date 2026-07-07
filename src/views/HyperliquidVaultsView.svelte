@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidVault }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidVault> })}
 					{@const hyperliquidVaultFields = { ...hyperliquidVault[EntityMetaKey.Selector], ...hyperliquidVault }}
 					<HyperliquidVaultView
-						selection={select(EntityType.HyperliquidVault, hyperliquidVault[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidVault, hyperliquidVault[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidVaultFields}
 						layout={EntityLayout.Summary}
 						open={false}

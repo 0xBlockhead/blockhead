@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonNftTransfer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonNftTransfer> })}
 					{@const tonNftTransferFields = { ...tonNftTransfer[EntityMetaKey.Selector], ...tonNftTransfer }}
 					<TonNftTransferView
-						selection={select(EntityType.TonNftTransfer, tonNftTransfer[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonNftTransfer, tonNftTransfer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonNftTransferFields}
 						layout={EntityLayout.Summary}
 						open={false}

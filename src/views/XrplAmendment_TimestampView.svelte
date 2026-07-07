@@ -81,7 +81,7 @@
 				<dt>amendment</dt>
 				<dd>
 					<XrplAmendmentView
-						selection={select(EntityType.XrplAmendment, selection.entitySelector.$amendment)}
+						selection={select(EntityType.XrplAmendment, selection.entitySelector.$amendment, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

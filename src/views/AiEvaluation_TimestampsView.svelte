@@ -115,7 +115,7 @@
 				{#snippet Item({ item: aiEvaluationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiEvaluation_Timestamp> })}
 					{@const aiEvaluationTimestampFields = { ...aiEvaluationTimestamp[EntityMetaKey.Selector], ...aiEvaluationTimestamp }}
 					<AiEvaluation_TimestampView
-						selection={select(EntityType.AiEvaluation_Timestamp, aiEvaluationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiEvaluation_Timestamp, aiEvaluationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiEvaluationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

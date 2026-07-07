@@ -121,7 +121,7 @@
 					{@const blockheadAgentConversationTurnFields = { ...blockheadAgentConversationTurn[EntityMetaKey.Selector], ...blockheadAgentConversationTurn }}
 					{@const blockheadAgentConversationTurnHrefFields = { ...blockheadAgentConversationTurn, ...blockheadAgentConversationTurn[EntityMetaKey.Selector] }}
 					<BlockheadAgentConversationTurnView
-						selection={select(EntityType.BlockheadAgentConversationTurn, blockheadAgentConversationTurn[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAgentConversationTurn, blockheadAgentConversationTurn[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAgentConversationTurnFields}
 						href={
 							(blockheadAgentConversationTurnHrefFields.$conversation !== undefined && blockheadAgentConversationTurnHrefFields.$conversation.id !== undefined && blockheadAgentConversationTurnHrefFields.id !== undefined ? resolve('/~/agents/conversation/[conversationId]/turn/[turnId]', {

@@ -82,7 +82,7 @@
 				<dt>drep</dt>
 				<dd>
 					<CardanoDRepView
-						selection={select(EntityType.CardanoDRep, selection.entitySelector.$drep)}
+						selection={select(EntityType.CardanoDRep, selection.entitySelector.$drep, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

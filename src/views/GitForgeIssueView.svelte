@@ -101,7 +101,7 @@
 				<dt>forge mirror</dt>
 				<dd>
 					<GitForgeMirrorView
-						selection={select(EntityType.GitForgeMirror, selection.entitySelector.$forgeMirror)}
+						selection={select(EntityType.GitForgeMirror, selection.entitySelector.$forgeMirror, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -218,7 +218,7 @@
 						{#snippet Pending()}
 							{@const labels = prefetched.labels}
 							{#if labels !== undefined && labels !== null}
-								{(labels?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{labels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -226,7 +226,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const labels = resolvedEntity.labels}
 							{#if labels !== undefined && labels !== null}
-								{(labels?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{labels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

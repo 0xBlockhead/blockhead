@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>YouTube video • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<YoutubeVideoView
 		href={
@@ -37,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.YoutubeVideo, data.selector, {
+			select(EntityType.YoutubeVideo, {
+				videoId: decodeURIComponent(params.videoId),
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					title: true,
 					publishedAtMs: true,

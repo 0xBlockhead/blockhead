@@ -116,7 +116,7 @@
 					{@const beaconSlotFields = { ...beaconSlot[EntityMetaKey.Selector], ...beaconSlot }}
 					{@const beaconSlotHrefFields = { ...beaconSlot, ...beaconSlot[EntityMetaKey.Selector] }}
 					<BeaconSlotView
-						selection={select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector])}
+						selection={select(EntityType.BeaconSlot, beaconSlot[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconSlotFields}
 						href={
 							(beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.caip2 !== undefined && beaconSlotHrefFields.$network.caip2.namespace !== undefined && beaconSlotHrefFields.$network !== undefined && beaconSlotHrefFields.$network.caip2 !== undefined && beaconSlotHrefFields.$network.caip2.reference !== undefined && beaconSlotHrefFields.slot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]', {

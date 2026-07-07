@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiAccount> })}
 					{@const suiAccountFields = { ...suiAccount[EntityMetaKey.Selector], ...suiAccount }}
 					<SuiAccountView
-						selection={select(EntityType.SuiAccount, suiAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiAccount, suiAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiAccountFields}
 						layout={EntityLayout.Summary}
 						open={false}

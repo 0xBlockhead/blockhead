@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import Market_Derivative_TimestampView from '$/views/Market_Derivative_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>market derivative timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -44,7 +38,48 @@
 			})
 		}
 		selection={
-			select(EntityType.Market_Derivative_Timestamp, data.selector, {
+			select(EntityType.Market_Derivative_Timestamp, {
+				$market: {
+					$marketVenue: {
+						marketVenueId: params.marketVenue,
+					},
+					$base: (
+					params.baseKind === 'coin' ?
+						{
+							kind: 'Coin',
+							$coin: {
+								coinId: decodeURIComponent(params.base),
+							},
+						}
+					:
+						{
+							kind: 'Currency',
+							$currency: {
+								iso4217: decodeURIComponent(params.base),
+							},
+						}
+					),
+					$quote: (
+					params.quoteKind === 'coin' ?
+						{
+							kind: 'Coin',
+							$coin: {
+								coinId: decodeURIComponent(params.quote),
+							},
+						}
+					:
+						{
+							kind: 'Currency',
+							$currency: {
+								iso4217: decodeURIComponent(params.quote),
+							},
+						}
+					),
+					marketKind: params.marketKind,
+				},
+				timestampMs: Number(params.timestampMs),
+				feedKey: decodeURIComponent(params.feedKey),
+			}, {
 				fields: {
 					markPrice: true,
 					indexPrice: true,

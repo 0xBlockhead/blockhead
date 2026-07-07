@@ -240,7 +240,7 @@
 				<dt>Bundler</dt>
 				<dd>
 					<Erc4337BundlerView
-						selection={select(EntityType.Erc4337Bundler, selection.entitySelector.$bundler)}
+						selection={select(EntityType.Erc4337Bundler, selection.entitySelector.$bundler, {})}
 						href={
 							(selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.caip2 !== undefined && selection.entitySelector.$bundler.$network.caip2.namespace !== undefined && selection.entitySelector.$bundler.$network !== undefined && selection.entitySelector.$bundler.$network.caip2 !== undefined && selection.entitySelector.$bundler.$network.caip2.reference !== undefined && selection.entitySelector.$bundler.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {
 								caip2: `${String(selection.entitySelector.$bundler.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$bundler.$network.caip2.reference ?? '')}`,

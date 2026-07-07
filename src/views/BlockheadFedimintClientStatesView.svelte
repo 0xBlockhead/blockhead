@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadFedimintClientState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadFedimintClientState> })}
 					{@const blockheadFedimintClientStateFields = { ...blockheadFedimintClientState[EntityMetaKey.Selector], ...blockheadFedimintClientState }}
 					<BlockheadFedimintClientStateView
-						selection={select(EntityType.BlockheadFedimintClientState, blockheadFedimintClientState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadFedimintClientState, blockheadFedimintClientState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadFedimintClientStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

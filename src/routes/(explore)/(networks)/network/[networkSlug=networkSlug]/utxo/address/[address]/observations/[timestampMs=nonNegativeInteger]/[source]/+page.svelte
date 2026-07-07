@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import UtxoAddress_TimestampView from '$/views/UtxoAddress_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>UTXO address timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,8 +34,26 @@
 			})
 		}
 		selection={
-			select(EntityType.UtxoAddress_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.UtxoAddress_Timestamp, {
+				$address: {
+					$network: {
+						slug: params.networkSlug,
+					},
+					address: decodeURIComponent(params.address),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$address: {
+					$network: {
+						slug: params.networkSlug,
+					},
+					address: decodeURIComponent(params.address),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					balanceSats: true,
 					transactionCount: true,

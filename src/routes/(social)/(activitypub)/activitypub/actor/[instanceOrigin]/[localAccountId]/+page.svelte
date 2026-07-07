@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>ActivityPub actor • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,13 @@
 			})
 		}
 		selection={
-			select(EntityType.ActivityPubActor, data.selector, {
+			select(EntityType.ActivityPubActor, {
+				instanceOrigin: decodeURIComponent(params.instanceOrigin),
+				localAccountId: decodeURIComponent(params.localAccountId),
+			}, {
+				sources: [
+					Source.Mastodon_Rest,
+				],
 				fields: {
 					$icon: true,
 					displayName: true,

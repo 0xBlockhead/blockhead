@@ -81,7 +81,7 @@
 				<dt>trustline</dt>
 				<dd>
 					<StellarTrustlineView
-						selection={select(EntityType.StellarTrustline, selection.entitySelector.$trustline)}
+						selection={select(EntityType.StellarTrustline, selection.entitySelector.$trustline, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

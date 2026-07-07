@@ -140,7 +140,7 @@
 				<dt>Topic</dt>
 				<dd>
 					<EvmTopicView
-						selection={select(EntityType.EvmTopic, selection.entitySelector.$topic)}
+						selection={select(EntityType.EvmTopic, selection.entitySelector.$topic, {})}
 						href={
 							(selection.entitySelector.$topic.hex !== undefined ? resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
 								hex: String(selection.entitySelector.$topic.hex ?? ''),

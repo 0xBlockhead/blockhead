@@ -119,7 +119,7 @@
 				{#snippet Item({ item: nearNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearNetwork> })}
 					{@const nearNetworkFields = { ...nearNetwork[EntityMetaKey.Selector], ...nearNetwork }}
 					<NearNetworkView
-						selection={select(EntityType.NearNetwork, nearNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearNetwork, nearNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

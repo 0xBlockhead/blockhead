@@ -291,7 +291,7 @@
 				<dt>Subreddit</dt>
 				<dd>
 					<RedditSubredditView
-						selection={select(EntityType.RedditSubreddit, selection.entitySelector.$subreddit)}
+						selection={select(EntityType.RedditSubreddit, selection.entitySelector.$subreddit, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

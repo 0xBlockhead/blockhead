@@ -262,7 +262,7 @@
 				<dt>Account</dt>
 				<dd>
 					<CosmosAccountView
-						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.CosmosAccount, selection.entitySelector.$account, {})}
 						href={
 							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {
 								caip2: `${String(selection.entitySelector.$account.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$account.$network.caip2.reference ?? '')}`,

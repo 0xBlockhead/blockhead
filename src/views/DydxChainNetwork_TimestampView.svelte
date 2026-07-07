@@ -111,7 +111,7 @@
 				<dt>network</dt>
 				<dd>
 					<DydxChainNetworkView
-						selection={select(EntityType.DydxChainNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.DydxChainNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

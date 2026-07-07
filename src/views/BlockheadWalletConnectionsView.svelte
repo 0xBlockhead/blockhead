@@ -113,7 +113,7 @@
 				{#snippet Item({ item: blockheadWalletConnection }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadWalletConnection> })}
 					{@const blockheadWalletConnectionFields = { ...blockheadWalletConnection[EntityMetaKey.Selector], ...blockheadWalletConnection }}
 					<BlockheadWalletConnectionView
-						selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadWalletConnection, blockheadWalletConnection[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadWalletConnectionFields}
 						layout={EntityLayout.Summary}
 						open={false}

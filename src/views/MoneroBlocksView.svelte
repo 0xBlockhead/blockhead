@@ -119,7 +119,7 @@
 				{#snippet Item({ item: moneroBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoneroBlock> })}
 					{@const moneroBlockFields = { ...moneroBlock[EntityMetaKey.Selector], ...moneroBlock }}
 					<MoneroBlockView
-						selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoneroBlock, moneroBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moneroBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

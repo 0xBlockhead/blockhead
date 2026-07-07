@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadIntentOrderTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadIntentOrder_Timestamp> })}
 					{@const blockheadIntentOrderTimestampFields = { ...blockheadIntentOrderTimestamp[EntityMetaKey.Selector], ...blockheadIntentOrderTimestamp }}
 					<BlockheadIntentOrder_TimestampView
-						selection={select(EntityType.BlockheadIntentOrder_Timestamp, blockheadIntentOrderTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadIntentOrder_Timestamp, blockheadIntentOrderTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadIntentOrderTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

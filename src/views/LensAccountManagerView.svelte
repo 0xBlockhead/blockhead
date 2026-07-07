@@ -378,7 +378,7 @@
 				<dt>Account</dt>
 				<dd>
 					<LensAccountView
-						selection={select(EntityType.LensAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.LensAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

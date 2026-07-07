@@ -114,7 +114,7 @@
 				{#snippet Item({ item: lensFeed }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensFeed> })}
 					{@const lensFeedFields = { ...lensFeed[EntityMetaKey.Selector], ...lensFeed }}
 					<LensFeedView
-						selection={select(EntityType.LensFeed, lensFeed[EntityMetaKey.Selector])}
+						selection={select(EntityType.LensFeed, lensFeed[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lensFeedFields}
 						layout={EntityLayout.Summary}
 						open={false}

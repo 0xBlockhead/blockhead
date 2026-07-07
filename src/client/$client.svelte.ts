@@ -57,7 +57,6 @@ import {
 	validateEntitySelector,
 } from '$/schema/$schema.ts'
 import {
-	enabledSourcesFromBindings,
 	type SourceProviderDefinition,
 	type SourcePublicEnv,
 	indexSourceProviders,
@@ -461,18 +460,21 @@ const persistedCollectionLoadedSubset = (
 	)
 		return undefined
 
+	const sourceRowCountEntries: [string, number][] = []
+	for (const source of Object.keys(value.sourceRowCounts)) {
+		const count = Object.getOwnPropertyDescriptor(value.sourceRowCounts, source)?.value
+		if (typeof count === 'number')
+			sourceRowCountEntries.push([
+				source,
+				count,
+			])
+	}
+
 	return {
 		collectionId: value.collectionId,
 		loadedKey: value.loadedKey,
 		rowCount: value.rowCount,
-		sourceRowCounts: Object.fromEntries(
-			Object.entries(value.sourceRowCounts).flatMap(([source, count]) => (
-				typeof count === 'number' ?
-					[[source, count]]
-				:
-					[]
-				))
-		),
+		sourceRowCounts: Object.fromEntries(sourceRowCountEntries),
 	}
 }
 
@@ -1202,6 +1204,60 @@ const loadFieldRows = async <
 		definition.defaultSources,
 		resolverParts.map((resolverPart) => String(resolverPart.source))
 	))
+	if (entityDefinition.selectors.some((selectorDefinition) => selectorDefinition.fields.includes(fieldName))) {
+		const results = parentSelectorsFromSubset(subset).flatMap(({
+			selector: parentSelector,
+			selectorKey: parentSelectorKey,
+		}) => {
+			const selectorValue = parentSelector[fieldName]
+			if (selectorValue === undefined)
+				return []
+
+			return [...sources].map((source) => {
+				const value = (
+					definition.type === EntityFieldType.EntityReference ?
+						{ [EntityMetaKey.Selector]: selectorValue }
+					:
+						selectorValue
+				)
+				return {
+					rows: resolverFieldValueItems(
+						entityType,
+						fieldName,
+						source,
+						definition,
+						value
+					).map((item, valueIndex) => ({
+						fieldName,
+						...(entityFieldCardinalityIsMultiple(definition.cardinality) && {
+							valueIndex,
+						}),
+						[EntityMetaKey.ParentSelector]: parentSelector,
+						[EntityMetaKey.ParentSelectorKey]: parentSelectorKey,
+						[EntityMetaKey.Source]: source,
+						[EntityMetaKey.Value]: item,
+						valueKey: resolverFieldValueKey(
+							context,
+							entityType,
+							fieldName,
+							source,
+							definition,
+							item
+						),
+					})),
+					outcomes: [{
+						source,
+						status: PersistedCollectionSourceStatus.Completed,
+					}],
+				}
+			})
+		})
+
+		return {
+			rows: results.flatMap((result) => result.rows),
+			outcomes: results.flatMap((result) => result.outcomes),
+		}
+	}
 	const results = await Promise.all(parentSelectorsFromSubset(subset).flatMap(({
 		selector: parentSelector,
 		selectorKey: parentSelectorKey,
@@ -1519,16 +1575,12 @@ export const client = <
 		return context
 	}
 	const {
+		enabledSources,
 		resolverPublicEnvBySource,
 	} = indexSourceProviders(
 		sourceProviders,
 		env
 	)
-		const enabledSources = new Set(
-			[...enabledSourcesFromBindings<_Source>(
-				sourceProviders.flatMap((sourceProvider) => sourceProvider.bindings)
-			)].filter((source) => resolverPublicEnvBySource.has(String(source)))
-		)
 	const {
 		resolverIndexes,
 	} = indexResolvers(
@@ -1537,6 +1589,9 @@ export const client = <
 		enabledSources
 	)
 	const entityDefinitionByType: Record<string, EntityDefinition> = {}
+	for (const entityDefinition of schema)
+		entityDefinitionByType[entityDefinition.entityType] = entityDefinition
+
 	const entityCollections: EntityCollections<_Schema> = {}
 		const entityFieldCollections: EntityFieldCollections<_Schema> = {}
 		const entityFieldCountCollections: EntityFieldCountCollections<_Schema> = {}
@@ -1554,10 +1609,9 @@ export const client = <
 				return () => {
 					collectionLoadFailureListeners.delete(listener)
 				}
-			},
-		}
+		},
+	}
 	for (const entityDefinition of schema) {
-		entityDefinitionByType[entityDefinition.entityType] = entityDefinition
 		const entityCollectionUtils = persistedCollectionUtils<EntityCollectionItem<_Schema>>()
 		entityCollections[entityDefinition.entityType] = createCollection<
 			EntityCollectionItem<_Schema>,
@@ -1630,35 +1684,55 @@ export const client = <
 				utils: entityCollectionUtils.utils,
 				onDelete: async () => {},
 			})
-		)
-		entityFieldCollections[entityDefinition.entityType] = {}
-		entityFieldCountCollections[entityDefinition.entityType] = {}
-		for (const definition of entityFieldDefinitions(entityDefinition)) {
-			const entityFieldCollectionUtils = persistedCollectionUtils<EntityFieldCollectionItem<_Schema>>()
-			entityFieldCollections[entityDefinition.entityType][definition.name] = createCollection<
-				EntityFieldCollectionItem<_Schema>,
-				string | number,
-				PersistedCollectionRowCollectionUtils<EntityFieldCollectionItem<_Schema>>
-			>(
-				persistedCollectionOptions<
-					EntityFieldCollectionItem<_Schema>,
+			)
+			entityFieldCollections[entityDefinition.entityType] = {}
+			entityFieldCountCollections[entityDefinition.entityType] = {}
+			for (const definition of entityFieldDefinitions(entityDefinition)) {
+				const entityFieldCollectionUtils = persistedCollectionUtils<EntityFieldCollectionItem<
+					_Schema,
+					typeof entityDefinition.entityType,
+					typeof definition.name
+				>>()
+				entityFieldCollections[entityDefinition.entityType][definition.name] = createCollection<
+					EntityFieldCollectionItem<
+						_Schema,
+						typeof entityDefinition.entityType,
+						typeof definition.name
+					>,
 					string | number,
-					never,
-					PersistedCollectionRowCollectionUtils<EntityFieldCollectionItem<_Schema>>
-				>({
-					id: `client.fields.${entityDefinition.entityType}.${definition.name}`,
-					syncMode: 'on-demand',
-					sync: persistedCollectionSync({
-						collectionId: `client.fields.${entityDefinition.entityType}.${definition.name}`,
-						schemaVersion,
-						getKey: (row) => stringify([
-							row[EntityMetaKey.Source],
-							row[EntityMetaKey.ParentSelectorKey],
-							row.valueKey,
-						]),
-						loadedKey: (loadSubsetOptions) => stringify(fieldLoadedSubsetKey(loadSubsetOptions)),
-						sources: (loadSubsetOptions) => {
-							const subset = parseResolverSubset(loadSubsetOptions)
+					PersistedCollectionRowCollectionUtils<EntityFieldCollectionItem<
+						_Schema,
+						typeof entityDefinition.entityType,
+						typeof definition.name
+					>>
+				>(
+					persistedCollectionOptions<
+						EntityFieldCollectionItem<
+							_Schema,
+							typeof entityDefinition.entityType,
+							typeof definition.name
+						>,
+						string | number,
+						never,
+						PersistedCollectionRowCollectionUtils<EntityFieldCollectionItem<
+							_Schema,
+							typeof entityDefinition.entityType,
+							typeof definition.name
+						>>
+					>({
+						id: `client.fields.${entityDefinition.entityType}.${definition.name}`,
+						syncMode: 'on-demand',
+						sync: persistedCollectionSync({
+							collectionId: `client.fields.${entityDefinition.entityType}.${definition.name}`,
+							schemaVersion,
+							getKey: (row) => stringify([
+								row[EntityMetaKey.Source],
+								row[EntityMetaKey.ParentSelectorKey],
+								row.valueKey,
+							]),
+							loadedKey: (loadSubsetOptions) => stringify(fieldLoadedSubsetKey(loadSubsetOptions)),
+							sources: (loadSubsetOptions) => {
+								const subset = parseResolverSubset(loadSubsetOptions)
 								const resolverParts = resolverIndexes.resolverValuePartsByEntityTypeAndFieldName[
 									resolverPartsKey(entityDefinition.entityType, definition.name)
 								] ?? []
@@ -1667,52 +1741,74 @@ export const client = <
 										subset,
 										definition.defaultSources,
 										resolverParts.map((resolverPart) => String(resolverPart.source))
-								),
-							]
-						},
-						persistedRows: (loadSubsetOptions, rows) => {
+									),
+								]
+							},
+							persistedRows: (loadSubsetOptions, rows) => {
 								const subset = parseResolverSubset(loadSubsetOptions)
 								const sources = resolvableSources(
 									subset,
 									definition.defaultSources,
 									(resolverIndexes.resolverValuePartsByEntityTypeAndFieldName[
-									resolverPartsKey(entityDefinition.entityType, definition.name)
-								] ?? []).map((resolverPart) => String(resolverPart.source))
+										resolverPartsKey(entityDefinition.entityType, definition.name)
+									] ?? []).map((resolverPart) => String(resolverPart.source))
+								)
+								return rows.filter((row) => (
+									sources.has(row[EntityMetaKey.Source])
+									&& subset.parentSelectorKeys.includes(row[EntityMetaKey.ParentSelectorKey])
+								))
+							},
+							loadRows: (loadSubsetOptions, sources) => loadFieldRows(
+								requireContext(),
+								entityDefinition.entityType,
+								definition.name,
+								loadSubsetOptions,
+								sources
+							),
+							waitForPersistence,
+							events,
+							collectionLoadFailures,
+							setWriteRows: entityFieldCollectionUtils.setWriteRows,
+						}),
+						getKey: (row) => stringify([
+							row[EntityMetaKey.Source],
+							row[EntityMetaKey.ParentSelectorKey],
+							row.valueKey,
+						]),
+						persistence,
+						schemaVersion,
+						utils: entityFieldCollectionUtils.utils,
+						onDelete: async () => {},
+					})
+				)
+				entityFieldCollections[entityDefinition.entityType][definition.name].createIndex(
+					(row) => row.valueIndex,
+					{
+						indexType: BasicIndex,
+					}
+				)
+				if (definition.type === EntityFieldType.EntitiesReference && definition.entityType in entityDefinitionByType) {
+					for (const selectorDefinition of entityDefinitionByType[definition.entityType].selectors) {
+						for (const selectorFieldName of selectorDefinition.fields) {
+							if (
+								entityFieldDefinitions(entityDefinitionByType[definition.entityType]).some((fieldDefinition) => (
+									fieldDefinition.name === selectorFieldName
+									&& fieldDefinition.type === EntityFieldType.Primitive
+								))
 							)
-							return rows.filter((row) => (
-								sources.has(row[EntityMetaKey.Source])
-								&& subset.parentSelectorKeys.includes(row[EntityMetaKey.ParentSelectorKey])
-							))
-						},
-						loadRows: (loadSubsetOptions, sources) => loadFieldRows(
-							requireContext(),
-							entityDefinition.entityType,
-							definition.name,
-							loadSubsetOptions,
-							sources
-						),
-						waitForPersistence,
-						events,
-						collectionLoadFailures,
-						setWriteRows: entityFieldCollectionUtils.setWriteRows,
-					}),
-					getKey: (row) => stringify([
-						row[EntityMetaKey.Source],
-						row[EntityMetaKey.ParentSelectorKey],
-						row.valueKey,
-					]),
-					persistence,
-					schemaVersion,
-					utils: entityFieldCollectionUtils.utils,
-					onDelete: async () => {},
-				})
-			)
-			entityFieldCollections[entityDefinition.entityType][definition.name].createIndex(
-				(row) => row.valueIndex,
-				{
-					indexType: BasicIndex,
+								entityFieldCollections[entityDefinition.entityType][definition.name].createIndex(
+									(row) => (
+										((row[EntityMetaKey.Value] as object) as {
+											[EntityMetaKey.Selector]: Ref<Record<string, string | number>>
+										})[EntityMetaKey.Selector][selectorFieldName]
+									),
+									{
+										indexType: BasicIndex,
+									}
+								)
+						}
+					}
 				}
-			)
 			if (
 				definition.type === EntityFieldType.EntitiesReference
 				|| definition.cardinality === EntityFieldCardinality.Many

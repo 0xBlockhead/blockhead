@@ -81,7 +81,7 @@
 				<dt>offer</dt>
 				<dd>
 					<StellarOfferView
-						selection={select(EntityType.StellarOffer, selection.entitySelector.$offer)}
+						selection={select(EntityType.StellarOffer, selection.entitySelector.$offer, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

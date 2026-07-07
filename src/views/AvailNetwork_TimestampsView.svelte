@@ -115,7 +115,7 @@
 				{#snippet Item({ item: availNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvailNetwork_Timestamp> })}
 					{@const availNetworkTimestampFields = { ...availNetworkTimestamp[EntityMetaKey.Selector], ...availNetworkTimestamp }}
 					<AvailNetwork_TimestampView
-						selection={select(EntityType.AvailNetwork_Timestamp, availNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvailNetwork_Timestamp, availNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={availNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

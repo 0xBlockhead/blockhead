@@ -109,7 +109,7 @@
 				<dt>AuxPoW</dt>
 				<dd>
 					<DogecoinBlockAuxPowView
-						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow)}
+						selection={select(EntityType.DogecoinBlockAuxPow, selection.entitySelector.$auxPow, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -161,7 +161,7 @@
 						{#snippet Pending()}
 							{@const branchHashes = prefetched.branchHashes}
 							{#if branchHashes !== undefined && branchHashes !== null}
-								<TruncatedValue value={(branchHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={branchHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -169,7 +169,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const branchHashes = resolvedEntity.branchHashes}
 							{#if branchHashes !== undefined && branchHashes !== null}
-								<TruncatedValue value={(branchHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={branchHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

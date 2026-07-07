@@ -13,24 +13,18 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import UtxoNetwork_TimestampView from '$/views/UtxoNetwork_TimestampView.svelte'
+	import Network_TimestampView from '$/views/Network_TimestampView.svelte'
 </script>
 
 
-<svelte:head>
-	<title>UTXO network timestamp • Blockhead</title>
-</svelte:head>
-
-
 <Page>
-	<UtxoNetwork_TimestampView
+	<Network_TimestampView
 		href={
 			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/observations/[timestampMs=nonNegativeInteger]/[source]', {
 				networkSlug: params.networkSlug,
@@ -39,23 +33,39 @@
 			})
 		}
 		selection={
-			select(EntityType.UtxoNetwork_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.Network_Timestamp, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$network: {
+					slug: params.networkSlug,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
-					bestBlockHeight: true,
-					bestBlockHash: true,
-					bestBlockTimeMs: true,
-					blockCount: true,
-					transactionCount: true,
-					blocks24h: true,
-					transactions24h: true,
-					mempoolTransactionCount: true,
-					mempoolSizeBytes: true,
-					mempoolTps: true,
-					averageTransactionFee24hSats: true,
-					medianTransactionFee24hSats: true,
-					suggestedTransactionFeePerByteSats: true,
-					blockchainSizeBytes: true,
+					latestHeight: true,
+					health: true,
+					txCount: true,
+					latestBlockHeight: true,
+					latestBlockHash: true,
+					latestBlockTimeMs: true,
+					latestBlockTransactionCount: true,
+					chainId: true,
+					nodeNetwork: true,
+					applicationName: true,
+					applicationVersion: true,
+					cosmosSdkVersion: true,
+					isSyncing: true,
+					validatorCount: true,
+					bondedValidatorCount: true,
+					bondedTokens: true,
+					notBondedTokens: true,
+					governanceProposalCount: true,
 				},
 			})
 		}

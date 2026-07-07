@@ -687,7 +687,7 @@
 				<dt>Channel</dt>
 				<dd>
 					<IbcChannelView
-						selection={select(EntityType.IbcChannel, selection.entitySelector.$channel)}
+						selection={select(EntityType.IbcChannel, selection.entitySelector.$channel, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

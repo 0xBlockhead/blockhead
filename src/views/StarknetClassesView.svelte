@@ -114,7 +114,7 @@
 				{#snippet Item({ item: starknetClass }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetClass> })}
 					{@const starknetClassFields = { ...starknetClass[EntityMetaKey.Selector], ...starknetClass }}
 					<StarknetClassView
-						selection={select(EntityType.StarknetClass, starknetClass[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetClass, starknetClass[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetClassFields}
 						layout={EntityLayout.Summary}
 						open={false}

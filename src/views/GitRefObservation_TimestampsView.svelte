@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitRefObservationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitRefObservation_Timestamp> })}
 					{@const gitRefObservationTimestampFields = { ...gitRefObservationTimestamp[EntityMetaKey.Selector], ...gitRefObservationTimestamp }}
 					<GitRefObservation_TimestampView
-						selection={select(EntityType.GitRefObservation_Timestamp, gitRefObservationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitRefObservation_Timestamp, gitRefObservationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitRefObservationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: payjoinDirectory }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PayjoinDirectory> })}
 					{@const payjoinDirectoryFields = { ...payjoinDirectory[EntityMetaKey.Selector], ...payjoinDirectory }}
 					<PayjoinDirectoryView
-						selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector])}
+						selection={select(EntityType.PayjoinDirectory, payjoinDirectory[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={payjoinDirectoryFields}
 						layout={EntityLayout.Summary}
 						open={false}

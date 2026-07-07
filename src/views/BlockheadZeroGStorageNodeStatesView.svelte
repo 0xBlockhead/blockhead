@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadZeroGStorageNodeState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadZeroGStorageNodeState> })}
 					{@const blockheadZeroGStorageNodeStateFields = { ...blockheadZeroGStorageNodeState[EntityMetaKey.Selector], ...blockheadZeroGStorageNodeState }}
 					<BlockheadZeroGStorageNodeStateView
-						selection={select(EntityType.BlockheadZeroGStorageNodeState, blockheadZeroGStorageNodeState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadZeroGStorageNodeState, blockheadZeroGStorageNodeState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadZeroGStorageNodeStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -103,14 +103,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$transactions',
+			name: '$$transactions',
 			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonTransaction,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$messages',
+			name: '$$messages',
 			label: 'messages',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonMessage,

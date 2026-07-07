@@ -44,7 +44,7 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StellarAccountSigner_Timestamp,

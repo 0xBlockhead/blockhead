@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -83,7 +84,7 @@
 				<dt>Account</dt>
 				<dd>
 					<TronAccountView
-						selection={select(EntityType.TronAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.TronAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,7 +95,7 @@
 				<dt>Token</dt>
 				<dd>
 					<TronTokenView
-						selection={select(EntityType.TronToken, selection.entitySelector.$token)}
+						selection={select(EntityType.TronToken, selection.entitySelector.$token, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -287,7 +288,7 @@
 						{#snippet Pending()}
 							{@const ownedSerialNumbers = prefetched.ownedSerialNumbers}
 							{#if ownedSerialNumbers !== undefined && ownedSerialNumbers !== null}
-								{(ownedSerialNumbers?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{ownedSerialNumbers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -295,7 +296,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const ownedSerialNumbers = resolvedEntity.ownedSerialNumbers}
 							{#if ownedSerialNumbers !== undefined && ownedSerialNumbers !== null}
-								{(ownedSerialNumbers?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{ownedSerialNumbers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

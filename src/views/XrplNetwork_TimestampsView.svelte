@@ -106,7 +106,7 @@
 				{#snippet Item({ item: xrplNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplNetwork_Timestamp> })}
 					{@const xrplNetworkTimestampFields = { ...xrplNetworkTimestamp[EntityMetaKey.Selector], ...xrplNetworkTimestamp }}
 					<XrplNetwork_TimestampView
-						selection={select(EntityType.XrplNetwork_Timestamp, xrplNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.XrplNetwork_Timestamp, xrplNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xrplNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

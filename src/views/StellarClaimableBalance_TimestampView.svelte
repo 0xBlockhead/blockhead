@@ -83,7 +83,7 @@
 				<dt>claimable balance</dt>
 				<dd>
 					<StellarClaimableBalanceView
-						selection={select(EntityType.StellarClaimableBalance, selection.entitySelector.$claimableBalance)}
+						selection={select(EntityType.StellarClaimableBalance, selection.entitySelector.$claimableBalance, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

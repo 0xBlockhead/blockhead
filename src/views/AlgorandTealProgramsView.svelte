@@ -114,7 +114,7 @@
 				{#snippet Item({ item: algorandTealProgram }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandTealProgram> })}
 					{@const algorandTealProgramFields = { ...algorandTealProgram[EntityMetaKey.Selector], ...algorandTealProgram }}
 					<AlgorandTealProgramView
-						selection={select(EntityType.AlgorandTealProgram, algorandTealProgram[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandTealProgram, algorandTealProgram[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandTealProgramFields}
 						layout={EntityLayout.Summary}
 						open={false}

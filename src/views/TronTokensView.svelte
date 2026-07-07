@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tronToken }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TronToken> })}
 					{@const tronTokenFields = { ...tronToken[EntityMetaKey.Selector], ...tronToken }}
 					<TronTokenView
-						selection={select(EntityType.TronToken, tronToken[EntityMetaKey.Selector])}
+						selection={select(EntityType.TronToken, tronToken[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tronTokenFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -142,7 +142,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadZeroGStorageNodeStateView
-						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadZeroGStorageNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

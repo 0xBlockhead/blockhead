@@ -112,7 +112,7 @@
 				{#snippet Item({ item: globalXNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalXNetwork> })}
 					{@const globalXNetworkFields = { ...globalXNetwork[EntityMetaKey.Selector], ...globalXNetwork }}
 					<GlobalXNetworkView
-						selection={select(EntityType._GlobalXNetwork, globalXNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalXNetwork, globalXNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalXNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

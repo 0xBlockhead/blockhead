@@ -139,7 +139,7 @@
 				<dt>wallet state</dt>
 				<dd>
 					<BlockheadMoneroWalletStateView
-						selection={select(EntityType.BlockheadMoneroWalletState, selection.entitySelector.$walletState)}
+						selection={select(EntityType.BlockheadMoneroWalletState, selection.entitySelector.$walletState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

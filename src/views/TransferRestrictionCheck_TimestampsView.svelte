@@ -106,7 +106,7 @@
 				{#snippet Item({ item: transferRestrictionCheckTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TransferRestrictionCheck_Timestamp> })}
 					{@const transferRestrictionCheckTimestampFields = { ...transferRestrictionCheckTimestamp[EntityMetaKey.Selector], ...transferRestrictionCheckTimestamp }}
 					<TransferRestrictionCheck_TimestampView
-						selection={select(EntityType.TransferRestrictionCheck_Timestamp, transferRestrictionCheckTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TransferRestrictionCheck_Timestamp, transferRestrictionCheckTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={transferRestrictionCheckTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

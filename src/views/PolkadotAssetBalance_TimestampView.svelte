@@ -142,7 +142,7 @@
 				<dt>Account</dt>
 				<dd>
 					<PolkadotAccountView
-						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account, {})}
 						href={
 							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$account.$network.caip2.namespace) + ':' + String(selection.entitySelector.$account.$network.caip2.reference))].slug ?? ''),
@@ -159,7 +159,7 @@
 				<dt>Asset</dt>
 				<dd>
 					<PolkadotAssetView
-						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset)}
+						selection={select(EntityType.PolkadotAsset, selection.entitySelector.$asset, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

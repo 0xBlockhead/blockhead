@@ -2,19 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
 
 
 	// Components
@@ -23,14 +17,18 @@
 </script>
 
 
-<svelte:head>
-	<title>global ActivityPub network • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<GlobalActivityPubNetworkView
 		href={resolve('/(social)/(activitypub)/activitypub')}
-		selection={select(EntityType._GlobalActivityPubNetwork, data.selector)}
+		selection={
+			select(EntityType._GlobalActivityPubNetwork, {
+				scope: '_GlobalActivityPubNetwork',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+					Source.Mastodon_Rest,
+				],
+			})
+		}
 	/>
 </Page>

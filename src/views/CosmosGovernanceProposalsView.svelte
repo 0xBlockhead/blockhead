@@ -116,7 +116,7 @@
 					{@const cosmosGovernanceProposalFields = { ...cosmosGovernanceProposal[EntityMetaKey.Selector], ...cosmosGovernanceProposal }}
 					{@const cosmosGovernanceProposalHrefFields = { ...cosmosGovernanceProposal, ...cosmosGovernanceProposal[EntityMetaKey.Selector] }}
 					<CosmosGovernanceProposalView
-						selection={select(EntityType.CosmosGovernanceProposal, cosmosGovernanceProposal[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosGovernanceProposal, cosmosGovernanceProposal[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosGovernanceProposalFields}
 						href={
 							(cosmosGovernanceProposalHrefFields.$network !== undefined && cosmosGovernanceProposalHrefFields.$network.caip2 !== undefined && cosmosGovernanceProposalHrefFields.$network.caip2.namespace !== undefined && cosmosGovernanceProposalHrefFields.$network !== undefined && cosmosGovernanceProposalHrefFields.$network.caip2 !== undefined && cosmosGovernanceProposalHrefFields.$network.caip2.reference !== undefined && cosmosGovernanceProposalHrefFields.proposalId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/governance/proposal/[proposalId]', {

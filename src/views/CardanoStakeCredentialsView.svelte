@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoStakeCredential }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoStakeCredential> })}
 					{@const cardanoStakeCredentialFields = { ...cardanoStakeCredential[EntityMetaKey.Selector], ...cardanoStakeCredential }}
 					<CardanoStakeCredentialView
-						selection={select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoStakeCredential, cardanoStakeCredential[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoStakeCredentialFields}
 						layout={EntityLayout.Summary}
 						open={false}

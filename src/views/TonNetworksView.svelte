@@ -63,7 +63,14 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					$network: true,
+					$$timestamps: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -104,9 +111,9 @@
 				{/snippet}
 
 				{#snippet Item({ item: tonNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonNetwork> })}
-					{@const tonNetworkFields = { ...tonNetwork[EntityMetaKey.Selector], ...tonNetwork }}
+					{@const tonNetworkFields = { ...tonNetwork[EntityMetaKey.Selector], ...tonNetwork, $$timestamps: tonNetwork.$$timestamps }}
 					<TonNetworkView
-						selection={select(EntityType.TonNetwork, tonNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonNetwork, tonNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tronBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TronBlock> })}
 					{@const tronBlockFields = { ...tronBlock[EntityMetaKey.Selector], ...tronBlock }}
 					<TronBlockView
-						selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.TronBlock, tronBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tronBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

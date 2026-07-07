@@ -369,6 +369,7 @@ test.describe('boundary updates (every +page route)', () => {
 		await page.addInitScript(({ databaseName, schemaVersion }) => {
 			window.__blockheadClientProbeEnabled = true
 			window.__blockheadWaSqliteDatabaseNameOverride = databaseName
+			window.__blockheadWaSqliteVfsNameOverride = databaseName.replace(/[^a-zA-Z0-9_-]/g, '_')
 			window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 		}, {
 			databaseName: `blockhead-boundary-probe-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${Date.now()}.sqlite`,
@@ -406,6 +407,7 @@ test.describe('boundary updates (every +page route)', () => {
 			await page.addInitScript(({ databaseName, schemaVersion }) => {
 				window.__blockheadClientProbeEnabled = true
 				window.__blockheadWaSqliteDatabaseNameOverride = databaseName
+				window.__blockheadWaSqliteVfsNameOverride = databaseName.replace(/[^a-zA-Z0-9_-]/g, '_')
 				window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 			}, {
 				databaseName: `blockhead-boundary-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${index}-${Date.now()}.sqlite`,

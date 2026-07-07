@@ -128,7 +128,7 @@
 				<dt>node</dt>
 				<dd>
 					<BlockheadRadicleNodeStateView
-						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$node)}
+						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$node, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -215,7 +215,7 @@
 						{#snippet Pending()}
 							{@const addresses = prefetched.addresses}
 							{#if addresses !== undefined && addresses !== null}
-								<TruncatedValue value={(addresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={addresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -223,7 +223,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const addresses = resolvedEntity.addresses}
 							{#if addresses !== undefined && addresses !== null}
-								<TruncatedValue value={(addresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={addresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: zeroGConsensusNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGConsensusNetwork_Timestamp> })}
 					{@const zeroGConsensusNetworkTimestampFields = { ...zeroGConsensusNetworkTimestamp[EntityMetaKey.Selector], ...zeroGConsensusNetworkTimestamp }}
 					<ZeroGConsensusNetwork_TimestampView
-						selection={select(EntityType.ZeroGConsensusNetwork_Timestamp, zeroGConsensusNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGConsensusNetwork_Timestamp, zeroGConsensusNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGConsensusNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

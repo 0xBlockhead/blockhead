@@ -115,7 +115,7 @@
 				{#snippet Item({ item: acpAgentProgramVersion }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpAgentProgramVersion> })}
 					{@const acpAgentProgramVersionFields = { ...acpAgentProgramVersion[EntityMetaKey.Selector], ...acpAgentProgramVersion }}
 					<AcpAgentProgramVersionView
-						selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpAgentProgramVersion, acpAgentProgramVersion[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpAgentProgramVersionFields}
 						layout={EntityLayout.Summary}
 						open={false}

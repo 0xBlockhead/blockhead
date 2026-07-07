@@ -137,7 +137,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadKaspaNodeStateView
-						selection={select(EntityType.BlockheadKaspaNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadKaspaNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

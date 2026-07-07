@@ -116,7 +116,7 @@
 				{#snippet Item({ item: payjoinEndpointTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PayjoinEndpoint_Timestamp> })}
 					{@const payjoinEndpointTimestampFields = { ...payjoinEndpointTimestamp[EntityMetaKey.Selector], ...payjoinEndpointTimestamp }}
 					<PayjoinEndpoint_TimestampView
-						selection={select(EntityType.PayjoinEndpoint_Timestamp, payjoinEndpointTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.PayjoinEndpoint_Timestamp, payjoinEndpointTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={payjoinEndpointTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -112,7 +112,7 @@
 				{#snippet Item({ item: bittensorNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BittensorNetwork> })}
 					{@const bittensorNetworkFields = { ...bittensorNetwork[EntityMetaKey.Selector], ...bittensorNetwork }}
 					<BittensorNetworkView
-						selection={select(EntityType.BittensorNetwork, bittensorNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.BittensorNetwork, bittensorNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bittensorNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

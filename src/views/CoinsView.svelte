@@ -125,7 +125,7 @@
 					{@const coinFields = { ...coin[EntityMetaKey.Selector], ...coin }}
 					{@const coinHrefFields = { ...coin, ...coin[EntityMetaKey.Selector] }}
 					<CoinView
-						selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
+						selection={select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={coinFields}
 						href={
 							(coinHrefFields.coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {

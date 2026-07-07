@@ -114,7 +114,7 @@
 				{#snippet Item({ item: walletConnectionMethod }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.WalletConnectionMethod> })}
 					{@const walletConnectionMethodFields = { ...walletConnectionMethod[EntityMetaKey.Selector], ...walletConnectionMethod }}
 					<WalletConnectionMethodView
-						selection={select(EntityType.WalletConnectionMethod, walletConnectionMethod[EntityMetaKey.Selector])}
+						selection={select(EntityType.WalletConnectionMethod, walletConnectionMethod[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={walletConnectionMethodFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -117,7 +117,7 @@
 					{@const atprotoActorFields = { ...atprotoActor[EntityMetaKey.Selector], ...atprotoActor }}
 					{@const atprotoActorHrefFields = { ...atprotoActor, ...atprotoActor[EntityMetaKey.Selector] }}
 					<AtprotoActorView
-						selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector])}
+						selection={select(EntityType.AtprotoActor, atprotoActor[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoActorFields}
 						href={
 							(atprotoActorHrefFields.did !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]', {

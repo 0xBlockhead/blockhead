@@ -59,8 +59,6 @@ export default {
 		},
 		{
 			name: '$$storedData',
-			label: 'stored data',
-			labelPlural: 'stored data',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BlockheadCodexStoredData,
 			cardinality: EntityFieldCardinality.Many,

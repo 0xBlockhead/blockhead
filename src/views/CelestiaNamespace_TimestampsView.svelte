@@ -115,7 +115,7 @@
 				{#snippet Item({ item: celestiaNamespaceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CelestiaNamespace_Timestamp> })}
 					{@const celestiaNamespaceTimestampFields = { ...celestiaNamespaceTimestamp[EntityMetaKey.Selector], ...celestiaNamespaceTimestamp }}
 					<CelestiaNamespace_TimestampView
-						selection={select(EntityType.CelestiaNamespace_Timestamp, celestiaNamespaceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CelestiaNamespace_Timestamp, celestiaNamespaceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={celestiaNamespaceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

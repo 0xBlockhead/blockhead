@@ -115,7 +115,7 @@
 				{#snippet Item({ item: blockheadAgentProfile }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAgentProfile> })}
 					{@const blockheadAgentProfileFields = { ...blockheadAgentProfile[EntityMetaKey.Selector], ...blockheadAgentProfile }}
 					<BlockheadAgentProfileView
-						selection={select(EntityType.BlockheadAgentProfile, blockheadAgentProfile[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAgentProfile, blockheadAgentProfile[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAgentProfileFields}
 						layout={EntityLayout.Summary}
 						open={false}

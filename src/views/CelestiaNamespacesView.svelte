@@ -114,7 +114,7 @@
 				{#snippet Item({ item: celestiaNamespace }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CelestiaNamespace> })}
 					{@const celestiaNamespaceFields = { ...celestiaNamespace[EntityMetaKey.Selector], ...celestiaNamespace }}
 					<CelestiaNamespaceView
-						selection={select(EntityType.CelestiaNamespace, celestiaNamespace[EntityMetaKey.Selector])}
+						selection={select(EntityType.CelestiaNamespace, celestiaNamespace[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={celestiaNamespaceFields}
 						layout={EntityLayout.Summary}
 						open={false}

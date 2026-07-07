@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarAccountSigner }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarAccountSigner> })}
 					{@const stellarAccountSignerFields = { ...stellarAccountSigner[EntityMetaKey.Selector], ...stellarAccountSigner }}
 					<StellarAccountSignerView
-						selection={select(EntityType.StellarAccountSigner, stellarAccountSigner[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarAccountSigner, stellarAccountSigner[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarAccountSignerFields}
 						layout={EntityLayout.Summary}
 						open={false}

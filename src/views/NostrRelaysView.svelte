@@ -117,7 +117,7 @@
 				{#snippet Item({ item: nostrRelay }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrRelay> })}
 					{@const nostrRelayFields = { ...nostrRelay[EntityMetaKey.Selector], ...nostrRelay }}
 					<NostrRelayView
-						selection={select(EntityType.NostrRelay, nostrRelay[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrRelay, nostrRelay[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nostrRelayFields}
 						layout={EntityLayout.Title}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidOrder }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidOrder> })}
 					{@const hyperliquidOrderFields = { ...hyperliquidOrder[EntityMetaKey.Selector], ...hyperliquidOrder }}
 					<HyperliquidOrderView
-						selection={select(EntityType.HyperliquidOrder, hyperliquidOrder[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidOrder, hyperliquidOrder[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidOrderFields}
 						layout={EntityLayout.Summary}
 						open={false}

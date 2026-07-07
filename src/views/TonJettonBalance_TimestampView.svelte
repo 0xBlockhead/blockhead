@@ -83,7 +83,7 @@
 				<dt>account</dt>
 				<dd>
 					<TonAccountView
-						selection={select(EntityType.TonAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.TonAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,7 +94,7 @@
 				<dt>jetton</dt>
 				<dd>
 					<TonJettonView
-						selection={select(EntityType.TonJetton, selection.entitySelector.$jetton)}
+						selection={select(EntityType.TonJetton, selection.entitySelector.$jetton, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

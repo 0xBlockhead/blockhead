@@ -39,12 +39,10 @@
 		}
 		title='Cosmos validators'
 		selection={
-			select(EntityType.CosmosNetwork, {
-				$network: {
-					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-				},
-			})[EntityProxyField]<EntityType.CosmosValidator>('$$validators')
+			select(EntityType.Network, {
+				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+			})[EntityProxyField]<EntityType.CosmosValidator>('$$cosmosValidators')
 		}
-		id='validators'
+		id='cosmos-validators'
 	/>
 </Page>

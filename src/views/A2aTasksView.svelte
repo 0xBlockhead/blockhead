@@ -115,7 +115,7 @@
 				{#snippet Item({ item: a2aTask }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aTask> })}
 					{@const a2aTaskFields = { ...a2aTask[EntityMetaKey.Selector], ...a2aTask }}
 					<A2aTaskView
-						selection={select(EntityType.A2aTask, a2aTask[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aTask, a2aTask[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aTaskFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: swapQuoteStep }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SwapQuoteStep> })}
 					{@const swapQuoteStepFields = { ...swapQuoteStep[EntityMetaKey.Selector], ...swapQuoteStep }}
 					<SwapQuoteStepView
-						selection={select(EntityType.SwapQuoteStep, swapQuoteStep[EntityMetaKey.Selector])}
+						selection={select(EntityType.SwapQuoteStep, swapQuoteStep[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={swapQuoteStepFields}
 						layout={EntityLayout.Summary}
 						open={false}

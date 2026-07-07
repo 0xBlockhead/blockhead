@@ -84,7 +84,7 @@
 				<dt>accepting block</dt>
 				<dd>
 					<KaspaBlockView
-						selection={select(EntityType.KaspaBlock, selection.entitySelector.$acceptingBlock)}
+						selection={select(EntityType.KaspaBlock, selection.entitySelector.$acceptingBlock, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -95,7 +95,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<KaspaTransactionView
-						selection={select(EntityType.KaspaTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.KaspaTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

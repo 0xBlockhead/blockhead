@@ -106,7 +106,7 @@
 				{#snippet Item({ item: kaspaNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaNetwork_Timestamp> })}
 					{@const kaspaNetworkTimestampFields = { ...kaspaNetworkTimestamp[EntityMetaKey.Selector], ...kaspaNetworkTimestamp }}
 					<KaspaNetwork_TimestampView
-						selection={select(EntityType.KaspaNetwork_Timestamp, kaspaNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.KaspaNetwork_Timestamp, kaspaNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={kaspaNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

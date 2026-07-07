@@ -115,7 +115,7 @@
 				{#snippet Item({ item: bridgeTransferTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BridgeTransfer_Timestamp> })}
 					{@const bridgeTransferTimestampFields = { ...bridgeTransferTimestamp[EntityMetaKey.Selector], ...bridgeTransferTimestamp }}
 					<BridgeTransfer_TimestampView
-						selection={select(EntityType.BridgeTransfer_Timestamp, bridgeTransferTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BridgeTransfer_Timestamp, bridgeTransferTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bridgeTransferTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

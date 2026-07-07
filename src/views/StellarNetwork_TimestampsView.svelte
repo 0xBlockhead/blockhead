@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarNetwork_Timestamp> })}
 					{@const stellarNetworkTimestampFields = { ...stellarNetworkTimestamp[EntityMetaKey.Selector], ...stellarNetworkTimestamp }}
 					<StellarNetwork_TimestampView
-						selection={select(EntityType.StellarNetwork_Timestamp, stellarNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarNetwork_Timestamp, stellarNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -169,7 +169,7 @@
 				<dt>service provider</dt>
 				<dd>
 					<ZeroGServiceProviderView
-						selection={select(EntityType.ZeroGServiceProvider, selection.entitySelector.$serviceProvider)}
+						selection={select(EntityType.ZeroGServiceProvider, selection.entitySelector.$serviceProvider, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

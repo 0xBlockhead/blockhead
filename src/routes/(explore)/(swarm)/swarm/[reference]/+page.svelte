@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { swarmResourceReferenceFromRouteParam } from '$/lib/swarm.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +25,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Swarm resource • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<SwarmResourceView
 		href={
@@ -37,7 +33,13 @@
 			})
 		}
 		selection={
-			select(EntityType.SwarmResource, data.selector, {
+			select(EntityType.SwarmResource, {
+				reference: swarmResourceReferenceFromRouteParam(decodeURIComponent(params.reference)),
+				contentPath: '',
+			}, {
+				sources: [
+					Source.Swarm_Rest,
+				],
 				fields: {
 					canonicalUri: true,
 					contentType: true,

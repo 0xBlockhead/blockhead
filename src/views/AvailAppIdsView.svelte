@@ -113,7 +113,7 @@
 				{#snippet Item({ item: availAppId }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvailAppId> })}
 					{@const availAppIdFields = { ...availAppId[EntityMetaKey.Selector], ...availAppId }}
 					<AvailAppIdView
-						selection={select(EntityType.AvailAppId, availAppId[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvailAppId, availAppId[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={availAppIdFields}
 						layout={EntityLayout.Summary}
 						open={false}

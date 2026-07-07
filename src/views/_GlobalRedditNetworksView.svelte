@@ -106,7 +106,7 @@
 				{#snippet Item({ item: globalRedditNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalRedditNetwork> })}
 					{@const globalRedditNetworkFields = { ...globalRedditNetwork[EntityMetaKey.Selector], ...globalRedditNetwork }}
 					<GlobalRedditNetworkView
-						selection={select(EntityType._GlobalRedditNetwork, globalRedditNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalRedditNetwork, globalRedditNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalRedditNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -82,7 +82,7 @@
 				<dt>liquidity pool</dt>
 				<dd>
 					<StellarLiquidityPoolView
-						selection={select(EntityType.StellarLiquidityPool, selection.entitySelector.$liquidityPool)}
+						selection={select(EntityType.StellarLiquidityPool, selection.entitySelector.$liquidityPool, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

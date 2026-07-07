@@ -117,7 +117,7 @@
 				{#snippet Item({ item: scalingDeploymentClaimTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ScalingDeploymentClaim_Timestamp> })}
 					{@const scalingDeploymentClaimTimestampFields = { ...scalingDeploymentClaimTimestamp[EntityMetaKey.Selector], ...scalingDeploymentClaimTimestamp }}
 					<ScalingDeploymentClaim_TimestampView
-						selection={select(EntityType.ScalingDeploymentClaim_Timestamp, scalingDeploymentClaimTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.ScalingDeploymentClaim_Timestamp, scalingDeploymentClaimTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={scalingDeploymentClaimTimestampFields}
 						layout={EntityLayout.Title}
 						open={false}

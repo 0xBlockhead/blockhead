@@ -22,7 +22,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import MevRelay_ProposerPayloadDeliveredRowsView from '$/views/MevRelay_ProposerPayloadDeliveredRowsView.svelte'
+	import MevRelay_ProposerPayloadDeliveredsView from '$/views/MevRelay_ProposerPayloadDeliveredsView.svelte'
 </script>
 
 
@@ -32,7 +32,7 @@
 
 
 <Page>
-	<MevRelay_ProposerPayloadDeliveredRowsView
+	<MevRelay_ProposerPayloadDeliveredsView
 		href={
 			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/payloads', {
 				caip2: params.caip2,

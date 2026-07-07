@@ -461,7 +461,7 @@
 				<dt>URL</dt>
 				<dd>
 					<UrlView
-						selection={select(EntityType.Url, selection.entitySelector.$url)}
+						selection={select(EntityType.Url, selection.entitySelector.$url, {})}
 						href={
 							(selection.entitySelector.$url.url !== undefined ? resolve('/(explore)/url/[url]', {
 								url: encodeURIComponent(String(selection.entitySelector.$url.url ?? '')),

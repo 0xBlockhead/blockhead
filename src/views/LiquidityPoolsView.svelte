@@ -122,7 +122,7 @@
 					{@const liquidityPoolFields = { ...liquidityPool[EntityMetaKey.Selector], ...liquidityPool }}
 					{@const liquidityPoolHrefFields = { ...liquidityPool, ...liquidityPool[EntityMetaKey.Selector] }}
 					<LiquidityPoolView
-						selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector])}
+						selection={select(EntityType.LiquidityPool, liquidityPool[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={liquidityPoolFields}
 						href={
 							(liquidityPoolHrefFields.$network !== undefined && liquidityPoolHrefFields.$network.caip2 !== undefined && liquidityPoolHrefFields.$network.caip2.reference !== undefined && liquidityPoolHrefFields.id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,22 +21,38 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import PolkadotNetworkView from '$/views/PolkadotNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
-<svelte:head>
-	<title>Polkadot network • Blockhead</title>
-</svelte:head>
-
-
 <Page>
-	<PolkadotNetworkView
+	<NetworkView
 		href={
 			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
 				networkSlug: params.networkSlug,
 			})
 		}
-		selection={select(EntityType.PolkadotNetwork, data.selector)}
+		selection={
+			select(EntityType.Network, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
+				fields: {
+					$icon: true,
+					name: true,
+					namespace: true,
+					ledgerModels: true,
+					executionModels: true,
+					$networkStack: true,
+					environment: true,
+					evmConsensusProtocol: true,
+					evmRegistryStatus: true,
+					evmPeeringId: true,
+					evmSlip44: true,
+					zeroGChainId: true,
+					$lightningSettlementNetwork: true,
+				},
+			})
+		}
 	/>
 </Page>

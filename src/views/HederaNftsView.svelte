@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaNft }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaNft> })}
 					{@const hederaNftFields = { ...hederaNft[EntityMetaKey.Selector], ...hederaNft }}
 					<HederaNftView
-						selection={select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaNft, hederaNft[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaNftFields}
 						layout={EntityLayout.Summary}
 						open={false}

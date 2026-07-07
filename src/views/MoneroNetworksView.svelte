@@ -116,7 +116,7 @@
 				{#snippet Item({ item: moneroNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoneroNetwork> })}
 					{@const moneroNetworkFields = { ...moneroNetwork[EntityMetaKey.Selector], ...moneroNetwork }}
 					<MoneroNetworkView
-						selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoneroNetwork, moneroNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moneroNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

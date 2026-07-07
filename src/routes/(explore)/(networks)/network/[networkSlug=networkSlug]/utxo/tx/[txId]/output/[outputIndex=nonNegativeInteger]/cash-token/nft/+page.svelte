@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -24,11 +25,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Bitcoin Cash CashToken NFT • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<BitcoinCashCashTokenNftView
 		href={
@@ -40,6 +36,9 @@
 		}
 		selection={
 			select(EntityType.BitcoinCashCashTokenNft, data.selector, {
+				sources: [
+					Source.BitcoinCashNode_JsonRpc,
+				],
 				fields: {
 					capability: true,
 					$category: true,

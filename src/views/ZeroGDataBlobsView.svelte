@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGDataBlob }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGDataBlob> })}
 					{@const zeroGDataBlobFields = { ...zeroGDataBlob[EntityMetaKey.Selector], ...zeroGDataBlob }}
 					<ZeroGDataBlobView
-						selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGDataBlob, zeroGDataBlob[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGDataBlobFields}
 						layout={EntityLayout.Summary}
 						open={false}

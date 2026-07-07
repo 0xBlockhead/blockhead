@@ -82,7 +82,7 @@
 				<dt>metadata</dt>
 				<dd>
 					<IcpCanisterMetadataView
-						selection={select(EntityType.IcpCanisterMetadata, selection.entitySelector.$metadata)}
+						selection={select(EntityType.IcpCanisterMetadata, selection.entitySelector.$metadata, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

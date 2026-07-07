@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadAvalancheNodeState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAvalancheNodeState> })}
 					{@const blockheadAvalancheNodeStateFields = { ...blockheadAvalancheNodeState[EntityMetaKey.Selector], ...blockheadAvalancheNodeState }}
 					<BlockheadAvalancheNodeStateView
-						selection={select(EntityType.BlockheadAvalancheNodeState, blockheadAvalancheNodeState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAvalancheNodeState, blockheadAvalancheNodeState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAvalancheNodeStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

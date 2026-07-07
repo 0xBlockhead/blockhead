@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitRefUpdate }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitRefUpdate> })}
 					{@const gitRefUpdateFields = { ...gitRefUpdate[EntityMetaKey.Selector], ...gitRefUpdate }}
 					<GitRefUpdateView
-						selection={select(EntityType.GitRefUpdate, gitRefUpdate[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitRefUpdate, gitRefUpdate[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitRefUpdateFields}
 						layout={EntityLayout.Summary}
 						open={false}

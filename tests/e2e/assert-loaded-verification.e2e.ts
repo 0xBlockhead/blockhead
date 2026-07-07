@@ -76,18 +76,14 @@ test.describe('assertLoaded verification', () => {
 	})
 
 	test('schema exposes scalar and array-item conditional fields', () => {
-		const blobGasUsed = entityFieldDefinitions(entityDefinitionByType[EntityType.EvmTransaction])
-			.find((field) => field.name === 'blobGasUsed')
-		const tokenTransfers = entityFieldDefinitions(entityDefinitionByType[EntityType.EvmLog])
-			.find((field) => field.name === '$$tokenTransfers')
+		const tokenId = entityFieldDefinitions(entityDefinitionByType[EntityType.EvmTokenTransfer])
+			.find((field) => field.name === 'tokenId')
 
-		expect(blobGasUsed).toBeDefined()
-		expect(tokenTransfers).toBeDefined()
-		if (blobGasUsed == null || tokenTransfers == null)
-			throw new Error('Missing conditional field definitions')
+		if (tokenId === undefined)
+			throw new Error('Missing tokenId field definition')
 
-		expect('when' in blobGasUsed && blobGasUsed.when.fieldName).toBe('envelopeType')
-		expect('when' in tokenTransfers && entityFieldConditionKey(tokenTransfers.when)).toBe('topics[0]')
+		expect(tokenId.when.fieldName).toBe('standard')
+		expect(entityFieldConditionKey(tokenId.when)).toBe('standard')
 	})
 
 	test('YouTube list fields expose provider totals through count selectors', () => {

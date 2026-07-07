@@ -114,7 +114,7 @@
 				{#snippet Item({ item: mcpServerTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.McpServer_Timestamp> })}
 					{@const mcpServerTimestampFields = { ...mcpServerTimestamp[EntityMetaKey.Selector], ...mcpServerTimestamp }}
 					<McpServer_TimestampView
-						selection={select(EntityType.McpServer_Timestamp, mcpServerTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.McpServer_Timestamp, mcpServerTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mcpServerTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

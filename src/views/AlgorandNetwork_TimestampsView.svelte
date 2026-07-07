@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandNetwork_Timestamp> })}
 					{@const algorandNetworkTimestampFields = { ...algorandNetworkTimestamp[EntityMetaKey.Selector], ...algorandNetworkTimestamp }}
 					<AlgorandNetwork_TimestampView
-						selection={select(EntityType.AlgorandNetwork_Timestamp, algorandNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandNetwork_Timestamp, algorandNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

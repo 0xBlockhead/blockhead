@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,35 +21,36 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
-<svelte:head>
-	<title>EVM network • Blockhead</title>
-</svelte:head>
-
-
 <Page>
-	<EvmNetworkView
+	<NetworkView
 		href={
 			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
 				caip2: params.caip2,
 			})
 		}
 		selection={
-			select(EntityType.EvmNetwork, data.selector, {
+			select(EntityType.Network, data.selector, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					$icon: true,
 					name: true,
+					namespace: true,
+					ledgerModels: true,
+					executionModels: true,
+					$networkStack: true,
 					environment: true,
-					$nativeCoinInstance: true,
-					$parent: true,
-					$mainnet: true,
-					consensusProtocol: true,
-					registryStatus: true,
-					peeringId: true,
-					slip44: true,
+					evmConsensusProtocol: true,
+					evmRegistryStatus: true,
+					evmPeeringId: true,
+					evmSlip44: true,
+					zeroGChainId: true,
+					$lightningSettlementNetwork: true,
 				},
 			})
 		}

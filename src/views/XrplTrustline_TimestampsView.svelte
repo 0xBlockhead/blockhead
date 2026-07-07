@@ -106,7 +106,7 @@
 				{#snippet Item({ item: xrplTrustlineTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplTrustline_Timestamp> })}
 					{@const xrplTrustlineTimestampFields = { ...xrplTrustlineTimestamp[EntityMetaKey.Selector], ...xrplTrustlineTimestamp }}
 					<XrplTrustline_TimestampView
-						selection={select(EntityType.XrplTrustline_Timestamp, xrplTrustlineTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.XrplTrustline_Timestamp, xrplTrustlineTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xrplTrustlineTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

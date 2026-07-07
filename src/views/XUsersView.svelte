@@ -116,7 +116,7 @@
 				{#snippet Item({ item: xUser }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XUser> })}
 					{@const xUserFields = { ...xUser[EntityMetaKey.Selector], ...xUser }}
 					<XUserView
-						selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector])}
+						selection={select(EntityType.XUser, xUser[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xUserFields}
 						layout={EntityLayout.Summary}
 						open={false}

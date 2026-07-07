@@ -85,7 +85,7 @@
 				<dt>profile</dt>
 				<dd>
 					<RegulatedAssetProfileView
-						selection={select(EntityType.RegulatedAssetProfile, selection.entitySelector.$profile)}
+						selection={select(EntityType.RegulatedAssetProfile, selection.entitySelector.$profile, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

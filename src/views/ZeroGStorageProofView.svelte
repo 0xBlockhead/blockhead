@@ -136,7 +136,7 @@
 				<dt>storage node</dt>
 				<dd>
 					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode)}
+						selection={select(EntityType.ZeroGStorageNode, selection.entitySelector.$storageNode, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

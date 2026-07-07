@@ -117,7 +117,7 @@
 				{#snippet Item({ item: bridgeRouteQuoteTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BridgeRouteQuote_Timestamp> })}
 					{@const bridgeRouteQuoteTimestampFields = { ...bridgeRouteQuoteTimestamp[EntityMetaKey.Selector], ...bridgeRouteQuoteTimestamp }}
 					<BridgeRouteQuote_TimestampView
-						selection={select(EntityType.BridgeRouteQuote_Timestamp, bridgeRouteQuoteTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BridgeRouteQuote_Timestamp, bridgeRouteQuoteTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bridgeRouteQuoteTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

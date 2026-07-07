@@ -117,7 +117,7 @@
 				{#snippet Item({ item: aiDataset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiDataset> })}
 					{@const aiDatasetFields = { ...aiDataset[EntityMetaKey.Selector], ...aiDataset }}
 					<AiDatasetView
-						selection={select(EntityType.AiDataset, aiDataset[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiDataset, aiDataset[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiDatasetFields}
 						layout={EntityLayout.Summary}
 						open={false}

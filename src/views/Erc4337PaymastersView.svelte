@@ -115,7 +115,7 @@
 					{@const erc4337PaymasterFields = { ...erc4337Paymaster[EntityMetaKey.Selector], ...erc4337Paymaster }}
 					{@const erc4337PaymasterHrefFields = { ...erc4337Paymaster, ...erc4337Paymaster[EntityMetaKey.Selector] }}
 					<Erc4337PaymasterView
-						selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector])}
+						selection={select(EntityType.Erc4337Paymaster, erc4337Paymaster[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={erc4337PaymasterFields}
 						href={
 							(erc4337PaymasterHrefFields.$network !== undefined && erc4337PaymasterHrefFields.$network.caip2 !== undefined && erc4337PaymasterHrefFields.$network.caip2.namespace !== undefined && erc4337PaymasterHrefFields.$network !== undefined && erc4337PaymasterHrefFields.$network.caip2 !== undefined && erc4337PaymasterHrefFields.$network.caip2.reference !== undefined && erc4337PaymasterHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/paymaster/[address=evmAddress]', {

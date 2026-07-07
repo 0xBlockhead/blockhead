@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarLiquidityPool }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarLiquidityPool> })}
 					{@const stellarLiquidityPoolFields = { ...stellarLiquidityPool[EntityMetaKey.Selector], ...stellarLiquidityPool }}
 					<StellarLiquidityPoolView
-						selection={select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarLiquidityPool, stellarLiquidityPool[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarLiquidityPoolFields}
 						layout={EntityLayout.Summary}
 						open={false}

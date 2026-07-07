@@ -116,7 +116,7 @@
 					{@const ensNameTimestampFields = { ...ensNameTimestamp[EntityMetaKey.Selector], ...ensNameTimestamp }}
 					{@const ensNameTimestampHrefFields = { ...ensNameTimestamp, ...ensNameTimestamp[EntityMetaKey.Selector] }}
 					<EnsName_TimestampView
-						selection={select(EntityType.EnsName_Timestamp, ensNameTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EnsName_Timestamp, ensNameTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ensNameTimestampFields}
 						href={
 							(ensNameTimestampHrefFields.$name !== undefined && ensNameTimestampHrefFields.$name.name !== undefined && ensNameTimestampHrefFields.timestampMs !== undefined && ensNameTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/observations/[timestampMs=nonNegativeInteger]/[source]', {

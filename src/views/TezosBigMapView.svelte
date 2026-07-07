@@ -81,7 +81,7 @@
 				<dt>contract</dt>
 				<dd>
 					<TezosContractView
-						selection={select(EntityType.TezosContract, selection.entitySelector.$contract)}
+						selection={select(EntityType.TezosContract, selection.entitySelector.$contract, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

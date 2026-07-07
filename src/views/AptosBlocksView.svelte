@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aptosBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosBlock> })}
 					{@const aptosBlockFields = { ...aptosBlock[EntityMetaKey.Selector], ...aptosBlock }}
 					<AptosBlockView
-						selection={select(EntityType.AptosBlock, aptosBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosBlock, aptosBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

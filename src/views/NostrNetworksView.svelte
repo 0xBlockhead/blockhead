@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nostrNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrNetwork> })}
 					{@const nostrNetworkFields = { ...nostrNetwork[EntityMetaKey.Selector], ...nostrNetwork }}
 					<NostrNetworkView
-						selection={select(EntityType.NostrNetwork, nostrNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrNetwork, nostrNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nostrNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

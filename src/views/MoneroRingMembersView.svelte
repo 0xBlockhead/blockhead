@@ -113,7 +113,7 @@
 				{#snippet Item({ item: moneroRingMember }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoneroRingMember> })}
 					{@const moneroRingMemberFields = { ...moneroRingMember[EntityMetaKey.Selector], ...moneroRingMember }}
 					<MoneroRingMemberView
-						selection={select(EntityType.MoneroRingMember, moneroRingMember[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoneroRingMember, moneroRingMember[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moneroRingMemberFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -144,7 +144,7 @@
 				<dt>endpoint</dt>
 				<dd>
 					<PayjoinEndpointView
-						selection={select(EntityType.PayjoinEndpoint, selection.entitySelector.$endpoint)}
+						selection={select(EntityType.PayjoinEndpoint, selection.entitySelector.$endpoint, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

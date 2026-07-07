@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import BitcoinCashCashTokenCommitmentView from '$/views/BitcoinCashCashTokenCommitmentView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Bitcoin Cash CashToken commitment • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +34,20 @@
 			})
 		}
 		selection={
-			select(EntityType.BitcoinCashCashTokenCommitment, data.selector, {
+			select(EntityType.BitcoinCashCashTokenCommitment, {
+				$output: {
+					$transaction: {
+						$network: {
+							slug: params.networkSlug,
+						},
+						txId: decodeURIComponent(params.txId),
+					},
+					indexInTransaction: Number(params.outputIndex),
+				},
+			}, {
+				sources: [
+					Source.BitcoinCashNode_JsonRpc,
+				],
 				fields: {
 					commitmentHex: true,
 				},

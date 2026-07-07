@@ -115,7 +115,7 @@
 				{#snippet Item({ item: lensUsernameNamespace }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensUsernameNamespace> })}
 					{@const lensUsernameNamespaceFields = { ...lensUsernameNamespace[EntityMetaKey.Selector], ...lensUsernameNamespace }}
 					<LensUsernameNamespaceView
-						selection={select(EntityType.LensUsernameNamespace, lensUsernameNamespace[EntityMetaKey.Selector])}
+						selection={select(EntityType.LensUsernameNamespace, lensUsernameNamespace[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lensUsernameNamespaceFields}
 						layout={EntityLayout.Summary}
 						open={false}

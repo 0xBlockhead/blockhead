@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGKvEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGKvEntry> })}
 					{@const zeroGKvEntryFields = { ...zeroGKvEntry[EntityMetaKey.Selector], ...zeroGKvEntry }}
 					<ZeroGKvEntryView
-						selection={select(EntityType.ZeroGKvEntry, zeroGKvEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGKvEntry, zeroGKvEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGKvEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

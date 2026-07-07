@@ -11,6 +11,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -204,6 +205,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.SubstrateSidecar_Rest,
+						],
 						fields: {
 							nonce: true,
 						},
@@ -239,6 +243,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.SubstrateSidecar_Rest,
+						],
 						fields: {
 							freeBalancePlancks: true,
 						},
@@ -275,7 +282,7 @@
 				<dt>Account</dt>
 				<dd>
 					<PolkadotAccountView
-						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.PolkadotAccount, selection.entitySelector.$account, {})}
 						href={
 							(selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.namespace !== undefined && selection.entitySelector.$account.$network !== undefined && selection.entitySelector.$account.$network.caip2 !== undefined && selection.entitySelector.$account.$network.caip2.reference !== undefined && selection.entitySelector.$account.accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$account.$network.caip2.namespace) + ':' + String(selection.entitySelector.$account.$network.caip2.reference))].slug ?? ''),

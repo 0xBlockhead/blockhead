@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearAccount_Timestamp> })}
 					{@const nearAccountTimestampFields = { ...nearAccountTimestamp[EntityMetaKey.Selector], ...nearAccountTimestamp }}
 					<NearAccount_TimestampView
-						selection={select(EntityType.NearAccount_Timestamp, nearAccountTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearAccount_Timestamp, nearAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearAccountTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

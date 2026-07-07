@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidOrderbookTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidOrderbook_Timestamp> })}
 					{@const hyperliquidOrderbookTimestampFields = { ...hyperliquidOrderbookTimestamp[EntityMetaKey.Selector], ...hyperliquidOrderbookTimestamp }}
 					<HyperliquidOrderbook_TimestampView
-						selection={select(EntityType.HyperliquidOrderbook_Timestamp, hyperliquidOrderbookTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidOrderbook_Timestamp, hyperliquidOrderbookTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidOrderbookTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

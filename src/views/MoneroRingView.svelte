@@ -108,7 +108,7 @@
 				<dt>Key image</dt>
 				<dd>
 					<MoneroKeyImageView
-						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage)}
+						selection={select(EntityType.MoneroKeyImage, selection.entitySelector.$keyImage, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -117,7 +117,7 @@
 					{@const coinBridgeCapabilityFields = { ...coinBridgeCapability[EntityMetaKey.Selector], ...coinBridgeCapability }}
 					{@const coinBridgeCapabilityHrefFields = { ...coinBridgeCapability, ...coinBridgeCapability[EntityMetaKey.Selector] }}
 					<CoinBridgeCapabilityView
-						selection={select(EntityType.CoinBridgeCapability, coinBridgeCapability[EntityMetaKey.Selector])}
+						selection={select(EntityType.CoinBridgeCapability, coinBridgeCapability[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={coinBridgeCapabilityFields}
 						href={
 							(coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.$network.chainId !== undefined && coinBridgeCapabilityHrefFields.$fromInstance !== undefined && coinBridgeCapabilityHrefFields.$fromInstance.slug !== undefined && coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network !== undefined && coinBridgeCapabilityHrefFields.$toInstance.$network.chainId !== undefined && coinBridgeCapabilityHrefFields.$toInstance !== undefined && coinBridgeCapabilityHrefFields.$toInstance.slug !== undefined && coinBridgeCapabilityHrefFields.toolKey !== undefined ? resolve('/(assets)/bridge-capability/[fromChainId=eip155ChainId]/[fromCoinInstanceSlug]/[toChainId=eip155ChainId]/[toCoinInstanceSlug]/[toolKey]', {

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmActorCoinAllowanceView from '$/views/EvmActorCoinAllowanceView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>allowance • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,7 +35,27 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmActorCoinAllowance, data.selector, {
+			select(EntityType.EvmActorCoinAllowance, {
+				$actor: {
+					interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.owner),
+				},
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.chainId,
+						},
+					},
+					address: params.coin,
+				},
+				$spender: {
+					interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.spender),
+				},
+				interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.owner),
+			}, {
+				sources: [
+					Source.Voltaire_JsonRpc,
+				],
 				fields: {
 					$actorCoin: true,
 					$spenderContract: true,

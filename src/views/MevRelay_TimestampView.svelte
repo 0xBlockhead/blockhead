@@ -490,7 +490,7 @@
 				<dt>Relay</dt>
 				<dd>
 					<MevRelayView
-						selection={select(EntityType.MevRelay, selection.entitySelector.$relay)}
+						selection={select(EntityType.MevRelay, selection.entitySelector.$relay, {})}
 						href={
 							(selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined && selection.entitySelector.$relay.$network.caip2.namespace !== undefined && selection.entitySelector.$relay.$network !== undefined && selection.entitySelector.$relay.$network.caip2 !== undefined && selection.entitySelector.$relay.$network.caip2.reference !== undefined && selection.entitySelector.$relay.host !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/relay/[host]', {
 								caip2: `${String(selection.entitySelector.$relay.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$relay.$network.caip2.reference ?? '')}`,

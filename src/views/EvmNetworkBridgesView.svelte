@@ -117,7 +117,7 @@
 					{@const evmNetworkBridgeFields = { ...evmNetworkBridge[EntityMetaKey.Selector], ...evmNetworkBridge }}
 					{@const evmNetworkBridgeHrefFields = { ...evmNetworkBridge, ...evmNetworkBridge[EntityMetaKey.Selector] }}
 					<EvmNetworkBridgeView
-						selection={select(EntityType.EvmNetworkBridge, evmNetworkBridge[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmNetworkBridge, evmNetworkBridge[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkBridgeFields}
 						href={
 							(evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2.namespace !== undefined && evmNetworkBridgeHrefFields.$fromNetwork !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$fromNetwork.caip2.reference !== undefined && evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2.namespace !== undefined && evmNetworkBridgeHrefFields.$toNetwork !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2 !== undefined && evmNetworkBridgeHrefFields.$toNetwork.caip2.reference !== undefined && evmNetworkBridgeHrefFields.url !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/bridges/[toCaip2=eip155NetworkCaip2]/[url]', {

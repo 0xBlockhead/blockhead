@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiCoinBalanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiCoinBalance_Timestamp> })}
 					{@const suiCoinBalanceTimestampFields = { ...suiCoinBalanceTimestamp[EntityMetaKey.Selector], ...suiCoinBalanceTimestamp }}
 					<SuiCoinBalance_TimestampView
-						selection={select(EntityType.SuiCoinBalance_Timestamp, suiCoinBalanceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiCoinBalance_Timestamp, suiCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiCoinBalanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

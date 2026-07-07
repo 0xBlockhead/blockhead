@@ -114,7 +114,7 @@
 				{#snippet Item({ item: tokenProgramExtensionTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TokenProgramExtension_Timestamp> })}
 					{@const tokenProgramExtensionTimestampFields = { ...tokenProgramExtensionTimestamp[EntityMetaKey.Selector], ...tokenProgramExtensionTimestamp }}
 					<TokenProgramExtension_TimestampView
-						selection={select(EntityType.TokenProgramExtension_Timestamp, tokenProgramExtensionTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TokenProgramExtension_Timestamp, tokenProgramExtensionTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tokenProgramExtensionTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

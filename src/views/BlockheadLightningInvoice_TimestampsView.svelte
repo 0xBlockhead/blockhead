@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadLightningInvoiceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadLightningInvoice_Timestamp> })}
 					{@const blockheadLightningInvoiceTimestampFields = { ...blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector], ...blockheadLightningInvoiceTimestamp }}
 					<BlockheadLightningInvoice_TimestampView
-						selection={select(EntityType.BlockheadLightningInvoice_Timestamp, blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLightningInvoice_Timestamp, blockheadLightningInvoiceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLightningInvoiceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

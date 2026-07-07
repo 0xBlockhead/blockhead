@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosBigMap }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosBigMap> })}
 					{@const tezosBigMapFields = { ...tezosBigMap[EntityMetaKey.Selector], ...tezosBigMap }}
 					<TezosBigMapView
-						selection={select(EntityType.TezosBigMap, tezosBigMap[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosBigMap, tezosBigMap[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosBigMapFields}
 						layout={EntityLayout.Summary}
 						open={false}

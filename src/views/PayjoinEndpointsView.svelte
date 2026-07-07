@@ -114,7 +114,7 @@
 				{#snippet Item({ item: payjoinEndpoint }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PayjoinEndpoint> })}
 					{@const payjoinEndpointFields = { ...payjoinEndpoint[EntityMetaKey.Selector], ...payjoinEndpoint }}
 					<PayjoinEndpointView
-						selection={select(EntityType.PayjoinEndpoint, payjoinEndpoint[EntityMetaKey.Selector])}
+						selection={select(EntityType.PayjoinEndpoint, payjoinEndpoint[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={payjoinEndpointFields}
 						layout={EntityLayout.Summary}
 						open={false}

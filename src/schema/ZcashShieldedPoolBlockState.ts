@@ -2,6 +2,7 @@
 
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { type } from 'arktype'
 
 export enum ZcashShieldedPoolBlockStateSelector {
@@ -32,7 +33,7 @@ export default {
 			name: 'pool',
 			label: 'pool',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type.enumerated(...Object.values(ZcashShieldedPoolKind)),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

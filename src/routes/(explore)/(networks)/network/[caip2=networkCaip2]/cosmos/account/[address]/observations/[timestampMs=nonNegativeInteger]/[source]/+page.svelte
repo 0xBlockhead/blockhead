@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import CosmosAccount_TimestampView from '$/views/CosmosAccount_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Cosmos account timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,8 +35,26 @@
 			})
 		}
 		selection={
-			select(EntityType.CosmosAccount_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.CosmosAccount_Timestamp, {
+				$account: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					address: decodeURIComponent(params.address),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$account: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					address: decodeURIComponent(params.address),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					accountNumber: true,
 					sequence: true,

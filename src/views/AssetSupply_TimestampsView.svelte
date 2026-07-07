@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -71,8 +70,6 @@
 					totalSupply: true,
 					circulatingSupply: true,
 					source: true,
-					$assetInstance: true,
-					timestampMs: true,
 				},
 			})
 		}
@@ -117,20 +114,9 @@
 
 				{#snippet Item({ item: assetSupplyTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetSupply_Timestamp> })}
 					{@const assetSupplyTimestampFields = { ...assetSupplyTimestamp[EntityMetaKey.Selector], ...assetSupplyTimestamp }}
-					{@const assetSupplyTimestampHrefFields = { ...assetSupplyTimestamp, ...assetSupplyTimestamp[EntityMetaKey.Selector] }}
 					<AssetSupply_TimestampView
-						selection={select(EntityType.AssetSupply_Timestamp, assetSupplyTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AssetSupply_Timestamp, assetSupplyTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={assetSupplyTimestampFields}
-						href={
-							(assetSupplyTimestampHrefFields.$assetInstance !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network.caip2 !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network.caip2.namespace !== undefined && assetSupplyTimestampHrefFields.$assetInstance !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network.caip2 !== undefined && assetSupplyTimestampHrefFields.$assetInstance.$network.caip2.reference !== undefined && assetSupplyTimestampHrefFields.$assetInstance !== undefined && assetSupplyTimestampHrefFields.$assetInstance.kind !== undefined && assetSupplyTimestampHrefFields.$assetInstance !== undefined && assetSupplyTimestampHrefFields.$assetInstance.assetKey !== undefined && assetSupplyTimestampHrefFields.supplyScopeKey !== undefined && assetSupplyTimestampHrefFields.timestampMs !== undefined && assetSupplyTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/supply/[supplyScopeKey]/[timestampMs=nonNegativeInteger]/[source]', {
-								caip2: `${String(assetSupplyTimestampHrefFields.$assetInstance.$network.caip2.namespace ?? '')}:${String(assetSupplyTimestampHrefFields.$assetInstance.$network.caip2.reference ?? '')}`,
-								kind: String(assetSupplyTimestampHrefFields.$assetInstance.kind ?? ''),
-								assetKey: String(assetSupplyTimestampHrefFields.$assetInstance.assetKey ?? ''),
-								supplyScopeKey: String(assetSupplyTimestampHrefFields.supplyScopeKey ?? ''),
-								timestampMs: String(assetSupplyTimestampHrefFields.timestampMs ?? ''),
-								source: String(assetSupplyTimestampHrefFields.source ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

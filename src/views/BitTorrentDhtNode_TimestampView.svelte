@@ -327,7 +327,7 @@
 						{#snippet Pending()}
 							{@const observedInfoHashes = prefetched.observedInfoHashes}
 							{#if observedInfoHashes !== undefined && observedInfoHashes !== null}
-								<TruncatedValue value={(observedInfoHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={observedInfoHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -335,7 +335,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const observedInfoHashes = resolvedEntity.observedInfoHashes}
 							{#if observedInfoHashes !== undefined && observedInfoHashes !== null}
-								<TruncatedValue value={(observedInfoHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={observedInfoHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

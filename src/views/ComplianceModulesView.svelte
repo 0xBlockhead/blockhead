@@ -106,7 +106,7 @@
 				{#snippet Item({ item: complianceModule }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ComplianceModule> })}
 					{@const complianceModuleFields = { ...complianceModule[EntityMetaKey.Selector], ...complianceModule }}
 					<ComplianceModuleView
-						selection={select(EntityType.ComplianceModule, complianceModule[EntityMetaKey.Selector])}
+						selection={select(EntityType.ComplianceModule, complianceModule[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={complianceModuleFields}
 						layout={EntityLayout.Summary}
 						open={false}

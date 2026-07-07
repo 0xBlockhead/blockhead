@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadZeroGStoredChunk }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadZeroGStoredChunk> })}
 					{@const blockheadZeroGStoredChunkFields = { ...blockheadZeroGStoredChunk[EntityMetaKey.Selector], ...blockheadZeroGStoredChunk }}
 					<BlockheadZeroGStoredChunkView
-						selection={select(EntityType.BlockheadZeroGStoredChunk, blockheadZeroGStoredChunk[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadZeroGStoredChunk, blockheadZeroGStoredChunk[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadZeroGStoredChunkFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -104,7 +104,7 @@
 				<dt>Registration</dt>
 				<dd>
 					<Eip8004AgentRegistrationView
-						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration)}
+						selection={select(EntityType.Eip8004AgentRegistration, selection.entitySelector.$registration, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

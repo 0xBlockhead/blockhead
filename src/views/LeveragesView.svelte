@@ -114,7 +114,7 @@
 				{#snippet Item({ item: leverage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Leverage> })}
 					{@const leverageFields = { ...leverage[EntityMetaKey.Selector], ...leverage }}
 					<LeverageView
-						selection={select(EntityType.Leverage, leverage[EntityMetaKey.Selector])}
+						selection={select(EntityType.Leverage, leverage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={leverageFields}
 						layout={EntityLayout.Summary}
 						open={false}

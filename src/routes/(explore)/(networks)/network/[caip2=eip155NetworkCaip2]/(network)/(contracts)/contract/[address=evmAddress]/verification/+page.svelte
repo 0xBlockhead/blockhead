@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmContractVerificationView from '$/views/EvmContractVerificationView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM contract verification • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,14 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmContractVerification, data.selector, {
+			select(EntityType.EvmContractVerification, {
+				$contract: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					address: decodeURIComponent(params.address),
+				},
+			}, {
 				fields: {
 					match: true,
 					runtimeMatch: true,

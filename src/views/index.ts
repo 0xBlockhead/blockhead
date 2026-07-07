@@ -331,7 +331,7 @@ import BeaconValidatorsView from '$/views/BeaconValidatorsView.svelte'
 import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
 import BeaconWithdrawalView from '$/views/BeaconWithdrawalView.svelte'
-import BitcoinCashBcmrMetadatasView from '$/views/BitcoinCashBcmrMetadatasView.svelte'
+import BitcoinCashBcmrMetadataEntriesView from '$/views/BitcoinCashBcmrMetadataEntriesView.svelte'
 import BitcoinCashBcmrMetadataView from '$/views/BitcoinCashBcmrMetadataView.svelte'
 import BitcoinCashCashTokenCategoriesView from '$/views/BitcoinCashCashTokenCategoriesView.svelte'
 import BitcoinCashCashTokenCategoryView from '$/views/BitcoinCashCashTokenCategoryView.svelte'
@@ -781,10 +781,6 @@ import CosmosMessagesView from '$/views/CosmosMessagesView.svelte'
 import CosmosMessageView from '$/views/CosmosMessageView.svelte'
 import CosmosModulesView from '$/views/CosmosModulesView.svelte'
 import CosmosModuleView from '$/views/CosmosModuleView.svelte'
-import CosmosNetwork_TimestampsView from '$/views/CosmosNetwork_TimestampsView.svelte'
-import CosmosNetwork_TimestampView from '$/views/CosmosNetwork_TimestampView.svelte'
-import CosmosNetworksView from '$/views/CosmosNetworksView.svelte'
-import CosmosNetworkView from '$/views/CosmosNetworkView.svelte'
 import CosmosTransactionsView from '$/views/CosmosTransactionsView.svelte'
 import CosmosTransactionView from '$/views/CosmosTransactionView.svelte'
 import CosmosValidator_TimestampsView from '$/views/CosmosValidator_TimestampsView.svelte'
@@ -1515,10 +1511,6 @@ import PolkadotEventsView from '$/views/PolkadotEventsView.svelte'
 import PolkadotEventView from '$/views/PolkadotEventView.svelte'
 import PolkadotExtrinsicsView from '$/views/PolkadotExtrinsicsView.svelte'
 import PolkadotExtrinsicView from '$/views/PolkadotExtrinsicView.svelte'
-import PolkadotNetwork_TimestampsView from '$/views/PolkadotNetwork_TimestampsView.svelte'
-import PolkadotNetwork_TimestampView from '$/views/PolkadotNetwork_TimestampView.svelte'
-import PolkadotNetworksView from '$/views/PolkadotNetworksView.svelte'
-import PolkadotNetworkView from '$/views/PolkadotNetworkView.svelte'
 import PolkadotPalletsView from '$/views/PolkadotPalletsView.svelte'
 import PolkadotPalletView from '$/views/PolkadotPalletView.svelte'
 import PolkadotReferendum_TimestampsView from '$/views/PolkadotReferendum_TimestampsView.svelte'
@@ -1603,10 +1595,6 @@ import SolanaBlocksView from '$/views/SolanaBlocksView.svelte'
 import SolanaBlockView from '$/views/SolanaBlockView.svelte'
 import SolanaInstructionsView from '$/views/SolanaInstructionsView.svelte'
 import SolanaInstructionView from '$/views/SolanaInstructionView.svelte'
-import SolanaNetwork_TimestampsView from '$/views/SolanaNetwork_TimestampsView.svelte'
-import SolanaNetwork_TimestampView from '$/views/SolanaNetwork_TimestampView.svelte'
-import SolanaNetworksView from '$/views/SolanaNetworksView.svelte'
-import SolanaNetworkView from '$/views/SolanaNetworkView.svelte'
 import SolanaProgramsView from '$/views/SolanaProgramsView.svelte'
 import SolanaProgramView from '$/views/SolanaProgramView.svelte'
 import SolanaTokenAccount_TimestampsView from '$/views/SolanaTokenAccount_TimestampsView.svelte'
@@ -1911,10 +1899,6 @@ import UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
 import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 import UtxoInputsView from '$/views/UtxoInputsView.svelte'
 import UtxoInputView from '$/views/UtxoInputView.svelte'
-import UtxoNetwork_TimestampsView from '$/views/UtxoNetwork_TimestampsView.svelte'
-import UtxoNetwork_TimestampView from '$/views/UtxoNetwork_TimestampView.svelte'
-import UtxoNetworksView from '$/views/UtxoNetworksView.svelte'
-import UtxoNetworkView from '$/views/UtxoNetworkView.svelte'
 import UtxoOutputsView from '$/views/UtxoOutputsView.svelte'
 import UtxoOutputView from '$/views/UtxoOutputView.svelte'
 import UtxoTransactionsView from '$/views/UtxoTransactionsView.svelte'
@@ -2355,7 +2339,7 @@ export const View = {
 	BeaconWithdrawal: BeaconWithdrawalView,
 	BeaconWithdrawals: BeaconWithdrawalsView,
 	BitcoinCashBcmrMetadata: BitcoinCashBcmrMetadataView,
-	BitcoinCashBcmrMetadatas: BitcoinCashBcmrMetadatasView,
+	BitcoinCashBcmrMetadataEntries: BitcoinCashBcmrMetadataEntriesView,
 	BitcoinCashCashTokenCategory: BitcoinCashCashTokenCategoryView,
 	BitcoinCashCashTokenCategories: BitcoinCashCashTokenCategoriesView,
 	BitcoinCashCashTokenCommitment: BitcoinCashCashTokenCommitmentView,
@@ -2804,10 +2788,6 @@ export const View = {
 	CosmosMessages: CosmosMessagesView,
 	CosmosModule: CosmosModuleView,
 	CosmosModules: CosmosModulesView,
-	CosmosNetwork: CosmosNetworkView,
-	CosmosNetworks: CosmosNetworksView,
-	CosmosNetwork_Timestamp: CosmosNetwork_TimestampView,
-	CosmosNetwork_Timestamps: CosmosNetwork_TimestampsView,
 	CosmosTransaction: CosmosTransactionView,
 	CosmosTransactions: CosmosTransactionsView,
 	CosmosValidator: CosmosValidatorView,
@@ -3538,10 +3518,6 @@ export const View = {
 	PolkadotEvents: PolkadotEventsView,
 	PolkadotExtrinsic: PolkadotExtrinsicView,
 	PolkadotExtrinsics: PolkadotExtrinsicsView,
-	PolkadotNetwork: PolkadotNetworkView,
-	PolkadotNetworks: PolkadotNetworksView,
-	PolkadotNetwork_Timestamp: PolkadotNetwork_TimestampView,
-	PolkadotNetwork_Timestamps: PolkadotNetwork_TimestampsView,
 	PolkadotPallet: PolkadotPalletView,
 	PolkadotPallets: PolkadotPalletsView,
 	PolkadotReferendum: PolkadotReferendumView,
@@ -3626,10 +3602,6 @@ export const View = {
 	SolanaBlocks: SolanaBlocksView,
 	SolanaInstruction: SolanaInstructionView,
 	SolanaInstructions: SolanaInstructionsView,
-	SolanaNetwork: SolanaNetworkView,
-	SolanaNetworks: SolanaNetworksView,
-	SolanaNetwork_Timestamp: SolanaNetwork_TimestampView,
-	SolanaNetwork_Timestamps: SolanaNetwork_TimestampsView,
 	SolanaProgram: SolanaProgramView,
 	SolanaPrograms: SolanaProgramsView,
 	SolanaTokenAccount: SolanaTokenAccountView,
@@ -3934,10 +3906,6 @@ export const View = {
 	UtxoBlocks: UtxoBlocksView,
 	UtxoInput: UtxoInputView,
 	UtxoInputs: UtxoInputsView,
-	UtxoNetwork: UtxoNetworkView,
-	UtxoNetworks: UtxoNetworksView,
-	UtxoNetwork_Timestamp: UtxoNetwork_TimestampView,
-	UtxoNetwork_Timestamps: UtxoNetwork_TimestampsView,
 	UtxoOutput: UtxoOutputView,
 	UtxoOutputs: UtxoOutputsView,
 	UtxoTransaction: UtxoTransactionView,
@@ -4435,8 +4403,6 @@ export const entityViewComponentByType = {
 	[EntityType.CosmosGovernanceProposal_Timestamp]: View.CosmosGovernanceProposal_Timestamp,
 	[EntityType.CosmosMessage]: View.CosmosMessage,
 	[EntityType.CosmosModule]: View.CosmosModule,
-	[EntityType.CosmosNetwork]: View.CosmosNetwork,
-	[EntityType.CosmosNetwork_Timestamp]: View.CosmosNetwork_Timestamp,
 	[EntityType.CosmosTransaction]: View.CosmosTransaction,
 	[EntityType.CosmosValidator]: View.CosmosValidator,
 	[EntityType.CosmosValidator_Timestamp]: View.CosmosValidator_Timestamp,
@@ -4802,8 +4768,6 @@ export const entityViewComponentByType = {
 	[EntityType.PolkadotBlock]: View.PolkadotBlock,
 	[EntityType.PolkadotEvent]: View.PolkadotEvent,
 	[EntityType.PolkadotExtrinsic]: View.PolkadotExtrinsic,
-	[EntityType.PolkadotNetwork]: View.PolkadotNetwork,
-	[EntityType.PolkadotNetwork_Timestamp]: View.PolkadotNetwork_Timestamp,
 	[EntityType.PolkadotPallet]: View.PolkadotPallet,
 	[EntityType.PolkadotReferendum]: View.PolkadotReferendum,
 	[EntityType.PolkadotReferendum_Timestamp]: View.PolkadotReferendum_Timestamp,
@@ -4846,8 +4810,6 @@ export const entityViewComponentByType = {
 	[EntityType.SolanaAccount_Timestamp]: View.SolanaAccount_Timestamp,
 	[EntityType.SolanaBlock]: View.SolanaBlock,
 	[EntityType.SolanaInstruction]: View.SolanaInstruction,
-	[EntityType.SolanaNetwork]: View.SolanaNetwork,
-	[EntityType.SolanaNetwork_Timestamp]: View.SolanaNetwork_Timestamp,
 	[EntityType.SolanaProgram]: View.SolanaProgram,
 	[EntityType.SolanaTokenAccount]: View.SolanaTokenAccount,
 	[EntityType.SolanaTokenAccount_Timestamp]: View.SolanaTokenAccount_Timestamp,
@@ -5000,8 +4962,6 @@ export const entityViewComponentByType = {
 	[EntityType.UtxoAddress_Timestamp]: View.UtxoAddress_Timestamp,
 	[EntityType.UtxoBlock]: View.UtxoBlock,
 	[EntityType.UtxoInput]: View.UtxoInput,
-	[EntityType.UtxoNetwork]: View.UtxoNetwork,
-	[EntityType.UtxoNetwork_Timestamp]: View.UtxoNetwork_Timestamp,
 	[EntityType.UtxoOutput]: View.UtxoOutput,
 	[EntityType.UtxoTransaction]: View.UtxoTransaction,
 	[EntityType.WalletConnectionMethod]: View.WalletConnectionMethod,

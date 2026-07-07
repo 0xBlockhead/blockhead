@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpToolCall }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpToolCall> })}
 					{@const acpToolCallFields = { ...acpToolCall[EntityMetaKey.Selector], ...acpToolCall }}
 					<AcpToolCallView
-						selection={select(EntityType.AcpToolCall, acpToolCall[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpToolCall, acpToolCall[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpToolCallFields}
 						layout={EntityLayout.Summary}
 						open={false}

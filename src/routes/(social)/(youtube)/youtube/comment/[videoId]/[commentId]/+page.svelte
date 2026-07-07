@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import YoutubeCommentView from '$/views/YoutubeCommentView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>YouTube comment • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,14 @@
 			})
 		}
 		selection={
-			select(EntityType.YoutubeComment, data.selector, {
+			select(EntityType.YoutubeComment, {
+				videoId: decodeURIComponent(params.videoId),
+				commentId: decodeURIComponent(params.commentId),
+			}, {
+				sources: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
 				fields: {
 					text: true,
 					publishedAtMs: true,

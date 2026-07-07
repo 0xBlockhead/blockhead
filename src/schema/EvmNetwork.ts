@@ -539,8 +539,6 @@ export default {
 		},
 		{
 			name: '$$mevProposerPayloadDelivered',
-			label: 'MEV proposer payloads delivered',
-			labelPlural: 'MEV proposer payloads delivered',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 			cardinality: EntityFieldCardinality.Many,

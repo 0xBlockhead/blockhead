@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eigenLayerSlashingEvent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EigenLayerSlashingEvent> })}
 					{@const eigenLayerSlashingEventFields = { ...eigenLayerSlashingEvent[EntityMetaKey.Selector], ...eigenLayerSlashingEvent }}
 					<EigenLayerSlashingEventView
-						selection={select(EntityType.EigenLayerSlashingEvent, eigenLayerSlashingEvent[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerSlashingEvent, eigenLayerSlashingEvent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eigenLayerSlashingEventFields}
 						layout={EntityLayout.Summary}
 						open={false}

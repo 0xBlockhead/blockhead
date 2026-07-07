@@ -129,7 +129,7 @@
 				<dt>channel</dt>
 				<dd>
 					<BlockheadStateChannelView
-						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
+						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel, {})}
 						href={
 							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId]', {
 								channelId: String(selection.entitySelector.$channel.id ?? ''),
@@ -175,7 +175,7 @@
 				<dt>from</dt>
 				<dd>
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$from)}
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$from, {})}
 						href={
 							(selection.entitySelector.$from.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$from.address ?? ''),
@@ -191,7 +191,7 @@
 				<dt>to</dt>
 				<dd>
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$to)}
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$to, {})}
 						href={
 							(selection.entitySelector.$to.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$to.address ?? ''),

@@ -145,7 +145,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<StarknetTransactionView
-						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.StarknetTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -404,7 +404,7 @@
 						{#snippet Pending()}
 							{@const messagesSent = prefetched.messagesSent}
 							{#if messagesSent !== undefined && messagesSent !== null}
-								{(messagesSent?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{messagesSent.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -412,7 +412,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const messagesSent = resolvedEntity.messagesSent}
 							{#if messagesSent !== undefined && messagesSent !== null}
-								{(messagesSent?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{messagesSent.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

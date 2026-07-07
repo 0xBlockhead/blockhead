@@ -116,7 +116,7 @@
 					{@const blockheadLightningPaymentFields = { ...blockheadLightningPayment[EntityMetaKey.Selector], ...blockheadLightningPayment }}
 					{@const blockheadLightningPaymentHrefFields = { ...blockheadLightningPayment, ...blockheadLightningPayment[EntityMetaKey.Selector] }}
 					<BlockheadLightningPaymentView
-						selection={select(EntityType.BlockheadLightningPayment, blockheadLightningPayment[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLightningPayment, blockheadLightningPayment[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLightningPaymentFields}
 						href={
 							(blockheadLightningPaymentHrefFields.$network !== undefined && blockheadLightningPaymentHrefFields.$network.slug !== undefined && blockheadLightningPaymentHrefFields.paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/payments/[paymentHash]', {

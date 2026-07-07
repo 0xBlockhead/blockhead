@@ -106,7 +106,7 @@
 				{#snippet Item({ item: kaspaNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaNetwork> })}
 					{@const kaspaNetworkFields = { ...kaspaNetwork[EntityMetaKey.Selector], ...kaspaNetwork }}
 					<KaspaNetworkView
-						selection={select(EntityType.KaspaNetwork, kaspaNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.KaspaNetwork, kaspaNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={kaspaNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

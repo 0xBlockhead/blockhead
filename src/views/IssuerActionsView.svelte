@@ -106,7 +106,7 @@
 				{#snippet Item({ item: issuerAction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IssuerAction> })}
 					{@const issuerActionFields = { ...issuerAction[EntityMetaKey.Selector], ...issuerAction }}
 					<IssuerActionView
-						selection={select(EntityType.IssuerAction, issuerAction[EntityMetaKey.Selector])}
+						selection={select(EntityType.IssuerAction, issuerAction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={issuerActionFields}
 						layout={EntityLayout.Summary}
 						open={false}

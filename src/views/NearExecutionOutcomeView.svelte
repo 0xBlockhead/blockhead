@@ -135,7 +135,7 @@
 				<dt>Transaction</dt>
 				<dd>
 					<NearTransactionView
-						selection={select(EntityType.NearTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.NearTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

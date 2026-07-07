@@ -114,7 +114,7 @@
 				{#snippet Item({ item: evmNetworkAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetworkAccount_Timestamp> })}
 					{@const evmNetworkAccountTimestampFields = { ...evmNetworkAccountTimestamp[EntityMetaKey.Selector], ...evmNetworkAccountTimestamp }}
 					<EvmNetworkAccount_TimestampView
-						selection={select(EntityType.EvmNetworkAccount_Timestamp, evmNetworkAccountTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmNetworkAccount_Timestamp, evmNetworkAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkAccountTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

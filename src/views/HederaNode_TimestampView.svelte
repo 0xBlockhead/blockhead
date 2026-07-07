@@ -83,7 +83,7 @@
 				<dt>node</dt>
 				<dd>
 					<HederaNodeView
-						selection={select(EntityType.HederaNode, selection.entitySelector.$node)}
+						selection={select(EntityType.HederaNode, selection.entitySelector.$node, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

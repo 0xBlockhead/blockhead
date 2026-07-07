@@ -117,7 +117,7 @@
 					{@const beaconWithdrawalFields = { ...beaconWithdrawal[EntityMetaKey.Selector], ...beaconWithdrawal }}
 					{@const beaconWithdrawalHrefFields = { ...beaconWithdrawal, ...beaconWithdrawal[EntityMetaKey.Selector] }}
 					<BeaconWithdrawalView
-						selection={select(EntityType.BeaconWithdrawal, beaconWithdrawal[EntityMetaKey.Selector])}
+						selection={select(EntityType.BeaconWithdrawal, beaconWithdrawal[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={beaconWithdrawalFields}
 						href={
 							(beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined && beaconWithdrawalHrefFields.$network.caip2.namespace !== undefined && beaconWithdrawalHrefFields.$network !== undefined && beaconWithdrawalHrefFields.$network.caip2 !== undefined && beaconWithdrawalHrefFields.$network.caip2.reference !== undefined && beaconWithdrawalHrefFields.slot !== undefined && beaconWithdrawalHrefFields.indexInSlot !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/slot/[slot=nonNegativeInteger]/withdrawal/[index=nonNegativeInteger]', {

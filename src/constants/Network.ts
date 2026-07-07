@@ -33,8 +33,10 @@ export enum Caip2Namespace {
 
 export enum Caip2Reference {
 	Arbitrum = '42161',
+	Base = '8453',
 	Bitcoin = '000000000019d6689c085ae165831e93',
 	BitcoinCash = '000000000000000000651ef99cb9fcbe',
+	BnbSmartChain = '56',
 	CosmosHub = 'cosmoshub-4',
 	Dogecoin = '1a91e3dace36e2be3bf030a65679fe82',
 	EthereumMainnet = '1',
@@ -43,6 +45,7 @@ export enum Caip2Reference {
 	Litecoin = '12a765e31ffd4059bada1e25190f6e98',
 	Monero = '418015bb9ae982a1975da7d79277c270',
 	Polkadot = '91b171bb158e2d3848fa23a9f1c25182',
+	Polygon = '137',
 	SolanaMainnet = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 	Zcash = '00040fe8ec8471911baa1db1266ea15',
 }
@@ -55,6 +58,19 @@ export enum NetworkEnvironment {
 export enum NetworkResourceKind {
 	BlockExplorer = 'BlockExplorer',
 	Faucet = 'Faucet',
+}
+
+export enum NetworkLedgerModel {
+	Account = 'Account',
+	Utxo = 'Utxo',
+}
+
+export enum NetworkExecutionModel {
+	CosmosSdk = 'CosmosSdk',
+	Evm = 'Evm',
+	PolkadotRuntime = 'PolkadotRuntime',
+	SolanaRuntime = 'SolanaRuntime',
+	ZcashShielded = 'ZcashShielded',
 }
 
 // Constants
@@ -79,6 +95,8 @@ export const networks = [
 		name: '0G',
 		namespace: NetworkNamespace.ZeroG,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [],
+		executionModels: [],
 	},
 	{
 		slug: 'arbitrum',
@@ -89,12 +107,28 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Evm,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
+	},
+	{
+		slug: 'base',
+		name: 'Base',
+		caip2: {
+			namespace: 'eip155',
+			reference: '8453',
+		},
+		namespace: NetworkNamespace.Evm,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
 	},
 	{
 		slug: 'bittensor',
 		name: 'Bittensor',
 		namespace: NetworkNamespace.Bittensor,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [],
+		executionModels: [],
 	},
 	{
 		slug: 'bitcoin',
@@ -105,6 +139,8 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Bitcoin,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Utxo],
+		executionModels: [],
 	},
 	{
 		slug: 'bitcoin-cash',
@@ -115,6 +151,20 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.BitcoinCash,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Utxo],
+		executionModels: [],
+	},
+	{
+		slug: 'bnb-smart-chain',
+		name: 'BNB Smart Chain',
+		caip2: {
+			namespace: 'eip155',
+			reference: '56',
+		},
+		namespace: NetworkNamespace.Evm,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
 	},
 	{
 		slug: 'cosmos',
@@ -125,6 +175,8 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Cosmos,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.CosmosSdk],
 	},
 	{
 		slug: 'dogecoin',
@@ -135,12 +187,16 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Dogecoin,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Utxo],
+		executionModels: [],
 	},
 	{
 		slug: 'liquid',
 		name: 'Liquid Network',
 		namespace: NetworkNamespace.Elements,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Utxo],
+		executionModels: [],
 	},
 	{
 		slug: 'ethereum',
@@ -151,6 +207,8 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Evm,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
 	},
 	{
 		slug: 'optimism',
@@ -161,6 +219,20 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Evm,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
+	},
+	{
+		slug: 'polygon',
+		name: 'Polygon',
+		caip2: {
+			namespace: 'eip155',
+			reference: '137',
+		},
+		namespace: NetworkNamespace.Evm,
+		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.Evm],
 	},
 	{
 		slug: 'filecoin',
@@ -171,18 +243,24 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Filecoin,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [],
+		executionModels: [],
 	},
 	{
 		slug: 'hyperliquid',
 		name: 'Hyperliquid',
 		namespace: NetworkNamespace.Hyperliquid,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
 	},
 	{
 		slug: 'lightning',
 		name: 'Lightning Network',
 		namespace: NetworkNamespace.Lightning,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [],
+		executionModels: [],
 	},
 	{
 		slug: 'litecoin',
@@ -193,12 +271,16 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Litecoin,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Utxo],
+		executionModels: [],
 	},
 	{
 		slug: 'logos-testnet',
 		name: 'Logos Testnet',
 		namespace: NetworkNamespace.Logos,
 		environment: NetworkEnvironment.Testnet,
+		ledgerModels: [],
+		executionModels: [],
 	},
 	{
 		slug: 'monero',
@@ -209,12 +291,16 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Monero,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [],
+		executionModels: [],
 	},
 	{
 		slug: 'near',
 		name: 'NEAR',
 		namespace: NetworkNamespace.Near,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
 	},
 	{
 		slug: 'polkadot',
@@ -225,12 +311,16 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Polkadot,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.PolkadotRuntime],
 	},
 	{
 		slug: 'quilibrium',
 		name: 'Quilibrium',
 		namespace: NetworkNamespace.Quilibrium,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [],
+		executionModels: [],
 	},
 	{
 		slug: 'solana',
@@ -241,12 +331,16 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Solana,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [NetworkExecutionModel.SolanaRuntime],
 	},
 	{
 		slug: 'tron',
 		name: 'TRON Mainnet',
 		namespace: NetworkNamespace.Tron,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Account],
+		executionModels: [],
 	},
 	{
 		slug: 'zcash',
@@ -257,6 +351,8 @@ export const networks = [
 		},
 		namespace: NetworkNamespace.Zcash,
 		environment: NetworkEnvironment.Mainnet,
+		ledgerModels: [NetworkLedgerModel.Utxo],
+		executionModels: [NetworkExecutionModel.ZcashShielded],
 	},
 ] as const satisfies readonly {
 	namespace: NetworkNamespace
@@ -267,6 +363,8 @@ export const networks = [
 	}
 	name: string
 	environment: NetworkEnvironment
+	ledgerModels: readonly NetworkLedgerModel[]
+	executionModels: readonly NetworkExecutionModel[]
 }[]
 
 export const networkResourceUrls = [

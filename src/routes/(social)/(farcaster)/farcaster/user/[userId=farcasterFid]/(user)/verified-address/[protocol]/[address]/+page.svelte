@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -39,7 +38,11 @@
 			})
 		}
 		selection={
-			select(EntityType.FarcasterVerifiedAddress, data.selector, {
+			select(EntityType.FarcasterVerifiedAddress, {
+				fid: Number(params.userId),
+				protocol: params.protocol,
+				address: decodeURIComponent(params.address),
+			}, {
 				fields: {
 					$user: true,
 					$evmAccount: true,

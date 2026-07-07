@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpCanisterMetadata }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpCanisterMetadata> })}
 					{@const icpCanisterMetadataFields = { ...icpCanisterMetadata[EntityMetaKey.Selector], ...icpCanisterMetadata }}
 					<IcpCanisterMetadataView
-						selection={select(EntityType.IcpCanisterMetadata, icpCanisterMetadata[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpCanisterMetadata, icpCanisterMetadata[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpCanisterMetadataFields}
 						layout={EntityLayout.Summary}
 						open={false}

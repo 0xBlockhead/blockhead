@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aiDocument }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiDocument> })}
 					{@const aiDocumentFields = { ...aiDocument[EntityMetaKey.Selector], ...aiDocument }}
 					<AiDocumentView
-						selection={select(EntityType.AiDocument, aiDocument[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiDocument, aiDocument[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiDocumentFields}
 						layout={EntityLayout.Summary}
 						open={false}

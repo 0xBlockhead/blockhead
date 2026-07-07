@@ -113,7 +113,7 @@
 				{#snippet Item({ item: dydxChainSubaccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DydxChainSubaccount> })}
 					{@const dydxChainSubaccountFields = { ...dydxChainSubaccount[EntityMetaKey.Selector], ...dydxChainSubaccount }}
 					<DydxChainSubaccountView
-						selection={select(EntityType.DydxChainSubaccount, dydxChainSubaccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.DydxChainSubaccount, dydxChainSubaccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dydxChainSubaccountFields}
 						layout={EntityLayout.Summary}
 						open={false}

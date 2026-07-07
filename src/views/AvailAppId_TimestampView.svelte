@@ -135,7 +135,7 @@
 				<dt>app ID</dt>
 				<dd>
 					<AvailAppIdView
-						selection={select(EntityType.AvailAppId, selection.entitySelector.$appId)}
+						selection={select(EntityType.AvailAppId, selection.entitySelector.$appId, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

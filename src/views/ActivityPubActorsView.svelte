@@ -119,7 +119,7 @@
 					{@const activityPubActorFields = { ...activityPubActor[EntityMetaKey.Selector], ...activityPubActor }}
 					{@const activityPubActorHrefFields = { ...activityPubActor, ...activityPubActor[EntityMetaKey.Selector] }}
 					<ActivityPubActorView
-						selection={select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector])}
+						selection={select(EntityType.ActivityPubActor, activityPubActor[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={activityPubActorFields}
 						href={
 							(activityPubActorHrefFields.instanceOrigin !== undefined && activityPubActorHrefFields.localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {

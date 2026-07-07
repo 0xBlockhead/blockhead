@@ -84,7 +84,7 @@
 				<dt>package</dt>
 				<dd>
 					<SuiPackageView
-						selection={select(EntityType.SuiPackage, selection.entitySelector.$package)}
+						selection={select(EntityType.SuiPackage, selection.entitySelector.$package, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -63,7 +63,14 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					$network: true,
+					$$timestamps: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -104,9 +111,9 @@
 				{/snippet}
 
 				{#snippet Item({ item: tezosNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosNetwork> })}
-					{@const tezosNetworkFields = { ...tezosNetwork[EntityMetaKey.Selector], ...tezosNetwork }}
+					{@const tezosNetworkFields = { ...tezosNetwork[EntityMetaKey.Selector], ...tezosNetwork, $$timestamps: tezosNetwork.$$timestamps }}
 					<TezosNetworkView
-						selection={select(EntityType.TezosNetwork, tezosNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosNetwork, tezosNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

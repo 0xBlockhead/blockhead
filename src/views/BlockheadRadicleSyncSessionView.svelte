@@ -344,7 +344,7 @@
 						{#snippet Pending()}
 							{@const requestedRefs = prefetched.requestedRefs}
 							{#if requestedRefs !== undefined && requestedRefs !== null}
-								{(requestedRefs?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{requestedRefs.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -352,7 +352,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const requestedRefs = resolvedEntity.requestedRefs}
 							{#if requestedRefs !== undefined && requestedRefs !== null}
-								{(requestedRefs?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{requestedRefs.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

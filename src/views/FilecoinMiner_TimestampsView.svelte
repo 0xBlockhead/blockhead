@@ -114,7 +114,7 @@
 				{#snippet Item({ item: filecoinMinerTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinMiner_Timestamp> })}
 					{@const filecoinMinerTimestampFields = { ...filecoinMinerTimestamp[EntityMetaKey.Selector], ...filecoinMinerTimestamp }}
 					<FilecoinMiner_TimestampView
-						selection={select(EntityType.FilecoinMiner_Timestamp, filecoinMinerTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinMiner_Timestamp, filecoinMinerTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={filecoinMinerTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

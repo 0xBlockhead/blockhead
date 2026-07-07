@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonTransaction> })}
 					{@const tonTransactionFields = { ...tonTransaction[EntityMetaKey.Selector], ...tonTransaction }}
 					<TonTransactionView
-						selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonTransaction, tonTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

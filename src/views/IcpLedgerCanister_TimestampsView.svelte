@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpLedgerCanisterTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpLedgerCanister_Timestamp> })}
 					{@const icpLedgerCanisterTimestampFields = { ...icpLedgerCanisterTimestamp[EntityMetaKey.Selector], ...icpLedgerCanisterTimestamp }}
 					<IcpLedgerCanister_TimestampView
-						selection={select(EntityType.IcpLedgerCanister_Timestamp, icpLedgerCanisterTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpLedgerCanister_Timestamp, icpLedgerCanisterTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpLedgerCanisterTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

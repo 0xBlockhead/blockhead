@@ -3,14 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -114,16 +112,9 @@
 
 				{#snippet Item({ item: polkadotValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotValidator> })}
 					{@const polkadotValidatorFields = { ...polkadotValidator[EntityMetaKey.Selector], ...polkadotValidator }}
-					{@const polkadotValidatorHrefFields = { ...polkadotValidator, ...polkadotValidator[EntityMetaKey.Selector] }}
 					<PolkadotValidatorView
-						selection={select(EntityType.PolkadotValidator, polkadotValidator[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotValidator, polkadotValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotValidatorFields}
-						href={
-							(polkadotValidatorHrefFields.$network !== undefined && polkadotValidatorHrefFields.$network.caip2 !== undefined && polkadotValidatorHrefFields.$network.caip2.namespace !== undefined && polkadotValidatorHrefFields.$network !== undefined && polkadotValidatorHrefFields.$network.caip2 !== undefined && polkadotValidatorHrefFields.$network.caip2.reference !== undefined && polkadotValidatorHrefFields.stashAccountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/validator/[stashAccountId]', {
-								networkSlug: String(networkByCaip2[String(String(polkadotValidatorHrefFields.$network.caip2.namespace) + ':' + String(polkadotValidatorHrefFields.$network.caip2.reference))].slug ?? ''),
-								stashAccountId: String(polkadotValidatorHrefFields.stashAccountId ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

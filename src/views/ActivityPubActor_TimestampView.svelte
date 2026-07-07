@@ -134,7 +134,7 @@
 				<dt>Actor</dt>
 				<dd>
 					<ActivityPubActorView
-						selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor)}
+						selection={select(EntityType.ActivityPubActor, selection.entitySelector.$actor, {})}
 						href={
 							(selection.entitySelector.$actor.instanceOrigin !== undefined && selection.entitySelector.$actor.localAccountId !== undefined ? resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
 								instanceOrigin: String(selection.entitySelector.$actor.instanceOrigin ?? ''),

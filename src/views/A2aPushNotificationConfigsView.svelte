@@ -114,7 +114,7 @@
 				{#snippet Item({ item: a2aPushNotificationConfig }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aPushNotificationConfig> })}
 					{@const a2aPushNotificationConfigFields = { ...a2aPushNotificationConfig[EntityMetaKey.Selector], ...a2aPushNotificationConfig }}
 					<A2aPushNotificationConfigView
-						selection={select(EntityType.A2aPushNotificationConfig, a2aPushNotificationConfig[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aPushNotificationConfig, a2aPushNotificationConfig[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aPushNotificationConfigFields}
 						layout={EntityLayout.Summary}
 						open={false}

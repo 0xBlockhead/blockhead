@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -39,7 +39,21 @@
 			})
 		}
 		selection={
-			select(EntityType.LiquidityPool_Block, data.selector, {
+			select(EntityType.LiquidityPool_Block, {
+				$liquidityPool: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.chainId,
+						},
+					},
+					id: decodeURIComponent(params.poolId),
+				},
+				blockNumber: BigInt(params.blockNumber),
+			}, {
+				sources: [
+					Source.Dexscreener_OpenApi,
+				],
 				fields: {
 					tick: true,
 					$parentLiquidityPool: true,

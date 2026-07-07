@@ -115,7 +115,7 @@
 					{@const lensPostTimestampFields = { ...lensPostTimestamp[EntityMetaKey.Selector], ...lensPostTimestamp }}
 					{@const lensPostTimestampHrefFields = { ...lensPostTimestamp, ...lensPostTimestamp[EntityMetaKey.Selector] }}
 					<LensPost_TimestampView
-						selection={select(EntityType.LensPost_Timestamp, lensPostTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.LensPost_Timestamp, lensPostTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lensPostTimestampFields}
 						href={
 							(lensPostTimestampHrefFields.$post !== undefined && lensPostTimestampHrefFields.$post.id !== undefined && lensPostTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(lens)/lens/post/[postId]/(post)/observations/[timestampMs=nonNegativeInteger]', {

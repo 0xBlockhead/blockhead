@@ -84,7 +84,7 @@
 				<dt>asset</dt>
 				<dd>
 					<AlgorandAssetView
-						selection={select(EntityType.AlgorandAsset, selection.entitySelector.$asset)}
+						selection={select(EntityType.AlgorandAsset, selection.entitySelector.$asset, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -82,7 +82,7 @@
 				<dt>method</dt>
 				<dd>
 					<TonContractGetMethodView
-						selection={select(EntityType.TonContractGetMethod, selection.entitySelector.$method)}
+						selection={select(EntityType.TonContractGetMethod, selection.entitySelector.$method, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

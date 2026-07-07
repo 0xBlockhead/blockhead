@@ -115,7 +115,7 @@
 				{#snippet Item({ item: fedimintFederationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FedimintFederation_Timestamp> })}
 					{@const fedimintFederationTimestampFields = { ...fedimintFederationTimestamp[EntityMetaKey.Selector], ...fedimintFederationTimestamp }}
 					<FedimintFederation_TimestampView
-						selection={select(EntityType.FedimintFederation_Timestamp, fedimintFederationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.FedimintFederation_Timestamp, fedimintFederationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={fedimintFederationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

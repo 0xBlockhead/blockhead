@@ -115,7 +115,7 @@
 				<dt>Ring</dt>
 				<dd>
 					<MoneroRingView
-						selection={select(EntityType.MoneroRing, selection.entitySelector.$ring)}
+						selection={select(EntityType.MoneroRing, selection.entitySelector.$ring, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

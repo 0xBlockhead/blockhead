@@ -106,7 +106,7 @@
 				{#snippet Item({ item: xrplAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplAccount> })}
 					{@const xrplAccountFields = { ...xrplAccount[EntityMetaKey.Selector], ...xrplAccount }}
 					<XrplAccountView
-						selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.XrplAccount, xrplAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xrplAccountFields}
 						layout={EntityLayout.Summary}
 						open={false}

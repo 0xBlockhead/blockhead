@@ -114,7 +114,7 @@
 				{#snippet Item({ item: polkadotValidatorEra }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotValidator_Era> })}
 					{@const polkadotValidatorEraFields = { ...polkadotValidatorEra[EntityMetaKey.Selector], ...polkadotValidatorEra }}
 					<PolkadotValidator_EraView
-						selection={select(EntityType.PolkadotValidator_Era, polkadotValidatorEra[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotValidator_Era, polkadotValidatorEra[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotValidatorEraFields}
 						layout={EntityLayout.Summary}
 						open={false}

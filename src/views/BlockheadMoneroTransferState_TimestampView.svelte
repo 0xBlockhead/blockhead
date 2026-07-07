@@ -134,7 +134,7 @@
 				<dt>transfer state</dt>
 				<dd>
 					<BlockheadMoneroTransferStateView
-						selection={select(EntityType.BlockheadMoneroTransferState, selection.entitySelector.$transferState)}
+						selection={select(EntityType.BlockheadMoneroTransferState, selection.entitySelector.$transferState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

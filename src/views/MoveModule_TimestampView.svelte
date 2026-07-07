@@ -133,7 +133,7 @@
 				<dt>module</dt>
 				<dd>
 					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+						selection={select(EntityType.MoveModule, selection.entitySelector.$module, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

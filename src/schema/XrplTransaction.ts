@@ -58,14 +58,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.XrplTransaction_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$affectedEntries',
+			name: '$$affectedEntries',
 			label: 'affected entries',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.XrplLedgerEntry,

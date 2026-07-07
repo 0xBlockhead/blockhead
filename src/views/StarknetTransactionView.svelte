@@ -391,7 +391,7 @@
 						{#snippet Pending()}
 							{@const calldata = prefetched.calldata}
 							{#if calldata !== undefined && calldata !== null}
-								{(calldata?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{calldata.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -399,7 +399,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const calldata = resolvedEntity.calldata}
 							{#if calldata !== undefined && calldata !== null}
-								{(calldata?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{calldata.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -421,7 +421,7 @@
 						{#snippet Pending()}
 							{@const signature = prefetched.signature}
 							{#if signature !== undefined && signature !== null}
-								<TruncatedValue value={(signature?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={signature.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -429,7 +429,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signature = resolvedEntity.signature}
 							{#if signature !== undefined && signature !== null}
-								<TruncatedValue value={(signature?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={signature.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

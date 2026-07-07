@@ -123,7 +123,7 @@
 				<dt>repository</dt>
 				<dd>
 					<GitRepositoryView
-						selection={select(EntityType.GitRepository, selection.entitySelector.$repository)}
+						selection={select(EntityType.GitRepository, selection.entitySelector.$repository, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -205,7 +205,7 @@
 						{#snippet Pending()}
 							{@const treeObjectIds = prefetched.treeObjectIds}
 							{#if treeObjectIds !== undefined && treeObjectIds !== null}
-								{(treeObjectIds?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{treeObjectIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -213,7 +213,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const treeObjectIds = resolvedEntity.treeObjectIds}
 							{#if treeObjectIds !== undefined && treeObjectIds !== null}
-								{(treeObjectIds?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{treeObjectIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

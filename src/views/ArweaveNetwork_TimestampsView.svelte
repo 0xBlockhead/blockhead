@@ -115,7 +115,7 @@
 				{#snippet Item({ item: arweaveNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ArweaveNetwork_Timestamp> })}
 					{@const arweaveNetworkTimestampFields = { ...arweaveNetworkTimestamp[EntityMetaKey.Selector], ...arweaveNetworkTimestamp }}
 					<ArweaveNetwork_TimestampView
-						selection={select(EntityType.ArweaveNetwork_Timestamp, arweaveNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.ArweaveNetwork_Timestamp, arweaveNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={arweaveNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

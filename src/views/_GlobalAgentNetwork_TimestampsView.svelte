@@ -114,7 +114,7 @@
 				{#snippet Item({ item: globalAgentNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAgentNetwork_Timestamp> })}
 					{@const globalAgentNetworkTimestampFields = { ...globalAgentNetworkTimestamp[EntityMetaKey.Selector], ...globalAgentNetworkTimestamp }}
 					<GlobalAgentNetwork_TimestampView
-						selection={select(EntityType._GlobalAgentNetwork_Timestamp, globalAgentNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalAgentNetwork_Timestamp, globalAgentNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalAgentNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

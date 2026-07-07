@@ -118,7 +118,7 @@
 					{@const polkadotExtrinsicFields = { ...polkadotExtrinsic[EntityMetaKey.Selector], ...polkadotExtrinsic }}
 					{@const polkadotExtrinsicHrefFields = { ...polkadotExtrinsic, ...polkadotExtrinsic[EntityMetaKey.Selector] }}
 					<PolkadotExtrinsicView
-						selection={select(EntityType.PolkadotExtrinsic, polkadotExtrinsic[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotExtrinsic, polkadotExtrinsic[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotExtrinsicFields}
 						href={
 							(polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.$network !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2 !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2.namespace !== undefined && polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.$network !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2 !== undefined && polkadotExtrinsicHrefFields.$block.$network.caip2.reference !== undefined && polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.blockNumber !== undefined && polkadotExtrinsicHrefFields.$block !== undefined && polkadotExtrinsicHrefFields.$block.hash !== undefined && polkadotExtrinsicHrefFields.indexInBlock !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/block/[blockNumber=nonNegativeInteger]/[hash]/extrinsic/[extrinsicIndex=nonNegativeInteger]', {

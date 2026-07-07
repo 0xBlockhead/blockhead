@@ -115,7 +115,7 @@
 				{#snippet Item({ item: cashuKeyset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CashuKeyset> })}
 					{@const cashuKeysetFields = { ...cashuKeyset[EntityMetaKey.Selector], ...cashuKeyset }}
 					<CashuKeysetView
-						selection={select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector])}
+						selection={select(EntityType.CashuKeyset, cashuKeyset[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cashuKeysetFields}
 						layout={EntityLayout.Summary}
 						open={false}

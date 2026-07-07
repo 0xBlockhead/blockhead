@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarTrustline }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarTrustline> })}
 					{@const stellarTrustlineFields = { ...stellarTrustline[EntityMetaKey.Selector], ...stellarTrustline }}
 					<StellarTrustlineView
-						selection={select(EntityType.StellarTrustline, stellarTrustline[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarTrustline, stellarTrustline[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarTrustlineFields}
 						layout={EntityLayout.Summary}
 						open={false}

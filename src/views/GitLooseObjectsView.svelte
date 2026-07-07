@@ -113,7 +113,7 @@
 				{#snippet Item({ item: gitLooseObject }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitLooseObject> })}
 					{@const gitLooseObjectFields = { ...gitLooseObject[EntityMetaKey.Selector], ...gitLooseObject }}
 					<GitLooseObjectView
-						selection={select(EntityType.GitLooseObject, gitLooseObject[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitLooseObject, gitLooseObject[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitLooseObjectFields}
 						layout={EntityLayout.Summary}
 						open={false}

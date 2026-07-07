@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tronWitnessTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TronWitness_Timestamp> })}
 					{@const tronWitnessTimestampFields = { ...tronWitnessTimestamp[EntityMetaKey.Selector], ...tronWitnessTimestamp }}
 					<TronWitness_TimestampView
-						selection={select(EntityType.TronWitness_Timestamp, tronWitnessTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TronWitness_Timestamp, tronWitnessTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tronWitnessTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

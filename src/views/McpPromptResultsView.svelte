@@ -114,7 +114,7 @@
 				{#snippet Item({ item: mcpPromptResult }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.McpPromptResult> })}
 					{@const mcpPromptResultFields = { ...mcpPromptResult[EntityMetaKey.Selector], ...mcpPromptResult }}
 					<McpPromptResultView
-						selection={select(EntityType.McpPromptResult, mcpPromptResult[EntityMetaKey.Selector])}
+						selection={select(EntityType.McpPromptResult, mcpPromptResult[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mcpPromptResultFields}
 						layout={EntityLayout.Summary}
 						open={false}

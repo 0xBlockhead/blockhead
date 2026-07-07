@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpMessage> })}
 					{@const acpMessageFields = { ...acpMessage[EntityMetaKey.Selector], ...acpMessage }}
 					<AcpMessageView
-						selection={select(EntityType.AcpMessage, acpMessage[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpMessage, acpMessage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpMessageFields}
 						layout={EntityLayout.Summary}
 						open={false}

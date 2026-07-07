@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>RSS feed • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<RssFeedView
 		href={
@@ -37,7 +32,13 @@
 			})
 		}
 		selection={
-			select(EntityType.RssFeed, data.selector, {
+			select(EntityType.RssFeed, {
+				feedUrl: decodeURIComponent(params.feedKey),
+			}, {
+				sources: [
+					Source.Rss_Rest,
+					Source.Rss2Json_Rest,
+				],
 				fields: {
 					title: true,
 					lastBuildDate: true,

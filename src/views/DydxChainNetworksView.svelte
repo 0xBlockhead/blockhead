@@ -112,7 +112,7 @@
 				{#snippet Item({ item: dydxChainNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DydxChainNetwork> })}
 					{@const dydxChainNetworkFields = { ...dydxChainNetwork[EntityMetaKey.Selector], ...dydxChainNetwork }}
 					<DydxChainNetworkView
-						selection={select(EntityType.DydxChainNetwork, dydxChainNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.DydxChainNetwork, dydxChainNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dydxChainNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: blockheadWalletCapabilityGrant }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadWalletCapabilityGrant> })}
 					{@const blockheadWalletCapabilityGrantFields = { ...blockheadWalletCapabilityGrant[EntityMetaKey.Selector], ...blockheadWalletCapabilityGrant }}
 					<BlockheadWalletCapabilityGrantView
-						selection={select(EntityType.BlockheadWalletCapabilityGrant, blockheadWalletCapabilityGrant[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadWalletCapabilityGrant, blockheadWalletCapabilityGrant[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadWalletCapabilityGrantFields}
 						layout={EntityLayout.Summary}
 						open={false}

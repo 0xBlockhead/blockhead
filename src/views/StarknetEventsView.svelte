@@ -114,7 +114,7 @@
 				{#snippet Item({ item: starknetEvent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetEvent> })}
 					{@const starknetEventFields = { ...starknetEvent[EntityMetaKey.Selector], ...starknetEvent }}
 					<StarknetEventView
-						selection={select(EntityType.StarknetEvent, starknetEvent[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetEvent, starknetEvent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetEventFields}
 						layout={EntityLayout.Summary}
 						open={false}

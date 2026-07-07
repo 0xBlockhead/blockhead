@@ -116,7 +116,7 @@
 					{@const atprotoPostFields = { ...atprotoPost[EntityMetaKey.Selector], ...atprotoPost }}
 					{@const atprotoPostHrefFields = { ...atprotoPost, ...atprotoPost[EntityMetaKey.Selector] }}
 					<AtprotoPostView
-						selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector])}
+						selection={select(EntityType.AtprotoPost, atprotoPost[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoPostFields}
 						href={
 							(atprotoPostHrefFields.uri !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]', {

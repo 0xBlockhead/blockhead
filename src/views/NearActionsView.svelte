@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearAction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearAction> })}
 					{@const nearActionFields = { ...nearAction[EntityMetaKey.Selector], ...nearAction }}
 					<NearActionView
-						selection={select(EntityType.NearAction, nearAction[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearAction, nearAction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearActionFields}
 						layout={EntityLayout.Summary}
 						open={false}

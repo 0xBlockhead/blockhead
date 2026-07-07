@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoDRep }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoDRep> })}
 					{@const cardanoDRepFields = { ...cardanoDRep[EntityMetaKey.Selector], ...cardanoDRep }}
 					<CardanoDRepView
-						selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoDRep, cardanoDRep[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoDRepFields}
 						layout={EntityLayout.Summary}
 						open={false}

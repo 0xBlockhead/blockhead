@@ -2,19 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
 
 
 	// Components
@@ -23,14 +17,17 @@
 </script>
 
 
-<svelte:head>
-	<title>global IPFS access • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<GlobalIpfsAccessView
 		href={resolve('/(explore)/(ipfs)/ipfs/access')}
-		selection={select(EntityType._GlobalIpfsAccess, data.selector)}
+		selection={
+			select(EntityType._GlobalIpfsAccess, {
+				scope: '_GlobalIpfsAccess',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
+			})
+		}
 	/>
 </Page>

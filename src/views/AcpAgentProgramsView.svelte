@@ -115,7 +115,7 @@
 				{#snippet Item({ item: acpAgentProgram }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpAgentProgram> })}
 					{@const acpAgentProgramFields = { ...acpAgentProgram[EntityMetaKey.Selector], ...acpAgentProgram }}
 					<AcpAgentProgramView
-						selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpAgentProgram, acpAgentProgram[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpAgentProgramFields}
 						layout={EntityLayout.Summary}
 						open={false}

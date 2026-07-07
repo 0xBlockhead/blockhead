@@ -114,7 +114,7 @@
 				{#snippet Item({ item: moveModule }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoveModule> })}
 					{@const moveModuleFields = { ...moveModule[EntityMetaKey.Selector], ...moveModule }}
 					<MoveModuleView
-						selection={select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoveModule, moveModule[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moveModuleFields}
 						layout={EntityLayout.Summary}
 						open={false}

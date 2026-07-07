@@ -114,7 +114,7 @@
 				{#snippet Item({ item: a2aTaskEvent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aTaskEvent> })}
 					{@const a2aTaskEventFields = { ...a2aTaskEvent[EntityMetaKey.Selector], ...a2aTaskEvent }}
 					<A2aTaskEventView
-						selection={select(EntityType.A2aTaskEvent, a2aTaskEvent[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aTaskEvent, a2aTaskEvent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aTaskEventFields}
 						layout={EntityLayout.Summary}
 						open={false}

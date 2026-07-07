@@ -81,7 +81,7 @@
 				<dt>Wasm</dt>
 				<dd>
 					<SorobanWasmView
-						selection={select(EntityType.SorobanWasm, selection.entitySelector.$wasm)}
+						selection={select(EntityType.SorobanWasm, selection.entitySelector.$wasm, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -391,8 +391,6 @@ import CosmosGovernanceProposal_TimestampSchema from '$/schema/CosmosGovernanceP
 import CosmosGovernanceProposalSchema from '$/schema/CosmosGovernanceProposal.ts'
 import CosmosMessageSchema from '$/schema/CosmosMessage.ts'
 import CosmosModuleSchema from '$/schema/CosmosModule.ts'
-import CosmosNetwork_TimestampSchema from '$/schema/CosmosNetwork_Timestamp.ts'
-import CosmosNetworkSchema from '$/schema/CosmosNetwork.ts'
 import CosmosTransactionSchema from '$/schema/CosmosTransaction.ts'
 import CosmosValidator_TimestampSchema from '$/schema/CosmosValidator_Timestamp.ts'
 import CosmosValidatorSchema from '$/schema/CosmosValidator.ts'
@@ -758,8 +756,6 @@ import PolkadotAssetBalance_TimestampSchema from '$/schema/PolkadotAssetBalance_
 import PolkadotBlockSchema from '$/schema/PolkadotBlock.ts'
 import PolkadotEventSchema from '$/schema/PolkadotEvent.ts'
 import PolkadotExtrinsicSchema from '$/schema/PolkadotExtrinsic.ts'
-import PolkadotNetwork_TimestampSchema from '$/schema/PolkadotNetwork_Timestamp.ts'
-import PolkadotNetworkSchema from '$/schema/PolkadotNetwork.ts'
 import PolkadotPalletSchema from '$/schema/PolkadotPallet.ts'
 import PolkadotReferendum_TimestampSchema from '$/schema/PolkadotReferendum_Timestamp.ts'
 import PolkadotReferendumSchema from '$/schema/PolkadotReferendum.ts'
@@ -802,8 +798,6 @@ import SolanaAccount_TimestampSchema from '$/schema/SolanaAccount_Timestamp.ts'
 import SolanaAccountSchema from '$/schema/SolanaAccount.ts'
 import SolanaBlockSchema from '$/schema/SolanaBlock.ts'
 import SolanaInstructionSchema from '$/schema/SolanaInstruction.ts'
-import SolanaNetwork_TimestampSchema from '$/schema/SolanaNetwork_Timestamp.ts'
-import SolanaNetworkSchema from '$/schema/SolanaNetwork.ts'
 import SolanaProgramSchema from '$/schema/SolanaProgram.ts'
 import SolanaTokenAccount_TimestampSchema from '$/schema/SolanaTokenAccount_Timestamp.ts'
 import SolanaTokenAccountSchema from '$/schema/SolanaTokenAccount.ts'
@@ -956,8 +950,6 @@ import UtxoAddress_TimestampSchema from '$/schema/UtxoAddress_Timestamp.ts'
 import UtxoAddressSchema from '$/schema/UtxoAddress.ts'
 import UtxoBlockSchema from '$/schema/UtxoBlock.ts'
 import UtxoInputSchema from '$/schema/UtxoInput.ts'
-import UtxoNetwork_TimestampSchema from '$/schema/UtxoNetwork_Timestamp.ts'
-import UtxoNetworkSchema from '$/schema/UtxoNetwork.ts'
 import UtxoOutputSchema from '$/schema/UtxoOutput.ts'
 import UtxoTransactionSchema from '$/schema/UtxoTransaction.ts'
 import WalletConnectionMethodSchema from '$/schema/WalletConnectionMethod.ts'
@@ -1423,8 +1415,6 @@ const schemaChunk7 = [
 	CosmosGovernanceProposal_TimestampSchema,
 	CosmosMessageSchema,
 	CosmosModuleSchema,
-	CosmosNetworkSchema,
-	CosmosNetwork_TimestampSchema,
 	CosmosTransactionSchema,
 	CosmosValidatorSchema,
 	CosmosValidator_TimestampSchema,
@@ -1433,11 +1423,11 @@ const schemaChunk7 = [
 	Currency_TimestampSchema,
 	DogecoinAuxPowMerkleBranchSchema,
 	DogecoinAuxPowParentBlockHeaderSchema,
+	DogecoinBlockAuxPowSchema,
+	DydxChainMarketSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk8 = [
-	DogecoinBlockAuxPowSchema,
-	DydxChainMarketSchema,
 	DydxChainMarket_TimestampSchema,
 	DydxChainNetworkSchema,
 	DydxChainNetwork_TimestampSchema,
@@ -1486,11 +1476,11 @@ const schemaChunk8 = [
 	Erc4337Bundler_TimestampSchema,
 	Erc4337PaymasterSchema,
 	Erc4337Paymaster_TimestampSchema,
+	Erc4337SmartAccountSchema,
+	Erc4337SmartAccount_TimestampSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk9 = [
-	Erc4337SmartAccountSchema,
-	Erc4337SmartAccount_TimestampSchema,
 	Erc4626VaultSchema,
 	Erc4626Vault_BlockSchema,
 	Erc4626Vault_TimestampSchema,
@@ -1539,11 +1529,11 @@ const schemaChunk9 = [
 	EvmUserOperationSchema,
 	FarcasterCastSchema,
 	FarcasterCast_TimestampSchema,
+	FarcasterCastEmbedSchema,
+	FarcasterChannelSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk10 = [
-	FarcasterCastEmbedSchema,
-	FarcasterChannelSchema,
 	FarcasterChannel_TimestampSchema,
 	FarcasterFeedSchema,
 	FarcasterNetworkSchema,
@@ -1592,11 +1582,11 @@ const schemaChunk10 = [
 	GitTreePathResolutionSchema,
 	HederaAccountSchema,
 	HederaAccount_TimestampSchema,
+	HederaAllowanceSchema,
+	HederaAllowance_TimestampSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk11 = [
-	HederaAllowanceSchema,
-	HederaAllowance_TimestampSchema,
 	HederaBlockSchema,
 	HederaContractSchema,
 	HederaContract_TimestampSchema,
@@ -1645,11 +1635,11 @@ const schemaChunk11 = [
 	HyperliquidSpotPairSchema,
 	HyperliquidSpotPair_TimestampSchema,
 	HyperliquidTransactionSchema,
+	HyperliquidTransaction_TimestampSchema,
+	HyperliquidValidatorSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk12 = [
-	HyperliquidTransaction_TimestampSchema,
-	HyperliquidValidatorSchema,
 	HyperliquidValidator_TimestampSchema,
 	HyperliquidVaultSchema,
 	HyperliquidVault_TimestampSchema,
@@ -1698,11 +1688,11 @@ const schemaChunk12 = [
 	LensFeedSchema,
 	LensNetworkSchema,
 	LensPostSchema,
+	LensPost_TimestampSchema,
+	LensUsernameSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk13 = [
-	LensPost_TimestampSchema,
-	LensUsernameSchema,
 	LensUsernameNamespaceSchema,
 	LeverageSchema,
 	LightningChannelSchema,
@@ -1751,11 +1741,11 @@ const schemaChunk13 = [
 	MoneroKeyImageSchema,
 	MoneroNetworkSchema,
 	MoneroNetwork_TimestampSchema,
+	MoneroRingSchema,
+	MoneroRingMemberSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk14 = [
-	MoneroRingSchema,
-	MoneroRingMemberSchema,
 	MoneroStealthOutputSchema,
 	MoneroTransactionSchema,
 	MoveFunctionSchema,
@@ -1804,18 +1794,16 @@ const schemaChunk14 = [
 	PayoutSchema,
 	PayoutClaim_TimestampSchema,
 	PolkadotAccountSchema,
+	PolkadotAccount_TimestampSchema,
+	PolkadotAssetSchema,
 ] as const satisfies EntityDefinition[]
 
 const schemaChunk15 = [
-	PolkadotAccount_TimestampSchema,
-	PolkadotAssetSchema,
 	PolkadotAsset_TimestampSchema,
 	PolkadotAssetBalance_TimestampSchema,
 	PolkadotBlockSchema,
 	PolkadotEventSchema,
 	PolkadotExtrinsicSchema,
-	PolkadotNetworkSchema,
-	PolkadotNetwork_TimestampSchema,
 	PolkadotPalletSchema,
 	PolkadotReferendumSchema,
 	PolkadotReferendum_TimestampSchema,
@@ -1857,15 +1845,13 @@ const schemaChunk15 = [
 	SolanaAccountSchema,
 	SolanaAccount_TimestampSchema,
 	SolanaBlockSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk16 = [
 	SolanaInstructionSchema,
-	SolanaNetworkSchema,
-	SolanaNetwork_TimestampSchema,
 	SolanaProgramSchema,
 	SolanaTokenAccountSchema,
 	SolanaTokenAccount_TimestampSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk16 = [
 	SolanaTokenMintSchema,
 	SolanaTokenMint_TimestampSchema,
 	SolanaTransactionSchema,
@@ -1910,15 +1896,15 @@ const schemaChunk16 = [
 	StellarTradeSchema,
 	StellarTransactionSchema,
 	StellarTransaction_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk17 = [
 	StellarTrustlineSchema,
 	StellarTrustline_TimestampSchema,
 	SuiAccountSchema,
 	SuiBalanceChangeSchema,
 	SuiCheckpointSchema,
 	SuiCoinBalance_TimestampSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk17 = [
 	SuiCoinTypeSchema,
 	SuiDynamicFieldEdgeSchema,
 	SuiDynamicFieldEdge_TimestampSchema,
@@ -1963,15 +1949,15 @@ const schemaChunk17 = [
 	TezosOperationSchema,
 	TezosOperationGroupSchema,
 	TezosTokenSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk18 = [
 	TezosToken_TimestampSchema,
 	TezosTokenBalance_TimestampSchema,
 	TezosTokenTransferSchema,
 	TokenMetadataDocumentSchema,
 	TokenProgramExtension_TimestampSchema,
 	TonAccountSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk18 = [
 	TonAccount_TimestampSchema,
 	TonBlockSchema,
 	TonContractSchema,
@@ -2016,17 +2002,15 @@ const schemaChunk18 = [
 	TrustedIssuerSchema,
 	UrlSchema,
 	UrlPreview_TimestampSchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk19 = [
 	UsageRight_TimestampSchema,
 	UtxoAddressSchema,
 	UtxoAddress_TimestampSchema,
 	UtxoBlockSchema,
 	UtxoInputSchema,
-	UtxoNetworkSchema,
-	UtxoNetwork_TimestampSchema,
 	UtxoOutputSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk19 = [
 	UtxoTransactionSchema,
 	WalletConnectionMethodSchema,
 	XmtpConversationSchema,
@@ -2069,9 +2053,6 @@ const schemaChunk19 = [
 	ZeroGDataBlobSchema,
 	ZeroGDataChunkSchema,
 	ZeroGKvEntrySchema,
-] as const satisfies EntityDefinition[]
-
-const schemaChunk20 = [
 	ZeroGNetworkSchema,
 	ZeroGNetwork_TimestampSchema,
 	ZeroGServiceProviderSchema,
@@ -2080,6 +2061,9 @@ const schemaChunk20 = [
 	ZeroGStorageLogEntrySchema,
 	ZeroGStorageNodeSchema,
 	ZeroGStorageNode_TimestampSchema,
+] as const satisfies EntityDefinition[]
+
+const schemaChunk20 = [
 	ZeroGStorageProofSchema,
 ] as const satisfies EntityDefinition[]
 

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadWakuMessageObservationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadWakuMessageObservation_Timestamp> })}
 					{@const blockheadWakuMessageObservationTimestampFields = { ...blockheadWakuMessageObservationTimestamp[EntityMetaKey.Selector], ...blockheadWakuMessageObservationTimestamp }}
 					<BlockheadWakuMessageObservation_TimestampView
-						selection={select(EntityType.BlockheadWakuMessageObservation_Timestamp, blockheadWakuMessageObservationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadWakuMessageObservation_Timestamp, blockheadWakuMessageObservationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadWakuMessageObservationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

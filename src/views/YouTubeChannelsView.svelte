@@ -117,7 +117,7 @@
 				{#snippet Item({ item: youtubeChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.YoutubeChannel> })}
 					{@const youtubeChannelFields = { ...youtubeChannel[EntityMetaKey.Selector], ...youtubeChannel }}
 					<YoutubeChannelView
-						selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector])}
+						selection={select(EntityType.YoutubeChannel, youtubeChannel[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubeChannelFields}
 						layout={EntityLayout.Title}
 						open={false}

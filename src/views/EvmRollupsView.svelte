@@ -116,7 +116,7 @@
 					{@const evmRollupFields = { ...evmRollup[EntityMetaKey.Selector], ...evmRollup }}
 					{@const evmRollupHrefFields = { ...evmRollup, ...evmRollup[EntityMetaKey.Selector] }}
 					<EvmRollupView
-						selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmRollupFields}
 						href={
 							(evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.caip2 !== undefined && evmRollupHrefFields.$network.caip2.namespace !== undefined && evmRollupHrefFields.$network !== undefined && evmRollupHrefFields.$network.caip2 !== undefined && evmRollupHrefFields.$network.caip2.reference !== undefined && evmRollupHrefFields.projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {

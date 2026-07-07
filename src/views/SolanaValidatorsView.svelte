@@ -117,10 +117,10 @@
 					{@const solanaValidatorFields = { ...solanaValidator[EntityMetaKey.Selector], ...solanaValidator }}
 					{@const solanaValidatorHrefFields = { ...solanaValidator, ...solanaValidator[EntityMetaKey.Selector] }}
 					<SolanaValidatorView
-						selection={select(EntityType.SolanaValidator, solanaValidator[EntityMetaKey.Selector])}
+						selection={select(EntityType.SolanaValidator, solanaValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaValidatorFields}
 						href={
-							(solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined && solanaValidatorHrefFields.$network.caip2.namespace !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined && solanaValidatorHrefFields.$network.caip2.reference !== undefined && solanaValidatorHrefFields.votePubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validator/[votePubkey]', {
+							(solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined && solanaValidatorHrefFields.$network.caip2.namespace !== undefined && solanaValidatorHrefFields.$network !== undefined && solanaValidatorHrefFields.$network.caip2 !== undefined && solanaValidatorHrefFields.$network.caip2.reference !== undefined && solanaValidatorHrefFields.votePubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/validator/[votePubkey]', {
 								networkSlug: String(networkByCaip2[String(String(solanaValidatorHrefFields.$network.caip2.namespace) + ':' + String(solanaValidatorHrefFields.$network.caip2.reference))].slug ?? ''),
 								votePubkey: String(solanaValidatorHrefFields.votePubkey ?? ''),
 							}) : undefined)

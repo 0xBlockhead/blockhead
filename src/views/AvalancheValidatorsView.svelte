@@ -114,7 +114,7 @@
 				{#snippet Item({ item: avalancheValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalancheValidator> })}
 					{@const avalancheValidatorFields = { ...avalancheValidator[EntityMetaKey.Selector], ...avalancheValidator }}
 					<AvalancheValidatorView
-						selection={select(EntityType.AvalancheValidator, avalancheValidator[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalancheValidator, avalancheValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalancheValidatorFields}
 						layout={EntityLayout.Summary}
 						open={false}

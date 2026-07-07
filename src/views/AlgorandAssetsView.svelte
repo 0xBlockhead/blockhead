@@ -114,7 +114,7 @@
 				{#snippet Item({ item: algorandAsset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandAsset> })}
 					{@const algorandAssetFields = { ...algorandAsset[EntityMetaKey.Selector], ...algorandAsset }}
 					<AlgorandAssetView
-						selection={select(EntityType.AlgorandAsset, algorandAsset[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandAsset, algorandAsset[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandAssetFields}
 						layout={EntityLayout.Summary}
 						open={false}

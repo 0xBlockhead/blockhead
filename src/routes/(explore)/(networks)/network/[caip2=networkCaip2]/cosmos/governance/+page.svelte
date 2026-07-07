@@ -39,12 +39,10 @@
 		}
 		title='Cosmos governance proposals'
 		selection={
-			select(EntityType.CosmosNetwork, {
-				$network: {
-					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-				},
-			})[EntityProxyField]<EntityType.CosmosGovernanceProposal>('$$governanceProposals')
+			select(EntityType.Network, {
+				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+			})[EntityProxyField]<EntityType.CosmosGovernanceProposal>('$$cosmosGovernanceProposals')
 		}
-		id='governance-proposals'
+		id='cosmos-governance-proposals'
 	/>
 </Page>

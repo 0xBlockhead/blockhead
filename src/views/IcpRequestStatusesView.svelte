@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpRequestStatus }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpRequestStatus> })}
 					{@const icpRequestStatusFields = { ...icpRequestStatus[EntityMetaKey.Selector], ...icpRequestStatus }}
 					<IcpRequestStatusView
-						selection={select(EntityType.IcpRequestStatus, icpRequestStatus[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpRequestStatus, icpRequestStatus[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpRequestStatusFields}
 						layout={EntityLayout.Summary}
 						open={false}

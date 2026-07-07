@@ -130,7 +130,7 @@
 				<dt>validator</dt>
 				<dd>
 					<BnbValidatorView
-						selection={select(EntityType.BnbValidator, selection.entitySelector.$validator)}
+						selection={select(EntityType.BnbValidator, selection.entitySelector.$validator, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

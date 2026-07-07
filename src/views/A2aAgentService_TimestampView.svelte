@@ -135,7 +135,7 @@
 				<dt>service</dt>
 				<dd>
 					<A2aAgentServiceView
-						selection={select(EntityType.A2aAgentService, selection.entitySelector.$service)}
+						selection={select(EntityType.A2aAgentService, selection.entitySelector.$service, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

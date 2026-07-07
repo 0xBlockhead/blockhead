@@ -62,6 +62,7 @@ test.describe('dynamic routes resolve from real sources', () => {
 			await installPersistenceProbe(page)
 			await page.addInitScript(({ databaseName, schemaVersion }) => {
 				window.__blockheadWaSqliteDatabaseNameOverride = databaseName
+				window.__blockheadWaSqliteVfsNameOverride = databaseName.replace(/[^a-zA-Z0-9_-]/g, '_')
 				window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 			}, {
 				databaseName: `blockhead-real-source-route-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${index}-${Date.now()}.sqlite`,

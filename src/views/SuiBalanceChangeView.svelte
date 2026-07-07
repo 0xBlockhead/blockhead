@@ -82,7 +82,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<SuiTransactionView
-						selection={select(EntityType.SuiTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.SuiTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

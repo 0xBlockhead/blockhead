@@ -115,7 +115,7 @@
 				{#snippet Item({ item: aiProviderCatalogEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiProviderCatalogEntry> })}
 					{@const aiProviderCatalogEntryFields = { ...aiProviderCatalogEntry[EntityMetaKey.Selector], ...aiProviderCatalogEntry }}
 					<AiProviderCatalogEntryView
-						selection={select(EntityType.AiProviderCatalogEntry, aiProviderCatalogEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiProviderCatalogEntry, aiProviderCatalogEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiProviderCatalogEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -1,6 +1,6 @@
 import { glob, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, join, normalize, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import openapiTS, { astToString } from 'openapi-typescript'
@@ -104,8 +104,38 @@ const dedupeOpenApiOperationIds = (
 	return spec
 }
 
-const parseSchema = async (schemaFile: string) => {
-	const schemaText = await readFile(schemaFile, 'utf8')
+const patchLifiOpenApiSpec = (
+	spec: Record<string, unknown>,
+	schemaFile: string
+) => {
+	if (!schemaFile.endsWith('/src/sources/Lifi/OpenApi/openapi.yaml'))
+		return spec
+
+	const components = spec.components
+	if (components == null || typeof components !== 'object')
+		return spec
+
+	const responses = (components as Record<string, unknown>).responses
+	if (responses == null || typeof responses !== 'object')
+		return spec
+
+	const responseByName = responses as Record<string, unknown>
+	if (responseByName.WalletAnalyticsResponse == null)
+		responseByName.WalletAnalyticsResponse = responseByName.TransfersResponse
+
+	return spec
+}
+
+const hasLocalOpenApiRefs = (schemaText: string) => (
+	schemaText.includes('$ref: "./')
+	|| schemaText.includes('$ref: \'./')
+	|| schemaText.includes('"$ref": "./')
+)
+
+const parseSchema = async (
+	schemaText: string,
+	schemaFile: string
+) => {
 	const parsedSchema = (
 		schemaFile.endsWith('.yaml') || schemaFile.endsWith('.yml') ?
 			YAML.parse(schemaText)
@@ -120,7 +150,7 @@ const parseSchema = async (schemaFile: string) => {
 			parsedSchema
 	)
 
-	return dedupeOpenApiOperationIds(converted)
+	return patchLifiOpenApiSpec(dedupeOpenApiOperationIds(converted), schemaFile)
 }
 
 const downloadSchema = async ({
@@ -145,6 +175,49 @@ const downloadSchema = async ({
 	console.log(`Downloaded schema to ${schemaFile}`)
 }
 
+const localRefPattern = /\$ref:\s*['"]?(\.{1,2}\/[^'"\s#]+)(?:#[^'"\s]*)?['"]?|"\$ref"\s*:\s*"(\.{1,2}\/[^"#]+)(?:#[^"]*)?"/g
+
+const syncLocalOpenApiRefs = async ({
+	manifest,
+	schemaFile,
+}: {
+	manifest: OpenApiSchemaSource
+	schemaFile: string
+}) => {
+	const pending = [schemaFile]
+	const seen = new Set<string>()
+	const schemaRoot = dirname(schemaFile)
+	const schemaUrl = new URL(manifest.schemaUrl)
+
+	for (const currentFile of pending) {
+		if (seen.has(currentFile)) continue
+		seen.add(currentFile)
+
+		const currentText = await readFile(currentFile, 'utf8')
+		const currentUrl = new URL(
+			normalize(currentFile.slice(schemaRoot.length + 1)),
+			schemaUrl
+		)
+
+		for (const match of currentText.matchAll(localRefPattern)) {
+			const refPath = match[1] ?? match[2]
+			const refFile = resolve(dirname(currentFile), refPath)
+			if (seen.has(refFile)) continue
+
+			const response = await fetch(new URL(refPath, currentUrl))
+			if (!response.ok)
+				throw new Error(`Failed to download referenced schema: ${response.status} ${response.statusText} ${refPath}`)
+
+			await mkdir(dirname(refFile), { recursive: true })
+			await writeFile(
+				refFile,
+				await response.text()
+			)
+			pending.push(refFile)
+		}
+	}
+}
+
 const generateTypes = async ({
 	schemaFile,
 	typesFile,
@@ -153,9 +226,19 @@ const generateTypes = async ({
 	typesFile: string
 }) => {
 	await mkdir(dirname(typesFile), { recursive: true })
+	const schemaText = await readFile(schemaFile, 'utf8')
 
 	const output = await openapiTS(
-		await parseSchema(schemaFile)
+		hasLocalOpenApiRefs(schemaText) ?
+			pathToFileURL(schemaFile)
+		:
+			await parseSchema(
+				schemaText,
+				schemaFile
+			),
+		{
+			cwd: pathToFileURL(`${dirname(schemaFile)}/`),
+		}
 	)
 
 	await writeFile(typesFile, astToString(output))
@@ -194,6 +277,10 @@ const syncProvider = async (provider: string) => {
 	const { manifest, schemaFile, typesFile } = await loadSchemaSource(provider)
 	console.log(`Syncing ${provider}`)
 	await downloadSchema({
+		manifest,
+		schemaFile,
+	})
+	await syncLocalOpenApiRefs({
 		manifest,
 		schemaFile,
 	})

@@ -82,7 +82,7 @@
 				<dt>canister</dt>
 				<dd>
 					<IcpCanisterView
-						selection={select(EntityType.IcpCanister, selection.entitySelector.$canister)}
+						selection={select(EntityType.IcpCanister, selection.entitySelector.$canister, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

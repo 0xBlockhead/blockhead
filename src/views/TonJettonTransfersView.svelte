@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonJettonTransfer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonJettonTransfer> })}
 					{@const tonJettonTransferFields = { ...tonJettonTransfer[EntityMetaKey.Selector], ...tonJettonTransfer }}
 					<TonJettonTransferView
-						selection={select(EntityType.TonJettonTransfer, tonJettonTransfer[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonJettonTransfer, tonJettonTransfer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonJettonTransferFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -86,7 +86,7 @@
 				<dt>network</dt>
 				<dd>
 					<TonNetworkView
-						selection={select(EntityType.TonNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.TonNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

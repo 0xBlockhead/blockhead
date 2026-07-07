@@ -13,8 +13,9 @@ import type {
 	SolanaRpcTransactionWithMeta,
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
+import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
 import { SolanaBlockSelector } from '$/schema/SolanaBlock.ts'
-import { SolanaNetwork_TimestampSelector } from '$/schema/SolanaNetwork_Timestamp.ts'
 import { SolanaTransactionSelector } from '$/schema/SolanaTransaction.ts'
 import { SolanaTransaction_TimestampSelector } from '$/schema/SolanaTransaction_Timestamp.ts'
 import { SolanaInstructionKind, SolanaInstructionSelector } from '$/schema/SolanaInstruction.ts'
@@ -27,7 +28,6 @@ import { SolanaTokenAccountSelector } from '$/schema/SolanaTokenAccount.ts'
 import { SolanaTokenAccount_TimestampSelector } from '$/schema/SolanaTokenAccount_Timestamp.ts'
 import { SolanaValidatorSelector } from '$/schema/SolanaValidator.ts'
 import { SolanaValidator_TimestampSelector } from '$/schema/SolanaValidator_Timestamp.ts'
-import { SolanaNetworkSelector } from '$/schema/SolanaNetwork.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 
@@ -467,9 +467,9 @@ export default {
 			},
 		}),
 		defineResolver(Source.Solana_JsonRpc, {
-			entityType: EntityType.SolanaNetwork_Timestamp,
+			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[SolanaNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({ $network, timestampMs, source }) => {
+				[Network_TimestampSelector.NetworkTimestampMsSource]: async ({ $network, timestampMs, source }) => {
 					if (source !== Source.Solana_JsonRpc) throw new Error(`Solana_JsonRpc: unsupported source ${source}`)
 					assertSolanaMainnet($network)
 					const {
@@ -1047,9 +1047,9 @@ export default {
 		}),
 
 		defineResolver(Source.Solana_JsonRpc, {
-			entityType: EntityType.SolanaNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[SolanaNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					assertSolanaMainnet({ caip2 })
 					return [
 						{
@@ -1069,9 +1069,9 @@ export default {
 		}),
 
 		defineResolver(Source.Solana_JsonRpc, {
-			entityType: EntityType.SolanaNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[SolanaNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					assertSolanaMainnet({ caip2 })
 					const {
 						getBlocks,
@@ -1101,14 +1101,14 @@ export default {
 			},
 		})({
 			fields: {
-				$$blocks: (blocks) => blocks,
+				$$solanaBlocks: (blocks) => blocks,
 			},
 		}),
 
 		defineResolver(Source.Solana_JsonRpc, {
-			entityType: EntityType.SolanaNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[SolanaNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					assertSolanaMainnet({ caip2 })
 					const { getSlot, getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
 					return solanaValidatorRows(
@@ -1124,14 +1124,14 @@ export default {
 			},
 		})({
 			fields: {
-				$$validators: (validators) => validators,
+				$$solanaValidators: (validators) => validators,
 			},
 		}),
 
 		defineResolver(Source.Solana_JsonRpc, {
-			entityType: EntityType.SolanaNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[SolanaNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					assertSolanaMainnet({ caip2 })
 					const {
 						getBlock,
@@ -1195,14 +1195,14 @@ export default {
 			},
 		})({
 			fields: {
-				$$transactions: (transactions) => transactions,
+				$$solanaTransactions: (transactions) => transactions,
 			},
 		}),
 
 		defineResolver(Source.Solana_JsonRpc, {
-			entityType: EntityType.SolanaNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[SolanaNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					assertSolanaMainnet({ caip2 })
 					const {
 						getBlock,
@@ -1248,7 +1248,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$accounts: (accounts) => accounts,
+				$$solanaAccounts: (accounts) => accounts,
 			},
 		}),
 

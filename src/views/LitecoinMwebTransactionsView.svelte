@@ -114,7 +114,7 @@
 				{#snippet Item({ item: litecoinMwebTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LitecoinMwebTransaction> })}
 					{@const litecoinMwebTransactionFields = { ...litecoinMwebTransaction[EntityMetaKey.Selector], ...litecoinMwebTransaction }}
 					<LitecoinMwebTransactionView
-						selection={select(EntityType.LitecoinMwebTransaction, litecoinMwebTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.LitecoinMwebTransaction, litecoinMwebTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={litecoinMwebTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

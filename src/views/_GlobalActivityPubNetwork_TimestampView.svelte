@@ -131,7 +131,7 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalActivityPubNetworkView
-						selection={select(EntityType._GlobalActivityPubNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalActivityPubNetwork, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

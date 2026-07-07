@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -113,16 +112,9 @@
 
 				{#snippet Item({ item: globalAtprotoNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAtprotoNetwork_Timestamp> })}
 					{@const globalAtprotoNetworkTimestampFields = { ...globalAtprotoNetworkTimestamp[EntityMetaKey.Selector], ...globalAtprotoNetworkTimestamp }}
-					{@const globalAtprotoNetworkTimestampHrefFields = { ...globalAtprotoNetworkTimestamp, ...globalAtprotoNetworkTimestamp[EntityMetaKey.Selector] }}
 					<GlobalAtprotoNetwork_TimestampView
-						selection={select(EntityType._GlobalAtprotoNetwork_Timestamp, globalAtprotoNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalAtprotoNetwork_Timestamp, globalAtprotoNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalAtprotoNetworkTimestampFields}
-						href={
-							(globalAtprotoNetworkTimestampHrefFields.timestampMs !== undefined && globalAtprotoNetworkTimestampHrefFields.source !== undefined ? resolve('/(social)/(atproto)/atproto/observations/[timestampMs=nonNegativeInteger]/[source]', {
-								timestampMs: String(globalAtprotoNetworkTimestampHrefFields.timestampMs ?? ''),
-								source: String(globalAtprotoNetworkTimestampHrefFields.source ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

@@ -130,14 +130,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$outMessages',
+			name: '$$outMessages',
 			label: 'out messages',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonMessage,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$phases',
+			name: '$$phases',
 			label: 'phases',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonTransactionPhase,

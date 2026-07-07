@@ -36,14 +36,14 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$versions',
+			name: '$$versions',
 			label: 'versions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SuiObjectVersion,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$dynamicFields',
+			name: '$$dynamicFields',
 			label: 'dynamic fields',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SuiDynamicFieldEdge,

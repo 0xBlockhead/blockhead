@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosOperationGroup }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosOperationGroup> })}
 					{@const tezosOperationGroupFields = { ...tezosOperationGroup[EntityMetaKey.Selector], ...tezosOperationGroup }}
 					<TezosOperationGroupView
-						selection={select(EntityType.TezosOperationGroup, tezosOperationGroup[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosOperationGroup, tezosOperationGroup[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosOperationGroupFields}
 						layout={EntityLayout.Summary}
 						open={false}

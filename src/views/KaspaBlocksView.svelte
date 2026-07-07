@@ -106,7 +106,7 @@
 				{#snippet Item({ item: kaspaBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaBlock> })}
 					{@const kaspaBlockFields = { ...kaspaBlock[EntityMetaKey.Selector], ...kaspaBlock }}
 					<KaspaBlockView
-						selection={select(EntityType.KaspaBlock, kaspaBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.KaspaBlock, kaspaBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={kaspaBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

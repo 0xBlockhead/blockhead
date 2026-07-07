@@ -114,7 +114,7 @@
 				{#snippet Item({ item: polkadotReferendum }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotReferendum> })}
 					{@const polkadotReferendumFields = { ...polkadotReferendum[EntityMetaKey.Selector], ...polkadotReferendum }}
 					<PolkadotReferendumView
-						selection={select(EntityType.PolkadotReferendum, polkadotReferendum[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotReferendum, polkadotReferendum[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotReferendumFields}
 						layout={EntityLayout.Summary}
 						open={false}

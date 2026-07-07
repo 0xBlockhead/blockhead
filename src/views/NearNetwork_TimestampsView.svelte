@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearNetwork_Timestamp> })}
 					{@const nearNetworkTimestampFields = { ...nearNetworkTimestamp[EntityMetaKey.Selector], ...nearNetworkTimestamp }}
 					<NearNetwork_TimestampView
-						selection={select(EntityType.NearNetwork_Timestamp, nearNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearNetwork_Timestamp, nearNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

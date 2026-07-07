@@ -73,14 +73,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$modules',
+			name: '$$modules',
 			label: 'modules',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.MoveModule,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$moduleTimestamps',
+			name: '$$moduleTimestamps',
 			label: 'module timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.MoveModule_Timestamp,

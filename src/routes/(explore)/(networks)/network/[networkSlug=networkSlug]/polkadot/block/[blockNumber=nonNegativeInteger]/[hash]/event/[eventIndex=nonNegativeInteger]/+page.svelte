@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import PolkadotEventView from '$/views/PolkadotEventView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Polkadot event • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,7 +34,16 @@
 			})
 		}
 		selection={
-			select(EntityType.PolkadotEvent, data.selector, {
+			select(EntityType.PolkadotEvent, {
+				$block: {
+					$network: {
+						slug: params.networkSlug,
+					},
+					blockNumber: BigInt(params.blockNumber),
+					hash: decodeURIComponent(params.hash),
+				},
+				indexInBlock: Number(params.eventIndex),
+			}, {
 				fields: {
 					eventName: true,
 					$pallet: true,

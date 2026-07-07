@@ -113,7 +113,7 @@
 				{#snippet Item({ item: dydxChainPerpetualPositionTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DydxChainPerpetualPosition_Timestamp> })}
 					{@const dydxChainPerpetualPositionTimestampFields = { ...dydxChainPerpetualPositionTimestamp[EntityMetaKey.Selector], ...dydxChainPerpetualPositionTimestamp }}
 					<DydxChainPerpetualPosition_TimestampView
-						selection={select(EntityType.DydxChainPerpetualPosition_Timestamp, dydxChainPerpetualPositionTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.DydxChainPerpetualPosition_Timestamp, dydxChainPerpetualPositionTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dydxChainPerpetualPositionTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

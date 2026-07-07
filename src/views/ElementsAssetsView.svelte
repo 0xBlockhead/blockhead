@@ -114,7 +114,7 @@
 				{#snippet Item({ item: elementsAsset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ElementsAsset> })}
 					{@const elementsAssetFields = { ...elementsAsset[EntityMetaKey.Selector], ...elementsAsset }}
 					<ElementsAssetView
-						selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector])}
+						selection={select(EntityType.ElementsAsset, elementsAsset[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={elementsAssetFields}
 						layout={EntityLayout.Summary}
 						open={false}

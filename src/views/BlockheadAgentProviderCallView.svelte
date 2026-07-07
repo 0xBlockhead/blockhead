@@ -111,7 +111,7 @@
 				<dt>turn</dt>
 				<dd>
 					<BlockheadAgentConversationTurnView
-						selection={select(EntityType.BlockheadAgentConversationTurn, selection.entitySelector.$turn)}
+						selection={select(EntityType.BlockheadAgentConversationTurn, selection.entitySelector.$turn, {})}
 						href={
 							(selection.entitySelector.$turn.$conversation !== undefined && selection.entitySelector.$turn.$conversation.id !== undefined && selection.entitySelector.$turn.id !== undefined ? resolve('/~/agents/conversation/[conversationId]/turn/[turnId]', {
 								conversationId: String(selection.entitySelector.$turn.$conversation.id ?? ''),

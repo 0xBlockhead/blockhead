@@ -22,7 +22,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
-	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -35,9 +35,9 @@
 		}
 	>
 		{#snippet Summary()}
-			<EvmNetworkView
+			<NetworkView
 				selection={
-					select(EntityType.EvmNetwork, {
+					select(EntityType.Network, {
 						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 					})
 				}

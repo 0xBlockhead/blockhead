@@ -118,7 +118,7 @@
 					{@const networkTimestampFields = { ...networkTimestamp[EntityMetaKey.Selector], ...networkTimestamp }}
 					{@const networkTimestampHrefFields = { ...networkTimestamp, ...networkTimestamp[EntityMetaKey.Selector] }}
 					<Network_TimestampView
-						selection={select(EntityType.Network_Timestamp, networkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.Network_Timestamp, networkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={networkTimestampFields}
 						href={
 							(networkTimestampHrefFields.$network !== undefined && networkTimestampHrefFields.$network.caip2 !== undefined && networkTimestampHrefFields.$network.caip2.namespace !== undefined && networkTimestampHrefFields.$network !== undefined && networkTimestampHrefFields.$network.caip2 !== undefined && networkTimestampHrefFields.$network.caip2.reference !== undefined && networkTimestampHrefFields.timestampMs !== undefined && networkTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/observations/[timestampMs=nonNegativeInteger]/[source]', {

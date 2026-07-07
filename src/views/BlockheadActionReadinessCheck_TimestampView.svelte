@@ -135,7 +135,7 @@
 				<dt>readiness check</dt>
 				<dd>
 					<BlockheadActionReadinessCheckView
-						selection={select(EntityType.BlockheadActionReadinessCheck, selection.entitySelector.$readinessCheck)}
+						selection={select(EntityType.BlockheadActionReadinessCheck, selection.entitySelector.$readinessCheck, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

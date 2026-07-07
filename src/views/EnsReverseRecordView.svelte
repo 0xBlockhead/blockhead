@@ -130,7 +130,7 @@
 				<dt>Account</dt>
 				<dd>
 					<AccountView
-						selection={select(EntityType.Account, selection.entitySelector.$account)}
+						selection={select(EntityType.Account, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -141,7 +141,7 @@
 				<dt>Name</dt>
 				<dd>
 					<EnsNameView
-						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
+						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
 						href={
 							(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
 								ensName: String(selection.entitySelector.$name.name ?? ''),

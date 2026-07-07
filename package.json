@@ -32,12 +32,12 @@
 		"test:unit": "vitest",
 		"test": "pnpm run test:unit -- --run && pnpm run test:e2e:alias && pnpm run test:e2e",
 		"test:e2e:alias": "PLAYWRIGHT_SKIP_WEBSERVER=1 playwright test tests/e2e/sveltekit-alias-resolution.e2e.ts",
-		"test:e2e": "playwright test",
-		"test:e2e:boundaries": "playwright test tests/e2e/boundary-updates.e2e.ts --workers=4",
+		"test:e2e": "pnpm run test:e2e:alias && playwright test",
+		"test:e2e:boundaries": "pnpm run test:e2e:alias && playwright test tests/e2e/boundary-updates.e2e.ts --workers=4",
 		"test:e2e:failfast": "pnpm run test:e2e:alias && playwright test tests/e2e/route-errors-failfast.e2e.ts",
 		"test:e2e:cors": "pnpm run test:e2e:alias && playwright test tests/e2e/cors-policy.e2e.ts",
-		"test:e2e:persistence": "VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
-		"test:e2e:persistence:probe": "VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 E2E_PROBE_PATH=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"
+		"test:e2e:persistence": "pnpm run test:e2e:alias && VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
+		"test:e2e:persistence:probe": "pnpm run test:e2e:alias && VITE_BLOCKHEAD_E2E_PROBE=1 PLAYWRIGHT_DEDICATED_SERVER=1 E2E_PROBE_PATH=/network/eip155:1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"
 	},
 	"devDependencies": {
 		"@dotenvx/dotenvx": "^1.69.2",

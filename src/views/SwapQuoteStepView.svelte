@@ -84,7 +84,7 @@
 				<dt>quote</dt>
 				<dd>
 					<SwapQuote_TimestampView
-						selection={select(EntityType.SwapQuote_Timestamp, selection.entitySelector.$quote)}
+						selection={select(EntityType.SwapQuote_Timestamp, selection.entitySelector.$quote, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

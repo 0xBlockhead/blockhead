@@ -106,7 +106,7 @@
 				{#snippet Item({ item: sorobanContractStorageEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SorobanContractStorageEntry> })}
 					{@const sorobanContractStorageEntryFields = { ...sorobanContractStorageEntry[EntityMetaKey.Selector], ...sorobanContractStorageEntry }}
 					<SorobanContractStorageEntryView
-						selection={select(EntityType.SorobanContractStorageEntry, sorobanContractStorageEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.SorobanContractStorageEntry, sorobanContractStorageEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={sorobanContractStorageEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

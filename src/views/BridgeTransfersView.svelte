@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bridgeTransfer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BridgeTransfer> })}
 					{@const bridgeTransferFields = { ...bridgeTransfer[EntityMetaKey.Selector], ...bridgeTransfer }}
 					<BridgeTransferView
-						selection={select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector])}
+						selection={select(EntityType.BridgeTransfer, bridgeTransfer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bridgeTransferFields}
 						layout={EntityLayout.Summary}
 						open={false}

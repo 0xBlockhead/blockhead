@@ -134,7 +134,7 @@
 				<dt>node</dt>
 				<dd>
 					<BlockheadRadicleNodeStateView
-						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$node)}
+						selection={select(EntityType.BlockheadRadicleNodeState, selection.entitySelector.$node, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -353,7 +353,7 @@
 						{#snippet Pending()}
 							{@const advertisedRids = prefetched.advertisedRids}
 							{#if advertisedRids !== undefined && advertisedRids !== null}
-								{(advertisedRids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{advertisedRids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -361,7 +361,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const advertisedRids = resolvedEntity.advertisedRids}
 							{#if advertisedRids !== undefined && advertisedRids !== null}
-								{(advertisedRids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{advertisedRids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

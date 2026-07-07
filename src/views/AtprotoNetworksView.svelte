@@ -112,7 +112,7 @@
 				{#snippet Item({ item: atprotoNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AtprotoNetwork> })}
 					{@const atprotoNetworkFields = { ...atprotoNetwork[EntityMetaKey.Selector], ...atprotoNetwork }}
 					<AtprotoNetworkView
-						selection={select(EntityType.AtprotoNetwork, atprotoNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.AtprotoNetwork, atprotoNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

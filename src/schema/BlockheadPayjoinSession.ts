@@ -45,7 +45,7 @@ export default {
 			name: '$network',
 			label: 'network',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.UtxoNetwork,
+			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

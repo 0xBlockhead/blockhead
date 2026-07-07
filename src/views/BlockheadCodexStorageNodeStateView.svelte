@@ -291,7 +291,7 @@
 
 			<BlockheadCodexStoredDataEntriesView
 				selection={selection[EntityProxyField]<EntityType.BlockheadCodexStoredData>('$$storedData')}
-				title='stored data'
+				title='Stored Data'
 				emptyText='No stored data.'
 				id='BlockheadCodexStoredDataEntriesView-$$storedData'
 			/>

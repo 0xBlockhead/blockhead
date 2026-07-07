@@ -106,7 +106,7 @@
 				{#snippet Item({ item: usageRightTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.UsageRight_Timestamp> })}
 					{@const usageRightTimestampFields = { ...usageRightTimestamp[EntityMetaKey.Selector], ...usageRightTimestamp }}
 					<UsageRight_TimestampView
-						selection={select(EntityType.UsageRight_Timestamp, usageRightTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.UsageRight_Timestamp, usageRightTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={usageRightTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -82,7 +82,7 @@
 				<dt>parent object</dt>
 				<dd>
 					<SuiObjectView
-						selection={select(EntityType.SuiObject, selection.entitySelector.$parentObject)}
+						selection={select(EntityType.SuiObject, selection.entitySelector.$parentObject, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

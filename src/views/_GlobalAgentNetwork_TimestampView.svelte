@@ -131,7 +131,7 @@
 				<dt>network</dt>
 				<dd>
 					<GlobalAgentNetworkView
-						selection={select(EntityType._GlobalAgentNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType._GlobalAgentNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

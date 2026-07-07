@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tronNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TronNetwork> })}
 					{@const tronNetworkFields = { ...tronNetwork[EntityMetaKey.Selector], ...tronNetwork }}
 					<TronNetworkView
-						selection={select(EntityType.TronNetwork, tronNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.TronNetwork, tronNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tronNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

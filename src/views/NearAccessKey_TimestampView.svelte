@@ -135,7 +135,7 @@
 				<dt>Access key</dt>
 				<dd>
 					<NearAccessKeyView
-						selection={select(EntityType.NearAccessKey, selection.entitySelector.$accessKey)}
+						selection={select(EntityType.NearAccessKey, selection.entitySelector.$accessKey, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -442,7 +442,7 @@
 						{#snippet Pending()}
 							{@const methodNames = prefetched.methodNames}
 							{#if methodNames !== undefined && methodNames !== null}
-								{(methodNames?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{methodNames.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -450,7 +450,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const methodNames = resolvedEntity.methodNames}
 							{#if methodNames !== undefined && methodNames !== null}
-								{(methodNames?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{methodNames.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

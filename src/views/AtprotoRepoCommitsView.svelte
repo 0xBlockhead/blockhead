@@ -115,7 +115,7 @@
 				{#snippet Item({ item: atprotoRepoCommit }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AtprotoRepoCommit> })}
 					{@const atprotoRepoCommitFields = { ...atprotoRepoCommit[EntityMetaKey.Selector], ...atprotoRepoCommit }}
 					<AtprotoRepoCommitView
-						selection={select(EntityType.AtprotoRepoCommit, atprotoRepoCommit[EntityMetaKey.Selector])}
+						selection={select(EntityType.AtprotoRepoCommit, atprotoRepoCommit[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoRepoCommitFields}
 						layout={EntityLayout.Summary}
 						open={false}

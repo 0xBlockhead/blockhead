@@ -134,7 +134,7 @@
 				<dt>tool call</dt>
 				<dd>
 					<AcpToolCallView
-						selection={select(EntityType.AcpToolCall, selection.entitySelector.$toolCall)}
+						selection={select(EntityType.AcpToolCall, selection.entitySelector.$toolCall, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: icpCertifiedState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IcpCertifiedState> })}
 					{@const icpCertifiedStateFields = { ...icpCertifiedState[EntityMetaKey.Selector], ...icpCertifiedState }}
 					<IcpCertifiedStateView
-						selection={select(EntityType.IcpCertifiedState, icpCertifiedState[EntityMetaKey.Selector])}
+						selection={select(EntityType.IcpCertifiedState, icpCertifiedState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={icpCertifiedStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

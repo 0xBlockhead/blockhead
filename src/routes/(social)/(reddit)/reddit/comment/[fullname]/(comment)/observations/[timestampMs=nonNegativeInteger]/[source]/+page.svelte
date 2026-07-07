@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import RedditComment_TimestampView from '$/views/RedditComment_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Reddit comment timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,8 +33,20 @@
 			})
 		}
 		selection={
-			select(EntityType.RedditComment_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.RedditComment_Timestamp, {
+				$comment: {
+					fullname: decodeURIComponent(params.fullname),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$comment: {
+					fullname: decodeURIComponent(params.fullname),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					score: true,
 				},

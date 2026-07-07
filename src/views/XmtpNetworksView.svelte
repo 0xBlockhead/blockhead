@@ -112,7 +112,7 @@
 				{#snippet Item({ item: xmtpNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XmtpNetwork> })}
 					{@const xmtpNetworkFields = { ...xmtpNetwork[EntityMetaKey.Selector], ...xmtpNetwork }}
 					<XmtpNetworkView
-						selection={select(EntityType.XmtpNetwork, xmtpNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.XmtpNetwork, xmtpNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xmtpNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosTokenBalanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosTokenBalance_Timestamp> })}
 					{@const tezosTokenBalanceTimestampFields = { ...tezosTokenBalanceTimestamp[EntityMetaKey.Selector], ...tezosTokenBalanceTimestamp }}
 					<TezosTokenBalance_TimestampView
-						selection={select(EntityType.TezosTokenBalance_Timestamp, tezosTokenBalanceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosTokenBalance_Timestamp, tezosTokenBalanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosTokenBalanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

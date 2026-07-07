@@ -115,7 +115,7 @@
 				{#snippet Item({ item: blockheadIntentQuoteTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadIntentQuote_Timestamp> })}
 					{@const blockheadIntentQuoteTimestampFields = { ...blockheadIntentQuoteTimestamp[EntityMetaKey.Selector], ...blockheadIntentQuoteTimestamp }}
 					<BlockheadIntentQuote_TimestampView
-						selection={select(EntityType.BlockheadIntentQuote_Timestamp, blockheadIntentQuoteTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadIntentQuote_Timestamp, blockheadIntentQuoteTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadIntentQuoteTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

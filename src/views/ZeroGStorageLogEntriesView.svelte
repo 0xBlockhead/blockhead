@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGStorageLogEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGStorageLogEntry> })}
 					{@const zeroGStorageLogEntryFields = { ...zeroGStorageLogEntry[EntityMetaKey.Selector], ...zeroGStorageLogEntry }}
 					<ZeroGStorageLogEntryView
-						selection={select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGStorageLogEntry, zeroGStorageLogEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGStorageLogEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -156,14 +156,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$internalOperations',
+			name: '$$internalOperations',
 			label: 'internal operations',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosInternalOperation,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$bigMapDiffs',
+			name: '$$bigMapDiffs',
 			label: 'big map diffs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosBigMapDiff,

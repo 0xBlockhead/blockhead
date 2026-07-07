@@ -11,6 +11,8 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -369,7 +371,13 @@
 				<dt>Transaction</dt>
 				<dd>
 					<UtxoTransactionView
-						selection={select(EntityType.UtxoTransaction, selection.entitySelector.$transaction)}
+						selection={
+							select(EntityType.UtxoTransaction, selection.entitySelector.$transaction, {
+								sources: [
+									Source.Zcashd_JsonRpc,
+								],
+							})
+						}
 						href={
 							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/transactions/[txId]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$transaction.$network.caip2.reference))].slug ?? ''),

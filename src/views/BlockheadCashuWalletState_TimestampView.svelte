@@ -135,7 +135,7 @@
 				<dt>wallet state</dt>
 				<dd>
 					<BlockheadCashuWalletStateView
-						selection={select(EntityType.BlockheadCashuWalletState, selection.entitySelector.$walletState)}
+						selection={select(EntityType.BlockheadCashuWalletState, selection.entitySelector.$walletState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -82,7 +82,7 @@
 				<dt>contract</dt>
 				<dd>
 					<TonContractView
-						selection={select(EntityType.TonContract, selection.entitySelector.$contract)}
+						selection={select(EntityType.TonContract, selection.entitySelector.$contract, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadQuilibriumAccountState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadQuilibriumAccountState> })}
 					{@const blockheadQuilibriumAccountStateFields = { ...blockheadQuilibriumAccountState[EntityMetaKey.Selector], ...blockheadQuilibriumAccountState }}
 					<BlockheadQuilibriumAccountStateView
-						selection={select(EntityType.BlockheadQuilibriumAccountState, blockheadQuilibriumAccountState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadQuilibriumAccountState, blockheadQuilibriumAccountState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadQuilibriumAccountStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

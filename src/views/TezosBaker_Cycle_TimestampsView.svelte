@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosBakerCycleTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosBaker_Cycle_Timestamp> })}
 					{@const tezosBakerCycleTimestampFields = { ...tezosBakerCycleTimestamp[EntityMetaKey.Selector], ...tezosBakerCycleTimestamp }}
 					<TezosBaker_Cycle_TimestampView
-						selection={select(EntityType.TezosBaker_Cycle_Timestamp, tezosBakerCycleTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosBaker_Cycle_Timestamp, tezosBakerCycleTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosBakerCycleTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

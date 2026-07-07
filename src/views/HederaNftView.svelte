@@ -81,7 +81,7 @@
 				<dt>token</dt>
 				<dd>
 					<HederaTokenView
-						selection={select(EntityType.HederaToken, selection.entitySelector.$token)}
+						selection={select(EntityType.HederaToken, selection.entitySelector.$token, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

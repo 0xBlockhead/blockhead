@@ -138,7 +138,7 @@
 				<dt>resource</dt>
 				<dd>
 					<McpResourceView
-						selection={select(EntityType.McpResource, selection.entitySelector.$resource)}
+						selection={select(EntityType.McpResource, selection.entitySelector.$resource, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

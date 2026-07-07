@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Zcash shielded pool • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<ZcashShieldedPoolView
 		href={

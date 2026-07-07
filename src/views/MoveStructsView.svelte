@@ -115,7 +115,7 @@
 				{#snippet Item({ item: moveStruct }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoveStruct> })}
 					{@const moveStructFields = { ...moveStruct[EntityMetaKey.Selector], ...moveStruct }}
 					<MoveStructView
-						selection={select(EntityType.MoveStruct, moveStruct[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoveStruct, moveStruct[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moveStructFields}
 						layout={EntityLayout.Summary}
 						open={false}

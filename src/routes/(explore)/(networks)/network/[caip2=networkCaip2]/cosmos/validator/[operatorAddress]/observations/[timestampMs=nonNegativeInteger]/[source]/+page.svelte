@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import CosmosValidator_TimestampView from '$/views/CosmosValidator_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Cosmos validator timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,8 +35,26 @@
 			})
 		}
 		selection={
-			select(EntityType.CosmosValidator_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.CosmosValidator_Timestamp, {
+				$validator: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					operatorAddress: decodeURIComponent(params.operatorAddress),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$validator: {
+					$network: {
+						caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+					},
+					operatorAddress: decodeURIComponent(params.operatorAddress),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					status: true,
 					tokens: true,

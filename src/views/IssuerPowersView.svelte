@@ -106,7 +106,7 @@
 				{#snippet Item({ item: issuerPower }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IssuerPower> })}
 					{@const issuerPowerFields = { ...issuerPower[EntityMetaKey.Selector], ...issuerPower }}
 					<IssuerPowerView
-						selection={select(EntityType.IssuerPower, issuerPower[EntityMetaKey.Selector])}
+						selection={select(EntityType.IssuerPower, issuerPower[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={issuerPowerFields}
 						layout={EntityLayout.Summary}
 						open={false}

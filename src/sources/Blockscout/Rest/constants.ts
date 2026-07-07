@@ -171,18 +171,17 @@ export const blockscoutErc4337OperationSupportByChainId = Object.fromEntries(
 		])
 )
 
-export const blockscoutErc4337RegistryListSupport = [] as const satisfies readonly {
+type BlockscoutErc4337RegistryListSupport = {
 	chainId: (typeof blockscoutHostedNetworks)[number]['chainId']
-}[]
+}
+
+export const blockscoutErc4337RegistryListSupport = [] as const satisfies readonly BlockscoutErc4337RegistryListSupport[]
+const blockscoutErc4337RegistryListSupportEntries = [] as const satisfies readonly (readonly [number, BlockscoutErc4337RegistryListSupport])[]
 
 /**
  * Registry leaderboard lists (`bundlers`, `paymasters`, `factories` under `blockscoutAccountAbstractionRegistryListPaths`).
  * Hosted explorers often return 5xx here, so support must be proven per chain instead of inherited from operations.
  */
 export const blockscoutErc4337RegistryListSupportByChainId = Object.fromEntries(
-	blockscoutErc4337RegistryListSupport
-		.map((support) => [
-			support.chainId,
-			support,
-		])
+	blockscoutErc4337RegistryListSupportEntries
 )

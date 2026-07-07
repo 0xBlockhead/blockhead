@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadZeroGStorageProof }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadZeroGStorageProof> })}
 					{@const blockheadZeroGStorageProofFields = { ...blockheadZeroGStorageProof[EntityMetaKey.Selector], ...blockheadZeroGStorageProof }}
 					<BlockheadZeroGStorageProofView
-						selection={select(EntityType.BlockheadZeroGStorageProof, blockheadZeroGStorageProof[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadZeroGStorageProof, blockheadZeroGStorageProof[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadZeroGStorageProofFields}
 						layout={EntityLayout.Summary}
 						open={false}

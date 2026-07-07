@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadActionReadinessCheckTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadActionReadinessCheck_Timestamp> })}
 					{@const blockheadActionReadinessCheckTimestampFields = { ...blockheadActionReadinessCheckTimestamp[EntityMetaKey.Selector], ...blockheadActionReadinessCheckTimestamp }}
 					<BlockheadActionReadinessCheck_TimestampView
-						selection={select(EntityType.BlockheadActionReadinessCheck_Timestamp, blockheadActionReadinessCheckTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadActionReadinessCheck_Timestamp, blockheadActionReadinessCheckTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadActionReadinessCheckTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

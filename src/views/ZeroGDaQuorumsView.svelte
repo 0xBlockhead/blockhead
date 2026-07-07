@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGDaQuorum }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGDaQuorum> })}
 					{@const zeroGDaQuorumFields = { ...zeroGDaQuorum[EntityMetaKey.Selector], ...zeroGDaQuorum }}
 					<ZeroGDaQuorumView
-						selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGDaQuorum, zeroGDaQuorum[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGDaQuorumFields}
 						layout={EntityLayout.Summary}
 						open={false}

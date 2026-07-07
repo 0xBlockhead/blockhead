@@ -123,7 +123,7 @@
 				{#snippet Item({ item: marketVenue }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MarketVenue> })}
 					{@const marketVenueFields = { ...marketVenue[EntityMetaKey.Selector], ...marketVenue }}
 					<MarketVenueView
-						selection={select(EntityType.MarketVenue, marketVenue[EntityMetaKey.Selector])}
+						selection={select(EntityType.MarketVenue, marketVenue[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={marketVenueFields}
 						layout={EntityLayout.Summary}
 						open={false}

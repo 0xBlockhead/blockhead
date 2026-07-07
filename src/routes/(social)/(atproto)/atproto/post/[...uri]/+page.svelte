@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>AT Protocol post • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<AtprotoPostView
 		href={
@@ -37,7 +32,13 @@
 			})
 		}
 		selection={
-			select(EntityType.AtprotoPost, data.selector, {
+			select(EntityType.AtprotoPost, {
+				uri: decodeURIComponent(params.uri),
+			}, {
+				sources: [
+					Source.Constants_Internal,
+					Source.Atproto_Xrpc,
+				],
 				fields: {
 					text: true,
 					createdAt: true,

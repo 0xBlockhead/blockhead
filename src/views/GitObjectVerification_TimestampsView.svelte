@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitObjectVerificationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitObjectVerification_Timestamp> })}
 					{@const gitObjectVerificationTimestampFields = { ...gitObjectVerificationTimestamp[EntityMetaKey.Selector], ...gitObjectVerificationTimestamp }}
 					<GitObjectVerification_TimestampView
-						selection={select(EntityType.GitObjectVerification_Timestamp, gitObjectVerificationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitObjectVerification_Timestamp, gitObjectVerificationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitObjectVerificationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

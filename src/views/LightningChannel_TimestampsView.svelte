@@ -114,7 +114,7 @@
 				{#snippet Item({ item: lightningChannelTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LightningChannel_Timestamp> })}
 					{@const lightningChannelTimestampFields = { ...lightningChannelTimestamp[EntityMetaKey.Selector], ...lightningChannelTimestamp }}
 					<LightningChannel_TimestampView
-						selection={select(EntityType.LightningChannel_Timestamp, lightningChannelTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.LightningChannel_Timestamp, lightningChannelTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lightningChannelTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -145,7 +145,7 @@
 				<dt>AVS</dt>
 				<dd>
 					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
+						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

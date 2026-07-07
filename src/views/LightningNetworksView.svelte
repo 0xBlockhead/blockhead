@@ -115,7 +115,7 @@
 					{@const lightningNetworkFields = { ...lightningNetwork[EntityMetaKey.Selector], ...lightningNetwork }}
 					{@const lightningNetworkHrefFields = { ...lightningNetwork, ...lightningNetwork[EntityMetaKey.Selector] }}
 					<LightningNetworkView
-						selection={select(EntityType.LightningNetwork, lightningNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.LightningNetwork, lightningNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lightningNetworkFields}
 						href={
 							resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {

@@ -23,7 +23,7 @@ const esploraRestBaseUrls = async () => (
 	(await import('$/sources/Esplora/Rest/queries.ts')).esploraRestBaseUrlByNetworkKey
 )
 
-const esploraRestBaseUrlForNetwork = async (network: NetworkId) => (
+const esploraRestBaseUrlForNetwork = async (network: NetworkId): Promise<string | undefined> => (
 	(await esploraRestBaseUrls())[
 		'caip2' in network ?
 			`${network.caip2.namespace}:${network.caip2.reference}`
@@ -31,6 +31,14 @@ const esploraRestBaseUrlForNetwork = async (network: NetworkId) => (
 			network.slug
 	]
 )
+
+const requireEsploraRestBaseUrlForNetwork = async (network: NetworkId) => {
+	const restBaseUrl = await esploraRestBaseUrlForNetwork(network)
+	if (restBaseUrl == null)
+		throw new Error('Esplora_Rest: unsupported network')
+
+	return restBaseUrl
+}
 
 const liquidEsploraRestBaseUrl = async () => (
 	(await esploraRestBaseUrls()).liquid
@@ -85,12 +93,11 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			resolve: {
 				[UtxoBlockSelector.NetworkHeightHash]: async ({ $network, hash }) => {
-					const restBaseUrl = await esploraRestBaseUrlForNetwork($network)
 					const {
 						getBlock,
 					} = await import('$/sources/Esplora/Rest/queries.ts')
 					const block = await getBlock({
-						restBaseUrl,
+						restBaseUrl: await requireEsploraRestBaseUrlForNetwork($network),
 						blockHash: hash,
 					})
 					return {
@@ -132,10 +139,9 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {
 				[UtxoTransactionSelector.NetworkTxId]: async ({ $network, txId }) => {
-					const restBaseUrl = await esploraRestBaseUrlForNetwork($network)
 					const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
 					const transaction = await getTransaction({
-						restBaseUrl,
+						restBaseUrl: await requireEsploraRestBaseUrlForNetwork($network),
 						txId: txId,
 					})
 					return {

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: mcpResourceTemplate }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.McpResourceTemplate> })}
 					{@const mcpResourceTemplateFields = { ...mcpResourceTemplate[EntityMetaKey.Selector], ...mcpResourceTemplate }}
 					<McpResourceTemplateView
-						selection={select(EntityType.McpResourceTemplate, mcpResourceTemplate[EntityMetaKey.Selector])}
+						selection={select(EntityType.McpResourceTemplate, mcpResourceTemplate[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mcpResourceTemplateFields}
 						layout={EntityLayout.Summary}
 						open={false}

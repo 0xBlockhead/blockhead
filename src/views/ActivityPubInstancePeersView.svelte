@@ -114,7 +114,7 @@
 				{#snippet Item({ item: activityPubInstancePeer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubInstancePeer> })}
 					{@const activityPubInstancePeerFields = { ...activityPubInstancePeer[EntityMetaKey.Selector], ...activityPubInstancePeer }}
 					<ActivityPubInstancePeerView
-						selection={select(EntityType.ActivityPubInstancePeer, activityPubInstancePeer[EntityMetaKey.Selector])}
+						selection={select(EntityType.ActivityPubInstancePeer, activityPubInstancePeer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={activityPubInstancePeerFields}
 						layout={EntityLayout.Summary}
 						open={false}

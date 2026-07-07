@@ -114,7 +114,7 @@
 				{#snippet Item({ item: oracleFeedRound }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.OracleFeed_Round> })}
 					{@const oracleFeedRoundFields = { ...oracleFeedRound[EntityMetaKey.Selector], ...oracleFeedRound }}
 					<OracleFeed_RoundView
-						selection={select(EntityType.OracleFeed_Round, oracleFeedRound[EntityMetaKey.Selector])}
+						selection={select(EntityType.OracleFeed_Round, oracleFeedRound[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={oracleFeedRoundFields}
 						layout={EntityLayout.Summary}
 						open={false}

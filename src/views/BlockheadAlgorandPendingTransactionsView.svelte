@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadAlgorandPendingTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAlgorandPendingTransaction> })}
 					{@const blockheadAlgorandPendingTransactionFields = { ...blockheadAlgorandPendingTransaction[EntityMetaKey.Selector], ...blockheadAlgorandPendingTransaction }}
 					<BlockheadAlgorandPendingTransactionView
-						selection={select(EntityType.BlockheadAlgorandPendingTransaction, blockheadAlgorandPendingTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAlgorandPendingTransaction, blockheadAlgorandPendingTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAlgorandPendingTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

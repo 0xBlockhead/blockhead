@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aiArtifactAttestation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiArtifactAttestation> })}
 					{@const aiArtifactAttestationFields = { ...aiArtifactAttestation[EntityMetaKey.Selector], ...aiArtifactAttestation }}
 					<AiArtifactAttestationView
-						selection={select(EntityType.AiArtifactAttestation, aiArtifactAttestation[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiArtifactAttestation, aiArtifactAttestation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiArtifactAttestationFields}
 						layout={EntityLayout.Summary}
 						open={false}

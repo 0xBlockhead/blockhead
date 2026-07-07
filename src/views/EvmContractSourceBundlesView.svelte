@@ -112,7 +112,7 @@
 				{#snippet Item({ item: evmContractSourceBundle }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmContractSourceBundle> })}
 					{@const evmContractSourceBundleFields = { ...evmContractSourceBundle[EntityMetaKey.Selector], ...evmContractSourceBundle }}
 					<EvmContractSourceBundleView
-						selection={select(EntityType.EvmContractSourceBundle, evmContractSourceBundle[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmContractSourceBundle, evmContractSourceBundle[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmContractSourceBundleFields}
 						layout={EntityLayout.Summary}
 						open={false}

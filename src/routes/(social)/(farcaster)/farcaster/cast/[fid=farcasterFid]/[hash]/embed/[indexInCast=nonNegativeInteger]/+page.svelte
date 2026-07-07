@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -39,7 +39,16 @@
 			})
 		}
 		selection={
-			select(EntityType.FarcasterCastEmbed, data.selector, {
+			select(EntityType.FarcasterCastEmbed, {
+				$cast: {
+					fid: Number(params.fid),
+					hash: decodeURIComponent(params.hash),
+				},
+				indexInCast: Number(params.indexInCast),
+			}, {
+				sources: [
+					Source.Snapchain_Rest,
+				],
 				fields: {
 					$icon: true,
 					title: true,

@@ -81,7 +81,7 @@
 				<dt>spot pair</dt>
 				<dd>
 					<HyperliquidSpotPairView
-						selection={select(EntityType.HyperliquidSpotPair, selection.entitySelector.$spotPair)}
+						selection={select(EntityType.HyperliquidSpotPair, selection.entitySelector.$spotPair, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

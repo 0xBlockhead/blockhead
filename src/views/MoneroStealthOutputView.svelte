@@ -140,7 +140,7 @@
 				<dt>Transaction</dt>
 				<dd>
 					<MoneroTransactionView
-						selection={select(EntityType.MoneroTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.MoneroTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

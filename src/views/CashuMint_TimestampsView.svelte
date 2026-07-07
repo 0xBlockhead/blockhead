@@ -115,7 +115,7 @@
 				{#snippet Item({ item: cashuMintTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CashuMint_Timestamp> })}
 					{@const cashuMintTimestampFields = { ...cashuMintTimestamp[EntityMetaKey.Selector], ...cashuMintTimestamp }}
 					<CashuMint_TimestampView
-						selection={select(EntityType.CashuMint_Timestamp, cashuMintTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CashuMint_Timestamp, cashuMintTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cashuMintTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

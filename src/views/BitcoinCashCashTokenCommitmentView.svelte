@@ -11,6 +11,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,6 +45,9 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitcoinCashCashTokenCommitment = $derived(selection({
+		sources: [
+			Source.BitcoinCashNode_JsonRpc,
+		],
 		fields: {
 			commitmentHex: true,
 		},
@@ -160,6 +164,9 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: [
+									Source.BitcoinCashNode_JsonRpc,
+								],
 								fields: {
 									commitmentHex: true,
 								},
@@ -188,7 +195,7 @@
 				<dt>Output</dt>
 				<dd>
 					<UtxoOutputView
-						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output)}
+						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output, {})}
 						href={
 							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$output.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$output.$transaction.$network.caip2.reference))].slug ?? ''),

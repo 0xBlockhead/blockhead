@@ -16,13 +16,13 @@ import {
  *
  * Replication contract:
  * 1. Add `schema-source.ts`, `schema.graphql`, `graphql-env.d.ts`, `client.ts`, and `queries.ts`
- * 2. Export `schemaSource` with `schemaUrl`, `schemaFile`, and `outputFile`
+ * 2. Export `schemaSource` with `schemaUrl`, `schemaFile`, and `outputFile` for typed GraphQL sources
  * 3. Run `pnpm run sources:graphql` to sync all, or `-- <SourceModule>` to sync one
  */
 type GraphqlSchemaSource = {
 	schemaUrl: string
 	schemaFile: string
-	outputFile: string
+	outputFile?: string
 	patchFile?: string
 }
 
@@ -108,6 +108,27 @@ const downloadSchemaText = async (schemaUrl: string) => {
 	return response.text()
 }
 
+const downloadSchemaSnapshotText = async (schemaUrl: string) => {
+	const schemaUrlPath = new URL(schemaUrl).pathname.replace(/\/$/, '')
+	if (schemaUrlPath.endsWith('/graphql')) {
+		const response = await fetch(schemaUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				query: getIntrospectionQuery(),
+			}),
+		})
+		if (!response.ok)
+			throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
+
+		return `${JSON.stringify(await response.json(), null, '\t')}\n`
+	}
+
+	return normalizeGraphqlSchemaText(await downloadSchemaText(schemaUrl))
+}
+
 const syncModule = async (sourceModule: string) => {
 	const manifestFile = resolve(sourcesDir, sourceModule, 'schema-source.ts')
 	const mod = await import(pathToFileURL(manifestFile).href)
@@ -115,6 +136,13 @@ const syncModule = async (sourceModule: string) => {
 	if (manifest == null) throw new Error(`Missing \`schemaSource\` export in ${manifestFile}`)
 
 	const schemaFile = resolve(dirname(manifestFile), manifest.schemaFile)
+	if (manifest.outputFile == null) {
+		await mkdir(dirname(schemaFile), { recursive: true })
+		await writeFile(schemaFile, await downloadSchemaSnapshotText(manifest.schemaUrl))
+		console.log(`Downloaded ${sourceModule} schema snapshot`)
+		return
+	}
+
 	const outputFile = resolve(dirname(manifestFile), manifest.outputFile)
 	const patchFile =
 		manifest.patchFile == null ? undefined : resolve(dirname(manifestFile), manifest.patchFile)
@@ -169,8 +197,14 @@ const checkModule = async (sourceModule: string) => {
 	const mod = await import(pathToFileURL(manifestFile).href)
 	const manifest = mod.schemaSource as GraphqlSchemaSource | undefined
 	if (manifest == null) throw new Error(`Missing \`schemaSource\` export in ${manifestFile}`)
-
 	const schemaFile = resolve(dirname(manifestFile), manifest.schemaFile)
+	if (manifest.outputFile == null) {
+		if (await downloadSchemaSnapshotText(manifest.schemaUrl) !== await readFile(schemaFile, 'utf8'))
+			throw new Error(`${sourceModule}: GraphQL schema snapshot drifts from checked-in ${schemaFile}`)
+
+		return
+	}
+
 	const outputFile = resolve(dirname(manifestFile), manifest.outputFile)
 	const patchFile =
 		manifest.patchFile == null ? undefined : resolve(dirname(manifestFile), manifest.patchFile)

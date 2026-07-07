@@ -114,7 +114,7 @@
 				{#snippet Item({ item: globalAiArtifactCatalogTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAiArtifactCatalog_Timestamp> })}
 					{@const globalAiArtifactCatalogTimestampFields = { ...globalAiArtifactCatalogTimestamp[EntityMetaKey.Selector], ...globalAiArtifactCatalogTimestamp }}
 					<GlobalAiArtifactCatalog_TimestampView
-						selection={select(EntityType._GlobalAiArtifactCatalog_Timestamp, globalAiArtifactCatalogTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalAiArtifactCatalog_Timestamp, globalAiArtifactCatalogTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalAiArtifactCatalogTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

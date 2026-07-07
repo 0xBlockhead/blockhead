@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import FarcasterChannel_TimestampView from '$/views/FarcasterChannel_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Farcaster channel observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,16 @@
 			})
 		}
 		selection={
-			select(EntityType.FarcasterChannel_Timestamp, data.selector, {
+			select(EntityType.FarcasterChannel_Timestamp, {
+				$channel: {
+					id: decodeURIComponent(params.channelId),
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
+				sources: [
+					Source.Farcaster_Rest,
+					Source.Neynar_Rest,
+				],
 				fields: {
 					followerCount: true,
 					memberCount: true,

@@ -19,6 +19,7 @@ import type {
 } from '$/sources/LightningMempoolSpace/Rest/types.ts'
 import { LightningNetworkSelector } from '$/schema/LightningNetwork.ts'
 import { LightningNetwork_TimestampSelector } from '$/schema/LightningNetwork_Timestamp.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { LightningNodeSelector } from '$/schema/LightningNode.ts'
 import { LightningNode_TimestampSelector } from '$/schema/LightningNode_Timestamp.ts'
 import { LightningChannelSelector } from '$/schema/LightningChannel.ts'
@@ -223,6 +224,26 @@ export default {
 		}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertLightningNetwork(network)
+					return {
+						lightningName: 'Lightning Network',
+						$lightningSettlementNetwork: {
+							[EntityMetaKey.Selector]: bitcoinMainnet,
+						},
+					}
+				}
+			},
+		})({
+			fields: {
+				lightningName: (snapshot) => snapshot.lightningName,
+				$lightningSettlementNetwork: (snapshot) => snapshot.$lightningSettlementNetwork,
+			},
+		}),
+
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork_Timestamp,
 			resolve: {
 				[LightningNetwork_TimestampSelector.LightningNetworkTimestampMsSource]: async ({ $lightningNetwork }) => {
@@ -378,6 +399,36 @@ export default {
 		}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertLightningNetwork(network)
+					const { getLightningStatistics } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$lightningNetwork: {
+									$network: network,
+								},
+								timestampMs: Date.now(),
+								source: Source.LightningMempoolSpace_Rest,
+							},
+							...timestampFieldsFromMempoolSpaceStatistics(
+								(await getLightningStatistics({
+									restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
+								})).latest
+							),
+						},
+					]
+				}
+			},
+		})({
+			fields: {
+				$$lightningTimestamps: (snapshot) => snapshot,
+			},
+		}),
+
+		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
 			resolve: {
 				[LightningNetworkSelector.Network]: async ({ $network }, context) => {
@@ -393,6 +444,25 @@ export default {
 		})({
 			fields: {
 				$$nodes: (snapshot) => snapshot,
+			},
+		}),
+
+		defineResolver(Source.LightningMempoolSpace_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertLightningNetwork(network)
+					const { getTopLightningNodesByConnectivity } = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
+					return (
+						await getTopLightningNodesByConnectivity({
+							restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
+						})
+					).slice(0, resolverContextRowLimit(context)).map(nodeReferenceFromMempoolSpaceRankedNode)
+				}
+			},
+		})({
+			fields: {
+				$$lightningNodes: (snapshot) => snapshot,
 			},
 		}),
 
@@ -430,6 +500,32 @@ export default {
 		})({
 			fields: {
 				$$channels: (snapshot) => snapshot,
+			},
+		}),
+
+		defineResolver(Source.LightningMempoolSpace_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertLightningNetwork(network)
+					const {
+						getLightningNodeChannels,
+						getTopLightningNodesByConnectivity,
+					} = await import('$/sources/LightningMempoolSpace/Rest/queries.ts')
+					const nodes = await getTopLightningNodesByConnectivity({
+						restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
+					})
+					return (
+						await getLightningNodeChannels({
+							restBaseUrl: lightningNetworkBySlug.lightning.mempoolSpaceRestBaseUrl,
+							publicKey: nodes[0].publicKey,
+						})
+					).slice(0, resolverContextRowLimit(context)).map(channelReferenceFromMempoolSpaceChannel)
+				}
+			},
+		})({
+			fields: {
+				$$lightningChannels: (snapshot) => snapshot,
 			},
 		}),
 

@@ -145,7 +145,7 @@
 				<dt>strategy</dt>
 				<dd>
 					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -83,7 +83,7 @@
 				<dt>operation group</dt>
 				<dd>
 					<TezosOperationGroupView
-						selection={select(EntityType.TezosOperationGroup, selection.entitySelector.$operationGroup)}
+						selection={select(EntityType.TezosOperationGroup, selection.entitySelector.$operationGroup, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -620,7 +620,7 @@
 						{#snippet Pending()}
 							{@const originatedContractAddresses = prefetched.originatedContractAddresses}
 							{#if originatedContractAddresses !== undefined && originatedContractAddresses !== null}
-								<TruncatedValue value={(originatedContractAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={originatedContractAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -628,7 +628,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const originatedContractAddresses = resolvedEntity.originatedContractAddresses}
 							{#if originatedContractAddresses !== undefined && originatedContractAddresses !== null}
-								<TruncatedValue value={(originatedContractAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={originatedContractAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

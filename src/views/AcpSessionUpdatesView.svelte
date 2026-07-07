@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpSessionUpdate }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpSessionUpdate> })}
 					{@const acpSessionUpdateFields = { ...acpSessionUpdate[EntityMetaKey.Selector], ...acpSessionUpdate }}
 					<AcpSessionUpdateView
-						selection={select(EntityType.AcpSessionUpdate, acpSessionUpdate[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpSessionUpdate, acpSessionUpdate[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpSessionUpdateFields}
 						layout={EntityLayout.Summary}
 						open={false}

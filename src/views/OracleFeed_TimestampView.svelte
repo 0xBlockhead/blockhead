@@ -132,7 +132,7 @@
 				<dt>oracle feed</dt>
 				<dd>
 					<OracleFeedView
-						selection={select(EntityType.OracleFeed, selection.entitySelector.$oracleFeed)}
+						selection={select(EntityType.OracleFeed, selection.entitySelector.$oracleFeed, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

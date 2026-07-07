@@ -2,6 +2,7 @@
 
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum BitcoinCashCashTokenCommitmentSelector {
@@ -33,6 +34,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.BitcoinCashNode_JsonRpc,
+			],
 		},
 	],
 } as const satisfies EntityDefinition

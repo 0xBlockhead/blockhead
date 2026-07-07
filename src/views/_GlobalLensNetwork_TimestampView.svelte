@@ -116,7 +116,7 @@
 				<dt>hub</dt>
 				<dd>
 					<GlobalLensNetworkView
-						selection={select(EntityType._GlobalLensNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalLensNetwork, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

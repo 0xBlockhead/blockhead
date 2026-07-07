@@ -81,7 +81,7 @@
 				<dt>ledger</dt>
 				<dd>
 					<IcpLedgerCanisterView
-						selection={select(EntityType.IcpLedgerCanister, selection.entitySelector.$ledger)}
+						selection={select(EntityType.IcpLedgerCanister, selection.entitySelector.$ledger, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -303,7 +303,7 @@
 						{#snippet Pending()}
 							{@const archiveCanisterIds = prefetched.archiveCanisterIds}
 							{#if archiveCanisterIds !== undefined && archiveCanisterIds !== null}
-								{(archiveCanisterIds?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{archiveCanisterIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -311,7 +311,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const archiveCanisterIds = resolvedEntity.archiveCanisterIds}
 							{#if archiveCanisterIds !== undefined && archiveCanisterIds !== null}
-								{(archiveCanisterIds?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{archiveCanisterIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -333,7 +333,7 @@
 						{#snippet Pending()}
 							{@const supportedStandards = prefetched.supportedStandards}
 							{#if supportedStandards !== undefined && supportedStandards !== null}
-								{(supportedStandards?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{supportedStandards.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -341,7 +341,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const supportedStandards = resolvedEntity.supportedStandards}
 							{#if supportedStandards !== undefined && supportedStandards !== null}
-								{(supportedStandards?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{supportedStandards.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

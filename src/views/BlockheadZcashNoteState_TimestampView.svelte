@@ -137,7 +137,7 @@
 				<dt>note state</dt>
 				<dd>
 					<BlockheadZcashNoteStateView
-						selection={select(EntityType.BlockheadZcashNoteState, selection.entitySelector.$noteState)}
+						selection={select(EntityType.BlockheadZcashNoteState, selection.entitySelector.$noteState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

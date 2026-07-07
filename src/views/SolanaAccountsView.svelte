@@ -117,10 +117,10 @@
 					{@const solanaAccountFields = { ...solanaAccount[EntityMetaKey.Selector], ...solanaAccount }}
 					{@const solanaAccountHrefFields = { ...solanaAccount, ...solanaAccount[EntityMetaKey.Selector] }}
 					<SolanaAccountView
-						selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.SolanaAccount, solanaAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaAccountFields}
 						href={
-							(solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.caip2 !== undefined && solanaAccountHrefFields.$network.caip2.namespace !== undefined && solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.caip2 !== undefined && solanaAccountHrefFields.$network.caip2.reference !== undefined && solanaAccountHrefFields.pubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/account/[pubkey]', {
+							(solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.caip2 !== undefined && solanaAccountHrefFields.$network.caip2.namespace !== undefined && solanaAccountHrefFields.$network !== undefined && solanaAccountHrefFields.$network.caip2 !== undefined && solanaAccountHrefFields.$network.caip2.reference !== undefined && solanaAccountHrefFields.pubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/account/[pubkey]', {
 								networkSlug: String(networkByCaip2[String(String(solanaAccountHrefFields.$network.caip2.namespace) + ':' + String(solanaAccountHrefFields.$network.caip2.reference))].slug ?? ''),
 								pubkey: String(solanaAccountHrefFields.pubkey ?? ''),
 							}) : undefined)

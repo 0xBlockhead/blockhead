@@ -124,13 +124,7 @@
 				<dt>validator</dt>
 				<dd>
 					<PolkadotValidatorView
-						selection={select(EntityType.PolkadotValidator, selection.entitySelector.$validator)}
-						href={
-							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.namespace !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.reference !== undefined && selection.entitySelector.$validator.stashAccountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/validator/[stashAccountId]', {
-								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$validator.$network.caip2.namespace) + ':' + String(selection.entitySelector.$validator.$network.caip2.reference))].slug ?? ''),
-								stashAccountId: String(selection.entitySelector.$validator.stashAccountId ?? ''),
-							}) : undefined)
-						}
+						selection={select(EntityType.PolkadotValidator, selection.entitySelector.$validator, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

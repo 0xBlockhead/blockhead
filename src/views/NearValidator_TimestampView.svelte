@@ -129,7 +129,7 @@
 				<dt>Validator</dt>
 				<dd>
 					<NearValidatorView
-						selection={select(EntityType.NearValidator, selection.entitySelector.$validator)}
+						selection={select(EntityType.NearValidator, selection.entitySelector.$validator, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -628,7 +628,7 @@
 						{#snippet Pending()}
 							{@const shards = prefetched.shards}
 							{#if shards !== undefined && shards !== null}
-								{(shards?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{shards.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -636,7 +636,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const shards = resolvedEntity.shards}
 							{#if shards !== undefined && shards !== null}
-								{(shards?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{shards.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

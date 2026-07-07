@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonNetwork_Timestamp> })}
 					{@const tonNetworkTimestampFields = { ...tonNetworkTimestamp[EntityMetaKey.Selector], ...tonNetworkTimestamp }}
 					<TonNetwork_TimestampView
-						selection={select(EntityType.TonNetwork_Timestamp, tonNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonNetwork_Timestamp, tonNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

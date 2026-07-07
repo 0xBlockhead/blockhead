@@ -3,7 +3,10 @@ import {
 	globSync,
 	statSync,
 } from 'node:fs'
-import { join } from 'node:path'
+import {
+	dirname,
+	join,
+} from 'node:path'
 
 import { Source } from '$/sources/Source.ts'
 import {
@@ -77,6 +80,42 @@ const brokenSourceSymlinks = globSync('src/sources/**/*', {
 	.filter((entry) => entry.isSymbolicLink())
 	.map((entry) => join(entry.parentPath, entry.name))
 	.filter((path) => !artifactPathExists(path))
+const sourceArtifactRows = sourceBindings.flatMap((binding) => binding.artifacts ?? [])
+const sourceArtifactPathsByKind = new Map<SourceArtifactKind, Set<string>>()
+for (const artifact of sourceArtifactRows) {
+	const paths = sourceArtifactPathsByKind.get(artifact.kind) ?? new Set<string>()
+	paths.add(artifact.path)
+	sourceArtifactPathsByKind.set(artifact.kind, paths)
+}
+const openApiManifestFailures = globSync('src/sources/*/OpenApi/schema-source.ts').flatMap((manifestFile) => {
+	const manifestSource = readFileSync(manifestFile, 'utf8')
+	const schemaFile = manifestSource.match(/schemaFile:\s*'([^']+)'/)?.[1]
+	const typesFile = manifestSource.match(/typesFile:\s*'([^']+)'/)?.[1]
+	const manifestDirectory = dirname(manifestFile)
+	const schemaPath = schemaFile == null ? undefined : join(manifestDirectory, schemaFile)
+	const typesPath = typesFile == null ? undefined : join(manifestDirectory, typesFile)
+	return [
+		...(schemaFile == null ? [`${manifestFile}: missing schemaFile`] : []),
+		...(typesFile == null ? [`${manifestFile}: missing typesFile`] : []),
+		...(schemaPath != null && artifactPathExists(schemaPath) && !(sourceArtifactPathsByKind.get(SourceArtifactKind.OpenApiSpec)?.has(schemaPath) ?? false) ?
+			[`${manifestFile}: OpenApiSpec artifact missing for ${schemaPath}`]
+		:
+			[]),
+		...(typesPath != null && artifactPathExists(typesPath) && !(sourceArtifactPathsByKind.get(SourceArtifactKind.OpenApiTypes)?.has(typesPath) ?? false) ?
+			[`${manifestFile}: OpenApiTypes artifact missing for ${typesPath}`]
+		:
+			[]),
+	]
+})
+const sourceRuntimeBindingImportFailures = globSync('src/sources/*/{queries,client}.ts').flatMap((file) => {
+	const providerDirectory = file.split('/').slice(0, 3).join('/')
+	const providerName = providerDirectory.slice('src/sources/'.length)
+	const source = readFileSync(file, 'utf8')
+	return source.includes(`$/sources/${providerName}/bindings.ts`) ?
+		[`${file}: runtime transport imports provider-local bindings instead of receiving SourceBinding selection`]
+	:
+		[]
+})
 const failures = [
 	...(audit.sourceRows.size === audit.sourceEnumMembers.length ? [] : ['source row count mismatch']),
 	...(audit.bindingSources.size === audit.sourceEnumMembers.length ? [] : ['binding source count mismatch']),
@@ -116,6 +155,7 @@ const failures = [
 	)) || sourceMember('EthereumEips_Github') === undefined ? [] : ['missing EthereumEips GitHub contents binding']),
 	...(sourceBindings.flatMap((binding) => binding.artifacts ?? []).every((artifact) => artifactPathExists(artifact.path)) ? [] : ['artifact path missing']),
 	...(brokenSourceSymlinks.length ? [`broken source symlinks: ${brokenSourceSymlinks.join(', ')}`] : []),
+	...openApiManifestFailures,
 	...officialSourceArtifacts.filter((officialSourceArtifact) => !('enforce' in officialSourceArtifact)).flatMap((officialSourceArtifact) => {
 		const bindings = sourceBindings.filter((binding) => binding.source === officialSourceArtifact.source)
 		const artifacts = bindings.flatMap((binding) => binding.artifacts ?? [])
@@ -136,6 +176,17 @@ const failures = [
 		]
 	}),
 	...(sourceMember('Amboss_Graphql') !== undefined && browserSourceBindings.some((binding) => binding.source === sourceMember('Amboss_Graphql')) ? ['Amboss server-only binding leaked into browser bindings'] : []),
+	...browserSourceBindings.flatMap((binding) => (
+		binding.delivery !== SourceDelivery.BrowserDirect ?
+			[]
+		:
+			binding.endpoints.flatMap((endpoint) => (
+				endpoint.endpointKind === SourceEndpointKind.HttpUrl && endpoint.corsEnabled === false ?
+					[`${binding.source}: BrowserDirect endpoint is marked non-CORS`]
+				:
+					[]
+			))
+	)),
 	...(sourceBindings.some((binding) => (
 		binding.source === sourceMember('Arweave_Rest')
 		&& binding.apiFamily === ApiFamily.ArweaveGateway
@@ -155,6 +206,7 @@ const failures = [
 		:
 			[]
 	}),
+	...sourceRuntimeBindingImportFailures,
 	...sourceFiles.flatMap((file) => {
 		const source = readFileSync(file, 'utf8')
 		return (

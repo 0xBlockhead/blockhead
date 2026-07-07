@@ -113,7 +113,7 @@
 				{#snippet Item({ item: dydxChainMarketTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DydxChainMarket_Timestamp> })}
 					{@const dydxChainMarketTimestampFields = { ...dydxChainMarketTimestamp[EntityMetaKey.Selector], ...dydxChainMarketTimestamp }}
 					<DydxChainMarket_TimestampView
-						selection={select(EntityType.DydxChainMarket_Timestamp, dydxChainMarketTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.DydxChainMarket_Timestamp, dydxChainMarketTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dydxChainMarketTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

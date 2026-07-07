@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eigenLayerAvs }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EigenLayerAvs> })}
 					{@const eigenLayerAvsFields = { ...eigenLayerAvs[EntityMetaKey.Selector], ...eigenLayerAvs }}
 					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerAvs, eigenLayerAvs[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eigenLayerAvsFields}
 						layout={EntityLayout.Summary}
 						open={false}

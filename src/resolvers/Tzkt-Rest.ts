@@ -171,7 +171,7 @@ export default {
 			},
 		})({
 			fields: {
-				$bigMaps: (bigMaps) => bigMaps,
+				$$bigMaps: (bigMaps) => bigMaps,
 			},
 		}),
 
@@ -208,7 +208,7 @@ export default {
 			},
 		})({
 			fields: {
-				$bigMapTimestamps: (timestamps) => timestamps,
+				$$bigMapTimestamps: (timestamps) => timestamps,
 			},
 		}),
 
@@ -264,7 +264,7 @@ export default {
 			},
 		})({
 			fields: {
-				$bigMapKeyTimestamps: (timestamps) => timestamps,
+				$$bigMapKeyTimestamps: (timestamps) => timestamps,
 			},
 		}),
 
@@ -312,7 +312,7 @@ export default {
 			},
 		})({
 			fields: {
-				$bigMapKeys: (keys) => keys,
+				$$bigMapKeys: (keys) => keys,
 			},
 		}),
 
@@ -364,7 +364,7 @@ export default {
 			},
 		})({
 			fields: {
-				$bigMaps: (bigMaps) => bigMaps,
+				$$bigMaps: (bigMaps) => bigMaps,
 			},
 		}),
 
@@ -419,7 +419,7 @@ export default {
 			},
 		})({
 			fields: {
-				$operations: (operations) => operations,
+				$$operations: (operations) => operations,
 			},
 		}),
 
@@ -492,7 +492,7 @@ export default {
 			},
 		})({
 			fields: {
-				$bigMapDiffs: (diffs) => diffs,
+				$$bigMapDiffs: (diffs) => diffs,
 			},
 		}),
 
@@ -544,7 +544,7 @@ export default {
 			},
 		})({
 			fields: {
-				$keys: (keys) => keys,
+				$$keys: (keys) => keys,
 			},
 		}),
 
@@ -572,7 +572,7 @@ export default {
 			},
 		})({
 			fields: {
-				$timestamps: (timestamps) => timestamps,
+				$$timestamps: (timestamps) => timestamps,
 			},
 		}),
 
@@ -601,7 +601,7 @@ export default {
 			},
 		})({
 			fields: {
-				$timestamps: (timestamps) => timestamps,
+				$$timestamps: (timestamps) => timestamps,
 			},
 		}),
 

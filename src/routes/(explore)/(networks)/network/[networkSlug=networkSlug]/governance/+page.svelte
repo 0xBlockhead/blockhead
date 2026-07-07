@@ -38,12 +38,10 @@
 		}
 		title='Governance'
 		selection={
-			select(EntityType.CosmosNetwork, {
-				$network: {
-					slug: params.networkSlug,
-				},
-			})[EntityProxyField]<EntityType.CosmosGovernanceProposal>('$$governanceProposals')
+			select(EntityType.Network, {
+				slug: params.networkSlug,
+			})[EntityProxyField]<EntityType.CosmosGovernanceProposal>('$$cosmosGovernanceProposals')
 		}
-		id='governance-proposals'
+		id='cosmos-governance-proposals'
 	/>
 </Page>

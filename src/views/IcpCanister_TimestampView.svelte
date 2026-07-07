@@ -83,7 +83,7 @@
 				<dt>canister</dt>
 				<dd>
 					<IcpCanisterView
-						selection={select(EntityType.IcpCanister, selection.entitySelector.$canister)}
+						selection={select(EntityType.IcpCanister, selection.entitySelector.$canister, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -360,7 +360,7 @@
 						{#snippet Pending()}
 							{@const controllers = prefetched.controllers}
 							{#if controllers !== undefined && controllers !== null}
-								{(controllers?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{controllers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -368,7 +368,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const controllers = resolvedEntity.controllers}
 							{#if controllers !== undefined && controllers !== null}
-								{(controllers?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{controllers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

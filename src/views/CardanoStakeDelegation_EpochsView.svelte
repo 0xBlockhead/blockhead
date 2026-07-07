@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoStakeDelegationEpoch }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoStakeDelegation_Epoch> })}
 					{@const cardanoStakeDelegationEpochFields = { ...cardanoStakeDelegationEpoch[EntityMetaKey.Selector], ...cardanoStakeDelegationEpoch }}
 					<CardanoStakeDelegation_EpochView
-						selection={select(EntityType.CardanoStakeDelegation_Epoch, cardanoStakeDelegationEpoch[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoStakeDelegation_Epoch, cardanoStakeDelegationEpoch[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoStakeDelegationEpochFields}
 						layout={EntityLayout.Summary}
 						open={false}

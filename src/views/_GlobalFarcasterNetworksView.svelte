@@ -112,7 +112,7 @@
 				{#snippet Item({ item: globalFarcasterNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalFarcasterNetwork> })}
 					{@const globalFarcasterNetworkFields = { ...globalFarcasterNetwork[EntityMetaKey.Selector], ...globalFarcasterNetwork }}
 					<GlobalFarcasterNetworkView
-						selection={select(EntityType._GlobalFarcasterNetwork, globalFarcasterNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalFarcasterNetwork, globalFarcasterNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalFarcasterNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

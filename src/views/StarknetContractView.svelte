@@ -116,7 +116,7 @@
 				<dt>network</dt>
 				<dd>
 					<StarknetNetworkView
-						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.StarknetNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

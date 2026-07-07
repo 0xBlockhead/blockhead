@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadQuilibriumNodeState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadQuilibriumNodeState> })}
 					{@const blockheadQuilibriumNodeStateFields = { ...blockheadQuilibriumNodeState[EntityMetaKey.Selector], ...blockheadQuilibriumNodeState }}
 					<BlockheadQuilibriumNodeStateView
-						selection={select(EntityType.BlockheadQuilibriumNodeState, blockheadQuilibriumNodeState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadQuilibriumNodeState, blockheadQuilibriumNodeState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadQuilibriumNodeStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

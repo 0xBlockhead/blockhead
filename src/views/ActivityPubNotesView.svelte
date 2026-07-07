@@ -117,7 +117,7 @@
 					{@const activityPubNoteFields = { ...activityPubNote[EntityMetaKey.Selector], ...activityPubNote }}
 					{@const activityPubNoteHrefFields = { ...activityPubNote, ...activityPubNote[EntityMetaKey.Selector] }}
 					<ActivityPubNoteView
-						selection={select(EntityType.ActivityPubNote, activityPubNote[EntityMetaKey.Selector])}
+						selection={select(EntityType.ActivityPubNote, activityPubNote[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={activityPubNoteFields}
 						href={
 							(activityPubNoteHrefFields.instanceOrigin !== undefined && activityPubNoteHrefFields.localStatusId !== undefined ? resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {

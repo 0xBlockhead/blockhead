@@ -130,7 +130,7 @@
 				<dt>Namespace</dt>
 				<dd>
 					<CelestiaNamespaceView
-						selection={select(EntityType.CelestiaNamespace, selection.entitySelector.$namespace)}
+						selection={select(EntityType.CelestiaNamespace, selection.entitySelector.$namespace, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

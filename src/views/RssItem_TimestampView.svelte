@@ -124,7 +124,7 @@
 				<dt>Item</dt>
 				<dd>
 					<RssItemView
-						selection={select(EntityType.RssItem, selection.entitySelector.$item)}
+						selection={select(EntityType.RssItem, selection.entitySelector.$item, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

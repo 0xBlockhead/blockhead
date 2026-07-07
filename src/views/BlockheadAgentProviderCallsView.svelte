@@ -113,7 +113,7 @@
 				{#snippet Item({ item: blockheadAgentProviderCall }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAgentProviderCall> })}
 					{@const blockheadAgentProviderCallFields = { ...blockheadAgentProviderCall[EntityMetaKey.Selector], ...blockheadAgentProviderCall }}
 					<BlockheadAgentProviderCallView
-						selection={select(EntityType.BlockheadAgentProviderCall, blockheadAgentProviderCall[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAgentProviderCall, blockheadAgentProviderCall[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAgentProviderCallFields}
 						layout={EntityLayout.Summary}
 						open={false}

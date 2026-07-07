@@ -113,7 +113,7 @@
 				{#snippet Item({ item: eigenLayerProtocol }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EigenLayerProtocol> })}
 					{@const eigenLayerProtocolFields = { ...eigenLayerProtocol[EntityMetaKey.Selector], ...eigenLayerProtocol }}
 					<EigenLayerProtocolView
-						selection={select(EntityType.EigenLayerProtocol, eigenLayerProtocol[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerProtocol, eigenLayerProtocol[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eigenLayerProtocolFields}
 						layout={EntityLayout.Summary}
 						open={false}

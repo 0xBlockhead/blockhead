@@ -135,7 +135,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadAvalancheNodeStateView
-						selection={select(EntityType.BlockheadAvalancheNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadAvalancheNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

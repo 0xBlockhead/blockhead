@@ -121,10 +121,7 @@ const selectorFieldIsRequired = (
 	fieldDefinition?.cardinality === EntityFieldCardinality.One
 	|| (
 		fieldDefinition?.name === 'caip2'
-		&& (
-			entityType === EntityType.Network
-			|| entityType === EntityType.SolanaNetwork
-		)
+		&& entityType === EntityType.Network
 	)
 	|| (
 		fieldDefinition?.when != null

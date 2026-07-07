@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadWalletTransportSession }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadWalletTransportSession> })}
 					{@const blockheadWalletTransportSessionFields = { ...blockheadWalletTransportSession[EntityMetaKey.Selector], ...blockheadWalletTransportSession }}
 					<BlockheadWalletTransportSessionView
-						selection={select(EntityType.BlockheadWalletTransportSession, blockheadWalletTransportSession[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadWalletTransportSession, blockheadWalletTransportSession[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadWalletTransportSessionFields}
 						layout={EntityLayout.Summary}
 						open={false}

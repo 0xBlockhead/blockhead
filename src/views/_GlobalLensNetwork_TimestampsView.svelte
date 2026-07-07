@@ -113,7 +113,7 @@
 				{#snippet Item({ item: globalLensNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalLensNetwork_Timestamp> })}
 					{@const globalLensNetworkTimestampFields = { ...globalLensNetworkTimestamp[EntityMetaKey.Selector], ...globalLensNetworkTimestamp }}
 					<GlobalLensNetwork_TimestampView
-						selection={select(EntityType._GlobalLensNetwork_Timestamp, globalLensNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalLensNetwork_Timestamp, globalLensNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalLensNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

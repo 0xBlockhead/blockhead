@@ -142,7 +142,7 @@
 				<dt>viewing key</dt>
 				<dd>
 					<BlockheadZcashViewingKeyView
-						selection={select(EntityType.BlockheadZcashViewingKey, selection.entitySelector.$viewingKey)}
+						selection={select(EntityType.BlockheadZcashViewingKey, selection.entitySelector.$viewingKey, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

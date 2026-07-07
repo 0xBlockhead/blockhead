@@ -133,7 +133,7 @@
 				<dt>Reverse record</dt>
 				<dd>
 					<EnsReverseRecordView
-						selection={select(EntityType.EnsReverseRecord, selection.entitySelector.$reverseRecord)}
+						selection={select(EntityType.EnsReverseRecord, selection.entitySelector.$reverseRecord, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

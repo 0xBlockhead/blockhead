@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoGovernanceProposal }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoGovernanceProposal> })}
 					{@const cardanoGovernanceProposalFields = { ...cardanoGovernanceProposal[EntityMetaKey.Selector], ...cardanoGovernanceProposal }}
 					<CardanoGovernanceProposalView
-						selection={select(EntityType.CardanoGovernanceProposal, cardanoGovernanceProposal[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoGovernanceProposal, cardanoGovernanceProposal[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoGovernanceProposalFields}
 						layout={EntityLayout.Summary}
 						open={false}

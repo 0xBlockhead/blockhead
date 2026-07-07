@@ -115,7 +115,7 @@
 				{#snippet Item({ item: mcpToolCallTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.McpToolCall_Timestamp> })}
 					{@const mcpToolCallTimestampFields = { ...mcpToolCallTimestamp[EntityMetaKey.Selector], ...mcpToolCallTimestamp }}
 					<McpToolCall_TimestampView
-						selection={select(EntityType.McpToolCall_Timestamp, mcpToolCallTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.McpToolCall_Timestamp, mcpToolCallTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mcpToolCallTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

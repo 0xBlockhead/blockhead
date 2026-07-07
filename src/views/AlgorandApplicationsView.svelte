@@ -114,7 +114,7 @@
 				{#snippet Item({ item: algorandApplication }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandApplication> })}
 					{@const algorandApplicationFields = { ...algorandApplication[EntityMetaKey.Selector], ...algorandApplication }}
 					<AlgorandApplicationView
-						selection={select(EntityType.AlgorandApplication, algorandApplication[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandApplication, algorandApplication[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandApplicationFields}
 						layout={EntityLayout.Summary}
 						open={false}

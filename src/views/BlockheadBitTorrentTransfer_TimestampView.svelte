@@ -132,7 +132,7 @@
 				<dt>client</dt>
 				<dd>
 					<BlockheadBitTorrentClientStateView
-						selection={select(EntityType.BlockheadBitTorrentClientState, selection.entitySelector.$client)}
+						selection={select(EntityType.BlockheadBitTorrentClientState, selection.entitySelector.$client, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -143,7 +143,7 @@
 				<dt>torrent</dt>
 				<dd>
 					<BitTorrentMetainfoView
-						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent)}
+						selection={select(EntityType.BitTorrentMetainfo, selection.entitySelector.$torrent, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -302,7 +302,7 @@
 						{#snippet Pending()}
 							{@const selectedFileIndexes = prefetched.selectedFileIndexes}
 							{#if selectedFileIndexes !== undefined && selectedFileIndexes !== null}
-								{(selectedFileIndexes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{selectedFileIndexes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -310,7 +310,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const selectedFileIndexes = resolvedEntity.selectedFileIndexes}
 							{#if selectedFileIndexes !== undefined && selectedFileIndexes !== null}
-								{(selectedFileIndexes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{selectedFileIndexes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

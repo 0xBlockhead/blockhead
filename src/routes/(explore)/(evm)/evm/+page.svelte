@@ -2,19 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
 
 
 	// Components
@@ -23,16 +17,16 @@
 </script>
 
 
-<svelte:head>
-	<title>EVM protocol • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<EvmProtocolView
 		href={resolve('/(explore)/(evm)/evm')}
 		selection={
-			select(EntityType.EvmProtocol, data.selector, {
+			select(EntityType.EvmProtocol, {
+				scope: 'EvmProtocol',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					protocolName: true,
 					registryName: true,

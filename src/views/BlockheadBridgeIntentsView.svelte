@@ -115,7 +115,7 @@
 				{#snippet Item({ item: blockheadBridgeIntent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadBridgeIntent> })}
 					{@const blockheadBridgeIntentFields = { ...blockheadBridgeIntent[EntityMetaKey.Selector], ...blockheadBridgeIntent }}
 					<BlockheadBridgeIntentView
-						selection={select(EntityType.BlockheadBridgeIntent, blockheadBridgeIntent[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadBridgeIntent, blockheadBridgeIntent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadBridgeIntentFields}
 						layout={EntityLayout.Summary}
 						open={false}

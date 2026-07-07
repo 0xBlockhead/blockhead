@@ -118,7 +118,7 @@
 					{@const mevBuilderTimestampFields = { ...mevBuilderTimestamp[EntityMetaKey.Selector], ...mevBuilderTimestamp }}
 					{@const mevBuilderTimestampHrefFields = { ...mevBuilderTimestamp, ...mevBuilderTimestamp[EntityMetaKey.Selector] }}
 					<MevBuilder_TimestampView
-						selection={select(EntityType.MevBuilder_Timestamp, mevBuilderTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.MevBuilder_Timestamp, mevBuilderTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mevBuilderTimestampFields}
 						href={
 							(mevBuilderTimestampHrefFields.$builder !== undefined && mevBuilderTimestampHrefFields.$builder.$network !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2 !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2.namespace !== undefined && mevBuilderTimestampHrefFields.$builder !== undefined && mevBuilderTimestampHrefFields.$builder.$network !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2 !== undefined && mevBuilderTimestampHrefFields.$builder.$network.caip2.reference !== undefined && mevBuilderTimestampHrefFields.$builder !== undefined && mevBuilderTimestampHrefFields.$builder.builderPubkey !== undefined && mevBuilderTimestampHrefFields.timestampMs !== undefined && mevBuilderTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/mev/builder/[builderPubkey]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {

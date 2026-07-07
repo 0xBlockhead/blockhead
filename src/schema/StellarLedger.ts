@@ -86,14 +86,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$transactions',
+			name: '$$transactions',
 			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StellarTransaction,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$operations',
+			name: '$$operations',
 			label: 'operations',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StellarOperation,

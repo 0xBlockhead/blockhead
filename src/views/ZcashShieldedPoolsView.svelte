@@ -118,7 +118,7 @@
 					{@const zcashShieldedPoolFields = { ...zcashShieldedPool[EntityMetaKey.Selector], ...zcashShieldedPool }}
 					{@const zcashShieldedPoolHrefFields = { ...zcashShieldedPool, ...zcashShieldedPool[EntityMetaKey.Selector] }}
 					<ZcashShieldedPoolView
-						selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZcashShieldedPool, zcashShieldedPool[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zcashShieldedPoolFields}
 						href={
 							(zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined && zcashShieldedPoolHrefFields.$network.caip2.namespace !== undefined && zcashShieldedPoolHrefFields.$network !== undefined && zcashShieldedPoolHrefFields.$network.caip2 !== undefined && zcashShieldedPoolHrefFields.$network.caip2.reference !== undefined && zcashShieldedPoolHrefFields.pool !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/shielded-pool/[pool]', {

@@ -81,7 +81,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<SuiTransactionView
-						selection={select(EntityType.SuiTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.SuiTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -268,7 +268,7 @@
 						{#snippet Pending()}
 							{@const typeArguments = prefetched.typeArguments}
 							{#if typeArguments !== undefined && typeArguments !== null}
-								{(typeArguments?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{typeArguments.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -276,7 +276,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const typeArguments = resolvedEntity.typeArguments}
 							{#if typeArguments !== undefined && typeArguments !== null}
-								{(typeArguments?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{typeArguments.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

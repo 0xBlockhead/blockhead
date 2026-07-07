@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadSiweChallenge }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSiweChallenge> })}
 					{@const blockheadSiweChallengeFields = { ...blockheadSiweChallenge[EntityMetaKey.Selector], ...blockheadSiweChallenge }}
 					<BlockheadSiweChallengeView
-						selection={select(EntityType.BlockheadSiweChallenge, blockheadSiweChallenge[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadSiweChallenge, blockheadSiweChallenge[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadSiweChallengeFields}
 						layout={EntityLayout.Summary}
 						open={false}

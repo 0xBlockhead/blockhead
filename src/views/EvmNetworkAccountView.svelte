@@ -103,11 +103,6 @@
 			{#snippet Pending()}
 				<EvmNetworkView
 					selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
-					href={
-						(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : undefined)
-					}
 					layout={EntityLayout.Value}
 					open={false}
 				/>
@@ -117,11 +112,6 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<EvmNetworkView
 					selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
-					href={
-						(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-							caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-						}) : undefined)
-					}
 					layout={EntityLayout.Value}
 					open={false}
 				/>
@@ -135,12 +125,7 @@
 				<dt>network</dt>
 				<dd>
 					<EvmNetworkView
-						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network)}
-						href={
-							(selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
-							}) : undefined)
-						}
+						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -151,7 +136,7 @@
 				<dt>actor</dt>
 				<dd>
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor)}
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$actor, {})}
 						href={
 							(selection.entitySelector.$actor.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$actor.address ?? ''),

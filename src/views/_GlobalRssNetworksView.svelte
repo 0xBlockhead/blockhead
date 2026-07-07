@@ -112,7 +112,7 @@
 				{#snippet Item({ item: globalRssNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalRssNetwork> })}
 					{@const globalRssNetworkFields = { ...globalRssNetwork[EntityMetaKey.Selector], ...globalRssNetwork }}
 					<GlobalRssNetworkView
-						selection={select(EntityType._GlobalRssNetwork, globalRssNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalRssNetwork, globalRssNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalRssNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

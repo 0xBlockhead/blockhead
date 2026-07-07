@@ -115,7 +115,7 @@
 					{@const cosmosModuleFields = { ...cosmosModule[EntityMetaKey.Selector], ...cosmosModule }}
 					{@const cosmosModuleHrefFields = { ...cosmosModule, ...cosmosModule[EntityMetaKey.Selector] }}
 					<CosmosModuleView
-						selection={select(EntityType.CosmosModule, cosmosModule[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosModule, cosmosModule[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosModuleFields}
 						href={
 							(cosmosModuleHrefFields.$network !== undefined && cosmosModuleHrefFields.$network.caip2 !== undefined && cosmosModuleHrefFields.$network.caip2.namespace !== undefined && cosmosModuleHrefFields.$network !== undefined && cosmosModuleHrefFields.$network.caip2 !== undefined && cosmosModuleHrefFields.$network.caip2.reference !== undefined && cosmosModuleHrefFields.moduleName !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/module/[moduleName]', {

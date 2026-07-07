@@ -130,7 +130,7 @@
 				<dt>Peg</dt>
 				<dd>
 					<ElementsPegView
-						selection={select(EntityType.ElementsPeg, selection.entitySelector.$peg)}
+						selection={select(EntityType.ElementsPeg, selection.entitySelector.$peg, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

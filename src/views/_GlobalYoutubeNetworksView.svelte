@@ -106,7 +106,7 @@
 				{#snippet Item({ item: globalYoutubeNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalYoutubeNetwork> })}
 					{@const globalYoutubeNetworkFields = { ...globalYoutubeNetwork[EntityMetaKey.Selector], ...globalYoutubeNetwork }}
 					<GlobalYoutubeNetworkView
-						selection={select(EntityType._GlobalYoutubeNetwork, globalYoutubeNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalYoutubeNetwork, globalYoutubeNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalYoutubeNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

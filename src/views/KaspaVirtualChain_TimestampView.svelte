@@ -84,7 +84,7 @@
 				<dt>network</dt>
 				<dd>
 					<KaspaNetworkView
-						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -231,7 +231,7 @@
 						{#snippet Pending()}
 							{@const addedChainBlockHashes = prefetched.addedChainBlockHashes}
 							{#if addedChainBlockHashes !== undefined && addedChainBlockHashes !== null}
-								<TruncatedValue value={(addedChainBlockHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={addedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -239,7 +239,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const addedChainBlockHashes = resolvedEntity.addedChainBlockHashes}
 							{#if addedChainBlockHashes !== undefined && addedChainBlockHashes !== null}
-								<TruncatedValue value={(addedChainBlockHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={addedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -263,7 +263,7 @@
 						{#snippet Pending()}
 							{@const removedChainBlockHashes = prefetched.removedChainBlockHashes}
 							{#if removedChainBlockHashes !== undefined && removedChainBlockHashes !== null}
-								<TruncatedValue value={(removedChainBlockHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={removedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -271,7 +271,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const removedChainBlockHashes = resolvedEntity.removedChainBlockHashes}
 							{#if removedChainBlockHashes !== undefined && removedChainBlockHashes !== null}
-								<TruncatedValue value={(removedChainBlockHashes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={removedChainBlockHashes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

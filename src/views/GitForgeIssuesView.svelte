@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitForgeIssue }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitForgeIssue> })}
 					{@const gitForgeIssueFields = { ...gitForgeIssue[EntityMetaKey.Selector], ...gitForgeIssue }}
 					<GitForgeIssueView
-						selection={select(EntityType.GitForgeIssue, gitForgeIssue[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitForgeIssue, gitForgeIssue[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitForgeIssueFields}
 						layout={EntityLayout.Summary}
 						open={false}

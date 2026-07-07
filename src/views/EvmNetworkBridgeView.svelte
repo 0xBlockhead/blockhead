@@ -237,12 +237,7 @@
 				<dt>From network</dt>
 				<dd>
 					<EvmNetworkView
-						selection={select(EntityType.EvmNetwork, selection.entitySelector.$fromNetwork)}
-						href={
-							(selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.namespace !== undefined && selection.entitySelector.$fromNetwork.caip2 !== undefined && selection.entitySelector.$fromNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$fromNetwork.caip2.namespace ?? '')}:${String(selection.entitySelector.$fromNetwork.caip2.reference ?? '')}`,
-							}) : undefined)
-						}
+						selection={select(EntityType.EvmNetwork, selection.entitySelector.$fromNetwork, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -253,12 +248,7 @@
 				<dt>To network</dt>
 				<dd>
 					<EvmNetworkView
-						selection={select(EntityType.EvmNetwork, selection.entitySelector.$toNetwork)}
-						href={
-							(selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.namespace !== undefined && selection.entitySelector.$toNetwork.caip2 !== undefined && selection.entitySelector.$toNetwork.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(selection.entitySelector.$toNetwork.caip2.namespace ?? '')}:${String(selection.entitySelector.$toNetwork.caip2.reference ?? '')}`,
-							}) : undefined)
-						}
+						selection={select(EntityType.EvmNetwork, selection.entitySelector.$toNetwork, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

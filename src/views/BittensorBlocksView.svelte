@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bittensorBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BittensorBlock> })}
 					{@const bittensorBlockFields = { ...bittensorBlock[EntityMetaKey.Selector], ...bittensorBlock }}
 					<BittensorBlockView
-						selection={select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.BittensorBlock, bittensorBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bittensorBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

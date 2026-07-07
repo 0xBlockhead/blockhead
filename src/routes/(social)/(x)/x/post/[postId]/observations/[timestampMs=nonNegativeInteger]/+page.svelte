@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import XPost_TimestampView from '$/views/XPost_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>X post observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,16 @@
 			})
 		}
 		selection={
-			select(EntityType.XPost_Timestamp, data.selector, {
+			select(EntityType.XPost_Timestamp, {
+				$post: {
+					id: decodeURIComponent(params.postId),
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
+				sources: [
+					Source.X_Rest,
+					Source.X_FxEmbed_Rest,
+				],
 				fields: {
 					likeCount: true,
 					retweetCount: true,

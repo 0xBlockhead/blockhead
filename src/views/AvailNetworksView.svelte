@@ -112,7 +112,7 @@
 				{#snippet Item({ item: availNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvailNetwork> })}
 					{@const availNetworkFields = { ...availNetwork[EntityMetaKey.Selector], ...availNetwork }}
 					<AvailNetworkView
-						selection={select(EntityType.AvailNetwork, availNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvailNetwork, availNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={availNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

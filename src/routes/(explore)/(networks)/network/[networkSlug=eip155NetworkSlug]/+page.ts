@@ -4,22 +4,27 @@ import type { PageLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { networkBySlug } from '$/constants/Network.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
-import EvmNetworkSchema from '$/schema/EvmNetwork.ts'
 import { schema } from '$/schema/index.ts'
+import NetworkSchema from '$/schema/Network.ts'
 import { type as arktype } from 'arktype'
 
+// Route surface eligibility: requiredFacets=['Evm']
 export const load: PageLoad = ({ params }) => {
-	const evmNetworkSelector = parseEntitySelector(
+	const routeSurfaceNetwork = networkBySlug[params.networkSlug]
+	if (routeSurfaceNetwork == null) error(404, 'Network route surface not found')
+	if (!(routeSurfaceNetwork.executionModels.includes('Evm'))) error(404, 'Network facet not available')
+
+	const networkSelector = parseEntitySelector(
 		schema,
-		EvmNetworkSchema,
+		NetworkSchema,
 		{
-			caip2: networkBySlug[params.networkSlug].caip2,
+			caip2: routeSurfaceNetwork.caip2,
 		}
 	)
-	if (evmNetworkSelector instanceof arktype.errors) error(404, 'Invalid EvmNetwork selector')
+	if (networkSelector instanceof arktype.errors) error(404, 'Invalid Network selector')
 
 	return {
-		selector: evmNetworkSelector,
-		title: networkBySlug[params.networkSlug].name,
+		selector: networkSelector,
+		title: routeSurfaceNetwork.name,
 	}
 }

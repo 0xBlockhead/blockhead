@@ -140,7 +140,7 @@
 				<dt>Error</dt>
 				<dd>
 					<EvmErrorView
-						selection={select(EntityType.EvmError, selection.entitySelector.$error)}
+						selection={select(EntityType.EvmError, selection.entitySelector.$error, {})}
 						href={
 							(selection.entitySelector.$error.hex !== undefined ? resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
 								hex: String(selection.entitySelector.$error.hex ?? ''),

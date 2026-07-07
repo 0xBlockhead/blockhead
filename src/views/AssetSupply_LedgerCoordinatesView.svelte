@@ -114,7 +114,7 @@
 				{#snippet Item({ item: assetSupplyLedgerCoordinate }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetSupply_LedgerCoordinate> })}
 					{@const assetSupplyLedgerCoordinateFields = { ...assetSupplyLedgerCoordinate[EntityMetaKey.Selector], ...assetSupplyLedgerCoordinate }}
 					<AssetSupply_LedgerCoordinateView
-						selection={select(EntityType.AssetSupply_LedgerCoordinate, assetSupplyLedgerCoordinate[EntityMetaKey.Selector])}
+						selection={select(EntityType.AssetSupply_LedgerCoordinate, assetSupplyLedgerCoordinate[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={assetSupplyLedgerCoordinateFields}
 						layout={EntityLayout.Summary}
 						open={false}

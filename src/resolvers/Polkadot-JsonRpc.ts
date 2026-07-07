@@ -11,8 +11,8 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
 import type { PolkadotRpcBlock } from '$/sources/Polkadot/JsonRpc/types.ts'
-import { PolkadotNetworkSelector } from '$/schema/PolkadotNetwork.ts'
-import { PolkadotNetwork_TimestampSelector } from '$/schema/PolkadotNetwork_Timestamp.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
+import { Network_TimestampSelector } from '$/schema/Network_Timestamp.ts'
 import { PolkadotBlockSelector } from '$/schema/PolkadotBlock.ts'
 import { PolkadotExtrinsicSelector } from '$/schema/PolkadotExtrinsic.ts'
 
@@ -62,29 +62,25 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.Polkadot_JsonRpc, {
-			entityType: EntityType.PolkadotNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async ({ $network }) => {
-					assertPolkadotMainnet($network)
+				[NetworkSelector.Slug]: async (network) => {
+					assertPolkadotMainnet(network)
 					return {
-						$network: {
-							[EntityMetaKey.Selector]: $network,
-						},
-						rpcEndpoints: [...(await polkadotMainnetRpcEndpoints())],
+						polkadotRpcEndpoints: [...(await polkadotMainnetRpcEndpoints())],
 					}
 				}
 			},
 		})({
 			fields: {
-				$network: (network) => network.$network,
-				rpcEndpoints: (network) => network.rpcEndpoints,
+				polkadotRpcEndpoints: (network) => network.polkadotRpcEndpoints,
 			},
 		}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
-			entityType: EntityType.PolkadotNetwork_Timestamp,
+			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[PolkadotNetwork_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }) => {
+				[Network_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }) => {
 					assertPolkadotMainnet($network)
 					const {
 						getBlock,
@@ -186,10 +182,10 @@ export default {
 		}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
-			entityType: EntityType.PolkadotNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async ({ $network }) => {
-					assertPolkadotMainnet($network)
+				[NetworkSelector.Slug]: async (network) => {
+					assertPolkadotMainnet(network)
 					return [
 						{
 							...(await polkadotMainnetRpcEndpoints())[0],
@@ -199,19 +195,19 @@ export default {
 			},
 		})({
 			fields: {
-				rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
+				polkadotRpcEndpoints: (rpcEndpoints) => rpcEndpoints,
 			},
 		}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
-			entityType: EntityType.PolkadotNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async ({ $network }) => {
-					assertPolkadotMainnet($network)
+				[NetworkSelector.Slug]: async (network) => {
+					assertPolkadotMainnet(network)
 					return [
 						{
 							[EntityMetaKey.Selector]: {
-								$network: $network,
+								$network: network,
 								timestampMs: Date.now(),
 								source: Source.Polkadot_JsonRpc,
 							},
@@ -226,10 +222,10 @@ export default {
 		}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
-			entityType: EntityType.PolkadotNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[PolkadotNetworkSelector.Network]: async ({ $network }, context) => {
-					assertPolkadotMainnet($network)
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertPolkadotMainnet(network)
 					const {
 						getFinalizedHead,
 						getHeader,
@@ -247,7 +243,7 @@ export default {
 					),
 					}, (_value, blockOffset) => ({
 						[EntityMetaKey.Selector]: {
-							$network: $network,
+							$network: network,
 							blockNumber: finalizedBlockNumber - BigInt(blockOffset),
 							...(blockOffset === 0 && {
 								hash: finalizedBlockHash,
@@ -258,7 +254,7 @@ export default {
 			},
 		})({
 			fields: {
-				$$blocks: (blocks) => blocks,
+				$$polkadotBlocks: (blocks) => blocks,
 			},
 		}),
 

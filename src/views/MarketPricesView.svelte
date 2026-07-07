@@ -129,7 +129,7 @@
 					{@const marketPriceFields = { ...marketPrice[EntityMetaKey.Selector], ...marketPrice }}
 					{@const marketPriceHrefFields = { ...marketPrice, ...marketPrice[EntityMetaKey.Selector] }}
 					<MarketPriceView
-						selection={select(EntityType.MarketPrice, marketPrice[EntityMetaKey.Selector])}
+						selection={select(EntityType.MarketPrice, marketPrice[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={marketPriceFields}
 						href={
 							resolve('/(assets)/venue/[marketVenue=marketVenueId]/market/[baseKind]/[base]/[quoteKind]/[quote]/[marketKind]', {

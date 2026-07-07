@@ -114,7 +114,7 @@
 				{#snippet Item({ item: magnetLink }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MagnetLink> })}
 					{@const magnetLinkFields = { ...magnetLink[EntityMetaKey.Selector], ...magnetLink }}
 					<MagnetLinkView
-						selection={select(EntityType.MagnetLink, magnetLink[EntityMetaKey.Selector])}
+						selection={select(EntityType.MagnetLink, magnetLink[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={magnetLinkFields}
 						layout={EntityLayout.Summary}
 						open={false}

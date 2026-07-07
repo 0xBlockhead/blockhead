@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarLedger }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarLedger> })}
 					{@const stellarLedgerFields = { ...stellarLedger[EntityMetaKey.Selector], ...stellarLedger }}
 					<StellarLedgerView
-						selection={select(EntityType.StellarLedger, stellarLedger[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarLedger, stellarLedger[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarLedgerFields}
 						layout={EntityLayout.Summary}
 						open={false}

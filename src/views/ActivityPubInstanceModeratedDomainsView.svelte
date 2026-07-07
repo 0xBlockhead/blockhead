@@ -116,7 +116,7 @@
 				{#snippet Item({ item: activityPubInstanceModeratedDomain }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ActivityPubInstanceModeratedDomain> })}
 					{@const activityPubInstanceModeratedDomainFields = { ...activityPubInstanceModeratedDomain[EntityMetaKey.Selector], ...activityPubInstanceModeratedDomain }}
 					<ActivityPubInstanceModeratedDomainView
-						selection={select(EntityType.ActivityPubInstanceModeratedDomain, activityPubInstanceModeratedDomain[EntityMetaKey.Selector])}
+						selection={select(EntityType.ActivityPubInstanceModeratedDomain, activityPubInstanceModeratedDomain[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={activityPubInstanceModeratedDomainFields}
 						layout={EntityLayout.Summary}
 						open={false}

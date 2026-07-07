@@ -113,7 +113,7 @@
 				{#snippet Item({ item: swarmProtocol }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SwarmProtocol> })}
 					{@const swarmProtocolFields = { ...swarmProtocol[EntityMetaKey.Selector], ...swarmProtocol }}
 					<SwarmProtocolView
-						selection={select(EntityType.SwarmProtocol, swarmProtocol[EntityMetaKey.Selector])}
+						selection={select(EntityType.SwarmProtocol, swarmProtocol[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={swarmProtocolFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -112,7 +112,7 @@
 				{#snippet Item({ item: rssNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RssNetwork> })}
 					{@const rssNetworkFields = { ...rssNetwork[EntityMetaKey.Selector], ...rssNetwork }}
 					<RssNetworkView
-						selection={select(EntityType.RssNetwork, rssNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.RssNetwork, rssNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={rssNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

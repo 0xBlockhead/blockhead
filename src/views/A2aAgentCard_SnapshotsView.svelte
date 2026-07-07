@@ -115,7 +115,7 @@
 				{#snippet Item({ item: a2aAgentCardSnapshot }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aAgentCard_Snapshot> })}
 					{@const a2aAgentCardSnapshotFields = { ...a2aAgentCardSnapshot[EntityMetaKey.Selector], ...a2aAgentCardSnapshot }}
 					<A2aAgentCard_SnapshotView
-						selection={select(EntityType.A2aAgentCard_Snapshot, a2aAgentCardSnapshot[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aAgentCard_Snapshot, a2aAgentCardSnapshot[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aAgentCardSnapshotFields}
 						layout={EntityLayout.Summary}
 						open={false}

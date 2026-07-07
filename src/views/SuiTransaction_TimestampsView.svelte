@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiTransactionTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiTransaction_Timestamp> })}
 					{@const suiTransactionTimestampFields = { ...suiTransactionTimestamp[EntityMetaKey.Selector], ...suiTransactionTimestamp }}
 					<SuiTransaction_TimestampView
-						selection={select(EntityType.SuiTransaction_Timestamp, suiTransactionTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiTransaction_Timestamp, suiTransactionTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiTransactionTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

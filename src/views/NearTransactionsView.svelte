@@ -120,7 +120,7 @@
 				{#snippet Item({ item: nearTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearTransaction> })}
 					{@const nearTransactionFields = { ...nearTransaction[EntityMetaKey.Selector], ...nearTransaction }}
 					<NearTransactionView
-						selection={select(EntityType.NearTransaction, nearTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearTransaction, nearTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

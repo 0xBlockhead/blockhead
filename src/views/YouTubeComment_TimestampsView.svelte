@@ -115,7 +115,7 @@
 					{@const youtubeCommentTimestampFields = { ...youtubeCommentTimestamp[EntityMetaKey.Selector], ...youtubeCommentTimestamp }}
 					{@const youtubeCommentTimestampHrefFields = { ...youtubeCommentTimestamp, ...youtubeCommentTimestamp[EntityMetaKey.Selector] }}
 					<YoutubeComment_TimestampView
-						selection={select(EntityType.YoutubeComment_Timestamp, youtubeCommentTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.YoutubeComment_Timestamp, youtubeCommentTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubeCommentTimestampFields}
 						href={
 							(youtubeCommentTimestampHrefFields.$comment !== undefined && youtubeCommentTimestampHrefFields.$comment.videoId !== undefined && youtubeCommentTimestampHrefFields.$comment !== undefined && youtubeCommentTimestampHrefFields.$comment.commentId !== undefined && youtubeCommentTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]', {

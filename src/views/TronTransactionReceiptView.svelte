@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -82,7 +83,7 @@
 				<dt>Transaction</dt>
 				<dd>
 					<TronTransactionView
-						selection={select(EntityType.TronTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.TronTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -586,7 +587,7 @@
 						{#snippet Pending()}
 							{@const contractResultHex = prefetched.contractResultHex}
 							{#if contractResultHex !== undefined && contractResultHex !== null}
-								{(contractResultHex?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{contractResultHex.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -594,7 +595,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const contractResultHex = resolvedEntity.contractResultHex}
 							{#if contractResultHex !== undefined && contractResultHex !== null}
-								{(contractResultHex?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{contractResultHex.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

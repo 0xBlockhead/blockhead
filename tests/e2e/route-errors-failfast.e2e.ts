@@ -8,6 +8,7 @@
  * E2E_PATH_PATTERN='^/network/eip155:1(/|$)' pnpm run test:e2e:failfast
  * E2E_PATH_SHARD_TOTAL=4 E2E_PATH_SHARD_INDEX=0 pnpm run test:e2e:failfast
  * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/route-errors-failfast.e2e.ts -g probe
+ * E2E_PROBE_PATH=/network/cosmos:cosmoshub-4/cosmos E2E_MAIN_MS=240000 E2E_TEST_MS=300000 pnpm exec playwright test tests/e2e/route-errors-failfast.e2e.ts -g probe
  * E2E_START_PATH=/coins pnpm run test:e2e:failfast
  * ```
  */
@@ -15,6 +16,8 @@ import { expect, test } from '@playwright/test'
 
 import {
 	assertMainSettled,
+	assertNoGeneratedRouteArtifacts,
+	e2eBrowserNewContextOptions,
 	expectMainVisible,
 	installChainlistRpcsJsonStub,
 } from '../_e2eBrowserHelpers.ts'
@@ -72,6 +75,7 @@ const visitRouteFailFast = async (
 			timeout: routeViewSmokeTimeoutsMs.mainSelector,
 		}))
 		await step(assertMainSettled(page, routeViewSmokeTimeoutsMs.mainSelector, diagnostics))
+		await step(assertNoGeneratedRouteArtifacts(page, pathname))
 	}
 	catch (e) {
 		await flushArtifacts(testInfo)
@@ -89,6 +93,7 @@ const installRouteProbeDatabase = async (
 ) => {
 	await page.addInitScript(({ name, schemaVersion }) => {
 		window.__blockheadWaSqliteDatabaseNameOverride = name
+		window.__blockheadWaSqliteVfsNameOverride = name.replace(/[^a-zA-Z0-9_-]/g, '_')
 		window.__blockheadPersistedCollectionSchemaVersionOverride = schemaVersion
 	}, {
 		name: databaseName,
@@ -99,16 +104,22 @@ const installRouteProbeDatabase = async (
 test.describe('route errors fail-fast (every +page, stop on first)', () => {
 	test.describe.configure({ mode: 'serial' })
 
-	test('probe route', async ({ page }, testInfo) => {
+	test('probe route', async ({ browser }, testInfo) => {
 		test.skip(probePath == null || probePath === '', 'set E2E_PROBE_PATH')
 		testInfo.setTimeout(routeViewSmokeTimeoutsMs.test)
+		const context = await browser.newContext(e2eBrowserNewContextOptions())
+		const page = await context.newPage()
 		page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
-		await installRouteProbeDatabase(
-			page,
-			`blockhead-route-errors-probe-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${Date.now()}.sqlite`
-		)
-		await installChainlistRpcsJsonStub(page)
-		await visitRouteFailFast(page, testInfo, probePath!)
+		try {
+			await installRouteProbeDatabase(
+				page,
+				`blockhead-route-errors-probe-${testInfo.workerIndex}-${testInfo.retry}-${testInfo.repeatEachIndex}-${Date.now()}.sqlite`
+			)
+			await installChainlistRpcsJsonStub(page)
+			await visitRouteFailFast(page, testInfo, probePath!)
+		} finally {
+			await context.close()
+		}
 	})
 
 	test('every +page URL until first failure', async ({ browser }, testInfo) => {
@@ -127,7 +138,8 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 		for (const [index, pathname] of pageUrls.entries()) {
 			console.log(`[route-errors-failfast] ${index + 1}/${pageUrls.length} ${pathname}`)
 			await test.step(pathname, async () => {
-				const page = await browser.newPage()
+				const context = await browser.newContext(e2eBrowserNewContextOptions())
+				const page = await context.newPage()
 				try {
 					page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
 					await installRouteProbeDatabase(
@@ -142,7 +154,7 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 						visitRouteFailFast(page, testInfo, pathname)
 					)
 				} finally {
-					await page.close()
+					await context.close()
 				}
 			})
 		}

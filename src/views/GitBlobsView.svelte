@@ -113,7 +113,7 @@
 				{#snippet Item({ item: gitBlob }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitBlob> })}
 					{@const gitBlobFields = { ...gitBlob[EntityMetaKey.Selector], ...gitBlob }}
 					<GitBlobView
-						selection={select(EntityType.GitBlob, gitBlob[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitBlob, gitBlob[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitBlobFields}
 						layout={EntityLayout.Summary}
 						open={false}

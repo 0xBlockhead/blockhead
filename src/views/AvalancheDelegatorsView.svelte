@@ -114,7 +114,7 @@
 				{#snippet Item({ item: avalancheDelegator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalancheDelegator> })}
 					{@const avalancheDelegatorFields = { ...avalancheDelegator[EntityMetaKey.Selector], ...avalancheDelegator }}
 					<AvalancheDelegatorView
-						selection={select(EntityType.AvalancheDelegator, avalancheDelegator[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalancheDelegator, avalancheDelegator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalancheDelegatorFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -81,7 +81,7 @@
 				<dt>baker</dt>
 				<dd>
 					<TezosBakerView
-						selection={select(EntityType.TezosBaker, selection.entitySelector.$baker)}
+						selection={select(EntityType.TezosBaker, selection.entitySelector.$baker, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

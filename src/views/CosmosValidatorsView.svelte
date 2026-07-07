@@ -116,7 +116,7 @@
 					{@const cosmosValidatorFields = { ...cosmosValidator[EntityMetaKey.Selector], ...cosmosValidator }}
 					{@const cosmosValidatorHrefFields = { ...cosmosValidator, ...cosmosValidator[EntityMetaKey.Selector] }}
 					<CosmosValidatorView
-						selection={select(EntityType.CosmosValidator, cosmosValidator[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosValidator, cosmosValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosValidatorFields}
 						href={
 							(cosmosValidatorHrefFields.$network !== undefined && cosmosValidatorHrefFields.$network.caip2 !== undefined && cosmosValidatorHrefFields.$network.caip2.namespace !== undefined && cosmosValidatorHrefFields.$network !== undefined && cosmosValidatorHrefFields.$network.caip2 !== undefined && cosmosValidatorHrefFields.$network.caip2.reference !== undefined && cosmosValidatorHrefFields.operatorAddress !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]', {

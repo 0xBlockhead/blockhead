@@ -106,7 +106,7 @@
 				{#snippet Item({ item: swapQuoteTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SwapQuote_Timestamp> })}
 					{@const swapQuoteTimestampFields = { ...swapQuoteTimestamp[EntityMetaKey.Selector], ...swapQuoteTimestamp }}
 					<SwapQuote_TimestampView
-						selection={select(EntityType.SwapQuote_Timestamp, swapQuoteTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SwapQuote_Timestamp, swapQuoteTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={swapQuoteTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

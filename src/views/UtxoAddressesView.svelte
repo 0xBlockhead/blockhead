@@ -116,7 +116,7 @@
 					{@const utxoAddressFields = { ...utxoAddress[EntityMetaKey.Selector], ...utxoAddress }}
 					{@const utxoAddressHrefFields = { ...utxoAddress, ...utxoAddress[EntityMetaKey.Selector] }}
 					<UtxoAddressView
-						selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector])}
+						selection={select(EntityType.UtxoAddress, utxoAddress[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoAddressFields}
 						href={
 							(utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined && utxoAddressHrefFields.$network.caip2.namespace !== undefined && utxoAddressHrefFields.$network !== undefined && utxoAddressHrefFields.$network.caip2 !== undefined && utxoAddressHrefFields.$network.caip2.reference !== undefined && utxoAddressHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {

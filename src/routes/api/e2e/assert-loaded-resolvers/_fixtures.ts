@@ -1,12 +1,14 @@
 import { stringify } from 'devalue'
 
 import { CoinId } from '$/constants/Coin.ts'
-import { ConsensusMechanismId } from '$/constants/ConsensusMechanism.ts'
 import { currencyCatalogSnapshotTimestampMs, Iso4217 } from '$/constants/Currency.ts'
-import { ExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
 import { seededCoinSpotUsdMarketByCoinId } from '$/constants/MarketCatalog.ts'
 import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit, type MarketIdLabelInput } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
+import {
+	Caip2Namespace,
+	Caip2Reference,
+} from '$/constants/Network.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 import {
@@ -156,13 +158,9 @@ const mainnet = {
 
 const bitcoin = {
 	caip2: {
-		namespace: 'bip122',
-		reference: '000000000019d6689c085ae165831e93',
+		namespace: Caip2Namespace.Bip122,
+		reference: Caip2Reference.Bitcoin,
 	},
-} as const
-
-const bitcoinUtxo = {
-	$network: bitcoin,
 } as const
 
 const lightningNetwork = {
@@ -194,8 +192,8 @@ const payjoinProbeDirectory = {
 
 const zcash = {
 	caip2: {
-		namespace: 'bip122',
-		reference: '00040fe8ec8471911baa1db1266ea15',
+		namespace: Caip2Namespace.Bip122,
+		reference: Caip2Reference.Zcash,
 	},
 } as const
 
@@ -205,8 +203,8 @@ const zcashUtxo = {
 
 const filecoin = {
 	caip2: {
-		namespace: 'fil',
-		reference: 'f',
+		namespace: Caip2Namespace.Fil,
+		reference: Caip2Reference.Filecoin,
 	},
 } as const
 
@@ -216,31 +214,23 @@ const filecoinNetwork = {
 
 const solana = {
 	caip2: {
-		namespace: 'solana',
-		reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+		namespace: Caip2Namespace.Solana,
+		reference: Caip2Reference.SolanaMainnet,
 	},
 } as const
 
 const cosmos = {
 	caip2: {
-		namespace: 'cosmos',
-		reference: 'cosmoshub-4',
+		namespace: Caip2Namespace.Cosmos,
+		reference: Caip2Reference.CosmosHub,
 	},
-} as const
-
-const cosmosNetwork = {
-	$network: cosmos,
 } as const
 
 const polkadot = {
 	caip2: {
-		namespace: 'polkadot',
-		reference: '91b171bb158e2d3848fa23a9f1c25182',
+		namespace: Caip2Namespace.Polkadot,
+		reference: Caip2Reference.Polkadot,
 	},
-} as const
-
-const polkadotNetwork = {
-	$network: polkadot,
 } as const
 
 const hyperliquidNetwork = {
@@ -289,8 +279,8 @@ const tron = {
 
 const monero = {
 	caip2: {
-		namespace: 'monero',
-		reference: '418015bb9ae982a1975da7d79277c270',
+		namespace: Caip2Namespace.Monero,
+		reference: Caip2Reference.Monero,
 	},
 } as const
 
@@ -300,8 +290,8 @@ const moneroNetwork = {
 
 const litecoin = {
 	caip2: {
-		namespace: 'bip122',
-		reference: '12a765e31ffd4059bada1e25190f6e98',
+		namespace: Caip2Namespace.Bip122,
+		reference: Caip2Reference.Litecoin,
 	},
 } as const
 
@@ -311,8 +301,8 @@ const litecoinUtxo = {
 
 const dogecoin = {
 	caip2: {
-		namespace: 'bip122',
-		reference: '1a91e3dace36e2be3bf030a65679fe82',
+		namespace: Caip2Namespace.Bip122,
+		reference: Caip2Reference.Dogecoin,
 	},
 } as const
 
@@ -322,8 +312,8 @@ const dogecoinUtxo = {
 
 const bitcoinCash = {
 	caip2: {
-		namespace: 'bip122',
-		reference: '000000000000000000651ef99cb9fcbe',
+		namespace: Caip2Namespace.Bip122,
+		reference: Caip2Reference.BitcoinCash,
 	},
 } as const
 
@@ -442,12 +432,12 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	},
 	[EntityType.BeaconValidator]: {
 		$network: mainnet,
-		validatorIndex: 0,
+		indexInNetwork: 0,
 	},
 	[EntityType.BeaconCommittee]: {
 		$network: mainnet,
 		slot: 9_500_000,
-		index: 0,
+		indexInSlot: 0,
 	},
 	[EntityType.BeaconSyncCommittee]: {
 		$network: mainnet,
@@ -456,24 +446,25 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.BeaconAttestation]: {
 		$network: mainnet,
 		slot: 9_500_000,
-		index: 0,
+		indexInSlot: 0,
 	},
 	[EntityType.BeaconWithdrawal]: {
 		$network: mainnet,
 		slot: 9_500_000,
-		index: 0,
+		indexInSlot: 0,
 	},
 	[EntityType.BeaconSlashing]: {
 		$network: mainnet,
 		slot: 9_500_000,
 		kind: 'attester',
-		index: 0,
+		indexInSlot: 0,
 	},
 
 	[EntityType.BittensorNetwork]: bittensor,
 	[EntityType.BittensorNetwork_Timestamp]: {
 		$network: bittensorNetwork,
 		timestampMs: 0,
+		source: Source.Constants_Internal,
 	},
 	[EntityType.BittensorBlock]: {
 		$network: bittensorNetwork,
@@ -490,6 +481,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			netuid: 1,
 		},
 		timestampMs: 0,
+		source: Source.Bittensor_JsonRpc,
 	},
 	[EntityType.BittensorNeuron]: {
 		$subnet: {
@@ -512,9 +504,22 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.BlockheadRoomPeer]: { id: 'e2e-probe-room-peer' },
 	[EntityType.BlockheadSharedAddress]: { id: 'e2e-probe-shared-address' },
 	[EntityType.BlockheadStateChannel]: { id: 'e2e-probe-state-channel' },
-	[EntityType.BlockheadStateChannelDeposit]: { id: 'e2e-probe-state-channel-deposit-0' },
-	[EntityType.BlockheadStateChannelState]: { id: 'e2e-probe-state-channel-state-1' },
-	[EntityType.BlockheadStateChannelTransfer]: { id: 'e2e-probe-state-channel-transfer-1' },
+	[EntityType.BlockheadStateChannelDeposit]: {
+		$channel: { id: 'e2e-probe-state-channel' },
+		$account: actorMainnetVitalik,
+	},
+	[EntityType.BlockheadStateChannelState]: {
+		$channel: { id: 'e2e-probe-state-channel' },
+		version: 1,
+		stateData: 'e2e-probe-state-channel-state-1',
+	},
+	[EntityType.BlockheadStateChannelTransfer]: {
+		$channel: { id: 'e2e-probe-state-channel' },
+		turnNum: 1,
+		$from: actorMainnetVitalik,
+		$to: actorMainnetVitalik,
+		amount: 1n,
+	},
 	[EntityType.BlockheadAgentConversation]: { id: 'e2e-probe-agent-conversation' },
 	[EntityType.BlockheadAgentConversationTurn]: { id: 'e2e-probe-agent-conversation-turn' },
 
@@ -554,7 +559,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 
 	[EntityType.BridgeRouteStep]: {
 		$route: bridgeRouteEthMainnetToOptimism,
-		index: 0,
+		indexInRoute: 0,
 	},
 
 	[EntityType.EnsName]: { name: 'vitalik.eth' },
@@ -564,9 +569,11 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType._GlobalEnsNetwork]: { scope: '_GlobalEnsNetwork' },
 
 	[EntityType.EvmBlob]: {
-		$network: mainnet,
-		txHash: SAMPLE_BLOB_TX_HASH,
-		blobIndex: 0,
+		$transaction: {
+			$network: mainnet,
+			txHash: SAMPLE_BLOB_TX_HASH,
+		},
+		indexInTransaction: 0,
 	},
 	[EntityType.EvmBlock]: {
 		$network: mainnet,
@@ -614,9 +621,11 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.EvmError]: { hex: ERROR_SELECTOR },
 	[EntityType.EvmProtocol]: { scope: 'EvmProtocol' },
 	[EntityType.EvmLog]: {
-		$network: mainnet,
-		txHash: SAMPLE_TX_HASH,
-		logIndex: 0,
+		$transaction: {
+			$network: mainnet,
+			txHash: SAMPLE_TX_HASH,
+		},
+		indexInTransaction: 0,
 	},
 	[EntityType.EvmSelector]: { hex: TRANSFER_SELECTOR },
 	[EntityType.EvmTopic]: {
@@ -627,15 +636,21 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		txHash: SAMPLE_TOKEN_TRANSFER_TX,
 	},
 	[EntityType.EvmTokenTransfer]: {
-		$network: mainnet,
-		txHash: SAMPLE_TOKEN_TRANSFER_TX,
-		logIndex: 0,
-		transferIndex: 0,
+		$log: {
+			$transaction: {
+				$network: mainnet,
+				txHash: SAMPLE_TOKEN_TRANSFER_TX,
+			},
+			indexInTransaction: 0,
+		},
+		indexInLog: 0,
 	},
 	[EntityType.EvmInternalTransfer]: {
-		$network: mainnet,
-		txHash: SAMPLE_TOKEN_TRANSFER_TX,
-		internalIndex: 0,
+		$transaction: {
+			$network: mainnet,
+			txHash: SAMPLE_TOKEN_TRANSFER_TX,
+		},
+		indexInTransaction: 0,
 	},
 	[EntityType.EvmUserOperation]: {
 		$network: mainnet,
@@ -774,10 +789,12 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.EvmNetwork_GasEstimate_Timestamp]: {
 		$network: mainnet,
 		timestampMs: 0,
+		source: Source.Constants_Internal,
 	},
 	[EntityType.EvmNetwork_Txpool_Timestamp]: {
 		$network: mainnet,
 		timestampMs: 0,
+		source: Source.Constants_Internal,
 	},
 	[EntityType.EthereumBeaconFinality_Timestamp]: {
 		$network: mainnet,
@@ -808,13 +825,6 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.NetworkStack]: {
 		networkStackId: NetworkStackId.Ethereum,
 	},
-	[EntityType.ConsensusMechanism]: {
-		consensusMechanismId: ConsensusMechanismId.EthereumBeaconProofOfStake,
-	},
-	[EntityType.ExecutionEnvironment]: {
-		executionEnvironmentId: ExecutionEnvironmentId.Evm,
-	},
-
 	[EntityType.Network]: bitcoin,
 	[EntityType.AssetInstance]: {
 		$network: bitcoin,
@@ -824,11 +834,6 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.NetworkUpgrade]: {
 		$network: bitcoin,
 		upgradeId: 'taproot',
-	},
-	[EntityType.UtxoNetwork]: bitcoinUtxo,
-	[EntityType.UtxoNetwork_Timestamp]: {
-		$network: bitcoin,
-		timestampMs: 0,
 	},
 	[EntityType.UtxoAddress]: {
 		$network: bitcoin,
@@ -848,14 +853,14 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			$network: bitcoin,
 			txId: 'e2e-probe-utxo-transaction',
 		},
-		inputIndex: 0,
+		indexInTransaction: 0,
 	},
 	[EntityType.UtxoOutput]: {
 		$transaction: {
 			$network: bitcoin,
 			txId: 'e2e-probe-utxo-transaction',
 		},
-		outputIndex: 0,
+		indexInTransaction: 0,
 	},
 	[EntityType.ZcashShieldedPool]: {
 		$network: zcash,
@@ -868,12 +873,13 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		},
 		pool: ZcashShieldedPoolKind.Orchard,
 		actionKind: ZcashShieldedActionKind.Action,
-		actionIndex: 0,
+		indexInTransaction: 0,
 	},
 	[EntityType.FilecoinNetwork]: filecoinNetwork,
 	[EntityType.FilecoinNetwork_Timestamp]: {
 		$network: filecoin,
 		timestampMs: 1_700_000_000_000,
+		source: Source.Filfox_Rest,
 	},
 	[EntityType.FilecoinTipset]: {
 		$network: filecoin,
@@ -903,10 +909,10 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		},
 		sectorNumber: 1n,
 	},
-	[EntityType.SolanaNetwork]: solana,
-	[EntityType.SolanaNetwork_Timestamp]: {
+	[EntityType.Network_Timestamp]: {
 		$network: solana,
 		timestampMs: 1_700_000_000_000,
+		source: Source.Solana_JsonRpc,
 	},
 	[EntityType.SolanaBlock]: {
 		$network: solana,
@@ -922,7 +928,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			signature: 'e2eProbeSolanaSignature1111111111111111111111111111111',
 		},
 		instructionKind: SolanaInstructionKind.Instruction,
-		instructionIndex: 0,
+		indexInTransaction: 0,
 	},
 	[EntityType.SolanaAccount]: {
 		$network: solana,
@@ -944,6 +950,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.TronNetwork_Timestamp]: {
 		$network: tronNetwork,
 		timestampMs: 1_700_000_000_000,
+		source: Source.TronGrid_Rest,
 	},
 	[EntityType.TronBlock]: {
 		$network: tronNetwork,
@@ -975,11 +982,6 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		transactionId: 'e2e-probe-tron-transaction',
 		transferIndex: 0,
 	},
-	[EntityType.CosmosNetwork]: cosmosNetwork,
-	[EntityType.CosmosNetwork_Timestamp]: {
-		$network: cosmos,
-		timestampMs: 1_700_000_000_000,
-	},
 	[EntityType.CosmosBlock]: {
 		$network: cosmos,
 		height: 20_000_000n,
@@ -993,7 +995,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			$network: cosmos,
 			txHash: 'E2EPROBECOSMOSTRANSACTION',
 		},
-		messageIndex: 0,
+		indexInTransaction: 0,
 	},
 	[EntityType.CosmosAccount]: {
 		$network: cosmos,
@@ -1019,11 +1021,6 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		$network: cosmos,
 		proposalId: '1',
 	},
-	[EntityType.PolkadotNetwork]: polkadotNetwork,
-	[EntityType.PolkadotNetwork_Timestamp]: {
-		$network: polkadot,
-		timestampMs: 1_700_000_000_000,
-	},
 	[EntityType.PolkadotBlock]: {
 		$network: polkadot,
 		blockNumber: 20_000_000n,
@@ -1035,7 +1032,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			blockNumber: 20_000_000n,
 			hash: 'e2e-probe-polkadot-block-hash',
 		},
-		extrinsicIndex: 0,
+		indexInBlock: 0,
 	},
 	[EntityType.PolkadotEvent]: {
 		$block: {
@@ -1043,7 +1040,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			blockNumber: 20_000_000n,
 			hash: 'e2e-probe-polkadot-block-hash',
 		},
-		eventIndex: 0,
+		indexInBlock: 0,
 	},
 	[EntityType.PolkadotAccount]: {
 		$network: polkadot,
@@ -1104,8 +1101,12 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		accountAddress: 'e2e-probe-account',
 	},
 	[EntityType.BlockheadQuilibriumPendingTransaction]: {
-		$network: quilibriumNetwork,
-		transactionHash: 'e2e-probe-quilibrium-transaction',
+		$accountState: {
+			$network: quilibriumNetwork,
+			accountAddress: 'e2e-probe-account',
+			connectionId: 'e2e-probe-connection',
+		},
+		transactionAddress: 'e2e-probe-quilibrium-transaction',
 	},
 	[EntityType.NearNetwork]: near,
 	[EntityType.NearBlock]: {
@@ -1271,6 +1272,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 			$network: lightningNetwork,
 		},
 		timestampMs: 1_759_536_000_000,
+		source: Source.LightningMempoolSpace_Rest,
 	},
 	[EntityType.LightningNode]: {
 		$network: lightningNetwork,
@@ -1289,9 +1291,17 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		paymentHash: 'e2e-probe-lightning-payment',
 	},
 	[EntityType.BlockheadLightningHtlc]: {
-		$channel: {
-			$network: lightningNetwork,
-			channelId: 'e2e-probe-lightning-channel',
+		$channelState: {
+			$localNodeState: {
+				$network: {
+					$network: lightningNetwork,
+				},
+				connectionId: 'e2e-probe-lightning-connection',
+			},
+			$channel: {
+				$network: lightningNetwork,
+				channelId: 'e2e-probe-lightning-channel',
+			},
 		},
 		htlcIndex: 0,
 	},
@@ -1331,7 +1341,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 				$network: bitcoinCash,
 				txId: 'e2e-probe-bitcoin-cash-transaction',
 			},
-			outputIndex: 0,
+			indexInTransaction: 0,
 		},
 	},
 	[EntityType.BitcoinCashCashTokenNft]: {
@@ -1340,7 +1350,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 				$network: bitcoinCash,
 				txId: 'e2e-probe-bitcoin-cash-transaction',
 			},
-			outputIndex: 0,
+			indexInTransaction: 0,
 		},
 	},
 	[EntityType.BitcoinCashCashTokenCommitment]: {
@@ -1349,7 +1359,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 				$network: bitcoinCash,
 				txId: 'e2e-probe-bitcoin-cash-transaction',
 			},
-			outputIndex: 0,
+			indexInTransaction: 0,
 		},
 	},
 	[EntityType.BitcoinCashBcmrMetadata]: {
@@ -1361,6 +1371,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.ZeroGNetwork_Timestamp]: {
 		$network: zeroG,
 		timestampMs: 1_700_000_000_000,
+		source: Source.ZeroGChain_JsonRpc,
 	},
 	[EntityType.ZeroGConsensusNetwork]: {
 		$network: zeroGNetwork,
@@ -1464,17 +1475,20 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 	[EntityType.RedditComment_Timestamp]: {
 		$comment: { fullname: 't1_osbo75d' },
 		timestampMs: 1_700_000_000_000,
+		source: Source.Reddit_Rest,
 	},
 	[EntityType.RedditLink]: { fullname: 't3_1u8x2f8' },
 	[EntityType.RedditLink_Timestamp]: {
 		$link: { fullname: 't3_1u8x2f8' },
 		timestampMs: 1_700_000_000_000,
+		source: Source.Reddit_Rest,
 	},
 	[EntityType.RedditNetwork]: { scope: 'RedditNetwork' },
 	[EntityType.RedditSubreddit]: { name: 'ethereum' },
 	[EntityType.RedditSubreddit_Timestamp]: {
 		$subreddit: { name: 'ethereum' },
 		timestampMs: 1_700_000_000_000,
+		source: Source.Reddit_Rest,
 	},
 
 	[EntityType.RssNetwork]: { scope: 'RssNetwork' },
@@ -1505,20 +1519,20 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		timestampMs: 1_700_000_000_000,
 	},
 
-		[EntityType.YouTubeNetwork]: { scope: 'YouTubeNetwork' },
-		[EntityType.YouTubeChannel]: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
-		[EntityType.YouTubeChannel_Timestamp]: {
+		[EntityType.YoutubeNetwork]: { scope: 'YoutubeNetwork' },
+		[EntityType.YoutubeChannel]: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
+		[EntityType.YoutubeChannel_Timestamp]: {
 			$channel: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
 			timestampMs: 0,
 		},
-		[EntityType.YouTubeComment]: {
+		[EntityType.YoutubeComment]: {
 			videoId: YOUTUBE_PROBE_VIDEO_ID,
 			commentId: YOUTUBE_PROBE_COMMENT_ID,
 		},
-	[EntityType.YouTubePlaylist]: {
+	[EntityType.YoutubePlaylist]: {
 		playlistId: YOUTUBE_PROBE_PLAYLIST_ID,
 	},
-	[EntityType.YouTubeVideo]: { videoId: YOUTUBE_PROBE_VIDEO_ID },
+	[EntityType.YoutubeVideo]: { videoId: YOUTUBE_PROBE_VIDEO_ID },
 
 	[EntityType.ElementsNetwork]: liquid,
 	[EntityType.ElementsAsset]: {
@@ -1726,6 +1740,7 @@ export const resolveProbeEntitySelector = async (
 		return {
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: updatedAtMs,
+			source: Source.Blockscout_Rest,
 		}
 	}
 
@@ -1802,8 +1817,8 @@ export const parentEntitySelectorForResolverValuePart = (
 				entityType === EntityType.NostrNetwork ?
 				{ scope: 'NostrNetwork' }
 			:
-				entityType === EntityType.YouTubeNetwork ?
-				{ scope: 'YouTubeNetwork' }
+			entityType === EntityType.YoutubeNetwork ?
+				{ scope: 'YoutubeNetwork' }
 			:
 				entityType === EntityType.XNetwork ?
 				{ scope: 'XNetwork' }

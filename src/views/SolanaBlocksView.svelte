@@ -117,10 +117,10 @@
 					{@const solanaBlockFields = { ...solanaBlock[EntityMetaKey.Selector], ...solanaBlock }}
 					{@const solanaBlockHrefFields = { ...solanaBlock, ...solanaBlock[EntityMetaKey.Selector] }}
 					<SolanaBlockView
-						selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.SolanaBlock, solanaBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaBlockFields}
 						href={
-							(solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.caip2 !== undefined && solanaBlockHrefFields.$network.caip2.namespace !== undefined && solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.caip2 !== undefined && solanaBlockHrefFields.$network.caip2.reference !== undefined && solanaBlockHrefFields.slot !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/block/[slot]', {
+							(solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.caip2 !== undefined && solanaBlockHrefFields.$network.caip2.namespace !== undefined && solanaBlockHrefFields.$network !== undefined && solanaBlockHrefFields.$network.caip2 !== undefined && solanaBlockHrefFields.$network.caip2.reference !== undefined && solanaBlockHrefFields.slot !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/block/[slot]', {
 								networkSlug: String(networkByCaip2[String(String(solanaBlockHrefFields.$network.caip2.namespace) + ':' + String(solanaBlockHrefFields.$network.caip2.reference))].slug ?? ''),
 								slot: String(solanaBlockHrefFields.slot ?? ''),
 							}) : undefined)

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: blockheadAvalancheNodeStateTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAvalancheNodeState_Timestamp> })}
 					{@const blockheadAvalancheNodeStateTimestampFields = { ...blockheadAvalancheNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadAvalancheNodeStateTimestamp }}
 					<BlockheadAvalancheNodeState_TimestampView
-						selection={select(EntityType.BlockheadAvalancheNodeState_Timestamp, blockheadAvalancheNodeStateTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAvalancheNodeState_Timestamp, blockheadAvalancheNodeStateTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAvalancheNodeStateTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

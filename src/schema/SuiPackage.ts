@@ -36,14 +36,14 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$versions',
+			name: '$$versions',
 			label: 'versions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SuiPackageVersion,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$upgrades',
+			name: '$$upgrades',
 			label: 'upgrades',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.SuiPackageUpgrade,

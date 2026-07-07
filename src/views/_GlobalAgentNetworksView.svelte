@@ -106,7 +106,7 @@
 				{#snippet Item({ item: globalAgentNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalAgentNetwork> })}
 					{@const globalAgentNetworkFields = { ...globalAgentNetwork[EntityMetaKey.Selector], ...globalAgentNetwork }}
 					<GlobalAgentNetworkView
-						selection={select(EntityType._GlobalAgentNetwork, globalAgentNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalAgentNetwork, globalAgentNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalAgentNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

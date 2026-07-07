@@ -115,7 +115,7 @@
 				{#snippet Item({ item: bnbValidatorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BnbValidator_Timestamp> })}
 					{@const bnbValidatorTimestampFields = { ...bnbValidatorTimestamp[EntityMetaKey.Selector], ...bnbValidatorTimestamp }}
 					<BnbValidator_TimestampView
-						selection={select(EntityType.BnbValidator_Timestamp, bnbValidatorTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BnbValidator_Timestamp, bnbValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bnbValidatorTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

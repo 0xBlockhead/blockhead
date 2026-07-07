@@ -114,7 +114,7 @@
 				{#snippet Item({ item: ensReverseRecordTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsReverseRecord_Timestamp> })}
 					{@const ensReverseRecordTimestampFields = { ...ensReverseRecordTimestamp[EntityMetaKey.Selector], ...ensReverseRecordTimestamp }}
 					<EnsReverseRecord_TimestampView
-						selection={select(EntityType.EnsReverseRecord_Timestamp, ensReverseRecordTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EnsReverseRecord_Timestamp, ensReverseRecordTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ensReverseRecordTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

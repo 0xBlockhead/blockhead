@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM coin instance • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,41 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmCoinInstance, data.selector, {
+			select(EntityType.EvmCoinInstance, (
+			decodeURIComponent(params.coinInstanceSlug) === 'native' ?
+				{
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.chainId,
+						},
+					},
+					type: 'NativeCurrency',
+				}
+			:
+				{
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.chainId,
+						},
+					},
+					type: 'Erc20Token',
+					$contract: {
+						$network: {
+							caip2: {
+								namespace: 'eip155',
+								reference: params.chainId,
+							},
+						},
+						address: decodeURIComponent(params.coinInstanceSlug),
+					},
+				}
+			), {
+				sources: [
+					Source.Constants_Internal,
+					Source.Blockscout_Rest,
+				],
 				fields: {
 					symbol: true,
 					name: true,

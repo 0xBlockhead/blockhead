@@ -160,7 +160,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$customFees',
+			name: '$$customFees',
 			label: 'custom fees',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HederaTokenCustomFee,

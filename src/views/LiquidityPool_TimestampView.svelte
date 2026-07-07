@@ -133,7 +133,7 @@
 				<dt>Liquidity pool</dt>
 				<dd>
 					<LiquidityPoolView
-						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool)}
+						selection={select(EntityType.LiquidityPool, selection.entitySelector.$liquidityPool, {})}
 						href={
 							(selection.entitySelector.$liquidityPool.$network !== undefined && selection.entitySelector.$liquidityPool.$network.caip2 !== undefined && selection.entitySelector.$liquidityPool.$network.caip2.reference !== undefined && selection.entitySelector.$liquidityPool.id !== undefined ? resolve('/(assets)/pool/[chainId=eip155ChainId]/[poolId]', {
 								chainId: String(selection.entitySelector.$liquidityPool.$network.caip2.reference ?? ''),
@@ -884,7 +884,7 @@
 						{#snippet Pending()}
 							{@const dexscreenerLabels = prefetched.dexscreenerLabels}
 							{#if dexscreenerLabels !== undefined && dexscreenerLabels !== null}
-								{(dexscreenerLabels?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{dexscreenerLabels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -892,7 +892,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const dexscreenerLabels = resolvedEntity.dexscreenerLabels}
 							{#if dexscreenerLabels !== undefined && dexscreenerLabels !== null}
-								{(dexscreenerLabels?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{dexscreenerLabels.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

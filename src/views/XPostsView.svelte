@@ -114,7 +114,7 @@
 				{#snippet Item({ item: xPost }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XPost> })}
 					{@const xPostFields = { ...xPost[EntityMetaKey.Selector], ...xPost }}
 					<XPostView
-						selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector])}
+						selection={select(EntityType.XPost, xPost[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xPostFields}
 						layout={EntityLayout.Summary}
 						open={false}

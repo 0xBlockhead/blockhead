@@ -121,7 +121,7 @@
 				<dt>Post</dt>
 				<dd>
 					<LensPostView
-						selection={select(EntityType.LensPost, selection.entitySelector.$post)}
+						selection={select(EntityType.LensPost, selection.entitySelector.$post, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

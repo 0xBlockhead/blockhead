@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import BeaconCommitteeView from '$/views/BeaconCommitteeView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>beacon committee • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +34,13 @@
 			})
 		}
 		selection={
-			select(EntityType.BeaconCommittee, data.selector, {
+			select(EntityType.BeaconCommittee, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				slot: Number(params.slot),
+				indexInSlot: Number(params.index),
+			}, {
 				fields: {
 					validatorIndices: true,
 				},

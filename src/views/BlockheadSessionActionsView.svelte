@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadSessionAction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSessionAction> })}
 					{@const blockheadSessionActionFields = { ...blockheadSessionAction[EntityMetaKey.Selector], ...blockheadSessionAction }}
 					<BlockheadSessionActionView
-						selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadSessionAction, blockheadSessionAction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadSessionActionFields}
 						layout={EntityLayout.Summary}
 						open={false}

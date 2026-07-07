@@ -11,6 +11,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -44,6 +45,9 @@
 
 	const pendingEntity = $derived(({ ...prefetched[EntityMetaKey.Selector], ...selection.entitySelector, ...prefetched }))
 	const bitcoinCashCashTokenFungibleAmount = $derived(selection({
+		sources: [
+			Source.BitcoinCashNode_JsonRpc,
+		],
 		fields: {
 			amount: true,
 			$category: true,
@@ -119,19 +123,19 @@
 		<ResourceBoundary resource={bitcoinCashCashTokenFungibleAmount}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BitcoinCashCashTokenCategory, false>('$category')}
+					resource={
+						selection[EntityProxyField]<EntityType.BitcoinCashCashTokenCategory, false>('$category', {
+							sources: [
+								Source.BitcoinCashNode_JsonRpc,
+							],
+						})
+					}
 				>
 					{#snippet children(bitcoinCashCashTokenCategory)}
 						<span data-text="muted">
 							<BitcoinCashCashTokenCategoryView
 								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 								prefetched={bitcoinCashCashTokenCategory}
-								href={
-									(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-										networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
-										categoryId: String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId ?? ''),
-									}) : undefined)
-								}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
@@ -143,19 +147,19 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BitcoinCashCashTokenCategory, false>('$category')}
+					resource={
+						selection[EntityProxyField]<EntityType.BitcoinCashCashTokenCategory, false>('$category', {
+							sources: [
+								Source.BitcoinCashNode_JsonRpc,
+							],
+						})
+					}
 				>
 					{#snippet children(bitcoinCashCashTokenCategory)}
 						<span data-text="muted">
 							<BitcoinCashCashTokenCategoryView
 								selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 								prefetched={bitcoinCashCashTokenCategory}
-								href={
-									(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-										networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
-										categoryId: String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId ?? ''),
-									}) : undefined)
-								}
 								layout={EntityLayout.Title}
 								open={false}
 							/>
@@ -174,6 +178,9 @@
 					<ResourceBoundary
 						resource={
 							selection({
+								sources: [
+									Source.BitcoinCashNode_JsonRpc,
+								],
 								fields: {
 									amount: true,
 								},
@@ -202,19 +209,19 @@
 				<dt>Category</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.BitcoinCashCashTokenCategory, false>('$category')}
+						resource={
+							selection[EntityProxyField]<EntityType.BitcoinCashCashTokenCategory, false>('$category', {
+								sources: [
+									Source.BitcoinCashNode_JsonRpc,
+								],
+							})
+						}
 					>
 						{#snippet children(bitcoinCashCashTokenCategory)}
 							{#if bitcoinCashCashTokenCategory[EntityMetaKey.Selector] != null}
 								<BitcoinCashCashTokenCategoryView
 									selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
 									prefetched={bitcoinCashCashTokenCategory}
-									href={
-										(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2 !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference !== undefined && bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-											networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].$network.caip2.reference))].slug ?? ''),
-											categoryId: String(bitcoinCashCashTokenCategory[EntityMetaKey.Selector].categoryId ?? ''),
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -228,7 +235,7 @@
 				<dt>Output</dt>
 				<dd>
 					<UtxoOutputView
-						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output)}
+						selection={select(EntityType.UtxoOutput, selection.entitySelector.$output, {})}
 						href={
 							(selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.$network !== undefined && selection.entitySelector.$output.$transaction.$network.caip2 !== undefined && selection.entitySelector.$output.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$output.$transaction !== undefined && selection.entitySelector.$output.$transaction.txId !== undefined && selection.entitySelector.$output.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$output.$transaction.$network.caip2.namespace) + ':' + String(selection.entitySelector.$output.$transaction.$network.caip2.reference))].slug ?? ''),

@@ -63,7 +63,14 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					$network: true,
+					$$timestamps: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -104,9 +111,9 @@
 				{/snippet}
 
 				{#snippet Item({ item: suiNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiNetwork> })}
-					{@const suiNetworkFields = { ...suiNetwork[EntityMetaKey.Selector], ...suiNetwork }}
+					{@const suiNetworkFields = { ...suiNetwork[EntityMetaKey.Selector], ...suiNetwork, $$timestamps: suiNetwork.$$timestamps }}
 					<SuiNetworkView
-						selection={select(EntityType.SuiNetwork, suiNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiNetwork, suiNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

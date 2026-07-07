@@ -113,7 +113,7 @@
 				{#snippet Item({ item: fedimintGateway }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FedimintGateway> })}
 					{@const fedimintGatewayFields = { ...fedimintGateway[EntityMetaKey.Selector], ...fedimintGateway }}
 					<FedimintGatewayView
-						selection={select(EntityType.FedimintGateway, fedimintGateway[EntityMetaKey.Selector])}
+						selection={select(EntityType.FedimintGateway, fedimintGateway[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={fedimintGatewayFields}
 						layout={EntityLayout.Summary}
 						open={false}

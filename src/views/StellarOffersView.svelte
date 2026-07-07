@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarOffer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarOffer> })}
 					{@const stellarOfferFields = { ...stellarOffer[EntityMetaKey.Selector], ...stellarOffer }}
 					<StellarOfferView
-						selection={select(EntityType.StellarOffer, stellarOffer[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarOffer, stellarOffer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarOfferFields}
 						layout={EntityLayout.Summary}
 						open={false}

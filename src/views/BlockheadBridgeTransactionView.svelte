@@ -165,7 +165,7 @@
 				<dt>Account</dt>
 				<dd>
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$account, {})}
 						href={
 							(selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$account.address ?? ''),
@@ -181,7 +181,7 @@
 				<dt>Source transaction</dt>
 				<dd>
 					<EvmTransactionView
-						selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx)}
+						selection={select(EntityType.EvmTransaction, selection.entitySelector.$sourceTx, {})}
 						href={
 							(selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined && selection.entitySelector.$sourceTx.$network.caip2.namespace !== undefined && selection.entitySelector.$sourceTx.$network !== undefined && selection.entitySelector.$sourceTx.$network.caip2 !== undefined && selection.entitySelector.$sourceTx.$network.caip2.reference !== undefined && selection.entitySelector.$sourceTx.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]', {
 								caip2: `${String(selection.entitySelector.$sourceTx.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$sourceTx.$network.caip2.reference ?? '')}`,

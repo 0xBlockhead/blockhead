@@ -82,7 +82,7 @@
 				<dt>ledger</dt>
 				<dd>
 					<IcpLedgerCanisterView
-						selection={select(EntityType.IcpLedgerCanister, selection.entitySelector.$ledger)}
+						selection={select(EntityType.IcpLedgerCanister, selection.entitySelector.$ledger, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoStakePoolTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoStakePool_Timestamp> })}
 					{@const cardanoStakePoolTimestampFields = { ...cardanoStakePoolTimestamp[EntityMetaKey.Selector], ...cardanoStakePoolTimestamp }}
 					<CardanoStakePool_TimestampView
-						selection={select(EntityType.CardanoStakePool_Timestamp, cardanoStakePoolTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoStakePool_Timestamp, cardanoStakePoolTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoStakePoolTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

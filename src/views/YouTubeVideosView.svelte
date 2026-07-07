@@ -120,7 +120,7 @@
 					{@const youtubeVideoFields = { ...youtubeVideo[EntityMetaKey.Selector], ...youtubeVideo }}
 					{@const youtubeVideoHrefFields = { ...youtubeVideo, ...youtubeVideo[EntityMetaKey.Selector] }}
 					<YoutubeVideoView
-						selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector])}
+						selection={select(EntityType.YoutubeVideo, youtubeVideo[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={youtubeVideoFields}
 						href={
 							(youtubeVideoHrefFields.videoId !== undefined ? resolve('/(social)/(youtube)/youtube/video/[videoId]', {

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Nostr repost • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<NostrRepostView
 		href={
@@ -37,7 +32,13 @@
 			})
 		}
 		selection={
-			select(EntityType.NostrRepost, data.selector, {
+			select(EntityType.NostrRepost, {
+				eventId: decodeURIComponent(params.eventId),
+			}, {
+				sources: [
+					Source.Primal_Rest,
+					Source.NostrBand_Rest,
+				],
 				fields: {
 					repostedEventId: true,
 					createdAt: true,

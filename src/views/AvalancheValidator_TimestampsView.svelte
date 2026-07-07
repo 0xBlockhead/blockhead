@@ -115,7 +115,7 @@
 				{#snippet Item({ item: avalancheValidatorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalancheValidator_Timestamp> })}
 					{@const avalancheValidatorTimestampFields = { ...avalancheValidatorTimestamp[EntityMetaKey.Selector], ...avalancheValidatorTimestamp }}
 					<AvalancheValidator_TimestampView
-						selection={select(EntityType.AvalancheValidator_Timestamp, avalancheValidatorTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalancheValidator_Timestamp, avalancheValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalancheValidatorTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

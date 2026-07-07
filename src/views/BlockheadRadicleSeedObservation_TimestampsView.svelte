@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadRadicleSeedObservationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadRadicleSeedObservation_Timestamp> })}
 					{@const blockheadRadicleSeedObservationTimestampFields = { ...blockheadRadicleSeedObservationTimestamp[EntityMetaKey.Selector], ...blockheadRadicleSeedObservationTimestamp }}
 					<BlockheadRadicleSeedObservation_TimestampView
-						selection={select(EntityType.BlockheadRadicleSeedObservation_Timestamp, blockheadRadicleSeedObservationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadRadicleSeedObservation_Timestamp, blockheadRadicleSeedObservationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadRadicleSeedObservationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

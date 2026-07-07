@@ -139,7 +139,7 @@
 				<dt>transfer</dt>
 				<dd>
 					<BridgeTransferView
-						selection={select(EntityType.BridgeTransfer, selection.entitySelector.$transfer)}
+						selection={select(EntityType.BridgeTransfer, selection.entitySelector.$transfer, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

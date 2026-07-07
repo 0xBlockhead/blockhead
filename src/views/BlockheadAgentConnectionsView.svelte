@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadAgentConnection }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAgentConnection> })}
 					{@const blockheadAgentConnectionFields = { ...blockheadAgentConnection[EntityMetaKey.Selector], ...blockheadAgentConnection }}
 					<BlockheadAgentConnectionView
-						selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAgentConnection, blockheadAgentConnection[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAgentConnectionFields}
 						layout={EntityLayout.Summary}
 						open={false}

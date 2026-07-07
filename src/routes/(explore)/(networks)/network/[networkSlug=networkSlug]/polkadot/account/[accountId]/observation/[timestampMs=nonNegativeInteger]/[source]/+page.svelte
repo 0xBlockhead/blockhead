@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import PolkadotAccount_TimestampView from '$/views/PolkadotAccount_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Polkadot account timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,8 +34,26 @@
 			})
 		}
 		selection={
-			select(EntityType.PolkadotAccount_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.PolkadotAccount_Timestamp, {
+				$account: {
+					$network: {
+						slug: params.networkSlug,
+					},
+					accountId: decodeURIComponent(params.accountId),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$account: {
+					$network: {
+						slug: params.networkSlug,
+					},
+					accountId: decodeURIComponent(params.accountId),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					freeBalancePlancks: true,
 					nonce: true,

@@ -115,7 +115,7 @@
 					{@const cosmosAccountFields = { ...cosmosAccount[EntityMetaKey.Selector], ...cosmosAccount }}
 					{@const cosmosAccountHrefFields = { ...cosmosAccount, ...cosmosAccount[EntityMetaKey.Selector] }}
 					<CosmosAccountView
-						selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosAccount, cosmosAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosAccountFields}
 						href={
 							(cosmosAccountHrefFields.$network !== undefined && cosmosAccountHrefFields.$network.caip2 !== undefined && cosmosAccountHrefFields.$network.caip2.namespace !== undefined && cosmosAccountHrefFields.$network !== undefined && cosmosAccountHrefFields.$network.caip2 !== undefined && cosmosAccountHrefFields.$network.caip2.reference !== undefined && cosmosAccountHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]', {

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import GlobalEnsNetwork_TimestampView from '$/views/_GlobalEnsNetwork_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>ENS hub observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,8 +33,20 @@
 			})
 		}
 		selection={
-			select(EntityType._GlobalEnsNetwork_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType._GlobalEnsNetwork_Timestamp, {
+				$hub: {
+					scope: '_GlobalEnsNetwork',
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$hub: {
+					scope: '_GlobalEnsNetwork',
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					observedNameCount: true,
 					observedRecordCount: true,

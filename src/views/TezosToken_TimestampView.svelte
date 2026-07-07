@@ -82,7 +82,7 @@
 				<dt>token</dt>
 				<dd>
 					<TezosTokenView
-						selection={select(EntityType.TezosToken, selection.entitySelector.$token)}
+						selection={select(EntityType.TezosToken, selection.entitySelector.$token, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: bittensorNeuron }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BittensorNeuron> })}
 					{@const bittensorNeuronFields = { ...bittensorNeuron[EntityMetaKey.Selector], ...bittensorNeuron }}
 					<BittensorNeuronView
-						selection={select(EntityType.BittensorNeuron, bittensorNeuron[EntityMetaKey.Selector])}
+						selection={select(EntityType.BittensorNeuron, bittensorNeuron[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bittensorNeuronFields}
 						layout={EntityLayout.Summary}
 						open={false}

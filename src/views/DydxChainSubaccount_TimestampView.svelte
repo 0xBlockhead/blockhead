@@ -117,7 +117,7 @@
 				<dt>subaccount</dt>
 				<dd>
 					<DydxChainSubaccountView
-						selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount)}
+						selection={select(EntityType.DydxChainSubaccount, selection.entitySelector.$subaccount, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

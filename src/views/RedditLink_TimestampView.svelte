@@ -291,7 +291,7 @@
 				<dt>Submission</dt>
 				<dd>
 					<RedditLinkView
-						selection={select(EntityType.RedditLink, selection.entitySelector.$link)}
+						selection={select(EntityType.RedditLink, selection.entitySelector.$link, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

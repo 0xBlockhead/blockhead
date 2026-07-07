@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -124,15 +123,9 @@
 
 				{#snippet Item({ item: evmNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmNetwork> })}
 					{@const evmNetworkFields = { ...evmNetwork[EntityMetaKey.Selector], ...evmNetwork }}
-					{@const evmNetworkHrefFields = { ...evmNetwork, ...evmNetwork[EntityMetaKey.Selector] }}
 					<EvmNetworkView
-						selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmNetworkFields}
-						href={
-							(evmNetworkHrefFields.caip2 !== undefined && evmNetworkHrefFields.caip2.namespace !== undefined && evmNetworkHrefFields.caip2 !== undefined && evmNetworkHrefFields.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-								caip2: `${String(evmNetworkHrefFields.caip2.namespace ?? '')}:${String(evmNetworkHrefFields.caip2.reference ?? '')}`,
-							}) : undefined)
-						}
 						layout={EntityLayout.Title}
 						open={false}
 					/>

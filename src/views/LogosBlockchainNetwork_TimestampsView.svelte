@@ -114,7 +114,7 @@
 				{#snippet Item({ item: logosBlockchainNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LogosBlockchainNetwork_Timestamp> })}
 					{@const logosBlockchainNetworkTimestampFields = { ...logosBlockchainNetworkTimestamp[EntityMetaKey.Selector], ...logosBlockchainNetworkTimestamp }}
 					<LogosBlockchainNetwork_TimestampView
-						selection={select(EntityType.LogosBlockchainNetwork_Timestamp, logosBlockchainNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.LogosBlockchainNetwork_Timestamp, logosBlockchainNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={logosBlockchainNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

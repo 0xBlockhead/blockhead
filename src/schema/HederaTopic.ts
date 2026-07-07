@@ -36,14 +36,14 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$messages',
+			name: '$$messages',
 			label: 'messages',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HederaTopicMessage,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HederaTopic_Timestamp,

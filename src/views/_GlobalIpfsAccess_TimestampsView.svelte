@@ -116,7 +116,7 @@
 					{@const globalIpfsAccessTimestampFields = { ...globalIpfsAccessTimestamp[EntityMetaKey.Selector], ...globalIpfsAccessTimestamp }}
 					{@const globalIpfsAccessTimestampHrefFields = { ...globalIpfsAccessTimestamp, ...globalIpfsAccessTimestamp[EntityMetaKey.Selector] }}
 					<GlobalIpfsAccess_TimestampView
-						selection={select(EntityType._GlobalIpfsAccess_Timestamp, globalIpfsAccessTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalIpfsAccess_Timestamp, globalIpfsAccessTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalIpfsAccessTimestampFields}
 						href={
 							(globalIpfsAccessTimestampHrefFields.timestampMs !== undefined && globalIpfsAccessTimestampHrefFields.source !== undefined ? resolve('/(explore)/(ipfs)/ipfs/access/observations/[timestampMs=nonNegativeInteger]/[source]', {

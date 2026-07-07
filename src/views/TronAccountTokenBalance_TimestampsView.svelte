@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tronAccountTokenBalanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TronAccountTokenBalance_Timestamp> })}
 					{@const tronAccountTokenBalanceTimestampFields = { ...tronAccountTokenBalanceTimestamp[EntityMetaKey.Selector], ...tronAccountTokenBalanceTimestamp }}
 					<TronAccountTokenBalance_TimestampView
-						selection={select(EntityType.TronAccountTokenBalance_Timestamp, tronAccountTokenBalanceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TronAccountTokenBalance_Timestamp, tronAccountTokenBalanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tronAccountTokenBalanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

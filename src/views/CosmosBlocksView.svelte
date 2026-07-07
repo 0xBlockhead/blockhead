@@ -117,7 +117,7 @@
 					{@const cosmosBlockFields = { ...cosmosBlock[EntityMetaKey.Selector], ...cosmosBlock }}
 					{@const cosmosBlockHrefFields = { ...cosmosBlock, ...cosmosBlock[EntityMetaKey.Selector] }}
 					<CosmosBlockView
-						selection={select(EntityType.CosmosBlock, cosmosBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosBlock, cosmosBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosBlockFields}
 						href={
 							(cosmosBlockHrefFields.$network !== undefined && cosmosBlockHrefFields.$network.caip2 !== undefined && cosmosBlockHrefFields.$network.caip2.namespace !== undefined && cosmosBlockHrefFields.$network !== undefined && cosmosBlockHrefFields.$network.caip2 !== undefined && cosmosBlockHrefFields.$network.caip2.reference !== undefined && cosmosBlockHrefFields.height !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/block/[height=nonNegativeInteger]', {

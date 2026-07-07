@@ -115,7 +115,7 @@
 				{#snippet Item({ item: codexDataset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CodexDataset> })}
 					{@const codexDatasetFields = { ...codexDataset[EntityMetaKey.Selector], ...codexDataset }}
 					<CodexDatasetView
-						selection={select(EntityType.CodexDataset, codexDataset[EntityMetaKey.Selector])}
+						selection={select(EntityType.CodexDataset, codexDataset[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={codexDatasetFields}
 						layout={EntityLayout.Summary}
 						open={false}

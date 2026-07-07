@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitTag }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitTag> })}
 					{@const gitTagFields = { ...gitTag[EntityMetaKey.Selector], ...gitTag }}
 					<GitTagView
-						selection={select(EntityType.GitTag, gitTag[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitTag, gitTag[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitTagFields}
 						layout={EntityLayout.Summary}
 						open={false}

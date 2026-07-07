@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmError_TimestampView from '$/views/EvmError_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM error observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,8 +34,20 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmError_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.EvmError_Timestamp, {
+				$error: {
+					hex: decodeURIComponent(params.hex),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$error: {
+					hex: decodeURIComponent(params.hex),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					signatures: true,
 					filteredSignatureCount: true,

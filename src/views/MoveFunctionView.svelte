@@ -123,7 +123,7 @@
 				<dt>module</dt>
 				<dd>
 					<MoveModuleView
-						selection={select(EntityType.MoveModule, selection.entitySelector.$module)}
+						selection={select(EntityType.MoveModule, selection.entitySelector.$module, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -282,7 +282,7 @@
 						{#snippet Pending()}
 							{@const parameters = prefetched.parameters}
 							{#if parameters !== undefined && parameters !== null}
-								{(parameters?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{parameters.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -290,7 +290,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const parameters = resolvedEntity.parameters}
 							{#if parameters !== undefined && parameters !== null}
-								{(parameters?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{parameters.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -312,7 +312,7 @@
 						{#snippet Pending()}
 							{@const returnTypes = prefetched.returnTypes}
 							{#if returnTypes !== undefined && returnTypes !== null}
-								{(returnTypes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{returnTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -320,7 +320,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const returnTypes = resolvedEntity.returnTypes}
 							{#if returnTypes !== undefined && returnTypes !== null}
-								{(returnTypes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{returnTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

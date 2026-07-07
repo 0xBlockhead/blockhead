@@ -1,5 +1,4 @@
 import {
-	BasicIndex,
 	and,
 	createLiveQueryCollection,
 	eq,
@@ -46,8 +45,6 @@ enum FieldConditionState {
 	Unconditional = 'unconditional',
 	Unknown = 'unknown',
 }
-
-const fieldCollectionOrderIndexKeys = new WeakMap<object, Set<string>>()
 
 export type EntityResourceData<
 	_Schema extends Schema,
@@ -516,25 +513,6 @@ const fieldResourceQueries = <
 		entitySelector
 	)
 	const fieldCollection = context.entityFieldCollections[entityType][fieldName]
-	if (selection.orderBy != null) {
-		const orderIndexKeys = fieldCollectionOrderIndexKeys.get(fieldCollection) ?? new Set<string>()
-		if (!fieldCollectionOrderIndexKeys.has(fieldCollection))
-			fieldCollectionOrderIndexKeys.set(fieldCollection, orderIndexKeys)
-
-		for (const [accessor] of selection.orderBy) {
-			const indexKey = String(accessor)
-			if (orderIndexKeys.has(indexKey))
-				continue
-
-			fieldCollection.createIndex(
-				(row) => accessor({ fieldRow: row }),
-				{
-					indexType: BasicIndex,
-				}
-			)
-			orderIndexKeys.add(indexKey)
-		}
-	}
 	const rowsCollection = createLiveQueryCollection({
 		startSync: true,
 		query: (query) => {
@@ -803,30 +781,22 @@ export const subscribeEntity = <
 		selectorKey,
 		querySources
 	)
-		const selectedFields: {
-			fieldName: string
-			definition: EntityFieldDefinition
-			fieldSelection: true | SubscribeSelection<
-				_Schema,
-				_EntityType,
-				Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
-			> | undefined
-		}[] = (
+	const selectedFields = (
 		selection.fields === undefined ?
 			entityFieldDefinitions(context.entityDefinitionByType[entityType])
-					.map((definition) => ({
-						fieldName: definition.name,
-						definition,
-						fieldSelection: undefined,
-					}))
+				.map((definition) => ({
+					fieldName: definition.name,
+					definition,
+					fieldSelection: undefined,
+				}))
 		:
 			entityFieldDefinitions(context.entityDefinitionByType[entityType])
 				.filter((definition) => selection.fields?.[definition.name] !== undefined)
-					.map((definition) => ({
-						fieldName: definition.name,
-						definition,
-						fieldSelection: selection.fields?.[definition.name],
-					}))
+				.map((definition) => ({
+					fieldName: definition.name,
+					definition,
+					fieldSelection: selection.fields?.[definition.name],
+				}))
 	)
 	const fields = selectedFields.map(({
 		fieldName,

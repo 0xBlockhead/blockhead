@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -108,7 +109,7 @@
 				<dt>Channel</dt>
 				<dd>
 					<LightningChannelView
-						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel)}
+						selection={select(EntityType.LightningChannel, selection.entitySelector.$channel, {})}
 						href={
 							(selection.entitySelector.$channel.$network !== undefined && selection.entitySelector.$channel.$network.slug !== undefined && selection.entitySelector.$channel.channelId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/channels/[channelId]', {
 								networkSlug: String(selection.entitySelector.$channel.$network.slug ?? ''),

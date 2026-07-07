@@ -106,7 +106,7 @@
 				{#snippet Item({ item: agentPaymentRequirementTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AgentPaymentRequirement_Timestamp> })}
 					{@const agentPaymentRequirementTimestampFields = { ...agentPaymentRequirementTimestamp[EntityMetaKey.Selector], ...agentPaymentRequirementTimestamp }}
 					<AgentPaymentRequirement_TimestampView
-						selection={select(EntityType.AgentPaymentRequirement_Timestamp, agentPaymentRequirementTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AgentPaymentRequirement_Timestamp, agentPaymentRequirementTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={agentPaymentRequirementTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

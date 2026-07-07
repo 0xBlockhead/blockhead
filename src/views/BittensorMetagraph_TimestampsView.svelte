@@ -113,7 +113,7 @@
 				{#snippet Item({ item: bittensorMetagraphTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BittensorMetagraph_Timestamp> })}
 					{@const bittensorMetagraphTimestampFields = { ...bittensorMetagraphTimestamp[EntityMetaKey.Selector], ...bittensorMetagraphTimestamp }}
 					<BittensorMetagraph_TimestampView
-						selection={select(EntityType.BittensorMetagraph_Timestamp, bittensorMetagraphTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BittensorMetagraph_Timestamp, bittensorMetagraphTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bittensorMetagraphTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

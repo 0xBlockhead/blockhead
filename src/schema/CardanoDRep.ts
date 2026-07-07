@@ -43,14 +43,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CardanoDRep_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$votes',
+			name: '$$votes',
 			label: 'votes',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CardanoGovernanceVote,

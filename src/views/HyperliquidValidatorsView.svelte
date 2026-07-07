@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidValidator }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidValidator> })}
 					{@const hyperliquidValidatorFields = { ...hyperliquidValidator[EntityMetaKey.Selector], ...hyperliquidValidator }}
 					<HyperliquidValidatorView
-						selection={select(EntityType.HyperliquidValidator, hyperliquidValidator[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidValidator, hyperliquidValidator[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidValidatorFields}
 						layout={EntityLayout.Summary}
 						open={false}

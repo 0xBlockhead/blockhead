@@ -114,7 +114,7 @@
 				{#snippet Item({ item: fedimintFederation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FedimintFederation> })}
 					{@const fedimintFederationFields = { ...fedimintFederation[EntityMetaKey.Selector], ...fedimintFederation }}
 					<FedimintFederationView
-						selection={select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector])}
+						selection={select(EntityType.FedimintFederation, fedimintFederation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={fedimintFederationFields}
 						layout={EntityLayout.Summary}
 						open={false}

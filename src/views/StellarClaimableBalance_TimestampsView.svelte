@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarClaimableBalanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarClaimableBalance_Timestamp> })}
 					{@const stellarClaimableBalanceTimestampFields = { ...stellarClaimableBalanceTimestamp[EntityMetaKey.Selector], ...stellarClaimableBalanceTimestamp }}
 					<StellarClaimableBalance_TimestampView
-						selection={select(EntityType.StellarClaimableBalance_Timestamp, stellarClaimableBalanceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarClaimableBalance_Timestamp, stellarClaimableBalanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarClaimableBalanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: elementsIssuance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ElementsIssuance> })}
 					{@const elementsIssuanceFields = { ...elementsIssuance[EntityMetaKey.Selector], ...elementsIssuance }}
 					<ElementsIssuanceView
-						selection={select(EntityType.ElementsIssuance, elementsIssuance[EntityMetaKey.Selector])}
+						selection={select(EntityType.ElementsIssuance, elementsIssuance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={elementsIssuanceFields}
 						layout={EntityLayout.Summary}
 						open={false}

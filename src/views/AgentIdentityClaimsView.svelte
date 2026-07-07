@@ -115,7 +115,7 @@
 				{#snippet Item({ item: agentIdentityClaim }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AgentIdentityClaim> })}
 					{@const agentIdentityClaimFields = { ...agentIdentityClaim[EntityMetaKey.Selector], ...agentIdentityClaim }}
 					<AgentIdentityClaimView
-						selection={select(EntityType.AgentIdentityClaim, agentIdentityClaim[EntityMetaKey.Selector])}
+						selection={select(EntityType.AgentIdentityClaim, agentIdentityClaim[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={agentIdentityClaimFields}
 						layout={EntityLayout.Summary}
 						open={false}

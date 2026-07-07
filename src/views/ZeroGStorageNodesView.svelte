@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGStorageNode }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGStorageNode> })}
 					{@const zeroGStorageNodeFields = { ...zeroGStorageNode[EntityMetaKey.Selector], ...zeroGStorageNode }}
 					<ZeroGStorageNodeView
-						selection={select(EntityType.ZeroGStorageNode, zeroGStorageNode[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGStorageNode, zeroGStorageNode[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGStorageNodeFields}
 						layout={EntityLayout.Summary}
 						open={false}

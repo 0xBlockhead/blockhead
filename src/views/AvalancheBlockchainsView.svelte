@@ -115,7 +115,7 @@
 				{#snippet Item({ item: avalancheBlockchain }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalancheBlockchain> })}
 					{@const avalancheBlockchainFields = { ...avalancheBlockchain[EntityMetaKey.Selector], ...avalancheBlockchain }}
 					<AvalancheBlockchainView
-						selection={select(EntityType.AvalancheBlockchain, avalancheBlockchain[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalancheBlockchain, avalancheBlockchain[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalancheBlockchainFields}
 						layout={EntityLayout.Summary}
 						open={false}

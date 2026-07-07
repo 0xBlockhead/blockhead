@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadWakuNodeState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadWakuNodeState> })}
 					{@const blockheadWakuNodeStateFields = { ...blockheadWakuNodeState[EntityMetaKey.Selector], ...blockheadWakuNodeState }}
 					<BlockheadWakuNodeStateView
-						selection={select(EntityType.BlockheadWakuNodeState, blockheadWakuNodeState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadWakuNodeState, blockheadWakuNodeState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadWakuNodeStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

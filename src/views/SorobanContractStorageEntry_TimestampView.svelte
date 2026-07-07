@@ -81,7 +81,7 @@
 				<dt>entry</dt>
 				<dd>
 					<SorobanContractStorageEntryView
-						selection={select(EntityType.SorobanContractStorageEntry, selection.entitySelector.$entry)}
+						selection={select(EntityType.SorobanContractStorageEntry, selection.entitySelector.$entry, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

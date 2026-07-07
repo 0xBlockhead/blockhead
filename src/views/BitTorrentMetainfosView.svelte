@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bitTorrentMetainfo }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitTorrentMetainfo> })}
 					{@const bitTorrentMetainfoFields = { ...bitTorrentMetainfo[EntityMetaKey.Selector], ...bitTorrentMetainfo }}
 					<BitTorrentMetainfoView
-						selection={select(EntityType.BitTorrentMetainfo, bitTorrentMetainfo[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitTorrentMetainfo, bitTorrentMetainfo[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitTorrentMetainfoFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: gitFetchObservation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitFetchObservation> })}
 					{@const gitFetchObservationFields = { ...gitFetchObservation[EntityMetaKey.Selector], ...gitFetchObservation }}
 					<GitFetchObservationView
-						selection={select(EntityType.GitFetchObservation, gitFetchObservation[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitFetchObservation, gitFetchObservation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitFetchObservationFields}
 						layout={EntityLayout.Summary}
 						open={false}

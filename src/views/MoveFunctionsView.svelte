@@ -114,7 +114,7 @@
 				{#snippet Item({ item: moveFunction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoveFunction> })}
 					{@const moveFunctionFields = { ...moveFunction[EntityMetaKey.Selector], ...moveFunction }}
 					<MoveFunctionView
-						selection={select(EntityType.MoveFunction, moveFunction[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoveFunction, moveFunction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moveFunctionFields}
 						layout={EntityLayout.Summary}
 						open={false}

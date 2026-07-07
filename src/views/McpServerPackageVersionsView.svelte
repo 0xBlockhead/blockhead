@@ -115,7 +115,7 @@
 				{#snippet Item({ item: mcpServerPackageVersion }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.McpServerPackageVersion> })}
 					{@const mcpServerPackageVersionFields = { ...mcpServerPackageVersion[EntityMetaKey.Selector], ...mcpServerPackageVersion }}
 					<McpServerPackageVersionView
-						selection={select(EntityType.McpServerPackageVersion, mcpServerPackageVersion[EntityMetaKey.Selector])}
+						selection={select(EntityType.McpServerPackageVersion, mcpServerPackageVersion[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={mcpServerPackageVersionFields}
 						layout={EntityLayout.Summary}
 						open={false}

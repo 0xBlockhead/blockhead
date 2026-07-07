@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGDaNode }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGDaNode> })}
 					{@const zeroGDaNodeFields = { ...zeroGDaNode[EntityMetaKey.Selector], ...zeroGDaNode }}
 					<ZeroGDaNodeView
-						selection={select(EntityType.ZeroGDaNode, zeroGDaNode[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGDaNode, zeroGDaNode[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGDaNodeFields}
 						layout={EntityLayout.Summary}
 						open={false}

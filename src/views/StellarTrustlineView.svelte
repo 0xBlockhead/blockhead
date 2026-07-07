@@ -83,7 +83,7 @@
 				<dt>account</dt>
 				<dd>
 					<StellarAccountView
-						selection={select(EntityType.StellarAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.StellarAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -94,7 +94,7 @@
 				<dt>asset</dt>
 				<dd>
 					<StellarAssetView
-						selection={select(EntityType.StellarAsset, selection.entitySelector.$asset)}
+						selection={select(EntityType.StellarAsset, selection.entitySelector.$asset, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

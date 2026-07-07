@@ -112,7 +112,7 @@
 				{#snippet Item({ item: globalActivityPubNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalActivityPubNetwork> })}
 					{@const globalActivityPubNetworkFields = { ...globalActivityPubNetwork[EntityMetaKey.Selector], ...globalActivityPubNetwork }}
 					<GlobalActivityPubNetworkView
-						selection={select(EntityType._GlobalActivityPubNetwork, globalActivityPubNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalActivityPubNetwork, globalActivityPubNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalActivityPubNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

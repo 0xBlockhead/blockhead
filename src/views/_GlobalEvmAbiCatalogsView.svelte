@@ -112,7 +112,7 @@
 				{#snippet Item({ item: globalEvmAbiCatalog }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalEvmAbiCatalog> })}
 					{@const globalEvmAbiCatalogFields = { ...globalEvmAbiCatalog[EntityMetaKey.Selector], ...globalEvmAbiCatalog }}
 					<GlobalEvmAbiCatalogView
-						selection={select(EntityType._GlobalEvmAbiCatalog, globalEvmAbiCatalog[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalEvmAbiCatalog, globalEvmAbiCatalog[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalEvmAbiCatalogFields}
 						layout={EntityLayout.Summary}
 						open={false}

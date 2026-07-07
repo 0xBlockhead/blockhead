@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadZcashViewingKey }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadZcashViewingKey> })}
 					{@const blockheadZcashViewingKeyFields = { ...blockheadZcashViewingKey[EntityMetaKey.Selector], ...blockheadZcashViewingKey }}
 					<BlockheadZcashViewingKeyView
-						selection={select(EntityType.BlockheadZcashViewingKey, blockheadZcashViewingKey[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadZcashViewingKey, blockheadZcashViewingKey[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadZcashViewingKeyFields}
 						layout={EntityLayout.Summary}
 						open={false}

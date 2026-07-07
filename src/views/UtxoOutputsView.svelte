@@ -118,7 +118,7 @@
 					{@const utxoOutputFields = { ...utxoOutput[EntityMetaKey.Selector], ...utxoOutput }}
 					{@const utxoOutputHrefFields = { ...utxoOutput, ...utxoOutput[EntityMetaKey.Selector] }}
 					<UtxoOutputView
-						selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector])}
+						selection={select(EntityType.UtxoOutput, utxoOutput[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={utxoOutputFields}
 						href={
 							(utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.$network !== undefined && utxoOutputHrefFields.$transaction.$network.caip2 !== undefined && utxoOutputHrefFields.$transaction.$network.caip2.namespace !== undefined && utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.$network !== undefined && utxoOutputHrefFields.$transaction.$network.caip2 !== undefined && utxoOutputHrefFields.$transaction.$network.caip2.reference !== undefined && utxoOutputHrefFields.$transaction !== undefined && utxoOutputHrefFields.$transaction.txId !== undefined && utxoOutputHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/tx/[txId]/output/[outputIndex=nonNegativeInteger]', {

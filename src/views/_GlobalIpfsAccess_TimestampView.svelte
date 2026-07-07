@@ -124,7 +124,7 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalIpfsAccessView
-						selection={select(EntityType._GlobalIpfsAccess, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalIpfsAccess, selection.entitySelector.$hub, {})}
 						href={resolve('/(explore)/(ipfs)/ipfs/access')}
 						layout={EntityLayout.Value}
 						open={false}

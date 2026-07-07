@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -38,12 +39,16 @@
 		}
 		title='UTXO transactions'
 		selection={
-			select(EntityType.UtxoNetwork, {
-				$network: {
-					slug: params.networkSlug,
-				},
-			})[EntityProxyField]<EntityType.UtxoTransaction>('$$transactions')
+			select(EntityType.Network, {
+				slug: params.networkSlug,
+			})[EntityProxyField]<EntityType.UtxoTransaction>('$$utxoTransactions', {
+				sources: [
+					Source.MempoolSpace_Rest,
+					Source.Blockchair_Rest,
+					Source.Zcashd_JsonRpc,
+				],
+			})
 		}
-		id='transactions'
+		id='utxo-transactions'
 	/>
 </Page>

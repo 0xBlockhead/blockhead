@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitSignature }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitSignature> })}
 					{@const gitSignatureFields = { ...gitSignature[EntityMetaKey.Selector], ...gitSignature }}
 					<GitSignatureView
-						selection={select(EntityType.GitSignature, gitSignature[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitSignature, gitSignature[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitSignatureFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadRoomPeer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadRoomPeer> })}
 					{@const blockheadRoomPeerFields = { ...blockheadRoomPeer[EntityMetaKey.Selector], ...blockheadRoomPeer }}
 					<BlockheadRoomPeerView
-						selection={select(EntityType.BlockheadRoomPeer, blockheadRoomPeer[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadRoomPeer, blockheadRoomPeer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadRoomPeerFields}
 						layout={EntityLayout.Summary}
 						open={false}

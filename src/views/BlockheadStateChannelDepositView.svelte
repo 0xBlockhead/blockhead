@@ -116,11 +116,6 @@
 						<EvmNetworkView
 							selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
 							prefetched={evmNetwork}
-							href={
-								(evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.namespace !== undefined && evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-									caip2: `${String(evmNetwork[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(evmNetwork[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-								}) : undefined)
-							}
 							layout={EntityLayout.Value}
 							open={false}
 						/>
@@ -137,11 +132,6 @@
 						<EvmNetworkView
 							selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
 							prefetched={evmNetwork}
-							href={
-								(evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.namespace !== undefined && evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-									caip2: `${String(evmNetwork[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(evmNetwork[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-								}) : undefined)
-							}
 							layout={EntityLayout.Value}
 							open={false}
 						/>
@@ -192,7 +182,7 @@
 				<dt>channel</dt>
 				<dd>
 					<BlockheadStateChannelView
-						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel)}
+						selection={select(EntityType.BlockheadStateChannel, selection.entitySelector.$channel, {})}
 						href={
 							(selection.entitySelector.$channel.id !== undefined ? resolve('/channel/[channelId]', {
 								channelId: String(selection.entitySelector.$channel.id ?? ''),
@@ -208,7 +198,7 @@
 				<dt>account</dt>
 				<dd>
 					<EvmAccountView
-						selection={select(EntityType.EvmAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.EvmAccount, selection.entitySelector.$account, {})}
 						href={
 							(selection.entitySelector.$account.address !== undefined ? resolve('/(explore)/account/[address=evmAddress]', {
 								address: String(selection.entitySelector.$account.address ?? ''),
@@ -231,11 +221,6 @@
 								<EvmNetworkView
 									selection={select(EntityType.EvmNetwork, evmNetwork[EntityMetaKey.Selector])}
 									prefetched={evmNetwork}
-									href={
-										(evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.namespace !== undefined && evmNetwork[EntityMetaKey.Selector].caip2 !== undefined && evmNetwork[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-											caip2: `${String(evmNetwork[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(evmNetwork[EntityMetaKey.Selector].caip2.reference ?? '')}`,
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>

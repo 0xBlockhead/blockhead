@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandTransactionProof }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandTransactionProof> })}
 					{@const algorandTransactionProofFields = { ...algorandTransactionProof[EntityMetaKey.Selector], ...algorandTransactionProof }}
 					<AlgorandTransactionProofView
-						selection={select(EntityType.AlgorandTransactionProof, algorandTransactionProof[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandTransactionProof, algorandTransactionProof[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandTransactionProofFields}
 						layout={EntityLayout.Summary}
 						open={false}

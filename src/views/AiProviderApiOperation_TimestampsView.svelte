@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aiProviderApiOperationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiProviderApiOperation_Timestamp> })}
 					{@const aiProviderApiOperationTimestampFields = { ...aiProviderApiOperationTimestamp[EntityMetaKey.Selector], ...aiProviderApiOperationTimestamp }}
 					<AiProviderApiOperation_TimestampView
-						selection={select(EntityType.AiProviderApiOperation_Timestamp, aiProviderApiOperationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiProviderApiOperation_Timestamp, aiProviderApiOperationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiProviderApiOperationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

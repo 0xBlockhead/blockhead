@@ -160,7 +160,7 @@
 				<dt>benchmark</dt>
 				<dd>
 					<AiBenchmarkView
-						selection={select(EntityType.AiBenchmark, selection.entitySelector.$benchmark)}
+						selection={select(EntityType.AiBenchmark, selection.entitySelector.$benchmark, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

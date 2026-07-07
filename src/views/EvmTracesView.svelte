@@ -115,7 +115,7 @@
 				{#snippet Item({ item: evmTrace }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmTrace> })}
 					{@const evmTraceFields = { ...evmTrace[EntityMetaKey.Selector], ...evmTrace }}
 					<EvmTraceView
-						selection={select(EntityType.EvmTrace, evmTrace[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmTrace, evmTrace[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmTraceFields}
 						layout={EntityLayout.Summary}
 						open={false}

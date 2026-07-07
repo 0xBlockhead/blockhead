@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bnbBeaconBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BnbBeaconBlock> })}
 					{@const bnbBeaconBlockFields = { ...bnbBeaconBlock[EntityMetaKey.Selector], ...bnbBeaconBlock }}
 					<BnbBeaconBlockView
-						selection={select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.BnbBeaconBlock, bnbBeaconBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bnbBeaconBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -282,7 +282,7 @@
 				<dt>Allowance</dt>
 				<dd>
 					<EvmActorCoinAllowanceView
-						selection={select(EntityType.EvmActorCoinAllowance, selection.entitySelector.$allowance)}
+						selection={select(EntityType.EvmActorCoinAllowance, selection.entitySelector.$allowance, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

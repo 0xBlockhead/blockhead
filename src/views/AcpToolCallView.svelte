@@ -130,7 +130,7 @@
 				<dt>prompt turn</dt>
 				<dd>
 					<AcpPromptTurnView
-						selection={select(EntityType.AcpPromptTurn, selection.entitySelector.$promptTurn)}
+						selection={select(EntityType.AcpPromptTurn, selection.entitySelector.$promptTurn, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

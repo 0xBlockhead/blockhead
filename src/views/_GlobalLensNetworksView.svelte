@@ -112,7 +112,7 @@
 				{#snippet Item({ item: globalLensNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalLensNetwork> })}
 					{@const globalLensNetworkFields = { ...globalLensNetwork[EntityMetaKey.Selector], ...globalLensNetwork }}
 					<GlobalLensNetworkView
-						selection={select(EntityType._GlobalLensNetwork, globalLensNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalLensNetwork, globalLensNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalLensNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

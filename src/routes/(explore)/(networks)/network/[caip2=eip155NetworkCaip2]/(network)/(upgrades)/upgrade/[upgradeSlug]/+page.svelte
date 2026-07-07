@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +23,6 @@
 	import Page from '$/components/Page.svelte'
 	import EthereumNetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Ethereum network upgrade • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +34,15 @@
 			})
 		}
 		selection={
-			select(EntityType.EthereumNetworkUpgrade, data.selector, {
+			select(EntityType.EthereumNetworkUpgrade, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				slug: params.upgradeSlug,
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					name: true,
 					activationBlock: true,

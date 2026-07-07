@@ -120,7 +120,7 @@
 				<dt>Name</dt>
 				<dd>
 					<EnsNameView
-						selection={select(EntityType.EnsName, selection.entitySelector.$name)}
+						selection={select(EntityType.EnsName, selection.entitySelector.$name, {})}
 						href={
 							(selection.entitySelector.$name.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {
 								ensName: String(selection.entitySelector.$name.name ?? ''),

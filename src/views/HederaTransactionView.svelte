@@ -84,7 +84,7 @@
 				<dt>network</dt>
 				<dd>
 					<HederaNetworkView
-						selection={select(EntityType.HederaNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.HederaNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

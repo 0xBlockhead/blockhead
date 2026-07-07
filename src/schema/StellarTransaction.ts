@@ -44,14 +44,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StellarTransaction_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$operations',
+			name: '$$operations',
 			label: 'operations',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StellarOperation,

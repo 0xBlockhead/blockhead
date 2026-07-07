@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmNetworkBridgeView from '$/views/EvmNetworkBridgeView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM network bridge • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +34,15 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmNetworkBridge, data.selector, {
+			select(EntityType.EvmNetworkBridge, {
+				$fromNetwork: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				$toNetwork: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.toCaip2)),
+				},
+				url: decodeURIComponent(params.url),
+			}, {
 				fields: {
 					relationshipType: true,
 				},

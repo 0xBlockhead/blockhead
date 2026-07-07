@@ -114,7 +114,7 @@
 				{#snippet Item({ item: bittensorNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BittensorNetwork_Timestamp> })}
 					{@const bittensorNetworkTimestampFields = { ...bittensorNetworkTimestamp[EntityMetaKey.Selector], ...bittensorNetworkTimestamp }}
 					<BittensorNetwork_TimestampView
-						selection={select(EntityType.BittensorNetwork_Timestamp, bittensorNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BittensorNetwork_Timestamp, bittensorNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bittensorNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

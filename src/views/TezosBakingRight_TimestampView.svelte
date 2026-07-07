@@ -82,7 +82,7 @@
 				<dt>right</dt>
 				<dd>
 					<TezosBakingRightView
-						selection={select(EntityType.TezosBakingRight, selection.entitySelector.$right)}
+						selection={select(EntityType.TezosBakingRight, selection.entitySelector.$right, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

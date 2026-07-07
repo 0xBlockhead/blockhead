@@ -115,7 +115,7 @@
 				{#snippet Item({ item: assetObject }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AssetObject> })}
 					{@const assetObjectFields = { ...assetObject[EntityMetaKey.Selector], ...assetObject }}
 					<AssetObjectView
-						selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector])}
+						selection={select(EntityType.AssetObject, assetObject[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={assetObjectFields}
 						layout={EntityLayout.Summary}
 						open={false}

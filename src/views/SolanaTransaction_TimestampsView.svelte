@@ -114,7 +114,7 @@
 				{#snippet Item({ item: solanaTransactionTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaTransaction_Timestamp> })}
 					{@const solanaTransactionTimestampFields = { ...solanaTransactionTimestamp[EntityMetaKey.Selector], ...solanaTransactionTimestamp }}
 					<SolanaTransaction_TimestampView
-						selection={select(EntityType.SolanaTransaction_Timestamp, solanaTransactionTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SolanaTransaction_Timestamp, solanaTransactionTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaTransactionTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: evmActorCoinAllowanceBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EvmActorCoinAllowance_Block> })}
 					{@const evmActorCoinAllowanceBlockFields = { ...evmActorCoinAllowanceBlock[EntityMetaKey.Selector], ...evmActorCoinAllowanceBlock }}
 					<EvmActorCoinAllowance_BlockView
-						selection={select(EntityType.EvmActorCoinAllowance_Block, evmActorCoinAllowanceBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmActorCoinAllowance_Block, evmActorCoinAllowanceBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmActorCoinAllowanceBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

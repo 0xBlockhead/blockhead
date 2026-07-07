@@ -3,14 +3,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -114,16 +112,9 @@
 
 				{#snippet Item({ item: bitcoinCashCashTokenCategory }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitcoinCashCashTokenCategory> })}
 					{@const bitcoinCashCashTokenCategoryFields = { ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector], ...bitcoinCashCashTokenCategory }}
-					{@const bitcoinCashCashTokenCategoryHrefFields = { ...bitcoinCashCashTokenCategory, ...bitcoinCashCashTokenCategory[EntityMetaKey.Selector] }}
 					<BitcoinCashCashTokenCategoryView
-						selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitcoinCashCashTokenCategory, bitcoinCashCashTokenCategory[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitcoinCashCashTokenCategoryFields}
-						href={
-							(bitcoinCashCashTokenCategoryHrefFields.$network !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network.caip2 !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network.caip2.namespace !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network.caip2 !== undefined && bitcoinCashCashTokenCategoryHrefFields.$network.caip2.reference !== undefined && bitcoinCashCashTokenCategoryHrefFields.categoryId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/cash-token/category/[categoryId]', {
-								networkSlug: String(networkByCaip2[String(String(bitcoinCashCashTokenCategoryHrefFields.$network.caip2.namespace) + ':' + String(bitcoinCashCashTokenCategoryHrefFields.$network.caip2.reference))].slug ?? ''),
-								categoryId: String(bitcoinCashCashTokenCategoryHrefFields.categoryId ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

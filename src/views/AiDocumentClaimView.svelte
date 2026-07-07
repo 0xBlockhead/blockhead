@@ -129,7 +129,7 @@
 				<dt>document</dt>
 				<dd>
 					<AiDocumentView
-						selection={select(EntityType.AiDocument, selection.entitySelector.$document)}
+						selection={select(EntityType.AiDocument, selection.entitySelector.$document, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

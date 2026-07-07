@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadBridgeTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadBridgeTransaction> })}
 					{@const blockheadBridgeTransactionFields = { ...blockheadBridgeTransaction[EntityMetaKey.Selector], ...blockheadBridgeTransaction }}
 					<BlockheadBridgeTransactionView
-						selection={select(EntityType.BlockheadBridgeTransaction, blockheadBridgeTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadBridgeTransaction, blockheadBridgeTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadBridgeTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -402,7 +402,7 @@
 				<dt>Proposal</dt>
 				<dd>
 					<CosmosGovernanceProposalView
-						selection={select(EntityType.CosmosGovernanceProposal, selection.entitySelector.$proposal)}
+						selection={select(EntityType.CosmosGovernanceProposal, selection.entitySelector.$proposal, {})}
 						href={
 							(selection.entitySelector.$proposal.$network !== undefined && selection.entitySelector.$proposal.$network.caip2 !== undefined && selection.entitySelector.$proposal.$network.caip2.namespace !== undefined && selection.entitySelector.$proposal.$network !== undefined && selection.entitySelector.$proposal.$network.caip2 !== undefined && selection.entitySelector.$proposal.$network.caip2.reference !== undefined && selection.entitySelector.$proposal.proposalId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/governance/proposal/[proposalId]', {
 								caip2: `${String(selection.entitySelector.$proposal.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$proposal.$network.caip2.reference ?? '')}`,

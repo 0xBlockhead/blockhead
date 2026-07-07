@@ -128,7 +128,7 @@
 				<dt>session</dt>
 				<dd>
 					<AcpSessionView
-						selection={select(EntityType.AcpSession, selection.entitySelector.$session)}
+						selection={select(EntityType.AcpSession, selection.entitySelector.$session, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

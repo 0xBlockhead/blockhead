@@ -114,7 +114,7 @@
 				{#snippet Item({ item: cctpMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CctpMessage> })}
 					{@const cctpMessageFields = { ...cctpMessage[EntityMetaKey.Selector], ...cctpMessage }}
 					<CctpMessageView
-						selection={select(EntityType.CctpMessage, cctpMessage[EntityMetaKey.Selector])}
+						selection={select(EntityType.CctpMessage, cctpMessage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cctpMessageFields}
 						layout={EntityLayout.Summary}
 						open={false}

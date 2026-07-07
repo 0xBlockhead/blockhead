@@ -93,14 +93,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$transactions',
+			name: '$$transactions',
 			label: 'transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.XrplTransaction,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$ledgerEntries',
+			name: '$$ledgerEntries',
 			label: 'ledger entries',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.XrplLedgerEntry,

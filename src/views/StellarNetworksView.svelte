@@ -63,7 +63,14 @@
 
 {#if open}
 	<ResourceBoundary
-		resource={selection}
+		resource={
+			selection({
+				fields: {
+					$network: true,
+					passphrase: true,
+				},
+			})
+		}
 		{placeholderText}
 	>
 		{#snippet Pending()}
@@ -106,7 +113,7 @@
 				{#snippet Item({ item: stellarNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarNetwork> })}
 					{@const stellarNetworkFields = { ...stellarNetwork[EntityMetaKey.Selector], ...stellarNetwork }}
 					<StellarNetworkView
-						selection={select(EntityType.StellarNetwork, stellarNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarNetwork, stellarNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

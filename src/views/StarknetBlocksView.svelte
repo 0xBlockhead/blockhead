@@ -114,7 +114,7 @@
 				{#snippet Item({ item: starknetBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetBlock> })}
 					{@const starknetBlockFields = { ...starknetBlock[EntityMetaKey.Selector], ...starknetBlock }}
 					<StarknetBlockView
-						selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetBlock, starknetBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

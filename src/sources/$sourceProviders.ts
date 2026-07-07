@@ -5017,6 +5017,11 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						generated: false,
 					},
 					{
+						kind: SourceArtifactKind.OpenApiTypes,
+						path: 'src/sources/Lifi/OpenApi/openapi.d.ts',
+						generated: true,
+					},
+					{
 						kind: SourceArtifactKind.GenerationManifest,
 						path: 'src/sources/Lifi/OpenApi/schema-source.ts',
 						generated: false,

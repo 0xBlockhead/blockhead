@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import PolkadotPalletView from '$/views/PolkadotPalletView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Polkadot pallet • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.PolkadotPallet, data.selector, {
+			select(EntityType.PolkadotPallet, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				palletName: decodeURIComponent(params.palletName),
+			}, {
 				fields: {
 					index: true,
 				},

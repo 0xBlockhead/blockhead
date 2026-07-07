@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadStateChannelDepositTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadStateChannelDeposit_Timestamp> })}
 					{@const blockheadStateChannelDepositTimestampFields = { ...blockheadStateChannelDepositTimestamp[EntityMetaKey.Selector], ...blockheadStateChannelDepositTimestamp }}
 					<BlockheadStateChannelDeposit_TimestampView
-						selection={select(EntityType.BlockheadStateChannelDeposit_Timestamp, blockheadStateChannelDepositTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadStateChannelDeposit_Timestamp, blockheadStateChannelDepositTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadStateChannelDepositTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

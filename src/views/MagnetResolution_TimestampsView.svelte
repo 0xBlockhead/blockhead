@@ -114,7 +114,7 @@
 				{#snippet Item({ item: magnetResolutionTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MagnetResolution_Timestamp> })}
 					{@const magnetResolutionTimestampFields = { ...magnetResolutionTimestamp[EntityMetaKey.Selector], ...magnetResolutionTimestamp }}
 					<MagnetResolution_TimestampView
-						selection={select(EntityType.MagnetResolution_Timestamp, magnetResolutionTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.MagnetResolution_Timestamp, magnetResolutionTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={magnetResolutionTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: availDataSubmission }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvailDataSubmission> })}
 					{@const availDataSubmissionFields = { ...availDataSubmission[EntityMetaKey.Selector], ...availDataSubmission }}
 					<AvailDataSubmissionView
-						selection={select(EntityType.AvailDataSubmission, availDataSubmission[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvailDataSubmission, availDataSubmission[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={availDataSubmissionFields}
 						layout={EntityLayout.Summary}
 						open={false}

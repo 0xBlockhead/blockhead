@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -107,7 +108,7 @@
 				<dt>Lightning network</dt>
 				<dd>
 					<LightningNetworkView
-						selection={select(EntityType.LightningNetwork, selection.entitySelector.$lightningNetwork)}
+						selection={select(EntityType.LightningNetwork, selection.entitySelector.$lightningNetwork, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

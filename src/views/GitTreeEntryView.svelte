@@ -125,7 +125,7 @@
 				<dt>tree</dt>
 				<dd>
 					<GitTreeView
-						selection={select(EntityType.GitTree, selection.entitySelector.$tree)}
+						selection={select(EntityType.GitTree, selection.entitySelector.$tree, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

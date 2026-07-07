@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadZeroGStorageNodeStateTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadZeroGStorageNodeState_Timestamp> })}
 					{@const blockheadZeroGStorageNodeStateTimestampFields = { ...blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], ...blockheadZeroGStorageNodeStateTimestamp }}
 					<BlockheadZeroGStorageNodeState_TimestampView
-						selection={select(EntityType.BlockheadZeroGStorageNodeState_Timestamp, blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadZeroGStorageNodeState_Timestamp, blockheadZeroGStorageNodeStateTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadZeroGStorageNodeStateTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

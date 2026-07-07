@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadKaspaNodeState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadKaspaNodeState> })}
 					{@const blockheadKaspaNodeStateFields = { ...blockheadKaspaNodeState[EntityMetaKey.Selector], ...blockheadKaspaNodeState }}
 					<BlockheadKaspaNodeStateView
-						selection={select(EntityType.BlockheadKaspaNodeState, blockheadKaspaNodeState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadKaspaNodeState, blockheadKaspaNodeState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadKaspaNodeStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

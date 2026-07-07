@@ -130,7 +130,7 @@
 					{@const evmLogFields = { ...evmLog[EntityMetaKey.Selector], ...evmLog }}
 					{@const evmLogHrefFields = { ...evmLog, ...evmLog[EntityMetaKey.Selector] }}
 					<EvmLogView
-						selection={select(EntityType.EvmLog, evmLog[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmLog, evmLog[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmLogFields}
 						href={
 							(evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.caip2 !== undefined && evmLogHrefFields.$transaction.$network.caip2.namespace !== undefined && evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.$network !== undefined && evmLogHrefFields.$transaction.$network.caip2 !== undefined && evmLogHrefFields.$transaction.$network.caip2.reference !== undefined && evmLogHrefFields.$transaction !== undefined && evmLogHrefFields.$transaction.txHash !== undefined && evmLogHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(transactions)/tx/[transactionId=evmTxHash]/log/[indexInTransaction=nonNegativeInteger]', {

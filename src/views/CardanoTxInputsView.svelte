@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoTxInput }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoTxInput> })}
 					{@const cardanoTxInputFields = { ...cardanoTxInput[EntityMetaKey.Selector], ...cardanoTxInput }}
 					<CardanoTxInputView
-						selection={select(EntityType.CardanoTxInput, cardanoTxInput[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoTxInput, cardanoTxInput[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoTxInputFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -118,7 +118,7 @@
 					{@const cosmosValidatorTimestampFields = { ...cosmosValidatorTimestamp[EntityMetaKey.Selector], ...cosmosValidatorTimestamp }}
 					{@const cosmosValidatorTimestampHrefFields = { ...cosmosValidatorTimestamp, ...cosmosValidatorTimestamp[EntityMetaKey.Selector] }}
 					<CosmosValidator_TimestampView
-						selection={select(EntityType.CosmosValidator_Timestamp, cosmosValidatorTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosValidator_Timestamp, cosmosValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosValidatorTimestampFields}
 						href={
 							(cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2.namespace !== undefined && cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2 !== undefined && cosmosValidatorTimestampHrefFields.$validator.$network.caip2.reference !== undefined && cosmosValidatorTimestampHrefFields.$validator !== undefined && cosmosValidatorTimestampHrefFields.$validator.operatorAddress !== undefined && cosmosValidatorTimestampHrefFields.timestampMs !== undefined && cosmosValidatorTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/validator/[operatorAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {

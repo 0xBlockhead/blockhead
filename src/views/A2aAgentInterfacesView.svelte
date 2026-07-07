@@ -114,7 +114,7 @@
 				{#snippet Item({ item: a2aAgentInterface }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aAgentInterface> })}
 					{@const a2aAgentInterfaceFields = { ...a2aAgentInterface[EntityMetaKey.Selector], ...a2aAgentInterface }}
 					<A2aAgentInterfaceView
-						selection={select(EntityType.A2aAgentInterface, a2aAgentInterface[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aAgentInterface, a2aAgentInterface[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aAgentInterfaceFields}
 						layout={EntityLayout.Summary}
 						open={false}

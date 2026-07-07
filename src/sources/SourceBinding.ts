@@ -197,6 +197,7 @@ export type SourceArtifact = {
 	kind: SourceArtifactKind
 	path: string
 	generated: boolean
+	officialUrl?: string
 }
 
 export type SourceCredentialRequirement = {

@@ -65,14 +65,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$transfers',
+			name: '$$transfers',
 			label: 'transfers',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonNftTransfer,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TonNftItem_Timestamp,

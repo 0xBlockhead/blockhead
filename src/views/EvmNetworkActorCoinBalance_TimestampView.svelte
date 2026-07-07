@@ -326,7 +326,7 @@
 				<dt>Actor coin</dt>
 				<dd>
 					<EvmNetworkActorCoinBalanceView
-						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin)}
+						selection={select(EntityType.EvmNetworkActorCoinBalance, selection.entitySelector.$actorCoin, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

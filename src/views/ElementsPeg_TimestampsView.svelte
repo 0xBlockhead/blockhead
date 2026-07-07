@@ -114,7 +114,7 @@
 				{#snippet Item({ item: elementsPegTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ElementsPeg_Timestamp> })}
 					{@const elementsPegTimestampFields = { ...elementsPegTimestamp[EntityMetaKey.Selector], ...elementsPegTimestamp }}
 					<ElementsPeg_TimestampView
-						selection={select(EntityType.ElementsPeg_Timestamp, elementsPegTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.ElementsPeg_Timestamp, elementsPegTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={elementsPegTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -116,7 +116,7 @@
 					{@const evmBlockFields = { ...evmBlock[EntityMetaKey.Selector], ...evmBlock }}
 					{@const evmBlockHrefFields = { ...evmBlock, ...evmBlock[EntityMetaKey.Selector] }}
 					<EvmBlockView
-						selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmBlock, evmBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmBlockFields}
 						href={
 							(evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.caip2 !== undefined && evmBlockHrefFields.$network.caip2.namespace !== undefined && evmBlockHrefFields.$network !== undefined && evmBlockHrefFields.$network.caip2 !== undefined && evmBlockHrefFields.$network.caip2.reference !== undefined && evmBlockHrefFields.blockNumber !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(blocks)/block/[blockNumber=evmBlockNumber]', {

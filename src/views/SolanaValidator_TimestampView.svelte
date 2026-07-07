@@ -11,6 +11,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { networkByCaip2 } from '$/constants/Network.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -132,9 +133,9 @@
 				<dt>Validator</dt>
 				<dd>
 					<SolanaValidatorView
-						selection={select(EntityType.SolanaValidator, selection.entitySelector.$validator)}
+						selection={select(EntityType.SolanaValidator, selection.entitySelector.$validator, {})}
 						href={
-							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.namespace !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.reference !== undefined && selection.entitySelector.$validator.votePubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=solanaNetworkSlug]/solana/validator/[votePubkey]', {
+							(selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.namespace !== undefined && selection.entitySelector.$validator.$network !== undefined && selection.entitySelector.$validator.$network.caip2 !== undefined && selection.entitySelector.$validator.$network.caip2.reference !== undefined && selection.entitySelector.$validator.votePubkey !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana/validator/[votePubkey]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$validator.$network.caip2.namespace) + ':' + String(selection.entitySelector.$validator.$network.caip2.reference))].slug ?? ''),
 								votePubkey: String(selection.entitySelector.$validator.votePubkey ?? ''),
 							}) : undefined)

@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import Coin_TimestampView from '$/views/Coin_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>coin timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,8 +33,20 @@
 			})
 		}
 		selection={
-			select(EntityType.Coin_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.Coin_Timestamp, {
+				$coin: {
+					coinId: decodeURIComponent(params.coinId),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$coin: {
+					coinId: decodeURIComponent(params.coinId),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					marketCap: true,
 					marketCapUsd: true,

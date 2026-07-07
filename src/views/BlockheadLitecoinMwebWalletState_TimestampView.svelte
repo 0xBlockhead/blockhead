@@ -140,7 +140,7 @@
 				<dt>wallet state</dt>
 				<dd>
 					<BlockheadLitecoinMwebWalletStateView
-						selection={select(EntityType.BlockheadLitecoinMwebWalletState, selection.entitySelector.$walletState)}
+						selection={select(EntityType.BlockheadLitecoinMwebWalletState, selection.entitySelector.$walletState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

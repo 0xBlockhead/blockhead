@@ -84,7 +84,7 @@
 				<dt>program</dt>
 				<dd>
 					<AlgorandTealProgramView
-						selection={select(EntityType.AlgorandTealProgram, selection.entitySelector.$program)}
+						selection={select(EntityType.AlgorandTealProgram, selection.entitySelector.$program, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

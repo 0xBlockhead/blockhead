@@ -119,7 +119,7 @@
 				{#snippet Item({ item: filecoinTipset }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinTipset> })}
 					{@const filecoinTipsetFields = { ...filecoinTipset[EntityMetaKey.Selector], ...filecoinTipset }}
 					<FilecoinTipsetView
-						selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinTipset, filecoinTipset[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={filecoinTipsetFields}
 						layout={EntityLayout.Summary}
 						open={false}

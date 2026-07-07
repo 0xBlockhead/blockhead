@@ -134,7 +134,7 @@
 				<dt>resource</dt>
 				<dd>
 					<ArweaveResourceView
-						selection={select(EntityType.ArweaveResource, selection.entitySelector.$resource)}
+						selection={select(EntityType.ArweaveResource, selection.entitySelector.$resource, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

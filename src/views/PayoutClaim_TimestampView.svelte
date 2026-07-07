@@ -87,7 +87,7 @@
 				<dt>payout</dt>
 				<dd>
 					<PayoutView
-						selection={select(EntityType.Payout, selection.entitySelector.$payout)}
+						selection={select(EntityType.Payout, selection.entitySelector.$payout, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -98,7 +98,7 @@
 				<dt>account</dt>
 				<dd>
 					<AccountView
-						selection={select(EntityType.Account, selection.entitySelector.$account)}
+						selection={select(EntityType.Account, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

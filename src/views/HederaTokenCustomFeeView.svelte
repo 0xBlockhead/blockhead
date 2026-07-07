@@ -84,7 +84,7 @@
 				<dt>token timestamp</dt>
 				<dd>
 					<HederaToken_TimestampView
-						selection={select(EntityType.HederaToken_Timestamp, selection.entitySelector.$tokenTimestamp)}
+						selection={select(EntityType.HederaToken_Timestamp, selection.entitySelector.$tokenTimestamp, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

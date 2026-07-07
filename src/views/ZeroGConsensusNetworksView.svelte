@@ -113,7 +113,7 @@
 				{#snippet Item({ item: zeroGConsensusNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGConsensusNetwork> })}
 					{@const zeroGConsensusNetworkFields = { ...zeroGConsensusNetwork[EntityMetaKey.Selector], ...zeroGConsensusNetwork }}
 					<ZeroGConsensusNetworkView
-						selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGConsensusNetwork, zeroGConsensusNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGConsensusNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

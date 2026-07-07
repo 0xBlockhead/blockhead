@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import UtxoInputView from '$/views/UtxoInputView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>UTXO input • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +33,15 @@
 			})
 		}
 		selection={
-			select(EntityType.UtxoInput, data.selector, {
+			select(EntityType.UtxoInput, {
+				$transaction: {
+					$network: {
+						slug: params.networkSlug,
+					},
+					txId: decodeURIComponent(params.txId),
+				},
+				indexInTransaction: Number(params.inputIndex),
+			}, {
 				fields: {
 					$spentOutput: true,
 					coinbaseScript: true,

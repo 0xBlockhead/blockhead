@@ -116,7 +116,7 @@
 				<dt>Asset</dt>
 				<dd>
 					<ElementsAssetView
-						selection={select(EntityType.ElementsAsset, selection.entitySelector.$asset)}
+						selection={select(EntityType.ElementsAsset, selection.entitySelector.$asset, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

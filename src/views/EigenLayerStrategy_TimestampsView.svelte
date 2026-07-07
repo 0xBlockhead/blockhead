@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eigenLayerStrategyTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EigenLayerStrategy_Timestamp> })}
 					{@const eigenLayerStrategyTimestampFields = { ...eigenLayerStrategyTimestamp[EntityMetaKey.Selector], ...eigenLayerStrategyTimestamp }}
 					<EigenLayerStrategy_TimestampView
-						selection={select(EntityType.EigenLayerStrategy_Timestamp, eigenLayerStrategyTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EigenLayerStrategy_Timestamp, eigenLayerStrategyTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eigenLayerStrategyTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

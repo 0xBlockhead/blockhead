@@ -115,7 +115,7 @@
 				{#snippet Item({ item: bitTorrentSwarmObservationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitTorrentSwarmObservation_Timestamp> })}
 					{@const bitTorrentSwarmObservationTimestampFields = { ...bitTorrentSwarmObservationTimestamp[EntityMetaKey.Selector], ...bitTorrentSwarmObservationTimestamp }}
 					<BitTorrentSwarmObservation_TimestampView
-						selection={select(EntityType.BitTorrentSwarmObservation_Timestamp, bitTorrentSwarmObservationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitTorrentSwarmObservation_Timestamp, bitTorrentSwarmObservationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitTorrentSwarmObservationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

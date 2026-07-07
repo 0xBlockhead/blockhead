@@ -148,7 +148,7 @@
 				<dt>operator</dt>
 				<dd>
 					<EigenLayerOperatorView
-						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator)}
+						selection={select(EntityType.EigenLayerOperator, selection.entitySelector.$operator, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -159,7 +159,7 @@
 				<dt>AVS</dt>
 				<dd>
 					<EigenLayerAvsView
-						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs)}
+						selection={select(EntityType.EigenLayerAvs, selection.entitySelector.$avs, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -170,7 +170,7 @@
 				<dt>strategy</dt>
 				<dd>
 					<EigenLayerStrategyView
-						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy)}
+						selection={select(EntityType.EigenLayerStrategy, selection.entitySelector.$strategy, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -324,7 +324,7 @@
 						{#snippet Pending()}
 							{@const quorumNumbers = prefetched.quorumNumbers}
 							{#if quorumNumbers !== undefined && quorumNumbers !== null}
-								{(quorumNumbers?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{quorumNumbers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -332,7 +332,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const quorumNumbers = resolvedEntity.quorumNumbers}
 							{#if quorumNumbers !== undefined && quorumNumbers !== null}
-								{(quorumNumbers?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{quorumNumbers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

@@ -116,7 +116,7 @@
 				{#snippet Item({ item: networkEndpointObservationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NetworkEndpointObservation_Timestamp> })}
 					{@const networkEndpointObservationTimestampFields = { ...networkEndpointObservationTimestamp[EntityMetaKey.Selector], ...networkEndpointObservationTimestamp }}
 					<NetworkEndpointObservation_TimestampView
-						selection={select(EntityType.NetworkEndpointObservation_Timestamp, networkEndpointObservationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.NetworkEndpointObservation_Timestamp, networkEndpointObservationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={networkEndpointObservationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

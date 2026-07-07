@@ -146,7 +146,7 @@
 						{#snippet Pending()}
 							{@const rpcEndpoints = prefetched.rpcEndpoints}
 							{#if rpcEndpoints !== undefined && rpcEndpoints !== null}
-								{(rpcEndpoints?.values ?? []).map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
+								{rpcEndpoints.values.map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -154,7 +154,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rpcEndpoints = resolvedEntity.rpcEndpoints}
 							{#if rpcEndpoints !== undefined && rpcEndpoints !== null}
-								{(rpcEndpoints?.values ?? []).map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
+								{rpcEndpoints.values.map((value) => String((value.url) ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

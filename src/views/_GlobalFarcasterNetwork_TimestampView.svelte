@@ -118,7 +118,7 @@
 				<dt>hub</dt>
 				<dd>
 					<GlobalFarcasterNetworkView
-						selection={select(EntityType._GlobalFarcasterNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalFarcasterNetwork, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

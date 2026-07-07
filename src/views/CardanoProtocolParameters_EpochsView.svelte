@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoProtocolParametersEpoch }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoProtocolParameters_Epoch> })}
 					{@const cardanoProtocolParametersEpochFields = { ...cardanoProtocolParametersEpoch[EntityMetaKey.Selector], ...cardanoProtocolParametersEpoch }}
 					<CardanoProtocolParameters_EpochView
-						selection={select(EntityType.CardanoProtocolParameters_Epoch, cardanoProtocolParametersEpoch[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoProtocolParameters_Epoch, cardanoProtocolParametersEpoch[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoProtocolParametersEpochFields}
 						layout={EntityLayout.Summary}
 						open={false}

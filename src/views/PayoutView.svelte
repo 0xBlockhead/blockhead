@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
@@ -182,15 +183,6 @@
 								<AssetClassView
 									selection={select(EntityType.AssetClass, assetClass[EntityMetaKey.Selector])}
 									prefetched={assetClass}
-									href={
-										(assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2 !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.namespace !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2 !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.reference !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.kind !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance !== undefined && assetClass[EntityMetaKey.Selector].$assetInstance.assetKey !== undefined && assetClass[EntityMetaKey.Selector].classKind !== undefined && assetClass[EntityMetaKey.Selector].classKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/class/[classKind]/[classKey]', {
-											caip2: `${String(assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.namespace ?? '')}:${String(assetClass[EntityMetaKey.Selector].$assetInstance.$network.caip2.reference ?? '')}`,
-											kind: String(assetClass[EntityMetaKey.Selector].$assetInstance.kind ?? ''),
-											assetKey: String(assetClass[EntityMetaKey.Selector].$assetInstance.assetKey ?? ''),
-											classKind: String(assetClass[EntityMetaKey.Selector].classKind ?? ''),
-											classKey: String(assetClass[EntityMetaKey.Selector].classKey ?? ''),
-										}) : undefined)
-									}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -212,7 +204,19 @@
 									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
+											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
 											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
 										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
 											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),

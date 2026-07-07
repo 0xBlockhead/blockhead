@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eip8004AgentRegistration }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip8004AgentRegistration> })}
 					{@const eip8004AgentRegistrationFields = { ...eip8004AgentRegistration[EntityMetaKey.Selector], ...eip8004AgentRegistration }}
 					<Eip8004AgentRegistrationView
-						selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector])}
+						selection={select(EntityType.Eip8004AgentRegistration, eip8004AgentRegistration[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eip8004AgentRegistrationFields}
 						layout={EntityLayout.Summary}
 						open={false}

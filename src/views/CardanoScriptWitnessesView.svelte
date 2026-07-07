@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoScriptWitness }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoScriptWitness> })}
 					{@const cardanoScriptWitnessFields = { ...cardanoScriptWitness[EntityMetaKey.Selector], ...cardanoScriptWitness }}
 					<CardanoScriptWitnessView
-						selection={select(EntityType.CardanoScriptWitness, cardanoScriptWitness[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoScriptWitness, cardanoScriptWitness[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoScriptWitnessFields}
 						layout={EntityLayout.Summary}
 						open={false}

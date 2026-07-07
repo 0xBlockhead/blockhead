@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import Market_TimeInterval_TimestampView from '$/views/Market_TimeInterval_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>OHLC candle • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -45,7 +39,51 @@
 			})
 		}
 		selection={
-			select(EntityType.Market_TimeInterval_Timestamp, data.selector, {
+			select(EntityType.Market_TimeInterval_Timestamp, {
+				$market: {
+					$base: (
+					params.baseKind === 'coin' ?
+						{
+							kind: 'Coin',
+							$coin: {
+								coinId: decodeURIComponent(params.base),
+							},
+						}
+					:
+						{
+							kind: 'Currency',
+							$currency: {
+								iso4217: decodeURIComponent(params.base),
+							},
+						}
+					),
+					$quote: (
+					params.quoteKind === 'coin' ?
+						{
+							kind: 'Coin',
+							$coin: {
+								coinId: decodeURIComponent(params.quote),
+							},
+						}
+					:
+						{
+							kind: 'Currency',
+							$currency: {
+								iso4217: decodeURIComponent(params.quote),
+							},
+						}
+					),
+					$marketVenue: {
+						marketVenueId: decodeURIComponent(params.marketVenue),
+					},
+					marketKind: decodeURIComponent(params.marketKind),
+				},
+				timeInterval: {
+					unit: decodeURIComponent(params.timeIntervalUnit),
+					value: Number(params.timeIntervalValue),
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
 				fields: {
 					close: true,
 					open: true,

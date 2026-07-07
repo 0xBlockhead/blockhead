@@ -442,7 +442,7 @@
 				<dt>Source</dt>
 				<dd>
 					<BlockheadSourceView
-						selection={select(EntityType.BlockheadSource, selection.entitySelector.$source)}
+						selection={select(EntityType.BlockheadSource, selection.entitySelector.$source, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

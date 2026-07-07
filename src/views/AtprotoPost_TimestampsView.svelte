@@ -117,7 +117,7 @@
 					{@const atprotoPostTimestampFields = { ...atprotoPostTimestamp[EntityMetaKey.Selector], ...atprotoPostTimestamp }}
 					{@const atprotoPostTimestampHrefFields = { ...atprotoPostTimestamp, ...atprotoPostTimestamp[EntityMetaKey.Selector] }}
 					<AtprotoPost_TimestampView
-						selection={select(EntityType.AtprotoPost_Timestamp, atprotoPostTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AtprotoPost_Timestamp, atprotoPostTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoPostTimestampFields}
 						href={
 							(atprotoPostTimestampHrefFields.$post !== undefined && atprotoPostTimestampHrefFields.$post.uri !== undefined && atprotoPostTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(atproto)/atproto/post/[...uri]/(post)/observations/[timestampMs=nonNegativeInteger]', {

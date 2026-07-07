@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadActionOutcomeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadActionOutcome_Timestamp> })}
 					{@const blockheadActionOutcomeTimestampFields = { ...blockheadActionOutcomeTimestamp[EntityMetaKey.Selector], ...blockheadActionOutcomeTimestamp }}
 					<BlockheadActionOutcome_TimestampView
-						selection={select(EntityType.BlockheadActionOutcome_Timestamp, blockheadActionOutcomeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadActionOutcome_Timestamp, blockheadActionOutcomeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadActionOutcomeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

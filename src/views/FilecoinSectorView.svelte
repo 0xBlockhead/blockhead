@@ -140,7 +140,7 @@
 				<dt>Miner</dt>
 				<dd>
 					<FilecoinMinerView
-						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner)}
+						selection={select(EntityType.FilecoinMiner, selection.entitySelector.$miner, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

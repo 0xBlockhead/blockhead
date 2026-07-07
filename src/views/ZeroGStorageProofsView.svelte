@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGStorageProof }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGStorageProof> })}
 					{@const zeroGStorageProofFields = { ...zeroGStorageProof[EntityMetaKey.Selector], ...zeroGStorageProof }}
 					<ZeroGStorageProofView
-						selection={select(EntityType.ZeroGStorageProof, zeroGStorageProof[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGStorageProof, zeroGStorageProof[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGStorageProofFields}
 						layout={EntityLayout.Summary}
 						open={false}

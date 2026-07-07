@@ -115,7 +115,7 @@
 				{#snippet Item({ item: polkadotAssetTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PolkadotAsset_Timestamp> })}
 					{@const polkadotAssetTimestampFields = { ...polkadotAssetTimestamp[EntityMetaKey.Selector], ...polkadotAssetTimestamp }}
 					<PolkadotAsset_TimestampView
-						selection={select(EntityType.PolkadotAsset_Timestamp, polkadotAssetTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotAsset_Timestamp, polkadotAssetTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotAssetTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

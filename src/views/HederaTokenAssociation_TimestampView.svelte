@@ -81,7 +81,7 @@
 				<dt>association</dt>
 				<dd>
 					<HederaTokenAssociationView
-						selection={select(EntityType.HederaTokenAssociation, selection.entitySelector.$association)}
+						selection={select(EntityType.HederaTokenAssociation, selection.entitySelector.$association, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

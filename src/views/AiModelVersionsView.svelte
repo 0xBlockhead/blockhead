@@ -116,7 +116,7 @@
 				{#snippet Item({ item: aiModelVersion }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiModelVersion> })}
 					{@const aiModelVersionFields = { ...aiModelVersion[EntityMetaKey.Selector], ...aiModelVersion }}
 					<AiModelVersionView
-						selection={select(EntityType.AiModelVersion, aiModelVersion[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiModelVersion, aiModelVersion[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiModelVersionFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadCashuToken }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadCashuToken> })}
 					{@const blockheadCashuTokenFields = { ...blockheadCashuToken[EntityMetaKey.Selector], ...blockheadCashuToken }}
 					<BlockheadCashuTokenView
-						selection={select(EntityType.BlockheadCashuToken, blockheadCashuToken[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadCashuToken, blockheadCashuToken[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadCashuTokenFields}
 						layout={EntityLayout.Summary}
 						open={false}

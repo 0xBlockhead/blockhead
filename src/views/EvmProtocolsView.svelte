@@ -115,7 +115,7 @@
 					{@const evmProtocolFields = { ...evmProtocol[EntityMetaKey.Selector], ...evmProtocol }}
 					{@const evmProtocolHrefFields = { ...evmProtocol, ...evmProtocol[EntityMetaKey.Selector] }}
 					<EvmProtocolView
-						selection={select(EntityType.EvmProtocol, evmProtocol[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmProtocol, evmProtocol[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmProtocolFields}
 						href={resolve('/(explore)/(evm)/evm')}
 						layout={EntityLayout.Summary}

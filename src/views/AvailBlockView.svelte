@@ -115,7 +115,7 @@
 				<dt>network</dt>
 				<dd>
 					<AvailNetworkView
-						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.AvailNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

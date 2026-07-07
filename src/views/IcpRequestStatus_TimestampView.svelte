@@ -82,7 +82,7 @@
 				<dt>request status</dt>
 				<dd>
 					<IcpRequestStatusView
-						selection={select(EntityType.IcpRequestStatus, selection.entitySelector.$requestStatus)}
+						selection={select(EntityType.IcpRequestStatus, selection.entitySelector.$requestStatus, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

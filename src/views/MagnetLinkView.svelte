@@ -256,7 +256,7 @@
 						{#snippet Pending()}
 							{@const trackers = prefetched.trackers}
 							{#if trackers !== undefined && trackers !== null}
-								{(trackers?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{trackers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -264,7 +264,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const trackers = resolvedEntity.trackers}
 							{#if trackers !== undefined && trackers !== null}
-								{(trackers?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{trackers.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -286,7 +286,7 @@
 						{#snippet Pending()}
 							{@const webSeeds = prefetched.webSeeds}
 							{#if webSeeds !== undefined && webSeeds !== null}
-								{(webSeeds?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{webSeeds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -294,7 +294,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const webSeeds = resolvedEntity.webSeeds}
 							{#if webSeeds !== undefined && webSeeds !== null}
-								{(webSeeds?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{webSeeds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -316,7 +316,7 @@
 						{#snippet Pending()}
 							{@const acceptableSources = prefetched.acceptableSources}
 							{#if acceptableSources !== undefined && acceptableSources !== null}
-								{(acceptableSources?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{acceptableSources.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -324,7 +324,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const acceptableSources = resolvedEntity.acceptableSources}
 							{#if acceptableSources !== undefined && acceptableSources !== null}
-								{(acceptableSources?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{acceptableSources.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

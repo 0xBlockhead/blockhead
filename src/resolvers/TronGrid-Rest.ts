@@ -25,8 +25,9 @@ import { TronAccount_TimestampSelector } from '$/schema/TronAccount_Timestamp.ts
 import { TronWitnessSelector } from '$/schema/TronWitness.ts'
 import { TronWitness_TimestampSelector } from '$/schema/TronWitness_Timestamp.ts'
 import { TronTransactionReceiptSelector } from '$/schema/TronTransactionReceipt.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 
-type NetworkSelector = { caip2: {
+type NetworkId = { caip2: {
 	namespace: string
 	reference: string
 } } | { slug: string }
@@ -35,7 +36,7 @@ const tronGridRestBaseUrl = async () => (
 	(await import('$/sources/TronGrid/Rest/queries.ts')).tronGridRestEndpoints[0].restBaseUrl
 )
 
-const assertTronMainnet = (network: NetworkSelector) => {
+const assertTronMainnet = (network: NetworkId) => {
 	if (!('slug' in network) || network.slug !== networkBySlug.tron.slug)
 		throw new Error('TronGrid_Rest: unsupported network')
 }
@@ -268,6 +269,26 @@ export default {
 			fields: {
 				$network: (network) => network.$network,
 				restEndpoints: (network) => network.restEndpoints,
+			},
+		}),
+
+		defineResolver(Source.TronGrid_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertTronMainnet(network)
+					return [
+						{
+							url: await tronGridRestBaseUrl(),
+							transportType: TransportType.Http,
+							providerName: 'TronGrid',
+						},
+					]
+				}
+			},
+		})({
+			fields: {
+				tronRestEndpoints: (restEndpoints) => restEndpoints,
 			},
 		}),
 
@@ -576,6 +597,28 @@ export default {
 		}),
 
 		defineResolver(Source.TronGrid_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertTronMainnet(network)
+					return [
+						{
+							[EntityMetaKey.Selector]: {
+								$network: network,
+								timestampMs: Date.now(),
+								source: Source.TronGrid_Rest,
+							},
+						},
+					]
+				}
+			},
+		})({
+			fields: {
+				$$tronTimestamps: (timestamps) => timestamps,
+			},
+		}),
+
+		defineResolver(Source.TronGrid_Rest, {
 			entityType: EntityType.TronNetwork,
 			resolve: {
 				[TronNetworkSelector.Network]: async ({ $network }) => {
@@ -594,6 +637,24 @@ export default {
 		})({
 			fields: {
 				$$timestamps: (timestamps) => timestamps,
+			},
+		}),
+
+		defineResolver(Source.TronGrid_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertTronMainnet(network)
+					const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
+					return witnessRows(
+						network,
+						(await listWitnesses({ restBaseUrl: await tronGridRestBaseUrl() })).witnesses
+					)
+				}
+			},
+		})({
+			fields: {
+				$$tronWitnesses: (witnesses) => witnesses,
 			},
 		}),
 
@@ -646,6 +707,36 @@ export default {
 		})({
 			fields: {
 				$$blocks: (blocks) => blocks,
+			},
+		}),
+
+		defineResolver(Source.TronGrid_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network, context) => {
+					assertTronMainnet(network)
+					const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
+					const block = await getNowBlock({ restBaseUrl: await tronGridRestBaseUrl() })
+					const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
+					return Array.from({
+						length: Math.min(
+							Number(headBlockHeight + 1n),
+							resolverContextRowLimit(context)
+						),
+					}, (_value, blockOffset) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							height: headBlockHeight - BigInt(blockOffset),
+							...(blockOffset === 0 && {
+								hash: block.blockID,
+							}),
+						},
+					}))
+				}
+			},
+		})({
+			fields: {
+				$$tronBlocks: (blocks) => blocks,
 			},
 		}),
 

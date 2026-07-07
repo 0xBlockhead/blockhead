@@ -88,8 +88,6 @@ export default {
 		},
 		{
 			name: '$$thread',
-			label: 'Thread',
-			labelPlural: 'Thread posts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.AtprotoPost,
 			cardinality: EntityFieldCardinality.Many,

@@ -118,7 +118,7 @@
 					{@const cosmosAccountTimestampFields = { ...cosmosAccountTimestamp[EntityMetaKey.Selector], ...cosmosAccountTimestamp }}
 					{@const cosmosAccountTimestampHrefFields = { ...cosmosAccountTimestamp, ...cosmosAccountTimestamp[EntityMetaKey.Selector] }}
 					<CosmosAccount_TimestampView
-						selection={select(EntityType.CosmosAccount_Timestamp, cosmosAccountTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosAccount_Timestamp, cosmosAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosAccountTimestampFields}
 						href={
 							(cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.$network !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2 !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2.namespace !== undefined && cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.$network !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2 !== undefined && cosmosAccountTimestampHrefFields.$account.$network.caip2.reference !== undefined && cosmosAccountTimestampHrefFields.$account !== undefined && cosmosAccountTimestampHrefFields.$account.address !== undefined && cosmosAccountTimestampHrefFields.timestampMs !== undefined && cosmosAccountTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/account/[address]/observations/[timestampMs=nonNegativeInteger]/[source]', {

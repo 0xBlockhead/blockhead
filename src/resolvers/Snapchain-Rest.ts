@@ -20,6 +20,7 @@ import { FarcasterUserSelector } from '$/schema/FarcasterUser.ts'
 import { FarcasterUser_TimestampSelector } from '$/schema/FarcasterUser_Timestamp.ts'
 import { FarcasterVerifiedAddressSelector } from '$/schema/FarcasterVerifiedAddress.ts'
 import { FarcasterCastSelector } from '$/schema/FarcasterCast.ts'
+import { FarcasterCastEmbedSelector } from '$/schema/FarcasterCastEmbed.ts'
 import { FarcasterCast_TimestampSelector } from '$/schema/FarcasterCast_Timestamp.ts'
 import { BlockheadFarcasterAccountConnectionSelector } from '$/schema/BlockheadFarcasterAccountConnection.ts'
 import { _GlobalFarcasterNetworkSelector } from '$/schema/_GlobalFarcasterNetwork.ts'
@@ -424,6 +425,56 @@ export default {
 				likeCount: (timestamp) => timestamp.likeCount,
 				recastCount: (timestamp) => timestamp.recastCount,
 				replyCount: (timestamp) => timestamp.replyCount,
+			},
+		}),
+
+		defineResolver(Source.Snapchain_Rest, {
+			entityType: EntityType.FarcasterCastEmbed,
+			resolve: {
+				[FarcasterCastEmbedSelector.CastIndexInCast]: async ({ $cast, indexInCast }) => {
+					type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+					type CastEmbedFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCastEmbed>
+					const { getCastById } = await import('$/sources/Snapchain/Rest/queries.ts')
+					if (!('fid' in $cast) || !('hash' in $cast))
+						throw new Error('Snapchain_Rest: cast embed id requires cast fid and hash')
+
+					const embed = (await getCastById({
+						fid: $cast.fid,
+						hash: $cast.hash,
+					})).data?.castAddBody?.embeds?.[indexInCast]
+					if (embed == null)
+						throw new Error('Snapchain_Rest: cast embed index not found')
+
+					return {
+						$cast,
+						indexInCast,
+						url: optionalNonemptyString(embed.url),
+						$embeddedCast: (
+							embed.castId?.fid != null
+								&& embed.castId.hash != null
+						) ?
+							{
+								[EntityMetaKey.Selector]: {
+									fid: embed.castId.fid,
+									hash: lowerHex0xCastHash(embed.castId.hash),
+								},
+							} satisfies CastEntity
+						:
+							undefined,
+					} satisfies Partial<CastEmbedFields>
+				},
+			},
+		})({
+			fields: {
+				$cast: (embed) => embed.$cast,
+				indexInCast: (embed) => embed.indexInCast,
+				url: (embed) => embed.url,
+				$embeddedCast: (embed) => embed.$embeddedCast,
+				title: () => undefined,
+				description: () => undefined,
+				iconUrl: () => undefined,
+				$icon: () => undefined,
+				quotedPreviewText: () => undefined,
 			},
 		}),
 

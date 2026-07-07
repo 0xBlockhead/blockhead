@@ -543,7 +543,7 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalNostrNetworkView
-						selection={select(EntityType._GlobalNostrNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalNostrNetwork, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

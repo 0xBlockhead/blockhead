@@ -117,7 +117,7 @@
 					{@const atprotoActorTimestampFields = { ...atprotoActorTimestamp[EntityMetaKey.Selector], ...atprotoActorTimestamp }}
 					{@const atprotoActorTimestampHrefFields = { ...atprotoActorTimestamp, ...atprotoActorTimestamp[EntityMetaKey.Selector] }}
 					<AtprotoActor_TimestampView
-						selection={select(EntityType.AtprotoActor_Timestamp, atprotoActorTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AtprotoActor_Timestamp, atprotoActorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={atprotoActorTimestampFields}
 						href={
 							(atprotoActorTimestampHrefFields.$actor !== undefined && atprotoActorTimestampHrefFields.$actor.did !== undefined && atprotoActorTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(atproto)/atproto/actor/[did]/(actor)/observations/[timestampMs=nonNegativeInteger]', {

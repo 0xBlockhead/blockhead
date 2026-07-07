@@ -114,7 +114,7 @@
 				{#snippet Item({ item: a2aTaskTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aTask_Timestamp> })}
 					{@const a2aTaskTimestampFields = { ...a2aTaskTimestamp[EntityMetaKey.Selector], ...a2aTaskTimestamp }}
 					<A2aTask_TimestampView
-						selection={select(EntityType.A2aTask_Timestamp, a2aTaskTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aTask_Timestamp, a2aTaskTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aTaskTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

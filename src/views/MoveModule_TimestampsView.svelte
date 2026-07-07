@@ -115,7 +115,7 @@
 				{#snippet Item({ item: moveModuleTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoveModule_Timestamp> })}
 					{@const moveModuleTimestampFields = { ...moveModuleTimestamp[EntityMetaKey.Selector], ...moveModuleTimestamp }}
 					<MoveModule_TimestampView
-						selection={select(EntityType.MoveModule_Timestamp, moveModuleTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoveModule_Timestamp, moveModuleTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moveModuleTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

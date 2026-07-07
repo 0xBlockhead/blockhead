@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { specificationRealmBySlug } from '$/constants/SpecificationProposal.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +25,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Specification realm • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<SpecificationRealmView
 		href={
@@ -37,7 +33,12 @@
 			})
 		}
 		selection={
-			select(EntityType.SpecificationRealm, data.selector, {
+			select(EntityType.SpecificationRealm, {
+				realm: specificationRealmBySlug[params.specificationRealmSlug].id,
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					label: true,
 					labelPlural: true,

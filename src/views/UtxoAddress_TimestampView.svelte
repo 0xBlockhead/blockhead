@@ -489,7 +489,7 @@
 				<dt>Address</dt>
 				<dd>
 					<UtxoAddressView
-						selection={select(EntityType.UtxoAddress, selection.entitySelector.$address)}
+						selection={select(EntityType.UtxoAddress, selection.entitySelector.$address, {})}
 						href={
 							(selection.entitySelector.$address.$network !== undefined && selection.entitySelector.$address.$network.caip2 !== undefined && selection.entitySelector.$address.$network.caip2.namespace !== undefined && selection.entitySelector.$address.$network !== undefined && selection.entitySelector.$address.$network.caip2 !== undefined && selection.entitySelector.$address.$network.caip2.reference !== undefined && selection.entitySelector.$address.address !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/address/[address]', {
 								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$address.$network.caip2.namespace) + ':' + String(selection.entitySelector.$address.$network.caip2.reference))].slug ?? ''),

@@ -142,7 +142,7 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalArweaveNetworkView
-						selection={select(EntityType._GlobalArweaveNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalArweaveNetwork, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: avalancheSubnet }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalancheSubnet> })}
 					{@const avalancheSubnetFields = { ...avalancheSubnet[EntityMetaKey.Selector], ...avalancheSubnet }}
 					<AvalancheSubnetView
-						selection={select(EntityType.AvalancheSubnet, avalancheSubnet[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalancheSubnet, avalancheSubnet[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalancheSubnetFields}
 						layout={EntityLayout.Summary}
 						open={false}

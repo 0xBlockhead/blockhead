@@ -131,7 +131,7 @@
 				<dt>catalog</dt>
 				<dd>
 					<GlobalAiArtifactCatalogView
-						selection={select(EntityType._GlobalAiArtifactCatalog, selection.entitySelector.$catalog)}
+						selection={select(EntityType._GlobalAiArtifactCatalog, selection.entitySelector.$catalog, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

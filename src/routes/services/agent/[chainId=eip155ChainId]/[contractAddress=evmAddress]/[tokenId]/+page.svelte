@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmNftView from '$/views/EvmNftView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM NFT • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,7 +34,21 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmNft, data.selector, {
+			select(EntityType.EvmNft, {
+				$contract: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.chainId,
+						},
+					},
+					address: params.contractAddress,
+				},
+				tokenId: decodeURIComponent(params.tokenId),
+			}, {
+				sources: [
+					Source.Eip8004Scan_Rest,
+				],
 				fields: {
 					name: true,
 					standard: true,

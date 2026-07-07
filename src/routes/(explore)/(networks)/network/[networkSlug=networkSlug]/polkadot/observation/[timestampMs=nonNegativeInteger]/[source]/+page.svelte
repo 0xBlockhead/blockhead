@@ -13,24 +13,18 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import PolkadotNetwork_TimestampView from '$/views/PolkadotNetwork_TimestampView.svelte'
+	import Network_TimestampView from '$/views/Network_TimestampView.svelte'
 </script>
 
 
-<svelte:head>
-	<title>Polkadot network timestamp • Blockhead</title>
-</svelte:head>
-
-
 <Page>
-	<PolkadotNetwork_TimestampView
+	<Network_TimestampView
 		href={
 			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/observation/[timestampMs=nonNegativeInteger]/[source]', {
 				networkSlug: params.networkSlug,
@@ -39,19 +33,39 @@
 			})
 		}
 		selection={
-			select(EntityType.PolkadotNetwork_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.Network_Timestamp, {
+				$network: {
+					slug: params.networkSlug,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$network: {
+					slug: params.networkSlug,
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
-					runtimeSpecName: true,
-					finalizedBlockNumber: true,
+					latestHeight: true,
+					health: true,
+					txCount: true,
+					latestBlockHeight: true,
+					latestBlockHash: true,
+					latestBlockTimeMs: true,
+					latestBlockTransactionCount: true,
+					chainId: true,
+					nodeNetwork: true,
+					applicationName: true,
+					applicationVersion: true,
+					cosmosSdkVersion: true,
 					isSyncing: true,
-					peerCount: true,
-					runtimeSpecVersion: true,
-					transactionVersion: true,
-					stateVersion: true,
-					finalizedBlockHash: true,
-					finalizedExtrinsicCount: true,
-					shouldHavePeers: true,
+					validatorCount: true,
+					bondedValidatorCount: true,
+					bondedTokens: true,
+					notBondedTokens: true,
+					governanceProposalCount: true,
 				},
 			})
 		}

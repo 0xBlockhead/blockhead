@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpToolCallTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpToolCall_Timestamp> })}
 					{@const acpToolCallTimestampFields = { ...acpToolCallTimestamp[EntityMetaKey.Selector], ...acpToolCallTimestamp }}
 					<AcpToolCall_TimestampView
-						selection={select(EntityType.AcpToolCall_Timestamp, acpToolCallTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpToolCall_Timestamp, acpToolCallTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpToolCallTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

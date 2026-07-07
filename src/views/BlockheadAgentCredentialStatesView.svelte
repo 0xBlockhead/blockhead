@@ -115,7 +115,7 @@
 				{#snippet Item({ item: blockheadAgentCredentialState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadAgentCredentialState> })}
 					{@const blockheadAgentCredentialStateFields = { ...blockheadAgentCredentialState[EntityMetaKey.Selector], ...blockheadAgentCredentialState }}
 					<BlockheadAgentCredentialStateView
-						selection={select(EntityType.BlockheadAgentCredentialState, blockheadAgentCredentialState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadAgentCredentialState, blockheadAgentCredentialState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadAgentCredentialStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

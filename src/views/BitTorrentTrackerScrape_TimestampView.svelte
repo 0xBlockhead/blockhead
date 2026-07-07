@@ -130,7 +130,7 @@
 				<dt>tracker</dt>
 				<dd>
 					<BitTorrentTrackerView
-						selection={select(EntityType.BitTorrentTracker, selection.entitySelector.$tracker)}
+						selection={select(EntityType.BitTorrentTracker, selection.entitySelector.$tracker, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

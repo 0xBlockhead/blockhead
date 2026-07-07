@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitPackedObject }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitPackedObject> })}
 					{@const gitPackedObjectFields = { ...gitPackedObject[EntityMetaKey.Selector], ...gitPackedObject }}
 					<GitPackedObjectView
-						selection={select(EntityType.GitPackedObject, gitPackedObject[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitPackedObject, gitPackedObject[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitPackedObjectFields}
 						layout={EntityLayout.Summary}
 						open={false}

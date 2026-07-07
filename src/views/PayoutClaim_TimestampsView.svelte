@@ -106,7 +106,7 @@
 				{#snippet Item({ item: payoutClaimTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.PayoutClaim_Timestamp> })}
 					{@const payoutClaimTimestampFields = { ...payoutClaimTimestamp[EntityMetaKey.Selector], ...payoutClaimTimestamp }}
 					<PayoutClaim_TimestampView
-						selection={select(EntityType.PayoutClaim_Timestamp, payoutClaimTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.PayoutClaim_Timestamp, payoutClaimTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={payoutClaimTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

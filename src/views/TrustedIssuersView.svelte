@@ -106,7 +106,7 @@
 				{#snippet Item({ item: trustedIssuer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TrustedIssuer> })}
 					{@const trustedIssuerFields = { ...trustedIssuer[EntityMetaKey.Selector], ...trustedIssuer }}
 					<TrustedIssuerView
-						selection={select(EntityType.TrustedIssuer, trustedIssuer[EntityMetaKey.Selector])}
+						selection={select(EntityType.TrustedIssuer, trustedIssuer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={trustedIssuerFields}
 						layout={EntityLayout.Summary}
 						open={false}

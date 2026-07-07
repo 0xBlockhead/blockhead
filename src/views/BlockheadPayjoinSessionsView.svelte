@@ -115,7 +115,7 @@
 				{#snippet Item({ item: blockheadPayjoinSession }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadPayjoinSession> })}
 					{@const blockheadPayjoinSessionFields = { ...blockheadPayjoinSession[EntityMetaKey.Selector], ...blockheadPayjoinSession }}
 					<BlockheadPayjoinSessionView
-						selection={select(EntityType.BlockheadPayjoinSession, blockheadPayjoinSession[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadPayjoinSession, blockheadPayjoinSession[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadPayjoinSessionFields}
 						layout={EntityLayout.Summary}
 						open={false}

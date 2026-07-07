@@ -134,7 +134,7 @@
 				<dt>output state</dt>
 				<dd>
 					<BlockheadLitecoinMwebOutputStateView
-						selection={select(EntityType.BlockheadLitecoinMwebOutputState, selection.entitySelector.$outputState)}
+						selection={select(EntityType.BlockheadLitecoinMwebOutputState, selection.entitySelector.$outputState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

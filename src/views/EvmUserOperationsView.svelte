@@ -123,7 +123,7 @@
 					{@const evmUserOperationFields = { ...evmUserOperation[EntityMetaKey.Selector], ...evmUserOperation }}
 					{@const evmUserOperationHrefFields = { ...evmUserOperation, ...evmUserOperation[EntityMetaKey.Selector] }}
 					<EvmUserOperationView
-						selection={select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmUserOperation, evmUserOperation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmUserOperationFields}
 						href={
 							(evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined && evmUserOperationHrefFields.$network.caip2.namespace !== undefined && evmUserOperationHrefFields.$network !== undefined && evmUserOperationHrefFields.$network.caip2 !== undefined && evmUserOperationHrefFields.$network.caip2.reference !== undefined && evmUserOperationHrefFields.hash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/user-operation/[userOperationHash=userOperationHash]', {

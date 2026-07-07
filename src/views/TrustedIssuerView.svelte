@@ -82,7 +82,7 @@
 				<dt>profile</dt>
 				<dd>
 					<RegulatedAssetProfileView
-						selection={select(EntityType.RegulatedAssetProfile, selection.entitySelector.$profile)}
+						selection={select(EntityType.RegulatedAssetProfile, selection.entitySelector.$profile, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -134,7 +134,7 @@
 						{#snippet Pending()}
 							{@const claimTopics = prefetched.claimTopics}
 							{#if claimTopics !== undefined && claimTopics !== null}
-								{(claimTopics?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{claimTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -142,7 +142,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const claimTopics = resolvedEntity.claimTopics}
 							{#if claimTopics !== undefined && claimTopics !== null}
-								{(claimTopics?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{claimTopics.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

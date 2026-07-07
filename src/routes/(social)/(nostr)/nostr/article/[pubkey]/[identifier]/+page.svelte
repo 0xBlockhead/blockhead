@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import NostrArticleView from '$/views/NostrArticleView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Nostr article • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +33,14 @@
 			})
 		}
 		selection={
-			select(EntityType.NostrArticle, data.selector, {
+			select(EntityType.NostrArticle, {
+				kind: 30023,
+				pubkey: decodeURIComponent(params.pubkey),
+				identifier: decodeURIComponent(params.identifier),
+			}, {
+				sources: [
+					Source.NostrBand_Rest,
+				],
 				fields: {
 					title: true,
 					publishedAt: true,

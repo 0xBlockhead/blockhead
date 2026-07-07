@@ -114,7 +114,7 @@
 				{#snippet Item({ item: availAppIdTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvailAppId_Timestamp> })}
 					{@const availAppIdTimestampFields = { ...availAppIdTimestamp[EntityMetaKey.Selector], ...availAppIdTimestamp }}
 					<AvailAppId_TimestampView
-						selection={select(EntityType.AvailAppId_Timestamp, availAppIdTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvailAppId_Timestamp, availAppIdTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={availAppIdTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

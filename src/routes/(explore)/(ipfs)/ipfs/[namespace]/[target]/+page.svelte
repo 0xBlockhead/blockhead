@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { ipfsResourceAddressFromRouteParams } from '$/lib/ipfs.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +23,6 @@
 	import Page from '$/components/Page.svelte'
 	import IpfsResourceView from '$/views/IpfsResourceView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>IPFS resource • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +34,13 @@
 			})
 		}
 		selection={
-			select(EntityType.IpfsResource, data.selector, {
+			select(EntityType.IpfsResource, ipfsResourceAddressFromRouteParams({
+				namespace: decodeURIComponent(params.namespace),
+				target: decodeURIComponent(params.target),
+			}), {
+				sources: [
+					Source.Ipfs_Rest,
+				],
 				fields: {
 					canonicalUri: true,
 					contentType: true,

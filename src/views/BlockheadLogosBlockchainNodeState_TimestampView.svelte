@@ -140,7 +140,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadLogosBlockchainNodeStateView
-						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadLogosBlockchainNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -222,7 +222,7 @@
 						{#snippet Pending()}
 							{@const listenAddresses = prefetched.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -230,7 +230,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const listenAddresses = resolvedEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

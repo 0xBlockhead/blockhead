@@ -106,7 +106,7 @@
 				{#snippet Item({ item: radicleIssue }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RadicleIssue> })}
 					{@const radicleIssueFields = { ...radicleIssue[EntityMetaKey.Selector], ...radicleIssue }}
 					<RadicleIssueView
-						selection={select(EntityType.RadicleIssue, radicleIssue[EntityMetaKey.Selector])}
+						selection={select(EntityType.RadicleIssue, radicleIssue[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={radicleIssueFields}
 						layout={EntityLayout.Summary}
 						open={false}

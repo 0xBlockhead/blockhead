@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonNftCollectionTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonNftCollection_Timestamp> })}
 					{@const tonNftCollectionTimestampFields = { ...tonNftCollectionTimestamp[EntityMetaKey.Selector], ...tonNftCollectionTimestamp }}
 					<TonNftCollection_TimestampView
-						selection={select(EntityType.TonNftCollection_Timestamp, tonNftCollectionTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonNftCollection_Timestamp, tonNftCollectionTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonNftCollectionTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

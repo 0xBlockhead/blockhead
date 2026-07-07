@@ -81,7 +81,7 @@
 				<dt>order</dt>
 				<dd>
 					<HyperliquidOrderView
-						selection={select(EntityType.HyperliquidOrder, selection.entitySelector.$order)}
+						selection={select(EntityType.HyperliquidOrder, selection.entitySelector.$order, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

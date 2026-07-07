@@ -114,7 +114,7 @@
 				{#snippet Item({ item: starknetAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetAccount_Timestamp> })}
 					{@const starknetAccountTimestampFields = { ...starknetAccountTimestamp[EntityMetaKey.Selector], ...starknetAccountTimestamp }}
 					<StarknetAccount_TimestampView
-						selection={select(EntityType.StarknetAccount_Timestamp, starknetAccountTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetAccount_Timestamp, starknetAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetAccountTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

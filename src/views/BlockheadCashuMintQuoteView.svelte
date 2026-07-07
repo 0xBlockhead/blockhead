@@ -102,7 +102,7 @@
 				<dt>mint</dt>
 				<dd>
 					<CashuMintView
-						selection={select(EntityType.CashuMint, selection.entitySelector.$mint)}
+						selection={select(EntityType.CashuMint, selection.entitySelector.$mint, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

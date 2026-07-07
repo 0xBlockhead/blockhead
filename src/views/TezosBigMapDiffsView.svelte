@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosBigMapDiff }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosBigMapDiff> })}
 					{@const tezosBigMapDiffFields = { ...tezosBigMapDiff[EntityMetaKey.Selector], ...tezosBigMapDiff }}
 					<TezosBigMapDiffView
-						selection={select(EntityType.TezosBigMapDiff, tezosBigMapDiff[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosBigMapDiff, tezosBigMapDiff[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosBigMapDiffFields}
 						layout={EntityLayout.Summary}
 						open={false}

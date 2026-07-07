@@ -118,7 +118,7 @@
 				{#snippet Item({ item: nostrNote }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrNote> })}
 					{@const nostrNoteFields = { ...nostrNote[EntityMetaKey.Selector], ...nostrNote }}
 					<NostrNoteView
-						selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrNote, nostrNote[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nostrNoteFields}
 						layout={EntityLayout.Summary}
 						open={false}

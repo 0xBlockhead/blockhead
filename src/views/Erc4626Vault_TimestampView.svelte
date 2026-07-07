@@ -117,7 +117,7 @@
 				<dt>Vault</dt>
 				<dd>
 					<Erc4626VaultView
-						selection={select(EntityType.Erc4626Vault, selection.entitySelector.$vault)}
+						selection={select(EntityType.Erc4626Vault, selection.entitySelector.$vault, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -343,7 +343,7 @@
 						{#snippet Pending()}
 							{@const rewardTokens = prefetched.rewardTokens}
 							{#if rewardTokens !== undefined && rewardTokens !== null}
-								{(rewardTokens?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{rewardTokens.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -351,7 +351,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const rewardTokens = resolvedEntity.rewardTokens}
 							{#if rewardTokens !== undefined && rewardTokens !== null}
-								{(rewardTokens?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{rewardTokens.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

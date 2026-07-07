@@ -125,7 +125,7 @@
 				<dt>Hub</dt>
 				<dd>
 					<GlobalEnsNetworkView
-						selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalEnsNetwork, selection.entitySelector.$hub, {})}
 						href={resolve('/(explore)/(ens)/ens')}
 						layout={EntityLayout.Value}
 						open={false}

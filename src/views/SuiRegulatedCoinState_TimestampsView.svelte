@@ -106,7 +106,7 @@
 				{#snippet Item({ item: suiRegulatedCoinStateTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SuiRegulatedCoinState_Timestamp> })}
 					{@const suiRegulatedCoinStateTimestampFields = { ...suiRegulatedCoinStateTimestamp[EntityMetaKey.Selector], ...suiRegulatedCoinStateTimestamp }}
 					<SuiRegulatedCoinState_TimestampView
-						selection={select(EntityType.SuiRegulatedCoinState_Timestamp, suiRegulatedCoinStateTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SuiRegulatedCoinState_Timestamp, suiRegulatedCoinStateTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={suiRegulatedCoinStateTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

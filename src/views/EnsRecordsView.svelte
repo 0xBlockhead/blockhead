@@ -113,7 +113,7 @@
 				{#snippet Item({ item: ensRecord }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsRecord> })}
 					{@const ensRecordFields = { ...ensRecord[EntityMetaKey.Selector], ...ensRecord }}
 					<EnsRecordView
-						selection={select(EntityType.EnsRecord, ensRecord[EntityMetaKey.Selector])}
+						selection={select(EntityType.EnsRecord, ensRecord[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ensRecordFields}
 						layout={EntityLayout.Summary}
 						open={false}

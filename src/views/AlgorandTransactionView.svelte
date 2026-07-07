@@ -125,7 +125,7 @@
 				<dt>network</dt>
 				<dd>
 					<AlgorandNetworkView
-						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -436,7 +436,7 @@
 						{#snippet Pending()}
 							{@const logs = prefetched.logs}
 							{#if logs !== undefined && logs !== null}
-								{(logs?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{logs.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -444,7 +444,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const logs = resolvedEntity.logs}
 							{#if logs !== undefined && logs !== null}
-								{(logs?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{logs.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

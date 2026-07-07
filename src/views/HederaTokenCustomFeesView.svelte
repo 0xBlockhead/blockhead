@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaTokenCustomFee }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaTokenCustomFee> })}
 					{@const hederaTokenCustomFeeFields = { ...hederaTokenCustomFee[EntityMetaKey.Selector], ...hederaTokenCustomFee }}
 					<HederaTokenCustomFeeView
-						selection={select(EntityType.HederaTokenCustomFee, hederaTokenCustomFee[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaTokenCustomFee, hederaTokenCustomFee[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaTokenCustomFeeFields}
 						layout={EntityLayout.Summary}
 						open={false}

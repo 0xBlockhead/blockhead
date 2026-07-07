@@ -113,7 +113,7 @@
 				{#snippet Item({ item: globalXNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalXNetwork_Timestamp> })}
 					{@const globalXNetworkTimestampFields = { ...globalXNetworkTimestamp[EntityMetaKey.Selector], ...globalXNetworkTimestamp }}
 					<GlobalXNetwork_TimestampView
-						selection={select(EntityType._GlobalXNetwork_Timestamp, globalXNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalXNetwork_Timestamp, globalXNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalXNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

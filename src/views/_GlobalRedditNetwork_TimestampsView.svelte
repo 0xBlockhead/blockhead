@@ -115,7 +115,7 @@
 				{#snippet Item({ item: globalRedditNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalRedditNetwork_Timestamp> })}
 					{@const globalRedditNetworkTimestampFields = { ...globalRedditNetworkTimestamp[EntityMetaKey.Selector], ...globalRedditNetworkTimestamp }}
 					<GlobalRedditNetwork_TimestampView
-						selection={select(EntityType._GlobalRedditNetwork_Timestamp, globalRedditNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalRedditNetwork_Timestamp, globalRedditNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalRedditNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

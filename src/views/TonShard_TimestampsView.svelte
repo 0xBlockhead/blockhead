@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonShardTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonShard_Timestamp> })}
 					{@const tonShardTimestampFields = { ...tonShardTimestamp[EntityMetaKey.Selector], ...tonShardTimestamp }}
 					<TonShard_TimestampView
-						selection={select(EntityType.TonShard_Timestamp, tonShardTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonShard_Timestamp, tonShardTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonShardTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

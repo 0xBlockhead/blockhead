@@ -106,7 +106,7 @@
 				{#snippet Item({ item: xrplAmendment }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplAmendment> })}
 					{@const xrplAmendmentFields = { ...xrplAmendment[EntityMetaKey.Selector], ...xrplAmendment }}
 					<XrplAmendmentView
-						selection={select(EntityType.XrplAmendment, xrplAmendment[EntityMetaKey.Selector])}
+						selection={select(EntityType.XrplAmendment, xrplAmendment[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xrplAmendmentFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -4,6 +4,8 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +15,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +23,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM block • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +34,15 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmBlock, data.selector, {
+			select(EntityType.EvmBlock, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				blockNumber: BigInt(params.blockNumber),
+			}, {
+				sources: [
+					Source.Voltaire_JsonRpc,
+				],
 				fields: {
 					transactionCount: true,
 					timestamp: true,

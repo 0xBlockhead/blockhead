@@ -106,7 +106,7 @@
 				{#snippet Item({ item: radiclePatch }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RadiclePatch> })}
 					{@const radiclePatchFields = { ...radiclePatch[EntityMetaKey.Selector], ...radiclePatch }}
 					<RadiclePatchView
-						selection={select(EntityType.RadiclePatch, radiclePatch[EntityMetaKey.Selector])}
+						selection={select(EntityType.RadiclePatch, radiclePatch[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={radiclePatchFields}
 						layout={EntityLayout.Summary}
 						open={false}

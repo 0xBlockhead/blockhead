@@ -110,7 +110,7 @@
 				<dt>contract</dt>
 				<dd>
 					<StarknetContractView
-						selection={select(EntityType.StarknetContract, selection.entitySelector.$contract)}
+						selection={select(EntityType.StarknetContract, selection.entitySelector.$contract, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

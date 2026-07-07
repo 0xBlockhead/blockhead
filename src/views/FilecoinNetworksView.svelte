@@ -116,7 +116,7 @@
 				{#snippet Item({ item: filecoinNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinNetwork> })}
 					{@const filecoinNetworkFields = { ...filecoinNetwork[EntityMetaKey.Selector], ...filecoinNetwork }}
 					<FilecoinNetworkView
-						selection={select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinNetwork, filecoinNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={filecoinNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

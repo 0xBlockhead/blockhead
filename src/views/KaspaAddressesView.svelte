@@ -106,7 +106,7 @@
 				{#snippet Item({ item: kaspaAddress }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaAddress> })}
 					{@const kaspaAddressFields = { ...kaspaAddress[EntityMetaKey.Selector], ...kaspaAddress }}
 					<KaspaAddressView
-						selection={select(EntityType.KaspaAddress, kaspaAddress[EntityMetaKey.Selector])}
+						selection={select(EntityType.KaspaAddress, kaspaAddress[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={kaspaAddressFields}
 						layout={EntityLayout.Summary}
 						open={false}

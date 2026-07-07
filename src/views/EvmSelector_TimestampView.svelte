@@ -140,7 +140,7 @@
 				<dt>Selector</dt>
 				<dd>
 					<EvmSelectorView
-						selection={select(EntityType.EvmSelector, selection.entitySelector.$selector)}
+						selection={select(EntityType.EvmSelector, selection.entitySelector.$selector, {})}
 						href={
 							(selection.entitySelector.$selector.hex !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
 								hex: String(selection.entitySelector.$selector.hex ?? ''),

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadZcashNoteState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadZcashNoteState> })}
 					{@const blockheadZcashNoteStateFields = { ...blockheadZcashNoteState[EntityMetaKey.Selector], ...blockheadZcashNoteState }}
 					<BlockheadZcashNoteStateView
-						selection={select(EntityType.BlockheadZcashNoteState, blockheadZcashNoteState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadZcashNoteState, blockheadZcashNoteState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadZcashNoteStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

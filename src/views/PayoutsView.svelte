@@ -106,7 +106,7 @@
 				{#snippet Item({ item: payout }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Payout> })}
 					{@const payoutFields = { ...payout[EntityMetaKey.Selector], ...payout }}
 					<PayoutView
-						selection={select(EntityType.Payout, payout[EntityMetaKey.Selector])}
+						selection={select(EntityType.Payout, payout[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={payoutFields}
 						layout={EntityLayout.Summary}
 						open={false}

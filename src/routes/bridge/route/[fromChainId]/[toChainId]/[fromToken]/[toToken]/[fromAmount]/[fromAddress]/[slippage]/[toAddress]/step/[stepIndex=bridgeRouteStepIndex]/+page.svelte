@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import BridgeRouteStepView from '$/views/BridgeRouteStepView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>bridge route step • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -45,7 +40,22 @@
 			})
 		}
 		selection={
-			select(EntityType.BridgeRouteStep, data.selector, {
+			select(EntityType.BridgeRouteStep, {
+				$route: {
+					fromChainId: Number(params.fromChainId),
+					toChainId: Number(params.toChainId),
+					fromToken: decodeURIComponent(params.fromToken),
+					toToken: decodeURIComponent(params.toToken),
+					fromAmount: BigInt(params.fromAmount),
+					fromAddress: decodeURIComponent(params.fromAddress),
+					slippage: Number(params.slippage),
+					toAddress: decodeURIComponent(params.toAddress),
+				},
+				indexInRoute: Number(params.stepIndex),
+			}, {
+				sources: [
+					Source.Lifi_Rest,
+				],
 				fields: {
 					tool: true,
 					stepType: true,

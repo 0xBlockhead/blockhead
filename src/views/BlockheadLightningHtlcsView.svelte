@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadLightningHtlc }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadLightningHtlc> })}
 					{@const blockheadLightningHtlcFields = { ...blockheadLightningHtlc[EntityMetaKey.Selector], ...blockheadLightningHtlc }}
 					<BlockheadLightningHtlcView
-						selection={select(EntityType.BlockheadLightningHtlc, blockheadLightningHtlc[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadLightningHtlc, blockheadLightningHtlc[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadLightningHtlcFields}
 						layout={EntityLayout.Summary}
 						open={false}

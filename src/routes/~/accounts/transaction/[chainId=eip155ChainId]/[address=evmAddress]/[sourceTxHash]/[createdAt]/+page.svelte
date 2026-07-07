@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import BlockheadBridgeTransactionView from '$/views/BlockheadBridgeTransactionView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>bridge transaction • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,7 +35,24 @@
 			})
 		}
 		selection={
-			select(EntityType.BlockheadBridgeTransaction, data.selector, {
+			select(EntityType.BlockheadBridgeTransaction, {
+				$account: {
+					interopAddress: 'eip155:' + String(params.chainId) + ':' + String(params.address),
+				},
+				$sourceTx: {
+					$network: {
+						caip2: {
+							namespace: 'eip155',
+							reference: params.chainId,
+						},
+					},
+					txHash: decodeURIComponent(params.sourceTxHash),
+				},
+				createdAt: Number(params.createdAt),
+			}, {
+				sources: [
+					Source.Local_Internal,
+				],
 				fields: {
 					$bridgeTransfer: true,
 				},

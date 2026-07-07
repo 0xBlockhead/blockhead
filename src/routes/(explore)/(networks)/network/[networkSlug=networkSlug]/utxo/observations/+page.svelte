@@ -20,7 +20,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import UtxoNetwork_TimestampsView from '$/views/UtxoNetwork_TimestampsView.svelte'
+	import Network_TimestampsView from '$/views/Network_TimestampsView.svelte'
 </script>
 
 
@@ -30,7 +30,7 @@
 
 
 <Page>
-	<UtxoNetwork_TimestampsView
+	<Network_TimestampsView
 		href={
 			resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo/observations', {
 				networkSlug: params.networkSlug,
@@ -38,11 +38,9 @@
 		}
 		title='UTXO network observations'
 		selection={
-			select(EntityType.UtxoNetwork, {
-				$network: {
-					slug: params.networkSlug,
-				},
-			})[EntityProxyField]<EntityType.UtxoNetwork_Timestamp>('$$timestamps')
+			select(EntityType.Network, {
+				slug: params.networkSlug,
+			})[EntityProxyField]<EntityType.Network_Timestamp>('$$timestamps')
 		}
 		id='timestamps'
 	/>

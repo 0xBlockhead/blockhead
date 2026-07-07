@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import MarketView from '$/views/MarketView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Market • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -41,6 +35,45 @@
 				marketKind: params.marketKind,
 			})
 		}
-		selection={select(EntityType.Market, data.selector)}
+		selection={
+			select(EntityType.Market, {
+				$base: (
+				params.baseKind === 'coin' ?
+					{
+						kind: 'Coin',
+						$coin: {
+							coinId: decodeURIComponent(params.base),
+						},
+					}
+				:
+					{
+						kind: 'Currency',
+						$currency: {
+							iso4217: decodeURIComponent(params.base),
+						},
+					}
+				),
+				$quote: (
+				params.quoteKind === 'coin' ?
+					{
+						kind: 'Coin',
+						$coin: {
+							coinId: decodeURIComponent(params.quote),
+						},
+					}
+				:
+					{
+						kind: 'Currency',
+						$currency: {
+							iso4217: decodeURIComponent(params.quote),
+						},
+					}
+				),
+				$marketVenue: {
+					marketVenueId: decodeURIComponent(params.marketVenue),
+				},
+				marketKind: decodeURIComponent(params.marketKind),
+			})
+		}
 	/>
 </Page>

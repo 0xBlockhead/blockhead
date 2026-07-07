@@ -141,7 +141,7 @@
 				<dt>entry</dt>
 				<dd>
 					<AiProviderCatalogEntryView
-						selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry)}
+						selection={select(EntityType.AiProviderCatalogEntry, selection.entitySelector.$entry, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

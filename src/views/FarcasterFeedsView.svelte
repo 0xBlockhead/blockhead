@@ -113,7 +113,7 @@
 				{#snippet Item({ item: farcasterFeed }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FarcasterFeed> })}
 					{@const farcasterFeedFields = { ...farcasterFeed[EntityMetaKey.Selector], ...farcasterFeed }}
 					<FarcasterFeedView
-						selection={select(EntityType.FarcasterFeed, farcasterFeed[EntityMetaKey.Selector])}
+						selection={select(EntityType.FarcasterFeed, farcasterFeed[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterFeedFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -65,14 +65,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$utxos',
+			name: '$$utxos',
 			label: 'utxos',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CardanoTxOutput,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$timestamps',
+			name: '$$timestamps',
 			label: 'timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CardanoAddress_Timestamp,

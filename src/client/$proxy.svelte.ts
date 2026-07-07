@@ -14,6 +14,7 @@ import {
 import {
 	EntityMetaKey,
 	EntityFieldType,
+	type EntityFieldDefinitionByName,
 	type EntityFieldName,
 	type EntitySelector,
 	type EntityType,
@@ -38,10 +39,20 @@ export type EntityProxyFieldResource<
 		entitySelector: EntitySelector<_Schema, _EntityType>
 		fieldName: _FieldName
 		sources?: readonly string[]
-		first: <const _FieldEntityType extends EntityType<_Schema> = EntityType<_Schema>>(
-			selection?: SubscribeSelection<_Schema, _EntityType>
-		) => SvelteKitResource<SubscribeEntityReferenceResult<_Schema, _FieldEntityType> | undefined>
 	}
+	& (
+		EntityFieldDefinitionByName<_Schema, _EntityType, _FieldName> extends {
+			readonly type: EntityFieldType.EntitiesReference
+			readonly entityType: infer _ReferencedEntityType extends EntityType<_Schema>
+		} ?
+			{
+				first: (
+					selection?: SubscribeSelection<_Schema, _EntityType>
+				) => SvelteKitResource<SubscribeEntityReferenceResult<_Schema, _ReferencedEntityType> | undefined>
+			}
+		:
+			{}
+	)
 )
 
 export type EntityProxyEntitiesData<
@@ -92,8 +103,9 @@ export type EntityProxyResource<
 		[EntityProxyField]: <
 			const _FieldEntityType extends EntityType<_Schema> = EntityType<_Schema>,
 			const _Multiple extends boolean = true,
+			const _FieldName extends EntityFieldName<_Schema, _EntityType> = EntityFieldName<_Schema, _EntityType>,
 		>(
-			fieldName: string,
+			fieldName: _FieldName,
 			selection?: SubscribeSelection<_Schema, _EntityType>
 		) => _Multiple extends true ?
 			EntityProxyEntitiesResource<_Schema, _FieldEntityType>
@@ -144,10 +156,14 @@ const resourceProperty = <_Data>(
 				(data) => onfulfilled(project(data)),
 			onrejected
 		)
-	if (property === 'catch')
-		return getResource().catch
-	if (property === 'finally')
-		return getResource().finally
+		if (property === 'catch')
+			return (
+				onrejected?: Parameters<Promise<_Data>['catch']>[0]
+			) => getResource().then(project).catch(onrejected)
+		if (property === 'finally')
+			return (
+				onfinally?: Parameters<Promise<_Data>['finally']>[0]
+			) => getResource().then(project).finally(onfinally)
 	if (property === 'current') {
 		const current = getResource().current
 		return current === undefined ? undefined : project(current)
@@ -318,7 +334,10 @@ export function createEntityFieldProxy(
 				return (
 					selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
 				) => {
-					const references: SvelteKitResource<EntityProxyEntitiesData<Schema, EntityType<Schema>>> = createEntityFieldProxy(
+					if (fieldDefinition.type !== EntityFieldType.EntitiesReference)
+						return undefined
+
+					const references = createEntityFieldProxy(
 						context,
 						entityType,
 						entitySelector,
@@ -334,7 +353,15 @@ export function createEntityFieldProxy(
 
 					return projectResource(
 						references,
-						(data) => data.values[0]
+						(data) => (
+							data != null
+							&& typeof data === 'object'
+							&& 'values' in data
+							&& Array.isArray(data.values) ?
+								data.values[0]
+							:
+								undefined
+						)
 					)
 				}
 

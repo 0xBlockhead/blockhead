@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>Network • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<NetworkView
 		href={
@@ -37,13 +32,26 @@
 			})
 		}
 		selection={
-			select(EntityType.Network, data.selector, {
+			select(EntityType.Network, {
+				slug: params.networkSlug,
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					$icon: true,
 					name: true,
 					namespace: true,
+					ledgerModels: true,
+					executionModels: true,
 					$networkStack: true,
 					environment: true,
+					evmConsensusProtocol: true,
+					evmRegistryStatus: true,
+					evmPeeringId: true,
+					evmSlip44: true,
+					zeroGChainId: true,
+					$lightningSettlementNetwork: true,
 				},
 			})
 		}

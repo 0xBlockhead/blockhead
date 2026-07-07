@@ -195,7 +195,7 @@
 					{@const specificationProposalFields = { ...specificationProposal[EntityMetaKey.Selector], ...specificationProposal }}
 					{@const specificationProposalHrefFields = { ...specificationProposal, ...specificationProposal[EntityMetaKey.Selector] }}
 					<SpecificationProposalView
-						selection={select(EntityType.SpecificationProposal, specificationProposal[EntityMetaKey.Selector])}
+						selection={select(EntityType.SpecificationProposal, specificationProposal[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={specificationProposalFields}
 						href={
 							(specificationProposalHrefFields.realm !== undefined && specificationProposalHrefFields.category !== undefined && specificationProposalHrefFields.category !== undefined && specificationProposalHrefFields.number !== undefined ? resolve('/(explore)/(proposals)/proposals/[specificationRealmSlug=specificationRealmSlug]/(specificationRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]', {

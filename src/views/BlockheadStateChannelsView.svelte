@@ -115,7 +115,7 @@
 					{@const blockheadStateChannelFields = { ...blockheadStateChannel[EntityMetaKey.Selector], ...blockheadStateChannel }}
 					{@const blockheadStateChannelHrefFields = { ...blockheadStateChannel, ...blockheadStateChannel[EntityMetaKey.Selector] }}
 					<BlockheadStateChannelView
-						selection={select(EntityType.BlockheadStateChannel, blockheadStateChannel[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadStateChannel, blockheadStateChannel[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadStateChannelFields}
 						href={
 							(blockheadStateChannelHrefFields.id !== undefined ? resolve('/channel/[channelId]', {

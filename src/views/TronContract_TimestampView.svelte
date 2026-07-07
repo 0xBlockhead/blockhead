@@ -9,6 +9,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -81,7 +82,7 @@
 				<dt>Contract</dt>
 				<dd>
 					<TronContractView
-						selection={select(EntityType.TronContract, selection.entitySelector.$contract)}
+						selection={select(EntityType.TronContract, selection.entitySelector.$contract, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

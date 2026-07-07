@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandNetwork> })}
 					{@const algorandNetworkFields = { ...algorandNetwork[EntityMetaKey.Selector], ...algorandNetwork }}
 					<AlgorandNetworkView
-						selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandNetwork, algorandNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

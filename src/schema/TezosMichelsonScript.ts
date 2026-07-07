@@ -85,14 +85,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$contracts',
+			name: '$$contracts',
 			label: 'contracts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosContract,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$entrypoints',
+			name: '$$entrypoints',
 			label: 'entrypoints',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosEntrypoint,

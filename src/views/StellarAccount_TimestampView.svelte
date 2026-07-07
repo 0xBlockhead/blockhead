@@ -82,7 +82,7 @@
 				<dt>account</dt>
 				<dd>
 					<StellarAccountView
-						selection={select(EntityType.StellarAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.StellarAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

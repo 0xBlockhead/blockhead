@@ -82,7 +82,7 @@
 				<dt>method</dt>
 				<dd>
 					<IcpCanisterMethodView
-						selection={select(EntityType.IcpCanisterMethod, selection.entitySelector.$method)}
+						selection={select(EntityType.IcpCanisterMethod, selection.entitySelector.$method, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

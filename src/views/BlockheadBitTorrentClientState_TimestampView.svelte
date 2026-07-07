@@ -130,7 +130,7 @@
 				<dt>client state</dt>
 				<dd>
 					<BlockheadBitTorrentClientStateView
-						selection={select(EntityType.BlockheadBitTorrentClientState, selection.entitySelector.$clientState)}
+						selection={select(EntityType.BlockheadBitTorrentClientState, selection.entitySelector.$clientState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -249,7 +249,7 @@
 						{#snippet Pending()}
 							{@const listenAddresses = prefetched.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -257,7 +257,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const listenAddresses = resolvedEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

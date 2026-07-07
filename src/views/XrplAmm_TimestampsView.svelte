@@ -106,7 +106,7 @@
 				{#snippet Item({ item: xrplAmmTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplAmm_Timestamp> })}
 					{@const xrplAmmTimestampFields = { ...xrplAmmTimestamp[EntityMetaKey.Selector], ...xrplAmmTimestamp }}
 					<XrplAmm_TimestampView
-						selection={select(EntityType.XrplAmm_Timestamp, xrplAmmTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.XrplAmm_Timestamp, xrplAmmTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xrplAmmTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

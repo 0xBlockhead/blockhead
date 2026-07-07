@@ -116,7 +116,7 @@
 					{@const polkadotAccountFields = { ...polkadotAccount[EntityMetaKey.Selector], ...polkadotAccount }}
 					{@const polkadotAccountHrefFields = { ...polkadotAccount, ...polkadotAccount[EntityMetaKey.Selector] }}
 					<PolkadotAccountView
-						selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.PolkadotAccount, polkadotAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={polkadotAccountFields}
 						href={
 							(polkadotAccountHrefFields.$network !== undefined && polkadotAccountHrefFields.$network.caip2 !== undefined && polkadotAccountHrefFields.$network.caip2.namespace !== undefined && polkadotAccountHrefFields.$network !== undefined && polkadotAccountHrefFields.$network.caip2 !== undefined && polkadotAccountHrefFields.$network.caip2.reference !== undefined && polkadotAccountHrefFields.accountId !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot/account/[accountId]', {

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadIntentQuote }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadIntentQuote> })}
 					{@const blockheadIntentQuoteFields = { ...blockheadIntentQuote[EntityMetaKey.Selector], ...blockheadIntentQuote }}
 					<BlockheadIntentQuoteView
-						selection={select(EntityType.BlockheadIntentQuote, blockheadIntentQuote[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadIntentQuote, blockheadIntentQuote[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadIntentQuoteFields}
 						layout={EntityLayout.Summary}
 						open={false}

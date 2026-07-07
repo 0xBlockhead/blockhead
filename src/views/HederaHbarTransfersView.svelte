@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaHbarTransfer }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaHbarTransfer> })}
 					{@const hederaHbarTransferFields = { ...hederaHbarTransfer[EntityMetaKey.Selector], ...hederaHbarTransfer }}
 					<HederaHbarTransferView
-						selection={select(EntityType.HederaHbarTransfer, hederaHbarTransfer[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaHbarTransfer, hederaHbarTransfer[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaHbarTransferFields}
 						layout={EntityLayout.Summary}
 						open={false}

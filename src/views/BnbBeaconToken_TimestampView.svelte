@@ -137,7 +137,7 @@
 				<dt>token</dt>
 				<dd>
 					<BnbBeaconTokenView
-						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token)}
+						selection={select(EntityType.BnbBeaconToken, selection.entitySelector.$token, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

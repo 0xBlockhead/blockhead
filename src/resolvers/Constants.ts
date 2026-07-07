@@ -132,7 +132,6 @@ import { NetworkSelector } from '$/schema/Network.ts'
 import { NetworkStackSelector } from '$/schema/NetworkStack.ts'
 import { NearNetworkSelector } from '$/schema/NearNetwork.ts'
 import { ZeroGNetworkSelector } from '$/schema/ZeroGNetwork.ts'
-import { SolanaNetworkSelector } from '$/schema/SolanaNetwork.ts'
 import { ElementsNetworkSelector } from '$/schema/ElementsNetwork.ts'
 import { AssetInstanceSelector } from '$/schema/AssetInstance.ts'
 import { BittensorSubnetSelector } from '$/schema/BittensorSubnet.ts'
@@ -1063,7 +1062,9 @@ export default {
 			entityType: EntityType.Network,
 			resolve: {
 				[NetworkSelector.Caip2]: async ({ caip2 }) => {
+					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
+					const beaconRestBase = beaconRestBaseByExecutionChainId[Number(caip2.reference)]
 					return {
 						slug: network.slug,
 						name: network.name,
@@ -1071,14 +1072,38 @@ export default {
 							caip2: network.caip2,
 						}),
 						namespace: network.namespace,
+						ledgerModels: network.ledgerModels,
+						executionModels: network.executionModels,
 						networkStackId: network.networkStackId,
 						environment: network.environment,
+						...(network.slug === networkBySlug['0g'].slug && {
+							zeroGChainId,
+						}),
+						evmConsensusProtocol: beaconRestBase?.consensusProtocol,
+						consensusEndpoints: (
+							beaconRestBase == null ?
+								[]
+							:
+								[
+									{
+										restBaseUrl: beaconRestBase.restBaseUrl,
+										consensusProtocol: beaconRestBase.consensusProtocol,
+									},
+								]
+						),
 					}
 				},
 				[NetworkSelector.Slug]: async ({ slug }) => {
+					const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 					const network = networkBySlug[slug]
 					if (network == null)
 						throw new Error('Constants_Internal: Network not found')
+					const beaconRestBase = (
+						'caip2' in network ?
+							beaconRestBaseByExecutionChainId[Number(network.caip2.reference)]
+						:
+							undefined
+					)
 
 					return {
 						slug: network.slug,
@@ -1087,8 +1112,25 @@ export default {
 							caip2: network.caip2,
 						}),
 						namespace: network.namespace,
+						ledgerModels: network.ledgerModels,
+						executionModels: network.executionModels,
 						networkStackId: network.networkStackId,
 						environment: network.environment,
+						...(network.slug === networkBySlug['0g'].slug && {
+							zeroGChainId,
+						}),
+						evmConsensusProtocol: beaconRestBase?.consensusProtocol,
+						consensusEndpoints: (
+							beaconRestBase == null ?
+								[]
+							:
+								[
+									{
+										restBaseUrl: beaconRestBase.restBaseUrl,
+										consensusProtocol: beaconRestBase.consensusProtocol,
+									},
+								]
+						),
 					}
 				},
 			},
@@ -1098,12 +1140,29 @@ export default {
 				name: (network) => network.name,
 				caip2: (network) => network.caip2,
 				namespace: (network) => network.namespace,
+				ledgerModels: (network) => network.ledgerModels,
+				executionModels: (network) => network.executionModels,
 				$networkStack: (network) => ({
 					[EntityMetaKey.Selector]: {
 						networkStackId: network.networkStackId,
 					},
 				}),
 				environment: (network) => network.environment,
+				evmConsensusProtocol: (network) => network.evmConsensusProtocol,
+				evmConsensusEndpoints: (network) => network.consensusEndpoints,
+				zeroGChainId: (network) => network.zeroGChainId,
+				nearRpcEndpoints: (network) => (
+					network.slug === networkBySlug.near.slug ?
+						[
+							{
+								url: 'https://rpc.mainnet.near.org',
+								transportType: TransportType.Http,
+								providerName: 'NEAR',
+							},
+						]
+					:
+						[]
+				),
 			},
 		}),
 
@@ -1166,50 +1225,6 @@ export default {
 				$executionNetwork: (network) => network.$executionNetwork,
 			},
 		}),
-
-
-		defineResolver(Source.Constants_Internal, {
-			entityType: EntityType.SolanaNetwork,
-			resolve: {
-				[SolanaNetworkSelector.Caip2]: async ({ caip2 }) => {
-					const network = networkBySlug.solana
-					if (caip2.reference !== network.caip2.reference)
-						throw new Error('Constants_Internal: SolanaNetwork not found')
-
-					return {
-						name: network.name,
-						caip2: network.caip2,
-						$network: {
-							[EntityMetaKey.Selector]: {
-								slug: network.slug,
-							},
-						},
-						environment: network.environment,
-						rpcEndpoints: [
-							{
-								url: 'https://api.mainnet.solana.com',
-								transportType: TransportType.Http,
-								providerName: 'Solana Labs',
-							},
-							{
-								url: 'wss://api.mainnet.solana.com',
-								transportType: TransportType.WebSocket,
-								providerName: 'Solana Labs',
-							},
-						],
-					}
-				},
-			},
-		})({
-			fields: {
-				name: (network) => network.name,
-				caip2: (network) => network.caip2,
-				$network: (network) => network.$network,
-				environment: (network) => network.environment,
-				rpcEndpoints: (network) => network.rpcEndpoints,
-			},
-		}),
-
 
 		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.ElementsNetwork,
@@ -2039,51 +2054,103 @@ export default {
 			},
 		}),
 
-			defineResolver(Source.Constants_Internal, {
+		defineResolver(Source.Constants_Internal, {
 			entityType: EntityType.Network,
 			resolve: {
 				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const network = networkByCaip2[`${caip2.namespace}:${caip2.reference}`]
 					const namespace: NetworkNamespace = network.namespace
 					const coinId = nativeAssetCoinIdByNamespace[namespace]
-					return [
-						{
+					return {
+						nativeCoin: {
 							[EntityMetaKey.Selector]: {
-								$network: {
-									caip2,
-								},
-								kind: AssetInstanceKind.Native,
-								assetKey: coinId,
+								coinId,
 							},
-							coinId,
+							name: coinId,
 							symbol: coinId,
 						},
-					]
+						nativeCoinInstance: (
+							namespace === NetworkNamespace.Evm ?
+								{
+									[EntityMetaKey.Selector]: {
+										$network: {
+											caip2,
+										},
+										type: CoinInstanceType.NativeCurrency,
+									},
+									name: coinId,
+									symbol: coinId,
+								}
+							:
+								undefined
+						),
+						nativeAssets: [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2,
+									},
+									kind: AssetInstanceKind.Native,
+									assetKey: coinId,
+								},
+								coinId,
+								symbol: coinId,
+							},
+						],
+					}
 				},
 				[NetworkSelector.Slug]: async ({ slug }) => {
 					const network = networkBySlug[slug]
-					if (network == null) return []
+					if (network == null) return {
+						nativeAssets: [],
+					}
 					const namespace: NetworkNamespace = network.namespace
 					const coinId = nativeAssetCoinIdByNamespace[namespace]
-					if (coinId == null) return []
-					return [
-						{
+					if (coinId == null) return {
+						nativeAssets: [],
+					}
+					return {
+						nativeCoin: {
 							[EntityMetaKey.Selector]: {
-								$network: {
-									caip2: network.caip2,
-								},
-								kind: AssetInstanceKind.Native,
-								assetKey: coinId,
+								coinId,
 							},
-							coinId,
+							name: coinId,
 							symbol: coinId,
 						},
-					]
+						nativeCoinInstance: (
+							namespace === NetworkNamespace.Evm ?
+								{
+									[EntityMetaKey.Selector]: {
+										$network: {
+											caip2: network.caip2,
+										},
+										type: CoinInstanceType.NativeCurrency,
+									},
+									name: coinId,
+									symbol: coinId,
+								}
+							:
+								undefined
+						),
+						nativeAssets: [
+							{
+								[EntityMetaKey.Selector]: {
+									$network: {
+										caip2: network.caip2,
+									},
+									kind: AssetInstanceKind.Native,
+									assetKey: coinId,
+								},
+								coinId,
+								symbol: coinId,
+							},
+						],
+					}
 				},
 			},
 		})({
 			fields: {
-				$$nativeAssets: (entity) => entity,
+				$$nativeAssets: (entity) => entity.nativeAssets,
 			},
 		}),
 
@@ -2132,6 +2199,19 @@ export default {
 		})({
 			fields: {
 				$$blockExplorerUrls: (entity) => entity,
+			},
+		}),
+
+		defineResolver(Source.Constants_Internal, {
+			entityType: EntityType.Url,
+			resolve: {
+				[UrlSelector.Url]: async ({ url }) => ({
+					url,
+				}),
+			},
+		})({
+			fields: {
+				url: (entity) => entity.url,
 			},
 		}),
 

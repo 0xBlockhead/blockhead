@@ -135,7 +135,7 @@
 				<dt>Cast</dt>
 				<dd>
 					<FarcasterCastView
-						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast)}
+						selection={select(EntityType.FarcasterCast, selection.entitySelector.$cast, {})}
 						href={
 							(selection.entitySelector.$cast.fid !== undefined && selection.entitySelector.$cast.hash !== undefined ? resolve('/(social)/(farcaster)/farcaster/cast/[fid=farcasterFid]/[hash]', {
 								fid: String(selection.entitySelector.$cast.fid ?? ''),

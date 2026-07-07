@@ -81,7 +81,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<TonTransactionView
-						selection={select(EntityType.TonTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.TonTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

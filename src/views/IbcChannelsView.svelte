@@ -115,7 +115,7 @@
 				{#snippet Item({ item: ibcChannel }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IbcChannel> })}
 					{@const ibcChannelFields = { ...ibcChannel[EntityMetaKey.Selector], ...ibcChannel }}
 					<IbcChannelView
-						selection={select(EntityType.IbcChannel, ibcChannel[EntityMetaKey.Selector])}
+						selection={select(EntityType.IbcChannel, ibcChannel[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ibcChannelFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import MevRelay_ProposerPayloadDeliveredView from '$/views/MevRelay_ProposerPayloadDeliveredView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>MEV relay proposer payload delivered • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,7 +35,14 @@
 			})
 		}
 		selection={
-			select(EntityType.MevRelay_ProposerPayloadDelivered, data.selector, {
+			select(EntityType.MevRelay_ProposerPayloadDelivered, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				relayHost: decodeURIComponent(params.relayHost),
+				slot: Number(params.slot),
+				blockHash: decodeURIComponent(params.blockHash),
+			}, {
 				fields: {
 					value: true,
 					$builder: true,

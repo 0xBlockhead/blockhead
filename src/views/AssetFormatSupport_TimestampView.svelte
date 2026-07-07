@@ -64,16 +64,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={
-		href ?? (pendingEntity.$assetInstance !== undefined && pendingEntity.$assetInstance.$network !== undefined && pendingEntity.$assetInstance.$network.caip2 !== undefined && pendingEntity.$assetInstance.$network.caip2.namespace !== undefined && pendingEntity.$assetInstance !== undefined && pendingEntity.$assetInstance.$network !== undefined && pendingEntity.$assetInstance.$network.caip2 !== undefined && pendingEntity.$assetInstance.$network.caip2.reference !== undefined && pendingEntity.$assetInstance !== undefined && pendingEntity.$assetInstance.kind !== undefined && pendingEntity.$assetInstance !== undefined && pendingEntity.$assetInstance.assetKey !== undefined && pendingEntity.formatId !== undefined && pendingEntity.timestampMs !== undefined && pendingEntity.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]/formats/[formatId]/[timestampMs=nonNegativeInteger]/[source]', {
-			caip2: `${String(pendingEntity.$assetInstance.$network.caip2.namespace ?? '')}:${String(pendingEntity.$assetInstance.$network.caip2.reference ?? '')}`,
-			kind: String(pendingEntity.$assetInstance.kind ?? ''),
-			assetKey: String(pendingEntity.$assetInstance.assetKey ?? ''),
-			formatId: String(pendingEntity.formatId ?? ''),
-			timestampMs: String(pendingEntity.timestampMs ?? ''),
-			source: String(pendingEntity.source ?? ''),
-		}) : undefined)
-	}
+	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -575,7 +566,7 @@
 				<dt>Asset instance</dt>
 				<dd>
 					<AssetInstanceView
-						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
+						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
 						href={
 							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
 								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,

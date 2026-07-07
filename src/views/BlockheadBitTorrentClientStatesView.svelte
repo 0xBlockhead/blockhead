@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadBitTorrentClientState }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadBitTorrentClientState> })}
 					{@const blockheadBitTorrentClientStateFields = { ...blockheadBitTorrentClientState[EntityMetaKey.Selector], ...blockheadBitTorrentClientState }}
 					<BlockheadBitTorrentClientStateView
-						selection={select(EntityType.BlockheadBitTorrentClientState, blockheadBitTorrentClientState[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadBitTorrentClientState, blockheadBitTorrentClientState[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadBitTorrentClientStateFields}
 						layout={EntityLayout.Summary}
 						open={false}

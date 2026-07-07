@@ -114,7 +114,7 @@
 				{#snippet Item({ item: cctpDomainSupport }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CctpDomainSupport> })}
 					{@const cctpDomainSupportFields = { ...cctpDomainSupport[EntityMetaKey.Selector], ...cctpDomainSupport }}
 					<CctpDomainSupportView
-						selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector])}
+						selection={select(EntityType.CctpDomainSupport, cctpDomainSupport[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cctpDomainSupportFields}
 						layout={EntityLayout.Summary}
 						open={false}

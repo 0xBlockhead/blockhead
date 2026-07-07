@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandBox }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandBox> })}
 					{@const algorandBoxFields = { ...algorandBox[EntityMetaKey.Selector], ...algorandBox }}
 					<AlgorandBoxView
-						selection={select(EntityType.AlgorandBox, algorandBox[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandBox, algorandBox[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandBoxFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: radicleIdentityDocument }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RadicleIdentityDocument> })}
 					{@const radicleIdentityDocumentFields = { ...radicleIdentityDocument[EntityMetaKey.Selector], ...radicleIdentityDocument }}
 					<RadicleIdentityDocumentView
-						selection={select(EntityType.RadicleIdentityDocument, radicleIdentityDocument[EntityMetaKey.Selector])}
+						selection={select(EntityType.RadicleIdentityDocument, radicleIdentityDocument[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={radicleIdentityDocumentFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -113,7 +113,7 @@
 				{#snippet Item({ item: erc4626VaultBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Erc4626Vault_Block> })}
 					{@const erc4626VaultBlockFields = { ...erc4626VaultBlock[EntityMetaKey.Selector], ...erc4626VaultBlock }}
 					<Erc4626Vault_BlockView
-						selection={select(EntityType.Erc4626Vault_Block, erc4626VaultBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.Erc4626Vault_Block, erc4626VaultBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={erc4626VaultBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

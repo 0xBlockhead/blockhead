@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 
 
 	// Context
@@ -70,7 +71,9 @@
 					$icon: true,
 					name: true,
 					caip2: true,
+					executionModels: true,
 					slug: true,
+					ledgerModels: true,
 				},
 			})
 		}
@@ -114,13 +117,25 @@
 				{/snippet}
 
 				{#snippet Item({ item: network }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Network> })}
-					{@const networkFields = { ...network[EntityMetaKey.Selector], ...network }}
-					{@const networkHrefFields = { ...network, ...network[EntityMetaKey.Selector] }}
+					{@const networkFields = { ...network[EntityMetaKey.Selector], ...network, executionModels: network.executionModels, ledgerModels: network.ledgerModels }}
+					{@const networkHrefFields = { ...network, executionModels: network.executionModels, ledgerModels: network.ledgerModels, ...network[EntityMetaKey.Selector] }}
 					<NetworkView
-						selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+						selection={select(EntityType.Network, network[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={networkFields}
 						href={
-							(networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.namespace !== undefined && networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+							(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.namespace !== undefined && networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `${String(networkHrefFields.caip2.namespace ?? '')}:${String(networkHrefFields.caip2.reference ?? '')}`,
+							}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.namespace !== undefined && networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+								caip2: `${String(networkHrefFields.caip2.namespace ?? '')}:${String(networkHrefFields.caip2.reference ?? '')}`,
+							}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.namespace !== undefined && networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
+								networkSlug: String(networkByCaip2[String(String(networkHrefFields.caip2.namespace) + ':' + String(networkHrefFields.caip2.reference))].slug ?? ''),
+							}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && networkHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
+								networkSlug: String(networkHrefFields.slug ?? ''),
+							}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && networkHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+								networkSlug: String(networkHrefFields.slug ?? ''),
+							}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && networkHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+								networkSlug: String(networkHrefFields.slug ?? ''),
+							}) : networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.namespace !== undefined && networkHrefFields.caip2 !== undefined && networkHrefFields.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
 								caip2: `${String(networkHrefFields.caip2.namespace ?? '')}:${String(networkHrefFields.caip2.reference ?? '')}`,
 							}) : networkHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
 								networkSlug: String(networkHrefFields.slug ?? ''),

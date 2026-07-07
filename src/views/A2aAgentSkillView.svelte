@@ -110,7 +110,7 @@
 				<dt>card snapshot</dt>
 				<dd>
 					<A2aAgentCard_SnapshotView
-						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot)}
+						selection={select(EntityType.A2aAgentCard_Snapshot, selection.entitySelector.$cardSnapshot, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -83,7 +83,7 @@
 				<dt>schedule</dt>
 				<dd>
 					<HederaScheduleView
-						selection={select(EntityType.HederaSchedule, selection.entitySelector.$schedule)}
+						selection={select(EntityType.HederaSchedule, selection.entitySelector.$schedule, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

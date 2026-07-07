@@ -115,7 +115,7 @@
 				{#snippet Item({ item: avalancheSubnetTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AvalancheSubnet_Timestamp> })}
 					{@const avalancheSubnetTimestampFields = { ...avalancheSubnetTimestamp[EntityMetaKey.Selector], ...avalancheSubnetTimestamp }}
 					<AvalancheSubnet_TimestampView
-						selection={select(EntityType.AvalancheSubnet_Timestamp, avalancheSubnetTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AvalancheSubnet_Timestamp, avalancheSubnetTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={avalancheSubnetTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

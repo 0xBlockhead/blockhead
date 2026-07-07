@@ -106,7 +106,7 @@
 				{#snippet Item({ item: xrplTrustline }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XrplTrustline> })}
 					{@const xrplTrustlineFields = { ...xrplTrustline[EntityMetaKey.Selector], ...xrplTrustline }}
 					<XrplTrustlineView
-						selection={select(EntityType.XrplTrustline, xrplTrustline[EntityMetaKey.Selector])}
+						selection={select(EntityType.XrplTrustline, xrplTrustline[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xrplTrustlineFields}
 						layout={EntityLayout.Summary}
 						open={false}

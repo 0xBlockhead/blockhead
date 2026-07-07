@@ -82,7 +82,7 @@
 				<dt>jetton</dt>
 				<dd>
 					<TonJettonView
-						selection={select(EntityType.TonJetton, selection.entitySelector.$jetton)}
+						selection={select(EntityType.TonJetton, selection.entitySelector.$jetton, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

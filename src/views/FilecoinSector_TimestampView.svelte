@@ -142,7 +142,7 @@
 				<dt>Sector</dt>
 				<dd>
 					<FilecoinSectorView
-						selection={select(EntityType.FilecoinSector, selection.entitySelector.$sector)}
+						selection={select(EntityType.FilecoinSector, selection.entitySelector.$sector, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -428,7 +428,7 @@
 						{#snippet Pending()}
 							{@const dealIds = prefetched.dealIds}
 							{#if dealIds !== undefined && dealIds !== null}
-								{(dealIds?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{dealIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -436,7 +436,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const dealIds = resolvedEntity.dealIds}
 							{#if dealIds !== undefined && dealIds !== null}
-								{(dealIds?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{dealIds.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

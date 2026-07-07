@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadIntentOrder }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadIntentOrder> })}
 					{@const blockheadIntentOrderFields = { ...blockheadIntentOrder[EntityMetaKey.Selector], ...blockheadIntentOrder }}
 					<BlockheadIntentOrderView
-						selection={select(EntityType.BlockheadIntentOrder, blockheadIntentOrder[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadIntentOrder, blockheadIntentOrder[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadIntentOrderFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +23,6 @@
 </script>
 
 
-<svelte:head>
-	<title>YouTube channel observation • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<YoutubeChannel_TimestampView
 		href={
@@ -37,6 +31,13 @@
 				timestampMs: params.timestampMs,
 			})
 		}
-		selection={select(EntityType.YoutubeChannel_Timestamp, data.selector)}
+		selection={
+			select(EntityType.YoutubeChannel_Timestamp, {
+				$channel: {
+					channelId: decodeURIComponent(params.channelId),
+				},
+				timestampMs: Number(params.timestampMs),
+			})
+		}
 	/>
 </Page>

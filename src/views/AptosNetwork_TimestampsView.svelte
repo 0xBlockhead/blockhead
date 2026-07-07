@@ -115,7 +115,7 @@
 				{#snippet Item({ item: aptosNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosNetwork_Timestamp> })}
 					{@const aptosNetworkTimestampFields = { ...aptosNetworkTimestamp[EntityMetaKey.Selector], ...aptosNetworkTimestamp }}
 					<AptosNetwork_TimestampView
-						selection={select(EntityType.AptosNetwork_Timestamp, aptosNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosNetwork_Timestamp, aptosNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -118,7 +118,7 @@
 					{@const ipfsResourceFields = { ...ipfsResource[EntityMetaKey.Selector], ...ipfsResource }}
 					{@const ipfsResourceHrefFields = { ...ipfsResource, ...ipfsResource[EntityMetaKey.Selector] }}
 					<IpfsResourceView
-						selection={select(EntityType.IpfsResource, ipfsResource[EntityMetaKey.Selector])}
+						selection={select(EntityType.IpfsResource, ipfsResource[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ipfsResourceFields}
 						href={
 							(ipfsResourceHrefFields.namespace !== undefined && ipfsResourceHrefFields.target !== undefined ? resolve('/(explore)/(ipfs)/ipfs/[namespace]/[target]', {

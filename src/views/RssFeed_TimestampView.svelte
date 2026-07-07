@@ -123,7 +123,7 @@
 				<dt>Feed</dt>
 				<dd>
 					<RssFeedView
-						selection={select(EntityType.RssFeed, selection.entitySelector.$feed)}
+						selection={select(EntityType.RssFeed, selection.entitySelector.$feed, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

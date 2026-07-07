@@ -81,7 +81,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<HyperliquidTransactionView
-						selection={select(EntityType.HyperliquidTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.HyperliquidTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

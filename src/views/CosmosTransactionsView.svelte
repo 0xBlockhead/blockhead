@@ -117,7 +117,7 @@
 					{@const cosmosTransactionFields = { ...cosmosTransaction[EntityMetaKey.Selector], ...cosmosTransaction }}
 					{@const cosmosTransactionHrefFields = { ...cosmosTransaction, ...cosmosTransaction[EntityMetaKey.Selector] }}
 					<CosmosTransactionView
-						selection={select(EntityType.CosmosTransaction, cosmosTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosTransaction, cosmosTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosTransactionFields}
 						href={
 							(cosmosTransactionHrefFields.$network !== undefined && cosmosTransactionHrefFields.$network.caip2 !== undefined && cosmosTransactionHrefFields.$network.caip2.namespace !== undefined && cosmosTransactionHrefFields.$network !== undefined && cosmosTransactionHrefFields.$network.caip2 !== undefined && cosmosTransactionHrefFields.$network.caip2.reference !== undefined && cosmosTransactionHrefFields.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]', {

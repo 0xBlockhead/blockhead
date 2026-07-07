@@ -114,7 +114,7 @@
 				{#snippet Item({ item: cronosNetworkProfile }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CronosNetworkProfile> })}
 					{@const cronosNetworkProfileFields = { ...cronosNetworkProfile[EntityMetaKey.Selector], ...cronosNetworkProfile }}
 					<CronosNetworkProfileView
-						selection={select(EntityType.CronosNetworkProfile, cronosNetworkProfile[EntityMetaKey.Selector])}
+						selection={select(EntityType.CronosNetworkProfile, cronosNetworkProfile[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cronosNetworkProfileFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -84,7 +84,7 @@
 				<dt>collection</dt>
 				<dd>
 					<NftCollectionView
-						selection={select(EntityType.NftCollection, selection.entitySelector.$collection)}
+						selection={select(EntityType.NftCollection, selection.entitySelector.$collection, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

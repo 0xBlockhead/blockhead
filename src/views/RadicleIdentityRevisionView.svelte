@@ -213,7 +213,7 @@
 						{#snippet Pending()}
 							{@const delegateDids = prefetched.delegateDids}
 							{#if delegateDids !== undefined && delegateDids !== null}
-								{(delegateDids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{delegateDids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -221,7 +221,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const delegateDids = resolvedEntity.delegateDids}
 							{#if delegateDids !== undefined && delegateDids !== null}
-								{(delegateDids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{delegateDids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -278,7 +278,7 @@
 						{#snippet Pending()}
 							{@const signedByDids = prefetched.signedByDids}
 							{#if signedByDids !== undefined && signedByDids !== null}
-								{(signedByDids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{signedByDids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -286,7 +286,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const signedByDids = resolvedEntity.signedByDids}
 							{#if signedByDids !== undefined && signedByDids !== null}
-								{(signedByDids?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{signedByDids.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

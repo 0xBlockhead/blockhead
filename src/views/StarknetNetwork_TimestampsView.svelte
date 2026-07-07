@@ -114,7 +114,7 @@
 				{#snippet Item({ item: starknetNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetNetwork_Timestamp> })}
 					{@const starknetNetworkTimestampFields = { ...starknetNetworkTimestamp[EntityMetaKey.Selector], ...starknetNetworkTimestamp }}
 					<StarknetNetwork_TimestampView
-						selection={select(EntityType.StarknetNetwork_Timestamp, starknetNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetNetwork_Timestamp, starknetNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

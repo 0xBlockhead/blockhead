@@ -114,7 +114,7 @@
 				{#snippet Item({ item: moneroKeyImage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoneroKeyImage> })}
 					{@const moneroKeyImageFields = { ...moneroKeyImage[EntityMetaKey.Selector], ...moneroKeyImage }}
 					<MoneroKeyImageView
-						selection={select(EntityType.MoneroKeyImage, moneroKeyImage[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoneroKeyImage, moneroKeyImage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moneroKeyImageFields}
 						layout={EntityLayout.Summary}
 						open={false}

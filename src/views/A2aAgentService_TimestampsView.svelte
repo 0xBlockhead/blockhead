@@ -114,7 +114,7 @@
 				{#snippet Item({ item: a2aAgentServiceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.A2aAgentService_Timestamp> })}
 					{@const a2aAgentServiceTimestampFields = { ...a2aAgentServiceTimestamp[EntityMetaKey.Selector], ...a2aAgentServiceTimestamp }}
 					<A2aAgentService_TimestampView
-						selection={select(EntityType.A2aAgentService_Timestamp, a2aAgentServiceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.A2aAgentService_Timestamp, a2aAgentServiceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={a2aAgentServiceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

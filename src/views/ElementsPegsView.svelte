@@ -114,7 +114,7 @@
 				{#snippet Item({ item: elementsPeg }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ElementsPeg> })}
 					{@const elementsPegFields = { ...elementsPeg[EntityMetaKey.Selector], ...elementsPeg }}
 					<ElementsPegView
-						selection={select(EntityType.ElementsPeg, elementsPeg[EntityMetaKey.Selector])}
+						selection={select(EntityType.ElementsPeg, elementsPeg[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={elementsPegFields}
 						layout={EntityLayout.Summary}
 						open={false}

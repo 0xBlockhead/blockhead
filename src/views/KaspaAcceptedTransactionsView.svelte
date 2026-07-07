@@ -106,7 +106,7 @@
 				{#snippet Item({ item: kaspaAcceptedTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.KaspaAcceptedTransaction> })}
 					{@const kaspaAcceptedTransactionFields = { ...kaspaAcceptedTransaction[EntityMetaKey.Selector], ...kaspaAcceptedTransaction }}
 					<KaspaAcceptedTransactionView
-						selection={select(EntityType.KaspaAcceptedTransaction, kaspaAcceptedTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.KaspaAcceptedTransaction, kaspaAcceptedTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={kaspaAcceptedTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

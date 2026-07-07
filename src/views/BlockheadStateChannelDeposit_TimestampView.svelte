@@ -134,7 +134,7 @@
 				<dt>deposit</dt>
 				<dd>
 					<BlockheadStateChannelDepositView
-						selection={select(EntityType.BlockheadStateChannelDeposit, selection.entitySelector.$deposit)}
+						selection={select(EntityType.BlockheadStateChannelDeposit, selection.entitySelector.$deposit, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

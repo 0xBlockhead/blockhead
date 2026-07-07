@@ -82,7 +82,7 @@
 				<dt>parent operation</dt>
 				<dd>
 					<TezosOperationView
-						selection={select(EntityType.TezosOperation, selection.entitySelector.$parentOperation)}
+						selection={select(EntityType.TezosOperation, selection.entitySelector.$parentOperation, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

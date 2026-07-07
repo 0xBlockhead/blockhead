@@ -116,7 +116,7 @@
 				{#snippet Item({ item: liquidityPoolTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LiquidityPool_Timestamp> })}
 					{@const liquidityPoolTimestampFields = { ...liquidityPoolTimestamp[EntityMetaKey.Selector], ...liquidityPoolTimestamp }}
 					<LiquidityPool_TimestampView
-						selection={select(EntityType.LiquidityPool_Timestamp, liquidityPoolTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.LiquidityPool_Timestamp, liquidityPoolTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={liquidityPoolTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

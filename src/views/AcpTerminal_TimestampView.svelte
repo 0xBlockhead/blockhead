@@ -134,7 +134,7 @@
 				<dt>terminal</dt>
 				<dd>
 					<AcpTerminalView
-						selection={select(EntityType.AcpTerminal, selection.entitySelector.$terminal)}
+						selection={select(EntityType.AcpTerminal, selection.entitySelector.$terminal, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

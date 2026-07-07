@@ -116,7 +116,7 @@
 				<dt>hub</dt>
 				<dd>
 					<GlobalXNetworkView
-						selection={select(EntityType._GlobalXNetwork, selection.entitySelector.$hub)}
+						selection={select(EntityType._GlobalXNetwork, selection.entitySelector.$hub, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

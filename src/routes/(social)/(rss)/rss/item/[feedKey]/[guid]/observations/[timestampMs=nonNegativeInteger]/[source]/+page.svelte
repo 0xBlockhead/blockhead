@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import RssItem_TimestampView from '$/views/RssItem_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>RSS item observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -40,8 +35,22 @@
 			})
 		}
 		selection={
-			select(EntityType.RssItem_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.RssItem_Timestamp, {
+				$item: {
+					feedUrl: decodeURIComponent(params.feedKey),
+					guid: decodeURIComponent(params.guid),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$item: {
+					feedUrl: decodeURIComponent(params.feedKey),
+					guid: decodeURIComponent(params.guid),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					title: true,
 					link: true,

@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadFilecoinPendingMessage }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadFilecoinPendingMessage> })}
 					{@const blockheadFilecoinPendingMessageFields = { ...blockheadFilecoinPendingMessage[EntityMetaKey.Selector], ...blockheadFilecoinPendingMessage }}
 					<BlockheadFilecoinPendingMessageView
-						selection={select(EntityType.BlockheadFilecoinPendingMessage, blockheadFilecoinPendingMessage[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadFilecoinPendingMessage, blockheadFilecoinPendingMessage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadFilecoinPendingMessageFields}
 						layout={EntityLayout.Summary}
 						open={false}

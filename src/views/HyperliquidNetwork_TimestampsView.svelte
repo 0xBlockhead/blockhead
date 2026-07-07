@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidNetwork_Timestamp> })}
 					{@const hyperliquidNetworkTimestampFields = { ...hyperliquidNetworkTimestamp[EntityMetaKey.Selector], ...hyperliquidNetworkTimestamp }}
 					<HyperliquidNetwork_TimestampView
-						selection={select(EntityType.HyperliquidNetwork_Timestamp, hyperliquidNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidNetwork_Timestamp, hyperliquidNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

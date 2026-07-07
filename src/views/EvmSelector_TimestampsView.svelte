@@ -120,7 +120,7 @@
 					{@const evmSelectorTimestampFields = { ...evmSelectorTimestamp[EntityMetaKey.Selector], ...evmSelectorTimestamp }}
 					{@const evmSelectorTimestampHrefFields = { ...evmSelectorTimestamp, ...evmSelectorTimestamp[EntityMetaKey.Selector] }}
 					<EvmSelector_TimestampView
-						selection={select(EntityType.EvmSelector_Timestamp, evmSelectorTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmSelector_Timestamp, evmSelectorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmSelectorTimestampFields}
 						href={
 							(evmSelectorTimestampHrefFields.$selector !== undefined && evmSelectorTimestampHrefFields.$selector.hex !== undefined && evmSelectorTimestampHrefFields.timestampMs !== undefined && evmSelectorTimestampHrefFields.source !== undefined ? resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]/observations/[timestampMs=nonNegativeInteger]/[source]', {

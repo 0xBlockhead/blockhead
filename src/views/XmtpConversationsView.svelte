@@ -115,7 +115,7 @@
 				{#snippet Item({ item: xmtpConversation }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.XmtpConversation> })}
 					{@const xmtpConversationFields = { ...xmtpConversation[EntityMetaKey.Selector], ...xmtpConversation }}
 					<XmtpConversationView
-						selection={select(EntityType.XmtpConversation, xmtpConversation[EntityMetaKey.Selector])}
+						selection={select(EntityType.XmtpConversation, xmtpConversation[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xmtpConversationFields}
 						layout={EntityLayout.Summary}
 						open={false}

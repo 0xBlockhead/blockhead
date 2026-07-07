@@ -2,6 +2,7 @@
 
 import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
+import { Source } from '$/sources/Source.ts'
 import { type } from 'arktype'
 
 export enum FarcasterCastEmbedSelector {
@@ -41,6 +42,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Snapchain_Rest,
+			],
 		},
 		{
 			name: '$embeddedCast',
@@ -48,6 +52,9 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.FarcasterCast,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Snapchain_Rest,
+			],
 		},
 		{
 			name: 'title',
@@ -55,6 +62,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Snapchain_Rest,
+			],
 		},
 		{
 			name: 'description',
@@ -62,6 +72,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Snapchain_Rest,
+			],
 		},
 		{
 			name: 'iconUrl',
@@ -69,6 +82,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Snapchain_Rest,
+			],
 		},
 		{
 			name: '$icon',
@@ -76,6 +92,9 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Snapchain_Rest,
+			],
 		},
 		{
 			name: 'quotedPreviewText',
@@ -83,6 +102,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Snapchain_Rest,
+			],
 		},
 	],
 } as const satisfies EntityDefinition

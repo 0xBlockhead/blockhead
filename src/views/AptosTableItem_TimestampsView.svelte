@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aptosTableItemTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosTableItem_Timestamp> })}
 					{@const aptosTableItemTimestampFields = { ...aptosTableItemTimestamp[EntityMetaKey.Selector], ...aptosTableItemTimestamp }}
 					<AptosTableItem_TimestampView
-						selection={select(EntityType.AptosTableItem_Timestamp, aptosTableItemTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosTableItem_Timestamp, aptosTableItemTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosTableItemTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

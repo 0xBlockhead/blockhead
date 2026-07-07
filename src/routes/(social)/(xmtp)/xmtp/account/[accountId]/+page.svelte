@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +23,6 @@
 </script>
 
 
-<svelte:head>
-	<title>EVM account • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<EvmAccountView
 		href={
@@ -37,7 +31,9 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmAccount, data.selector, {
+			select(EntityType.EvmAccount, {
+				address: decodeURIComponent(params.accountId),
+			}, {
 				fields: {
 					$avatar: true,
 					avatarUrl: true,

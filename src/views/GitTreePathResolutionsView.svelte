@@ -114,7 +114,7 @@
 				{#snippet Item({ item: gitTreePathResolution }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.GitTreePathResolution> })}
 					{@const gitTreePathResolutionFields = { ...gitTreePathResolution[EntityMetaKey.Selector], ...gitTreePathResolution }}
 					<GitTreePathResolutionView
-						selection={select(EntityType.GitTreePathResolution, gitTreePathResolution[EntityMetaKey.Selector])}
+						selection={select(EntityType.GitTreePathResolution, gitTreePathResolution[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={gitTreePathResolutionFields}
 						layout={EntityLayout.Summary}
 						open={false}

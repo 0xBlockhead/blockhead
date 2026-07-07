@@ -167,7 +167,7 @@
 				<dt>network</dt>
 				<dd>
 					<ZeroGNetworkView
-						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.ZeroGNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

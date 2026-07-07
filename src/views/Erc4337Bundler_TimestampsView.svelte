@@ -117,7 +117,7 @@
 					{@const erc4337BundlerTimestampFields = { ...erc4337BundlerTimestamp[EntityMetaKey.Selector], ...erc4337BundlerTimestamp }}
 					{@const erc4337BundlerTimestampHrefFields = { ...erc4337BundlerTimestamp, ...erc4337BundlerTimestamp[EntityMetaKey.Selector] }}
 					<Erc4337Bundler_TimestampView
-						selection={select(EntityType.Erc4337Bundler_Timestamp, erc4337BundlerTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.Erc4337Bundler_Timestamp, erc4337BundlerTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={erc4337BundlerTimestampFields}
 						href={
 							(erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.caip2 !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.caip2.namespace !== undefined && erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.caip2 !== undefined && erc4337BundlerTimestampHrefFields.$bundler.$network.caip2.reference !== undefined && erc4337BundlerTimestampHrefFields.$bundler !== undefined && erc4337BundlerTimestampHrefFields.$bundler.address !== undefined && erc4337BundlerTimestampHrefFields.timestampMs !== undefined && erc4337BundlerTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]/observations/[timestampMs=nonNegativeInteger]/[source]', {

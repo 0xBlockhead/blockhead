@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGNetwork> })}
 					{@const zeroGNetworkFields = { ...zeroGNetwork[EntityMetaKey.Selector], ...zeroGNetwork }}
 					<ZeroGNetworkView
-						selection={select(EntityType.ZeroGNetwork, zeroGNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGNetwork, zeroGNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

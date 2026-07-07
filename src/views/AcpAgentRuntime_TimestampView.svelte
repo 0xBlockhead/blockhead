@@ -133,7 +133,7 @@
 				<dt>runtime</dt>
 				<dd>
 					<AcpAgentRuntimeView
-						selection={select(EntityType.AcpAgentRuntime, selection.entitySelector.$runtime)}
+						selection={select(EntityType.AcpAgentRuntime, selection.entitySelector.$runtime, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

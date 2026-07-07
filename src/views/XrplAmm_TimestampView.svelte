@@ -82,7 +82,7 @@
 				<dt>AMM</dt>
 				<dd>
 					<XrplAmmView
-						selection={select(EntityType.XrplAmm, selection.entitySelector.$amm)}
+						selection={select(EntityType.XrplAmm, selection.entitySelector.$amm, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

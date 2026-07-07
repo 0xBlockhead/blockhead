@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosBakingRightTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosBakingRight_Timestamp> })}
 					{@const tezosBakingRightTimestampFields = { ...tezosBakingRightTimestamp[EntityMetaKey.Selector], ...tezosBakingRightTimestamp }}
 					<TezosBakingRight_TimestampView
-						selection={select(EntityType.TezosBakingRight_Timestamp, tezosBakingRightTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosBakingRight_Timestamp, tezosBakingRightTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosBakingRightTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

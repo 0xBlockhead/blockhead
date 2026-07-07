@@ -11,7 +11,7 @@
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { consensusProtocolByProtocol } from '$/constants/EvmNetwork.ts'
-	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
+	import { networkByCaip2, networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { Source } from '$/sources/Source.ts'
 
 
@@ -91,9 +91,8 @@
 	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
 	import MevRelaysView from '$/views/MevRelaysView.svelte'
 	import MevBuildersView from '$/views/MevBuildersView.svelte'
-	import MevRelay_ProposerPayloadDeliveredRowsView from '$/views/MevRelay_ProposerPayloadDeliveredRowsView.svelte'
+	import MevRelay_ProposerPayloadDeliveredsView from '$/views/MevRelay_ProposerPayloadDeliveredsView.svelte'
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
-	import EvmPrecompilesView from '$/views/EvmPrecompilesView.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
 	import Erc4337SmartAccountsView from '$/views/Erc4337SmartAccountsView.svelte'
 	import Erc4337BundlersView from '$/views/Erc4337BundlersView.svelte'
@@ -118,11 +117,7 @@
 	entitySelector={selection.entitySelector ?? prefetched[EntityMetaKey.Selector]}
 	id={viewDomId}
 	title={title ?? titleFallback}
-	href={
-		href ?? (pendingEntity.caip2 !== undefined && pendingEntity.caip2.namespace !== undefined && pendingEntity.caip2 !== undefined && pendingEntity.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
-			caip2: `${String(pendingEntity.caip2.namespace ?? '')}:${String(pendingEntity.caip2.reference ?? '')}`,
-		}) : undefined)
-	}
+	{href}
 	{layout}
 	bind:open
 	{...EntityViewProps}
@@ -533,7 +528,19 @@
 										selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 										prefetched={network}
 										href={
-											(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+											(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+												caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+											}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+												caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+											}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
+												networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
+											}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
+												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+											}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+											}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+											}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
 												caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
 											}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
 												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
@@ -562,7 +569,19 @@
 										selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
 										prefetched={network}
 										href={
-											(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+											(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+												caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+											}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+												caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+											}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
+												networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
+											}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
+												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+											}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+											}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+											}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
 												caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
 											}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
 												networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
@@ -1290,7 +1309,7 @@
 							{/snippet}
 
 							{#snippet SectionConsensusMevBoost({ id, label, open })}
-								<MevRelay_ProposerPayloadDeliveredRowsView
+								<MevRelay_ProposerPayloadDeliveredsView
 									selection={
 										selection[EntityProxyField]<EntityType.MevRelay_ProposerPayloadDelivered>('$$mevProposerPayloadDelivered', {
 											sources: [
@@ -1459,7 +1478,7 @@
 				{/snippet}
 
 				{#snippet SectionContractsPrecompiles({ id, label, open })}
-					<EvmPrecompilesView
+					<EvmContractsView
 						selection={
 							selection[EntityProxyField]<EntityType.EvmContract>('$$precompiles', {
 								sources: [
@@ -1677,7 +1696,7 @@
 						{#snippet children(coin)}
 							{#if coin != null && coin[EntityMetaKey.Selector] != null}
 								<CoinView
-									selection={select(EntityType.Coin, coin[EntityMetaKey.Selector])}
+									selection={select(EntityType.Coin, coin[EntityMetaKey.Selector], { sources: selection.sources })}
 									prefetched={coin}
 									href={
 										(coin[EntityMetaKey.Selector].coinId !== undefined ? resolve('/(assets)/coin/[coinId]', {
@@ -1710,7 +1729,7 @@
 						{#snippet children(evmCoinInstance)}
 							{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
 								<EvmCoinInstanceView
-									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmCoinInstance, evmCoinInstance[EntityMetaKey.Selector], { sources: selection.sources })}
 									prefetched={evmCoinInstance}
 									href={
 										(evmCoinInstance[EntityMetaKey.Selector].$network !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && evmCoinInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type !== undefined && (evmCoinInstance[EntityMetaKey.Selector].type === 'NativeCurrency' ? true : evmCoinInstance[EntityMetaKey.Selector].$contract !== undefined && evmCoinInstance[EntityMetaKey.Selector].$contract.address !== undefined)) ? resolve('/(assets)/coin-instance/[chainId=eip155ChainId]/[coinInstanceSlug]', {
@@ -1853,11 +1872,6 @@
 								],
 							})
 						}
-						href={
-							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/faucets', {
-								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							}) : undefined)
-						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No faucet URLs listed for this network yet.'
 						open={open}
@@ -1877,11 +1891,6 @@
 								],
 							})
 						}
-						href={
-							(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/block-explorers', {
-								caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-							}) : undefined)
-						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No block explorer URLs listed for this network yet.'
 						open={open}
@@ -1893,57 +1902,57 @@
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
-				id={viewDomId + '-carousel-relationshipModel'}
+				id={viewDomId + '-carousel-network-topology'}
 				sectionIdPrefix={viewDomId}
 				sections={
 					[
 						{
-							id: 'relationshipModel-upgrades',
+							id: 'network-topology-upgrades',
 							label: 'Upgrades',
 						},
 						{
-							id: 'relationshipModel-parent-layer',
+							id: 'network-topology-parent-layer',
 							label: 'Parent',
 						},
 						{
-							id: 'relationshipModel-rollup',
+							id: 'network-topology-rollup',
 							label: 'Rollup',
 						},
 						{
-							id: 'relationshipModel-sibling-shards',
+							id: 'network-topology-sibling-shards',
 							label: 'Shards',
 						},
 						{
-							id: 'relationshipModel-testnets',
+							id: 'network-topology-testnets',
 							label: 'Testnets',
 						},
 						{
-							id: 'relationshipModel-mainnet',
+							id: 'network-topology-mainnet',
 							label: 'Mainnet',
 						},
 						{
-							id: 'relationshipModel-child-layers',
+							id: 'network-topology-child-layers',
 							label: 'Layers',
 						},
 						{
-							id: 'relationshipModel-settled-rollups',
+							id: 'network-topology-settled-rollups',
 							label: 'Settled rollups',
 						},
 					]
 				}
 				data-card
-				class='network-view-collapsible-relationshipModel'
+				class='network-view-collapsible-network-topology'
 				scrollContainerProps={{
 					'data-row': 'start align-start',
 				}}
 			>
 				{#snippet Summary({})}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Relationship model</HeadingComponent>
+						<HeadingComponent>Network topology</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet SectionRelationshipModelUpgrades({ id, label, open })}
+				{#snippet SectionNetworkTopologyUpgrades({ id, label, open })}
 					<EthereumNetworkUpgradesView
 						selection={
 							selection[EntityProxyField]<EntityType.EthereumNetworkUpgrade>('$$upgrades', {
@@ -1965,7 +1974,7 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionRelationshipModelParentLayer({ id, label, open })}
+				{#snippet SectionNetworkTopologyParentLayer({ id, label, open })}
 					<ResourceBoundary
 						resource={
 							selection[EntityProxyField]<EntityType.Network, false>('$parent', {
@@ -1982,10 +1991,22 @@
 								<p data-text="muted">Parent network is not listed for this network.</p>
 							{:else}
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector], { sources: selection.sources })}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
+											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
 											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
 										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
 											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
@@ -1999,7 +2020,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionRelationshipModelRollup({ id, label, open })}
+				{#snippet SectionNetworkTopologyRollup({ id, label, open })}
 					<ResourceBoundary
 						resource={
 							selection[EntityProxyField]<EntityType.EvmRollup, false>('$rollup', {
@@ -2014,7 +2035,7 @@
 								<p data-text="muted">Rollup is not listed for this network.</p>
 							{:else}
 								<EvmRollupView
-									selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector])}
+									selection={select(EntityType.EvmRollup, evmRollup[EntityMetaKey.Selector], { sources: selection.sources })}
 									prefetched={evmRollup}
 									href={
 										(evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2 !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && evmRollup[EntityMetaKey.Selector].$network !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2 !== undefined && evmRollup[EntityMetaKey.Selector].$network.caip2.reference !== undefined && evmRollup[EntityMetaKey.Selector].projectId !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]', {
@@ -2030,7 +2051,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionRelationshipModelSiblingShards({ id, label, open })}
+				{#snippet SectionNetworkTopologySiblingShards({ id, label, open })}
 					<EvmNetworksView
 						selection={
 							selection[EntityProxyField]<EntityType.EvmNetwork>('$$siblingShardNetworks', {
@@ -2050,7 +2071,7 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionRelationshipModelTestnets({ id, label, open })}
+				{#snippet SectionNetworkTopologyTestnets({ id, label, open })}
 					<NetworksView
 						selection={
 							selection[EntityProxyField]<EntityType.Network>('$$testnets', {
@@ -2070,7 +2091,7 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionRelationshipModelMainnet({ id, label, open })}
+				{#snippet SectionNetworkTopologyMainnet({ id, label, open })}
 					<ResourceBoundary
 						resource={
 							selection[EntityProxyField]<EntityType.Network, false>('$mainnet', {
@@ -2086,10 +2107,22 @@
 								<p data-text="muted">Mainnet is not listed for this network.</p>
 							{:else}
 								<NetworkView
-									selection={select(EntityType.Network, network[EntityMetaKey.Selector])}
+									selection={select(EntityType.Network, network[EntityMetaKey.Selector], { sources: selection.sources })}
 									prefetched={network}
 									href={
-										(network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+										(network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('CosmosSdk') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('Evm') && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
+											networkSlug: String(networkByCaip2[String(String(network[EntityMetaKey.Selector].caip2.namespace) + ':' + String(network[EntityMetaKey.Selector].caip2.reference))].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('SolanaRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].executionModels !== undefined && network[EntityMetaKey.Selector].executionModels.values.includes('PolkadotRuntime') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].ledgerModels !== undefined && network[EntityMetaKey.Selector].ledgerModels.values.includes('Utxo') && network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
+										}) : network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.namespace !== undefined && network[EntityMetaKey.Selector].caip2 !== undefined && network[EntityMetaKey.Selector].caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
 											caip2: `${String(network[EntityMetaKey.Selector].caip2.namespace ?? '')}:${String(network[EntityMetaKey.Selector].caip2.reference ?? '')}`,
 										}) : network[EntityMetaKey.Selector].slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
 											networkSlug: String(network[EntityMetaKey.Selector].slug ?? ''),
@@ -2103,7 +2136,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionRelationshipModelChildLayers({ id, label, open })}
+				{#snippet SectionNetworkTopologyChildLayers({ id, label, open })}
 					<NetworksView
 						selection={
 							selection[EntityProxyField]<EntityType.Network>('$$childLayers', {
@@ -2124,7 +2157,7 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionRelationshipModelSettledRollups({ id, label, open })}
+				{#snippet SectionNetworkTopologySettledRollups({ id, label, open })}
 					<EvmRollupsView
 						selection={
 							selection[EntityProxyField]<EntityType.EvmRollup>('$$settledRollups', {

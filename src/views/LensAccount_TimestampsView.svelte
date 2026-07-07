@@ -115,7 +115,7 @@
 					{@const lensAccountTimestampFields = { ...lensAccountTimestamp[EntityMetaKey.Selector], ...lensAccountTimestamp }}
 					{@const lensAccountTimestampHrefFields = { ...lensAccountTimestamp, ...lensAccountTimestamp[EntityMetaKey.Selector] }}
 					<LensAccount_TimestampView
-						selection={select(EntityType.LensAccount_Timestamp, lensAccountTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.LensAccount_Timestamp, lensAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lensAccountTimestampFields}
 						href={
 							(lensAccountTimestampHrefFields.$account !== undefined && lensAccountTimestampHrefFields.$account.address !== undefined && lensAccountTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(lens)/lens/account/[address=evmAddress]/(account)/observations/[timestampMs=nonNegativeInteger]', {

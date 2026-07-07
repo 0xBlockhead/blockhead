@@ -106,7 +106,7 @@
 				{#snippet Item({ item: radicleSignedRefTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.RadicleSignedRef_Timestamp> })}
 					{@const radicleSignedRefTimestampFields = { ...radicleSignedRefTimestamp[EntityMetaKey.Selector], ...radicleSignedRefTimestamp }}
 					<RadicleSignedRef_TimestampView
-						selection={select(EntityType.RadicleSignedRef_Timestamp, radicleSignedRefTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.RadicleSignedRef_Timestamp, radicleSignedRefTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={radicleSignedRefTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

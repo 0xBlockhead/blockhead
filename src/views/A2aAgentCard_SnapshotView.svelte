@@ -134,7 +134,7 @@
 				<dt>card</dt>
 				<dd>
 					<A2aAgentCardView
-						selection={select(EntityType.A2aAgentCard, selection.entitySelector.$card)}
+						selection={select(EntityType.A2aAgentCard, selection.entitySelector.$card, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

@@ -116,7 +116,7 @@
 				{#snippet Item({ item: aiBenchmark }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AiBenchmark> })}
 					{@const aiBenchmarkFields = { ...aiBenchmark[EntityMetaKey.Selector], ...aiBenchmark }}
 					<AiBenchmarkView
-						selection={select(EntityType.AiBenchmark, aiBenchmark[EntityMetaKey.Selector])}
+						selection={select(EntityType.AiBenchmark, aiBenchmark[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aiBenchmarkFields}
 						layout={EntityLayout.Summary}
 						open={false}

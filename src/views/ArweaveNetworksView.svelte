@@ -112,7 +112,7 @@
 				{#snippet Item({ item: arweaveNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ArweaveNetwork> })}
 					{@const arweaveNetworkFields = { ...arweaveNetwork[EntityMetaKey.Selector], ...arweaveNetwork }}
 					<ArweaveNetworkView
-						selection={select(EntityType.ArweaveNetwork, arweaveNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.ArweaveNetwork, arweaveNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={arweaveNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

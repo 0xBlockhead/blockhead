@@ -83,7 +83,7 @@
 				<dt>NFT</dt>
 				<dd>
 					<HederaNftView
-						selection={select(EntityType.HederaNft, selection.entitySelector.$nft)}
+						selection={select(EntityType.HederaNft, selection.entitySelector.$nft, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

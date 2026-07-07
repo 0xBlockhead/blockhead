@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpPermissionRequest }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpPermissionRequest> })}
 					{@const acpPermissionRequestFields = { ...acpPermissionRequest[EntityMetaKey.Selector], ...acpPermissionRequest }}
 					<AcpPermissionRequestView
-						selection={select(EntityType.AcpPermissionRequest, acpPermissionRequest[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpPermissionRequest, acpPermissionRequest[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpPermissionRequestFields}
 						layout={EntityLayout.Summary}
 						open={false}

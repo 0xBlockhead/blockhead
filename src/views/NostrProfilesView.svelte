@@ -117,7 +117,7 @@
 				{#snippet Item({ item: nostrProfile }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NostrProfile> })}
 					{@const nostrProfileFields = { ...nostrProfile[EntityMetaKey.Selector], ...nostrProfile }}
 					<NostrProfileView
-						selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector])}
+						selection={select(EntityType.NostrProfile, nostrProfile[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nostrProfileFields}
 						layout={EntityLayout.Title}
 						open={false}

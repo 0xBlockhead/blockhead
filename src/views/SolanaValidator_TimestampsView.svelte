@@ -114,7 +114,7 @@
 				{#snippet Item({ item: solanaValidatorTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.SolanaValidator_Timestamp> })}
 					{@const solanaValidatorTimestampFields = { ...solanaValidatorTimestamp[EntityMetaKey.Selector], ...solanaValidatorTimestamp }}
 					<SolanaValidator_TimestampView
-						selection={select(EntityType.SolanaValidator_Timestamp, solanaValidatorTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.SolanaValidator_Timestamp, solanaValidatorTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={solanaValidatorTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

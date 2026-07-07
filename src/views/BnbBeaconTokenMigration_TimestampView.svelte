@@ -128,7 +128,7 @@
 				<dt>migration</dt>
 				<dd>
 					<BnbBeaconTokenMigrationView
-						selection={select(EntityType.BnbBeaconTokenMigration, selection.entitySelector.$migration)}
+						selection={select(EntityType.BnbBeaconTokenMigration, selection.entitySelector.$migration, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

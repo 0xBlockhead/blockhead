@@ -136,7 +136,7 @@
 				<dt>table item</dt>
 				<dd>
 					<AptosTableItemView
-						selection={select(EntityType.AptosTableItem, selection.entitySelector.$tableItem)}
+						selection={select(EntityType.AptosTableItem, selection.entitySelector.$tableItem, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

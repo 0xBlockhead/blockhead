@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosBaker }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosBaker> })}
 					{@const tezosBakerFields = { ...tezosBaker[EntityMetaKey.Selector], ...tezosBaker }}
 					<TezosBakerView
-						selection={select(EntityType.TezosBaker, tezosBaker[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosBaker, tezosBaker[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosBakerFields}
 						layout={EntityLayout.Summary}
 						open={false}

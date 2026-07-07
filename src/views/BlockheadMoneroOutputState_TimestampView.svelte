@@ -135,7 +135,7 @@
 				<dt>output state</dt>
 				<dd>
 					<BlockheadMoneroOutputStateView
-						selection={select(EntityType.BlockheadMoneroOutputState, selection.entitySelector.$outputState)}
+						selection={select(EntityType.BlockheadMoneroOutputState, selection.entitySelector.$outputState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

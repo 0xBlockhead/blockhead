@@ -85,7 +85,7 @@
 				<dt>network</dt>
 				<dd>
 					<AlgorandNetworkView
-						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.AlgorandNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

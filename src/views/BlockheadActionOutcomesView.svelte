@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadActionOutcome }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadActionOutcome> })}
 					{@const blockheadActionOutcomeFields = { ...blockheadActionOutcome[EntityMetaKey.Selector], ...blockheadActionOutcome }}
 					<BlockheadActionOutcomeView
-						selection={select(EntityType.BlockheadActionOutcome, blockheadActionOutcome[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadActionOutcome, blockheadActionOutcome[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadActionOutcomeFields}
 						layout={EntityLayout.Summary}
 						open={false}

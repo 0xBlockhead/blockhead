@@ -16,6 +16,7 @@
 		createE2EClientInstrumentation,
 		e2eDatabaseName,
 		e2eSchemaVersion,
+		e2eVfsName,
 		installAppClientProbe,
 	} from '$/client/$e2eProbe.ts'
 	import {
@@ -28,10 +29,18 @@
 
 	const database = await openBrowserWASQLiteOPFSDatabase({
 		databaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),
+		vfsName: e2eVfsName(),
 	})
-	import.meta.hot?.dispose(() => {
+	let databaseClosed = false
+	const closeDatabase = () => {
+		if (databaseClosed)
+			return
+
+		databaseClosed = true
 		void database.close?.()
-	})
+	}
+	window.addEventListener('pagehide', closeDatabase, { once: true })
+	import.meta.hot?.dispose(closeDatabase)
 
 	const basePersistence = createBrowserWASQLitePersistence({
 		database,

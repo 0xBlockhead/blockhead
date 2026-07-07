@@ -84,7 +84,7 @@
 				<dt>restriction</dt>
 				<dd>
 					<TransferRestrictionView
-						selection={select(EntityType.TransferRestriction, selection.entitySelector.$restriction)}
+						selection={select(EntityType.TransferRestriction, selection.entitySelector.$restriction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

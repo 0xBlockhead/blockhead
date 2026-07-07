@@ -117,7 +117,7 @@
 					{@const bridgeRouteStepFields = { ...bridgeRouteStep[EntityMetaKey.Selector], ...bridgeRouteStep }}
 					{@const bridgeRouteStepHrefFields = { ...bridgeRouteStep, ...bridgeRouteStep[EntityMetaKey.Selector] }}
 					<BridgeRouteStepView
-						selection={select(EntityType.BridgeRouteStep, bridgeRouteStep[EntityMetaKey.Selector])}
+						selection={select(EntityType.BridgeRouteStep, bridgeRouteStep[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bridgeRouteStepFields}
 						href={
 							(bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromChainId !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toChainId !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromToken !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toToken !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromAmount !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.fromAddress !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.slippage !== undefined && bridgeRouteStepHrefFields.$route !== undefined && bridgeRouteStepHrefFields.$route.toAddress !== undefined && bridgeRouteStepHrefFields.indexInRoute !== undefined ? resolve('/bridge/route/[fromChainId]/[toChainId]/[fromToken]/[toToken]/[fromAmount]/[fromAddress]/[slippage]/[toAddress]/step/[stepIndex=bridgeRouteStepIndex]', {

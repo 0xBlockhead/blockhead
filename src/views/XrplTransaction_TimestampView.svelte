@@ -81,7 +81,7 @@
 				<dt>transaction</dt>
 				<dd>
 					<XrplTransactionView
-						selection={select(EntityType.XrplTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.XrplTransaction, selection.entitySelector.$transaction, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

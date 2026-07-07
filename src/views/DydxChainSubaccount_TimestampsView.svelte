@@ -113,7 +113,7 @@
 				{#snippet Item({ item: dydxChainSubaccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DydxChainSubaccount_Timestamp> })}
 					{@const dydxChainSubaccountTimestampFields = { ...dydxChainSubaccountTimestamp[EntityMetaKey.Selector], ...dydxChainSubaccountTimestamp }}
 					<DydxChainSubaccount_TimestampView
-						selection={select(EntityType.DydxChainSubaccount_Timestamp, dydxChainSubaccountTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.DydxChainSubaccount_Timestamp, dydxChainSubaccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dydxChainSubaccountTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

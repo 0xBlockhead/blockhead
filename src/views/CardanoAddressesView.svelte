@@ -106,7 +106,7 @@
 				{#snippet Item({ item: cardanoAddress }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CardanoAddress> })}
 					{@const cardanoAddressFields = { ...cardanoAddress[EntityMetaKey.Selector], ...cardanoAddress }}
 					<CardanoAddressView
-						selection={select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector])}
+						selection={select(EntityType.CardanoAddress, cardanoAddress[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cardanoAddressFields}
 						layout={EntityLayout.Summary}
 						open={false}

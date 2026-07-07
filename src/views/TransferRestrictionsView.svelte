@@ -106,7 +106,7 @@
 				{#snippet Item({ item: transferRestriction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TransferRestriction> })}
 					{@const transferRestrictionFields = { ...transferRestriction[EntityMetaKey.Selector], ...transferRestriction }}
 					<TransferRestrictionView
-						selection={select(EntityType.TransferRestriction, transferRestriction[EntityMetaKey.Selector])}
+						selection={select(EntityType.TransferRestriction, transferRestriction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={transferRestrictionFields}
 						layout={EntityLayout.Summary}
 						open={false}

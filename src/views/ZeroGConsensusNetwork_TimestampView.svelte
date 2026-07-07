@@ -116,7 +116,7 @@
 				<dt>consensus network</dt>
 				<dd>
 					<ZeroGConsensusNetworkView
-						selection={select(EntityType.ZeroGConsensusNetwork, selection.entitySelector.$consensusNetwork)}
+						selection={select(EntityType.ZeroGConsensusNetwork, selection.entitySelector.$consensusNetwork, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

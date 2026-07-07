@@ -114,7 +114,7 @@
 				{#snippet Item({ item: lightningNetworkTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LightningNetwork_Timestamp> })}
 					{@const lightningNetworkTimestampFields = { ...lightningNetworkTimestamp[EntityMetaKey.Selector], ...lightningNetworkTimestamp }}
 					<LightningNetwork_TimestampView
-						selection={select(EntityType.LightningNetwork_Timestamp, lightningNetworkTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.LightningNetwork_Timestamp, lightningNetworkTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lightningNetworkTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tezosAccountTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TezosAccount_Timestamp> })}
 					{@const tezosAccountTimestampFields = { ...tezosAccountTimestamp[EntityMetaKey.Selector], ...tezosAccountTimestamp }}
 					<TezosAccount_TimestampView
-						selection={select(EntityType.TezosAccount_Timestamp, tezosAccountTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.TezosAccount_Timestamp, tezosAccountTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tezosAccountTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

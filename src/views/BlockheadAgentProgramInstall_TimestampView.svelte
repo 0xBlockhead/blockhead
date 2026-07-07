@@ -134,7 +134,7 @@
 				<dt>install</dt>
 				<dd>
 					<BlockheadAgentProgramInstallView
-						selection={select(EntityType.BlockheadAgentProgramInstall, selection.entitySelector.$install)}
+						selection={select(EntityType.BlockheadAgentProgramInstall, selection.entitySelector.$install, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

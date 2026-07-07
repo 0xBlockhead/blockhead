@@ -113,7 +113,7 @@
 				{#snippet Item({ item: starknetStorageEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetStorageEntry> })}
 					{@const starknetStorageEntryFields = { ...starknetStorageEntry[EntityMetaKey.Selector], ...starknetStorageEntry }}
 					<StarknetStorageEntryView
-						selection={select(EntityType.StarknetStorageEntry, starknetStorageEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetStorageEntry, starknetStorageEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetStorageEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

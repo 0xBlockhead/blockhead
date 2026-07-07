@@ -772,7 +772,7 @@
 				<dt>Relay</dt>
 				<dd>
 					<NostrRelayView
-						selection={select(EntityType.NostrRelay, selection.entitySelector.$relay)}
+						selection={select(EntityType.NostrRelay, selection.entitySelector.$relay, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

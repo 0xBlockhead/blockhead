@@ -2,19 +2,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 	import { select } from '$/routes/+layout.svelte'
-
-
-	// State
-	let {
-		data,
-	}: PageProps = $props()
 
 
 	// Components
@@ -23,16 +17,16 @@
 </script>
 
 
-<svelte:head>
-	<title>AT Protocol • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<GlobalAtprotoNetworkView
 		href={resolve('/(social)/(atproto)/atproto')}
 		selection={
-			select(EntityType._GlobalAtprotoNetwork, data.selector, {
+			select(EntityType._GlobalAtprotoNetwork, {
+				scope: '_GlobalAtprotoNetwork',
+			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
 					protocolName: true,
 					relationshipModel: true,

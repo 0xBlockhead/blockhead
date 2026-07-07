@@ -114,7 +114,7 @@
 				{#snippet Item({ item: nearReceipt }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearReceipt> })}
 					{@const nearReceiptFields = { ...nearReceipt[EntityMetaKey.Selector], ...nearReceipt }}
 					<NearReceiptView
-						selection={select(EntityType.NearReceipt, nearReceipt[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearReceipt, nearReceipt[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearReceiptFields}
 						layout={EntityLayout.Summary}
 						open={false}

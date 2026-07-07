@@ -114,7 +114,7 @@
 				{#snippet Item({ item: dydxChainOrder }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.DydxChainOrder> })}
 					{@const dydxChainOrderFields = { ...dydxChainOrder[EntityMetaKey.Selector], ...dydxChainOrder }}
 					<DydxChainOrderView
-						selection={select(EntityType.DydxChainOrder, dydxChainOrder[EntityMetaKey.Selector])}
+						selection={select(EntityType.DydxChainOrder, dydxChainOrder[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={dydxChainOrderFields}
 						layout={EntityLayout.Summary}
 						open={false}

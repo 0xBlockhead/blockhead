@@ -135,7 +135,7 @@
 				<dt>node state</dt>
 				<dd>
 					<BlockheadCodexStorageNodeStateView
-						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState)}
+						selection={select(EntityType.BlockheadCodexStorageNodeState, selection.entitySelector.$nodeState, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -324,7 +324,7 @@
 						{#snippet Pending()}
 							{@const listenAddresses = prefetched.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -332,7 +332,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const listenAddresses = resolvedEntity.listenAddresses}
 							{#if listenAddresses !== undefined && listenAddresses !== null}
-								<TruncatedValue value={(listenAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={listenAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -354,7 +354,7 @@
 						{#snippet Pending()}
 							{@const announceAddresses = prefetched.announceAddresses}
 							{#if announceAddresses !== undefined && announceAddresses !== null}
-								<TruncatedValue value={(announceAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={announceAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 
@@ -362,7 +362,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const announceAddresses = resolvedEntity.announceAddresses}
 							{#if announceAddresses !== undefined && announceAddresses !== null}
-								<TruncatedValue value={(announceAddresses?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
+								<TruncatedValue value={announceAddresses.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

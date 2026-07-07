@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidSpotPair }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidSpotPair> })}
 					{@const hyperliquidSpotPairFields = { ...hyperliquidSpotPair[EntityMetaKey.Selector], ...hyperliquidSpotPair }}
 					<HyperliquidSpotPairView
-						selection={select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidSpotPair, hyperliquidSpotPair[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidSpotPairFields}
 						layout={EntityLayout.Summary}
 						open={false}

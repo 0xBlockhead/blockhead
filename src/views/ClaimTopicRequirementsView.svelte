@@ -106,7 +106,7 @@
 				{#snippet Item({ item: claimTopicRequirement }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ClaimTopicRequirement> })}
 					{@const claimTopicRequirementFields = { ...claimTopicRequirement[EntityMetaKey.Selector], ...claimTopicRequirement }}
 					<ClaimTopicRequirementView
-						selection={select(EntityType.ClaimTopicRequirement, claimTopicRequirement[EntityMetaKey.Selector])}
+						selection={select(EntityType.ClaimTopicRequirement, claimTopicRequirement[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={claimTopicRequirementFields}
 						layout={EntityLayout.Summary}
 						open={false}

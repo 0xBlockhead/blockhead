@@ -134,7 +134,7 @@
 				<dt>Account</dt>
 				<dd>
 					<NearAccountView
-						selection={select(EntityType.NearAccount, selection.entitySelector.$account)}
+						selection={select(EntityType.NearAccount, selection.entitySelector.$account, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

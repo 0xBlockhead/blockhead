@@ -475,7 +475,7 @@
 						{#snippet Pending()}
 							{@const funds = prefetched.funds}
 							{#if funds !== undefined && funds !== null}
-								{(funds?.values ?? []).map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
+								{funds.values.map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -483,7 +483,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const funds = resolvedEntity.funds}
 							{#if funds !== undefined && funds !== null}
-								{(funds?.values ?? []).map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
+								{funds.values.map((value) => String((`${value.amount} ${value.denom}`) ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -505,7 +505,7 @@
 						{#snippet Pending()}
 							{@const eventTypes = prefetched.eventTypes}
 							{#if eventTypes !== undefined && eventTypes !== null}
-								{(eventTypes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{eventTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 
@@ -513,7 +513,7 @@
 							{@const resolvedEntity = { ...pendingEntity, ...entity }}
 							{@const eventTypes = resolvedEntity.eventTypes}
 							{#if eventTypes !== undefined && eventTypes !== null}
-								{(eventTypes?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')}
+								{eventTypes.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -550,7 +550,7 @@
 				<dt>Transaction</dt>
 				<dd>
 					<CosmosTransactionView
-						selection={select(EntityType.CosmosTransaction, selection.entitySelector.$transaction)}
+						selection={select(EntityType.CosmosTransaction, selection.entitySelector.$transaction, {})}
 						href={
 							(selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.namespace !== undefined && selection.entitySelector.$transaction.$network !== undefined && selection.entitySelector.$transaction.$network.caip2 !== undefined && selection.entitySelector.$transaction.$network.caip2.reference !== undefined && selection.entitySelector.$transaction.txHash !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]', {
 								caip2: `${String(selection.entitySelector.$transaction.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$transaction.$network.caip2.reference ?? '')}`,

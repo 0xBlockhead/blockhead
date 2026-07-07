@@ -38,6 +38,46 @@ export const jsonStringifyForExpectMessage = (
 	)
 )
 
+export const generatedRouteArtifactPatterns = [
+	/\bEntityType\.Unknown\b/,
+	/<title>\{'Entity'\}<\/title>/,
+	/\bNo rows\b/,
+	/\/venues\b/,
+	/\$base.*\$quote.*\$marketVenue/,
+	/devalue|EntityView-\{/,
+	/\[object Object\]/,
+	/\{\s*("|&quot;)?(entityType|selector|fields|values)("|&quot;)?\s*:/,
+] as const
+
+export const snapshotGeneratedRouteArtifacts = async (page: Page) => (
+	page.evaluate(() => ({
+		html: document.documentElement.outerHTML.slice(0, 50_000),
+		title: document.title,
+		bodyText: document.body.textContent.replace(/\s+/g, ' ').trim().slice(0, 2_000),
+		entityViewCount: document.querySelectorAll('.entity-view-summary, [class*="entity-view"]').length,
+		plainLinkListCount: document.querySelectorAll('#main ul:not(:has(.entity-view-summary)) > li > a:only-child').length,
+		notFoundCount: document.querySelectorAll('#main [id$="not-found"]').length,
+		errorCount: document.querySelectorAll('#main [data-error]').length,
+	}))
+)
+
+export const assertNoGeneratedRouteArtifacts = async (
+	page: Page,
+	pathname: string
+) => {
+	const snapshot = await snapshotGeneratedRouteArtifacts(page)
+	const artifactHits = generatedRouteArtifactPatterns.filter((pattern) => (
+		pattern.test(snapshot.html)
+		|| pattern.test(snapshot.title)
+		|| pattern.test(snapshot.bodyText)
+	))
+
+	expect(
+		artifactHits.map((pattern) => pattern.toString()),
+		`${pathname} generated-route artifact markers in DOM/title`
+	).toEqual([])
+}
+
 declare global {
 	interface Window {
 		__e2eViewTransitionStarts?: number
@@ -48,6 +88,7 @@ declare global {
 		__blockheadPersistenceTrace?: PersistenceTraceEvent[]
 		__blockheadPersistedCollectionSchemaVersionOverride?: number
 		__blockheadWaSqliteDatabaseNameOverride?: string
+		__blockheadWaSqliteVfsNameOverride?: string
 		__blockheadBoundaryProbe?: BoundaryUpdateEvent[]
 		__blockheadBoundaryProbeActive?: BoundaryLoadingProbeRow[]
 	}
@@ -1350,6 +1391,93 @@ const mempoolSpaceTransactionBody = JSON.stringify({
 	},
 })
 
+const mempoolSpaceBlocksWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('mempool.space/api/v1/blocks')
+)
+
+const mempoolSpaceBlocksBody = JSON.stringify([
+	{
+		id: bitcoinGenesisBlockHash,
+		height: 0,
+		version: 1,
+		timestamp: 1_231_006_505,
+		tx_count: 1,
+		size: 285,
+		weight: 1_140,
+		merkle_root: '4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b',
+		mediantime: 1_231_006_505,
+		nonce: 2_083_236_893,
+		bits: 486_604_799,
+		difficulty: 1,
+	},
+])
+
+const mempoolSpaceMempoolStatsWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('mempool.space/api/mempool')
+)
+
+const mempoolSpaceMempoolStatsBody = JSON.stringify({
+	count: 2,
+	vsize: 512,
+	total_fee: 1024,
+	fee_histogram: [],
+})
+
+const mempoolSpaceRecommendedFeesWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('mempool.space/api/v1/fees/recommended')
+)
+
+const mempoolSpaceRecommendedFeesBody = JSON.stringify({
+	fastestFee: 12,
+	halfHourFee: 8,
+	hourFee: 4,
+	economyFee: 2,
+	minimumFee: 1,
+})
+
+const blockchairBitcoinStatsWire = (
+	url: string,
+	method: string
+) => (
+	method === 'GET'
+	&& decodeURIComponent(url).includes('api.blockchair.com/bitcoin/stats')
+)
+
+const blockchairBitcoinStatsBody = JSON.stringify({
+	data: {
+		blocks: 1,
+		transactions: 1,
+		best_block_height: 0,
+		best_block_hash: bitcoinGenesisBlockHash,
+		best_block_time: '2009-01-03 18:15:05',
+		blocks_24h: 1,
+		transactions_24h: 1,
+		mempool_transactions: 2,
+		mempool_size: 512,
+		mempool_tps: 0,
+		average_transaction_fee_24h: 4,
+		median_transaction_fee_24h: 3,
+		suggested_transaction_fee_per_byte_sat: 4,
+		blockchain_size: 285,
+	},
+	context: {
+		code: 200,
+		source: 'E2E',
+	},
+})
+
 const blockchairBitcoinAddressDashboardWire = (
 	url: string,
 	method: string
@@ -2041,7 +2169,10 @@ export const l2BeatScalingSummaryWire = (url: string, method: string) => (
 export const substrateSidecarAccountBalanceInfoWire = (url: string, method: string) => (
 	method === 'GET'
 	&& url.includes('api-proxy/')
-	&& decodeURIComponent(url).includes('http://127.0.0.1:8080/accounts/3/balance-info')
+	&& (
+		decodeURIComponent(url).includes('http://127.0.0.1:8080/accounts/3/balance-info')
+		|| decodeURIComponent(url).includes('http://127.0.0.1:8080/accounts/5GrwvaEF5zXb26Fz9rcQpDWSQVu1csJn3S9qjQg9mT3S7v5F/balance-info')
+	)
 )
 
 export const substrateSidecarBlockWire = (url: string, method: string) => (
@@ -2960,9 +3091,13 @@ const snapchainCast = {
 		fid: 3,
 		timestamp: 1_700_000_000,
 		castAddBody: {
-			text: 'E2E Snapchain cast',
+			text: 'E2E Snapchain cast\n\nhttps://x.com/Caol_MacCormaic/status/1989409340495904773?s=20',
 			mentions: [],
-			embeds: [],
+			embeds: [
+				{
+					url: 'https://x.com/Caol_MacCormaic/status/1989409340495904773?s=20',
+				},
+			],
 		},
 	},
 }
@@ -3940,6 +4075,38 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				status: 200,
 				contentType: 'application/json',
 				body: mempoolSpaceTransactionBody,
+			})
+			return
+		}
+		if (mempoolSpaceBlocksWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: mempoolSpaceBlocksBody,
+			})
+			return
+		}
+		if (mempoolSpaceMempoolStatsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: mempoolSpaceMempoolStatsBody,
+			})
+			return
+		}
+		if (mempoolSpaceRecommendedFeesWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: mempoolSpaceRecommendedFeesBody,
+			})
+			return
+		}
+		if (blockchairBitcoinStatsWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: blockchairBitcoinStatsBody,
 			})
 			return
 		}

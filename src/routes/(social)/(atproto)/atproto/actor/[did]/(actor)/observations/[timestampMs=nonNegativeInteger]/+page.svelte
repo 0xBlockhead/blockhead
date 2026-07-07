@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import AtprotoActor_TimestampView from '$/views/AtprotoActor_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>AT Protocol account observation • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -38,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.AtprotoActor_Timestamp, data.selector, {
+			select(EntityType.AtprotoActor_Timestamp, {
+				$actor: {
+					did: decodeURIComponent(params.did),
+				},
+				timestampMs: Number(params.timestampMs),
+			}, {
 				fields: {
 					followersCount: true,
 					followsCount: true,

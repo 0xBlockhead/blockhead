@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +23,6 @@
 </script>
 
 
-<svelte:head>
-	<title>EVM calldata • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<EvmCalldataView
 		href={
@@ -36,6 +30,10 @@
 				hex: params.hex,
 			})
 		}
-		selection={select(EntityType.EvmCalldata, data.selector)}
+		selection={
+			select(EntityType.EvmCalldata, {
+				hex: decodeURIComponent(params.hex),
+			})
+		}
 	/>
 </Page>

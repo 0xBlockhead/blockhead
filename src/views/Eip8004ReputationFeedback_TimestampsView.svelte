@@ -115,7 +115,7 @@
 				{#snippet Item({ item: eip8004ReputationFeedbackTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip8004ReputationFeedback_Timestamp> })}
 					{@const eip8004ReputationFeedbackTimestampFields = { ...eip8004ReputationFeedbackTimestamp[EntityMetaKey.Selector], ...eip8004ReputationFeedbackTimestamp }}
 					<Eip8004ReputationFeedback_TimestampView
-						selection={select(EntityType.Eip8004ReputationFeedback_Timestamp, eip8004ReputationFeedbackTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.Eip8004ReputationFeedback_Timestamp, eip8004ReputationFeedbackTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eip8004ReputationFeedbackTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

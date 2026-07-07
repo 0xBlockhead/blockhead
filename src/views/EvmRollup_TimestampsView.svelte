@@ -117,7 +117,7 @@
 					{@const evmRollupTimestampFields = { ...evmRollupTimestamp[EntityMetaKey.Selector], ...evmRollupTimestamp }}
 					{@const evmRollupTimestampHrefFields = { ...evmRollupTimestamp, ...evmRollupTimestamp[EntityMetaKey.Selector] }}
 					<EvmRollup_TimestampView
-						selection={select(EntityType.EvmRollup_Timestamp, evmRollupTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.EvmRollup_Timestamp, evmRollupTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={evmRollupTimestampFields}
 						href={
 							(evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.$network !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2 !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2.namespace !== undefined && evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.$network !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2 !== undefined && evmRollupTimestampHrefFields.$rollup.$network.caip2.reference !== undefined && evmRollupTimestampHrefFields.$rollup !== undefined && evmRollupTimestampHrefFields.$rollup.projectId !== undefined && evmRollupTimestampHrefFields.timestampMs !== undefined && evmRollupTimestampHrefFields.source !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/rollup/[projectId]/timestamp/[timestampMs=nonNegativeInteger]/[source]', {

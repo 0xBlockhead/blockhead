@@ -113,7 +113,7 @@
 				{#snippet Item({ item: blockheadSharedAddress }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadSharedAddress> })}
 					{@const blockheadSharedAddressFields = { ...blockheadSharedAddress[EntityMetaKey.Selector], ...blockheadSharedAddress }}
 					<BlockheadSharedAddressView
-						selection={select(EntityType.BlockheadSharedAddress, blockheadSharedAddress[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadSharedAddress, blockheadSharedAddress[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadSharedAddressFields}
 						layout={EntityLayout.Summary}
 						open={false}

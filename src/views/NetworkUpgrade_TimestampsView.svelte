@@ -114,7 +114,7 @@
 				{#snippet Item({ item: networkUpgradeTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NetworkUpgrade_Timestamp> })}
 					{@const networkUpgradeTimestampFields = { ...networkUpgradeTimestamp[EntityMetaKey.Selector], ...networkUpgradeTimestamp }}
 					<NetworkUpgrade_TimestampView
-						selection={select(EntityType.NetworkUpgrade_Timestamp, networkUpgradeTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.NetworkUpgrade_Timestamp, networkUpgradeTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={networkUpgradeTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

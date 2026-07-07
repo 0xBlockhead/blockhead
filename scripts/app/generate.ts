@@ -7,6 +7,11 @@ import { parse as parseSvelte } from 'svelte/compiler'
 import ts from 'typescript'
 
 import {
+	networkByCaip2,
+	networkBySlug,
+	type networks,
+} from '../../src/constants/Network.ts'
+import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityType,
@@ -14,7 +19,9 @@ import {
 	_RouteFileKind,
 	_ExpressionDecode,
 	_ViewItemKind,
+	type _AppFacetPredicate,
 	type _Expression,
+	type _FieldReference,
 	type _Import,
 	type _ListView,
 	type _RawSnippet,
@@ -31,7 +38,7 @@ type Entity = App['schema']['entities'][number]
 type EntityField = Entity['fields'][number]
 type EntitySelector = Entity['selectors'][number]
 type ValueTypeType = App['schema']['valueTypes'][number]['type']
-type SingularView = NonNullable<Entity['singularView']>
+type SingularView = NonNullable<Entity['views']['singular']>
 type EntityLatest = NonNullable<SingularView['latest']>[number]
 type EntityCarousel = NonNullable<SingularView['carousels']>[number]
 type EntityCarouselSection = EntityCarousel['sections'][number]
@@ -43,12 +50,32 @@ type NamedRelationshipListView = {
 	field: EntityField
 }
 type RouteFile = NonNullable<App['routes']['tree'][number]['files']>[number]
+type RouteSurfaceNetwork = typeof networks[number]
 type ImportSpec = {
 	from: string
 	defaultName?: string
 	names?: string[]
 	typeNames?: string[]
 }
+
+const entityLabel = (entity: Entity) => entity.labels.singular
+const entityLabelPlural = (entity: Entity) => entity.labels.plural
+const entitySingularView = (entity: Entity) => entity.views.singular
+const entityPluralView = (entity: Entity) => entity.views.plural
+const isFacetFieldReference = (field: unknown): field is Extract<FieldReference, { facet: string }> => (
+	typeof field === 'object'
+	&& field != null
+	&& Object.hasOwn(field, 'facet')
+	&& Object.hasOwn(field, 'field')
+)
+const facetFieldRuntimeName = (facetId: string, fieldName: string) => (
+	fieldName.startsWith('$$') ?
+		`$$${camel(facetId)}${pascal(fieldName.slice(2))}`
+	: fieldName.startsWith('$') ?
+		`$${camel(facetId)}${pascal(fieldName.slice(1))}`
+	:
+		`${camel(facetId)}${pascal(fieldName)}`
+)
 type TsFileAst = {
 	imports?: ImportSpec[]
 	body: string[]
@@ -71,6 +98,11 @@ type GeneratedFile =
 			kind: 'svelte'
 			ast: SvelteFileAst
 		}
+	| {
+			path: string
+			kind: 'text'
+			body: string[]
+		}
 type RouteEntry = {
 	routePath: string
 	files: RouteFile[]
@@ -92,13 +124,19 @@ type RelationshipSection = {
 		name: string
 		value: _Expression
 	}[]
+	conditions?: {
+		field: string
+		equals?: _Literal
+		contains?: _Literal
+	}[]
 }
 type EntityHref = {
 	href: string
 	selector: string
 	conditions?: {
 		field: string
-		equals: _Literal
+		equals?: _Literal
+		contains?: _Literal
 	}[]
 	params: {
 		param: string
@@ -107,6 +145,8 @@ type EntityHref = {
 	}[]
 }
 type CollectionRouteHref = EntityHref
+type FieldReference = _FieldReference
+type RouteFixtureMetadata = NonNullable<App['routes']['tree'][number]['files'][number]['surface']>
 type AppIndexes = {
 	entityTypes: string[]
 	activeEntities: Entity[]
@@ -118,6 +158,7 @@ type AppIndexes = {
 	collectionHrefByEntity: Map<string, string>
 	collectionHrefBySourceField: Map<string, CollectionRouteHref>
 	entityHrefsByType: Map<string, EntityHref[]>
+	routeFixtureMetadataByRouteId: Map<string, RouteFixtureMetadata>
 	generatedComponents: Set<string>
 	sourceSelections: _SourceSelection[]
 }
@@ -260,6 +301,12 @@ const svelteFile = (relativePath: string, ast: SvelteFileAst): GeneratedFile => 
 	ast,
 })
 
+const textFile = (relativePath: string, body: string[]): GeneratedFile => ({
+	path: relativePath,
+	kind: 'text',
+	body,
+})
+
 const pascal = (value: string) => value
 	.replace(/^_+/, '')
 	.split(/[_\-\s]+|(?=[A-Z])/)
@@ -325,10 +372,10 @@ const appOrderCompare = (left: string, right: string) => left.localeCompare(righ
 const singularComponentName = (entityType: string) => `${entityType}View`
 
 const pluralComponentName = (entity: Entity) => {
-	if (entity.pluralView?.component == null)
+	if (entityPluralView(entity)?.component == null)
 		throw new Error(`${entity.entityType} is missing pluralView.component`)
 
-	return entity.pluralView.component
+	return entityPluralView(entity).component
 }
 
 const componentIdentifier = (componentName: string) => componentName.replace(/^_+/, '')
@@ -728,6 +775,8 @@ const renderGeneratedFile = (generatedFile: GeneratedFile) => {
 	const content = (
 		generatedFile.kind === 'ts' ?
 			renderTsFile(generatedFile.ast)
+		: generatedFile.kind === 'text' ?
+			generatedFile.body.join('\n')
 		:
 			renderSvelteFile(generatedFile.ast)
 	)
@@ -770,6 +819,36 @@ const renderLiteral = (value: string | number | boolean | null) => {
 
 	return String(value)
 }
+
+const renderFacetPredicate = (predicate: _AppFacetPredicate): string => (
+	'all' in predicate ?
+		renderObject([
+			['all', renderArray(predicate.all.map(renderFacetPredicate))],
+		])
+	: 'any' in predicate ?
+		renderObject([
+			['any', renderArray(predicate.any.map(renderFacetPredicate))],
+		])
+	: 'equals' in predicate ?
+		renderObject([
+			['field', q(predicate.field)],
+			['equals', renderLiteral(predicate.equals)],
+		])
+	:
+		renderObject([
+			['field', q(predicate.field)],
+			['contains', renderLiteral(predicate.contains)],
+		])
+)
+
+const facetPredicateFields = (predicate: _AppFacetPredicate): readonly string[] => (
+	'all' in predicate ?
+		unique(predicate.all.flatMap((child) => facetPredicateFields(child)))
+	: 'any' in predicate ?
+		unique(predicate.any.flatMap((child) => facetPredicateFields(child)))
+	:
+		[predicate.field]
+)
 
 const renderStringEnum = (name: string, members: readonly string[]) => [
 	`export enum ${name} {`,
@@ -989,18 +1068,41 @@ const conditionExpression = (
 		field: string
 		equals?: _Literal
 		notEquals?: _Literal
+		contains?: _Literal
 	}[],
-	entityExpression: string
-) => conditions.map((condition) => [
-		!('equals' in condition) ? undefined : `${fieldExpression(entityExpression, condition.field)} === ${renderLiteral(condition.equals)}`,
-		!('notEquals' in condition) ? undefined : `${fieldExpression(entityExpression, condition.field)} !== ${renderLiteral(condition.notEquals)}`,
-	].filter(Boolean).join(' && ')).join(' && ')
+	entityExpression: string,
+	entity?: Entity,
+	partial = false
+) => conditions
+	.map((condition) => {
+		const fieldDefinition = entity == null ? undefined : fieldDefinitionByName(entity, condition.field)
+		const valueExpression = fieldExpression(entityExpression, condition.field)
+		const conditionValueExpression = (
+			fieldDefinition != null
+			&& (
+				fieldDefinition.cardinality === EntityFieldCardinality.Many
+				|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany
+			) ?
+				`${valueExpression}.values`
+			:
+				valueExpression
+		)
+		const expression = [
+			!('equals' in condition) ? undefined : `${conditionValueExpression} === ${renderLiteral(condition.equals)}`,
+			!('notEquals' in condition) ? undefined : `${conditionValueExpression} !== ${renderLiteral(condition.notEquals)}`,
+			!('contains' in condition) ? undefined : `${conditionValueExpression}.includes(${renderLiteral(condition.contains)})`,
+		].filter(Boolean).join(' && ')
+		return partial ? `${valueExpression} !== undefined && ${expression}` : expression
+	})
+	.join(' && ')
 
 const renderConditionedEntityLines = (
+	entity: Entity,
 	conditions: readonly {
 		field: string
 		equals?: _Literal
 		notEquals?: _Literal
+		contains?: _Literal
 	}[] | undefined,
 	level: number,
 	bodyLines: readonly string[]
@@ -1014,7 +1116,7 @@ const renderConditionedEntityLines = (
 		`${'\t'.repeat(level)}>`,
 		`${'\t'.repeat(level + 1)}{#snippet children(entity)}`,
 		`${'\t'.repeat(level + 2)}{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
-		`${'\t'.repeat(level + 2)}{#if ${conditionExpression(conditions, resolvedEntityExpression)}}`,
+		`${'\t'.repeat(level + 2)}{#if ${conditionExpression(conditions, resolvedEntityExpression, entity)}}`,
 		...bodyLines.map((line) => indent(line, 3)),
 		`${'\t'.repeat(level + 2)}{/if}`,
 		`${'\t'.repeat(level + 1)}{/snippet}`,
@@ -1156,6 +1258,45 @@ const expressionUsesKind = (expression: _Expression | undefined, kind: _Expressi
 			&& 'kind' in value
 			&& expressionUsesKind(value as _Expression, kind)
 		))
+}
+
+const expressionUsesRouteParams = (expression: _Expression | undefined): boolean => {
+	if (expression == null)
+		return false
+	if (typeof expression === 'string' || 'raw' in expression)
+		return false
+	if (expression.kind === 'param')
+		return true
+	if (expression.kind === 'catalogIndex' && expression.param != null)
+		return true
+	if (expression.kind === 'selector' && expression.params.some((param) => !('value' in param)))
+		return true
+
+	return Object.values(expression).some((value) => (
+		Array.isArray(value) ?
+			value.some((item) => (
+				(
+					typeof item === 'object'
+					&& item != null
+					&& 'kind' in item
+					&& expressionUsesRouteParams(item as _Expression)
+				)
+				|| (
+					typeof item === 'object'
+					&& item != null
+					&& 'value' in item
+					&& typeof item.value === 'object'
+					&& item.value != null
+					&& 'kind' in item.value
+					&& expressionUsesRouteParams(item.value as _Expression)
+				)
+			))
+		:
+			typeof value === 'object'
+			&& value != null
+			&& 'kind' in value
+			&& expressionUsesRouteParams(value as _Expression)
+	))
 }
 
 const renderExpression = (
@@ -1353,18 +1494,101 @@ const collectSourceSelections = (value: unknown, selections: _SourceSelection[] 
 	return selections
 }
 
-const routeEntries = (nodes: App['routes']['tree'], parentPath = ''): RouteEntry[] => nodes.flatMap((node) => {
+const routeEntries = (
+	nodes: App['routes']['tree'],
+	parentPath = '',
+	parentSurface?: RouteFile['surface']
+): RouteEntry[] => nodes.flatMap((node) => {
 	const routePath = [parentPath, node.segment].filter(Boolean).join('/')
+	const mergeRouteSurface = (
+		surface: RouteFile['surface'] | undefined,
+		parent: RouteFile['surface'] | undefined
+	): RouteFile['surface'] | undefined => (
+		surface == null ?
+			parent
+		: parent == null ?
+			surface
+		:
+			{
+				...surface,
+				requiredFacets: unique([
+					...(parent.requiredFacets ?? []),
+					...(surface.requiredFacets ?? []),
+				]),
+			}
+	)
+	const nodeSurface = mergeRouteSurface(
+		node.files?.find((file) => file.surface != null)?.surface,
+		parentSurface
+	)
 	return [
 		...(node.files == null ? [] : [{
 			routePath,
-			files: node.files,
+			files: node.files.map((file) => (
+				nodeSurface != null ?
+					{
+						...file,
+						surface: mergeRouteSurface(
+							file.surface,
+							nodeSurface
+						),
+						surfaceInherited: file.surface == null ? true : undefined,
+					}
+				:
+					file
+			)),
 		}]),
-		...(node.children == null ? [] : routeEntries(node.children, routePath)),
+		...(node.children == null ? [] : routeEntries(node.children, routePath, nodeSurface)),
 	]
 })
 
-const routeHrefFromLoad = (entry: RouteEntry, routeFile: RouteFile): EntityHref | undefined => {
+const routeHrefConditionFromFacetPredicate = (
+	predicate: _AppFacetPredicate
+): EntityHref['conditions'] => {
+	if ('field' in predicate)
+		return [predicate]
+
+	throw new Error('Entity href facet predicates must be simple field predicates')
+}
+
+const routeSurfacePredicateValues = (
+	network: RouteSurfaceNetwork,
+	field: string
+) => (
+	field === 'namespace' ?
+		[network.namespace]
+	: field === 'ledgerModels' ?
+		network.ledgerModels
+	: field === 'executionModels' ?
+		network.executionModels
+	:
+		undefined
+)
+
+const routeSurfacePredicateApplies = (
+	predicate: _AppFacetPredicate,
+	network: RouteSurfaceNetwork
+): boolean => (
+	'all' in predicate ?
+		predicate.all.every((child) => routeSurfacePredicateApplies(child, network))
+	: 'any' in predicate ?
+		predicate.any.some((child) => routeSurfacePredicateApplies(child, network))
+	: 'equals' in predicate ?
+		routeSurfacePredicateValues(network, predicate.field)?.some((value) => value === predicate.equals) === true
+	: 'contains' in predicate ?
+		routeSurfacePredicateValues(network, predicate.field)?.some((value) => value === predicate.contains) === true
+	:
+		false
+)
+
+const routeHrefFromLoad = (
+	entry: RouteEntry,
+	routeFile: RouteFile,
+	entityFacetById: ReadonlyMap<string, {
+		entityType: string
+		facet: NonNullable<App['schema']['entities'][number]['facets']>[number]
+	}>
+): EntityHref | undefined => {
 	if (routeFile.load == null || routeFile.load.href == null || routeFile.load.href.entityHref === false)
 		return undefined
 
@@ -1372,7 +1596,18 @@ const routeHrefFromLoad = (entry: RouteEntry, routeFile: RouteFile): EntityHref 
 	return {
 		href,
 		selector: routeFile.load.selector,
-		conditions: routeFile.load.href.conditions,
+		conditions: [
+			...(routeFile.surface?.requiredFacets ?? []).flatMap((facetId) => {
+				const facetEntry = entityFacetById.get(facetId)
+				if (facetEntry == null)
+					throw new Error(`${entry.routePath} route href references missing facet ${facetId}`)
+				if (routeFile.load?.entity !== facetEntry.entityType)
+					return []
+
+				return routeHrefConditionFromFacetPredicate(facetEntry.facet.predicate)
+			}),
+			...(routeFile.load.href.conditions ?? []),
+		],
 		params: [...routeFile.load.href.params],
 	}
 }
@@ -1425,11 +1660,286 @@ const routeHrefFromCollection = (entry: RouteEntry, routeFile: RouteFile): Colle
 
 const collectionSourceFieldKey = (sourceEntity: string, sourceField: string, collectionEntity: string) => `${sourceEntity}:${sourceField}:${collectionEntity}`
 
+const sourceBindings = (source: App['sources']['sources'][number]) => [
+	...(source.binding == null ? [] : [source.binding]),
+	...(source.bindings ?? []),
+]
+
+const routeSurfaceMetadataEntries = (metadata: RouteFixtureMetadata) => renderObject([
+	['id', metadata.id == null ? undefined : q(metadata.id)],
+	['label', metadata.label == null ? undefined : q(metadata.label)],
+	['routeKind', metadata.routeKind == null ? undefined : q(metadata.routeKind)],
+	['fixture', metadata.fixture == null ? undefined : renderObject(Object.entries(metadata.fixture).map(([key, value]) => [key, q(value)]))],
+	['variants', metadata.variants == null ? undefined : renderArray(metadata.variants.map((variant) => renderObject(Object.entries(variant).map(([key, value]) => [key, q(value)]))))],
+	['requiredFacets', metadata.requiredFacets == null ? undefined : renderArray(metadata.requiredFacets.map(q))],
+	['requiredFacetPredicates', metadata.requiredFacetPredicates == null ? undefined : renderArray(metadata.requiredFacetPredicates.map(renderFacetPredicate))],
+	['boundaryLiveOptional', metadata.boundaryLiveOptional == null ? undefined : 'true'],
+])
+
+const resolveFieldReference = (entity: Entity, field: FieldReference) => {
+	if (!isFacetFieldReference(field))
+		return field
+
+	const facet = entity.facets?.find((facet) => facet.id === field.facet)
+	if (facet == null)
+		throw new Error(`${entity.entityType} references missing facet ${field.facet}`)
+	if (!facet.fields?.some((facetField) => facetField.name === field.field))
+		throw new Error(`${entity.entityType} facet ${field.facet} references missing field ${field.field}`)
+
+	return facetFieldRuntimeName(field.facet, field.field)
+}
+
+const facetFieldReferenceConditions = (
+	entity: Entity,
+	field: unknown
+) => {
+	if (!isFacetFieldReference(field as FieldReference))
+		return []
+
+	const facet = entity.facets?.find((item) => item.id === (field as Extract<FieldReference, { facet: string }>).facet)
+	if (facet == null)
+		throw new Error(`${entity.entityType} references missing facet ${(field as Extract<FieldReference, { facet: string }>).facet}`)
+	if (!('field' in facet.predicate))
+		throw new Error(`${entity.entityType} facet ${facet.id} view conditions must use a simple field predicate`)
+
+	return [facet.predicate]
+}
+
+const resolveFieldReferences = (entity: Entity, value: unknown, key?: string): unknown => {
+	if (Array.isArray(value)) {
+		if (key === 'fields' || key === 'openFields')
+			return value.map((item) => resolveFieldReference(entity, item as FieldReference))
+
+		return value.map((item) => resolveFieldReferences(entity, item))
+	}
+
+	if (value == null || typeof value !== 'object')
+		return value
+
+	if (isFacetFieldReference(value as FieldReference))
+		return resolveFieldReference(entity, value as FieldReference)
+
+	if ('field' in value && isFacetFieldReference((value as { field?: unknown }).field as FieldReference)) {
+		const conditions = facetFieldReferenceConditions(entity, (value as { field?: unknown }).field)
+		return Object.fromEntries(Object.entries({
+			...value,
+			conditions: [
+				...((value as { conditions?: {
+					field: string
+					equals?: _Literal
+					contains?: _Literal
+				}[] }).conditions ?? []),
+				...conditions,
+			],
+		}).map(([entryKey, entryValue]) => [
+			entryKey,
+			entryKey === 'field' || entryKey === 'titleField' ?
+				resolveFieldReference(entity, entryValue as FieldReference)
+			:
+				resolveFieldReferences(entity, entryValue, entryKey),
+		]))
+	}
+
+	return Object.fromEntries(Object.entries(value).map(([entryKey, entryValue]) => [
+		entryKey,
+		entryKey === 'field' || entryKey === 'titleField' ?
+			resolveFieldReference(entity, entryValue as FieldReference)
+		:
+			resolveFieldReferences(entity, entryValue, entryKey),
+	]))
+}
+
+const mergeSingularViews = (
+	base: SingularView | undefined,
+	facet: Partial<SingularView>
+): SingularView => ({
+	...(base ?? {}),
+	...facet,
+	query: {
+		...(base?.query ?? {}),
+		...(facet.query ?? {}),
+		fields: [
+			...(base?.query?.fields ?? []),
+			...(facet.query?.fields ?? []),
+		],
+		openFields: [
+			...(base?.query?.openFields ?? []),
+			...(facet.query?.openFields ?? []),
+		],
+	},
+	content: {
+		...(base?.content ?? {}),
+		...(facet.content ?? {}),
+		dl: [
+			...(base?.content?.dl ?? []),
+			...(facet.content?.dl ?? []),
+		],
+		blocks: [
+			...(base?.content?.blocks ?? []),
+			...(facet.content?.blocks ?? []),
+		],
+	},
+	latest: [
+		...(base?.latest ?? []),
+		...(facet.latest ?? []),
+	],
+	lists: [
+		...(base?.lists ?? []),
+		...(facet.lists ?? []),
+	],
+	carousels: [
+		...(base?.carousels ?? []),
+		...(facet.carousels ?? []),
+	],
+})
+
+const singularViewWithFacetConditions = (
+	facet: NonNullable<Entity['facets']>[number]
+) => {
+	if (facet.singularView == null)
+		return undefined
+	if (!('field' in facet.predicate))
+		throw new Error(`${facet.id} facet singular view conditions must use a simple field predicate`)
+
+	return {
+		...facet.singularView,
+		carousels: facet.singularView.carousels?.map((carousel) => ({
+			...carousel,
+			conditions: [
+				...(carousel.conditions ?? []),
+				facet.predicate,
+			],
+		})),
+	} satisfies Partial<SingularView>
+}
+
+const resolveRouteFieldReferences = (
+	entities: readonly Entity[],
+	routeNodes: App['routes']['tree']
+): App['routes']['tree'] => {
+	const entityByType = new Map(entities.map((entity) => [
+		entity.entityType,
+		entity,
+	]))
+
+	return routeNodes.map((routeNode) => ({
+		...routeNode,
+		files: routeNode.files?.map((routeFile) => {
+			if (routeFile.collection == null)
+				return routeFile
+
+			const sourceEntity = entityByType.get(routeFile.collection.source.entity)
+			if (sourceEntity == null)
+				throw new Error(`${routeFile.collection.source.entity} collection source references missing entity`)
+
+			return {
+				...routeFile,
+				collection: {
+					...routeFile.collection,
+					source: {
+						...routeFile.collection.source,
+						field: resolveFieldReference(sourceEntity, routeFile.collection.source.field),
+					},
+				},
+			}
+		}),
+		children: routeNode.children == null ? undefined : resolveRouteFieldReferences(entities, routeNode.children),
+	}))
+}
+
+const normalizeApp = (app: App): App => {
+	const hasSourceFacets = app.sources.sources.some((source) => source.facets != null && source.facets.length > 0)
+	const hasEntityFacets = app.schema.entities.some((entity) => entity.facets != null && entity.facets.length > 0)
+	if (!hasSourceFacets && !hasEntityFacets)
+		return app
+
+	return {
+		...app,
+		schema: {
+			...app.schema,
+			entities: app.schema.entities.map((entity) => {
+				if (entity.facets == null || entity.facets.length === 0)
+					return entity
+
+				const facets = entity.facets.map((facet) => ({
+					...facet,
+					predicateFields: facetPredicateFields(facet.predicate),
+				}))
+				const facetFieldByName = new Map(facets.flatMap((facet) => (
+					(facet.fields ?? []).map((field) => [
+						facetFieldRuntimeName(facet.id, field.name),
+						{
+							...field,
+							name: facetFieldRuntimeName(facet.id, field.name),
+							facet: {
+								id: facet.id,
+								predicateFields: facet.predicateFields,
+								predicate: facet.predicate,
+							},
+						},
+					])
+					)))
+					const mergedFieldNames = new Set(entity.fields.map((field) => field.name))
+				const singularView = facets.reduce(
+					(view, facet) => {
+						const facetSingularView = singularViewWithFacetConditions(facet)
+						if (facetSingularView == null)
+							return view
+
+						return mergeSingularViews(
+							view,
+							resolveFieldReferences(entity, facetSingularView) as Partial<SingularView>
+						)
+					},
+					resolveFieldReferences(entity, entity.views.singular) as SingularView | undefined
+				)
+
+					return {
+						...entity,
+						facets,
+						views: {
+							...(resolveFieldReferences(entity, entity.views) as Entity['views']),
+							singular: singularView,
+						},
+						fields: [
+						...entity.fields.map((field) => facetFieldByName.get(field.name) ?? field),
+						...[...facetFieldByName.values()].filter((field) => !mergedFieldNames.has(field.name)),
+					],
+				}
+			}),
+		},
+		routes: {
+			...app.routes,
+			tree: resolveRouteFieldReferences(app.schema.entities, app.routes.tree),
+		},
+		sources: {
+			...app.sources,
+			sources: app.sources.sources.map((source) => (
+				source.facets == null || source.facets.length === 0 ?
+					source
+				:
+					{
+						...source,
+						binding: undefined,
+						bindings: [
+							...sourceBindings(source),
+							...source.facets.flatMap((facet) => [
+								...(facet.binding == null ? [] : [facet.binding]),
+								...(facet.bindings ?? []),
+							]),
+						],
+						facets: undefined,
+					}
+			)),
+		},
+	}
+}
+
 const sourceRows = (
-	app: App,
+	normalizedApp: App,
 	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[]
 ) => [...new Map([
-	...app.sources.sources,
+	...normalizedApp.sources.sources,
 	...checkedInSourceProviderModules.flatMap((providerModule) => providerModule.sources),
 ].map((source) => [
 	source.source,
@@ -1437,10 +1947,10 @@ const sourceRows = (
 ])).values()]
 
 const sourceProviderRows = (
-	app: App,
+	normalizedApp: App,
 	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[]
 ) => [...new Map([
-	...app.sources.providers,
+	...normalizedApp.sources.providers,
 	...checkedInSourceProviderModules.map((providerModule) => ({
 		provider: providerModule.provider,
 		label: providerModule.label,
@@ -1463,6 +1973,20 @@ const validateAndIndex = (
 	const routeEntryList = routeEntries(app.routes.tree)
 	const allEntityTypes = new Set(entityTypes)
 	const errors: string[] = []
+	const networkBaseResourceFields = new Set([
+		'$$blockExplorerUrls',
+		'$$faucetUrls',
+		'$$nativeAssets',
+	])
+	const entityFacetById = new Map(activeEntities.flatMap((entity) => (
+		(entity.facets ?? []).map((facet) => [
+			facet.id,
+			{
+				entityType: entity.entityType,
+				facet,
+			},
+		])
+	)))
 
 	if (Object.hasOwn(app.schema, 'externalEntityTypes'))
 		errors.push('APP schema must not use externalEntityTypes; migrate rows into schema.entities')
@@ -1483,7 +2007,7 @@ const validateAndIndex = (
 	expectUnique('source provider', sourceProviderRows(app, checkedInSourceProviderModules).map((provider) => provider.provider))
 
 	for (const entity of activeEntities) {
-		if (entity.labelPlural.trim() === '')
+		if (entityLabelPlural(entity).trim() === '')
 			errors.push(`${entity.entityType} is missing explicit labelPlural`)
 		expectUnique(`${entity.entityType} selector`, entity.selectors.map((selector) => selector.name))
 		for (const selector of entity.selectors) {
@@ -1510,16 +2034,33 @@ const validateAndIndex = (
 					errors.push(`${entity.entityType}.${field.name} references missing source ${source}`)
 			}
 		}
-		for (const list of entity.singularView?.lists ?? []) {
+		for (const facet of entity.facets ?? []) {
+			for (const field of facet.predicateFields) {
+				if (!fieldNames.has(field))
+					errors.push(`${entity.entityType} facet ${facet.id} predicateFields references missing field ${field}`)
+			}
+			const actualPredicateFields = facetPredicateFields(facet.predicate)
+			for (const field of actualPredicateFields) {
+				if (!fieldNames.has(field))
+					errors.push(`${entity.entityType} facet ${facet.id} predicate references missing field ${field}`)
+				if (!facet.predicateFields.includes(field))
+					errors.push(`${entity.entityType} facet ${facet.id} predicateFields omits predicate field ${field}`)
+			}
+			for (const field of facet.predicateFields) {
+				if (!actualPredicateFields.includes(field))
+					errors.push(`${entity.entityType} facet ${facet.id} predicateFields includes non-predicate field ${field}`)
+			}
+		}
+		for (const list of entitySingularView(entity)?.lists ?? []) {
 			if (list.field != null && !fieldNames.has(list.field))
 				errors.push(`${entity.entityType} list references missing field ${list.field}`)
 		}
-		if (entity.pluralView?.rowHref != null) {
+		if (entityPluralView(entity)?.rowHref != null) {
 			const selectorFieldNames = new Set(entity.selectors.flatMap((selector) => selector.fields))
 			for (const [
 				param,
 				value,
-			] of Object.entries(entity.pluralView.rowHref.params)) {
+			] of Object.entries(entityPluralView(entity).rowHref.params)) {
 				for (const fieldPath of expressionFieldPaths('expression' in value ? value.expression : value)) {
 					const field = fieldPath[0]
 					if (field != null && !selectorFieldNames.has(field))
@@ -1540,6 +2081,7 @@ const validateAndIndex = (
 	]))
 
 	for (const entry of routeEntryList) {
+		const hasPage = entry.files.some((routeFile) => routeFile.kind === _RouteFileKind.Page)
 		const visibleSegments = publicRouteId(entry.routePath)
 			.split('/')
 			.filter((segment) => segment !== '' && !segment.startsWith('['))
@@ -1556,6 +2098,9 @@ const validateAndIndex = (
 		}
 
 		for (const routeFile of entry.files) {
+			if (routeFile.kind === _RouteFileKind.PageModule && !hasPage)
+				errors.push(`${entry.routePath} page module has no sibling page; use a layout module for route-group state or add an APP-owned page render`)
+
 			if (routeFile.view?.entity != null && !entityByType.has(routeFile.view.entity))
 				errors.push(`${entry.routePath} view references missing entity ${routeFile.view.entity}`)
 
@@ -1603,6 +2148,12 @@ const validateAndIndex = (
 
 			if (!sourceEntity.fields.some((field) => field.name === routeFile.collection?.source.field))
 				errors.push(`${entry.routePath} collection source references missing field ${routeFile.collection.source.entity}.${routeFile.collection.source.field}`)
+			if (
+				entry.routePath.startsWith('(explore)/(networks)/network/')
+				&& routeFile.collection.source.entity !== EntityType.Network
+				&& networkBaseResourceFields.has(routeFile.collection.source.field)
+			)
+				errors.push(`${entry.routePath} collection source must read ${routeFile.collection.source.field} from Network, not ${routeFile.collection.source.entity}`)
 		}
 	}
 
@@ -1630,8 +2181,56 @@ const validateAndIndex = (
 	const collectionHrefByEntity = new Map<string, string>()
 	const collectionHrefBySourceField = new Map<string, CollectionRouteHref>()
 	const entityHrefsByType = new Map<string, EntityHref[]>()
+	const routeFixtureMetadataByRouteId = new Map<string, NonNullable<RouteFile['surface']>>()
 	for (const entry of routeEntryList) {
 		for (const routeFile of entry.files) {
+			if (routeFile.surface != null) {
+				const href = publicRouteId(entry.routePath)
+				const routeParams = new Set(routeParamNames(href))
+				if (routeFile.surface.id == null)
+					errors.push(`${entry.routePath} route surface is missing id`)
+					const requiredFacetPredicates = (routeFile.surface.requiredFacets ?? []).map((facetId) => {
+						const facetEntry = entityFacetById.get(facetId)
+						if (facetEntry == null) {
+							errors.push(`${entry.routePath} route surface ${routeFile.surface?.id} references missing facet ${facetId}`)
+							return undefined
+						}
+						return facetEntry.facet.predicate
+					}).filter((predicate) => predicate != null)
+					for (const param of [
+						...Object.keys(routeFile.surface.fixture ?? {}),
+						...(routeFile.surface.variants ?? []).flatMap((variant) => Object.keys(variant)),
+					])
+						if (!routeParams.has(param))
+							errors.push(`${entry.routePath} route surface ${routeFile.surface.id} fixture references unknown route param ${param}`)
+
+					for (const routeSurfaceFixture of [
+						...(routeFile.surface.fixture == null ? [] : [routeFile.surface.fixture]),
+						...(routeFile.surface.variants ?? []),
+					]) {
+						const routeSurfaceNetwork = (
+							routeSurfaceFixture.networkSlug != null ?
+								networkBySlug[routeSurfaceFixture.networkSlug]
+							: routeSurfaceFixture.caip2 != null ?
+								networkByCaip2[routeSurfaceFixture.caip2]
+							:
+								undefined
+						)
+						if (routeSurfaceNetwork == null && requiredFacetPredicates.length > 0 && (routeSurfaceFixture.networkSlug != null || routeSurfaceFixture.caip2 != null))
+							errors.push(`${entry.routePath} route surface ${routeFile.surface.id} fixture does not resolve to a known Network row`)
+						if (
+							routeSurfaceNetwork != null
+							&& requiredFacetPredicates.some((predicate) => !routeSurfacePredicateApplies(predicate, routeSurfaceNetwork))
+						)
+							errors.push(`${entry.routePath} route surface ${routeFile.surface.id} fixture ${routeSurfaceNetwork.slug} does not satisfy required facet predicates`)
+					}
+
+					routeFixtureMetadataByRouteId.set(href, {
+						...routeFile.surface,
+						requiredFacetPredicates,
+					})
+				}
+
 			if (
 				routeFile.collection != null
 				&& routeParamNames(routeId(entry.routePath)).length === 0
@@ -1656,8 +2255,26 @@ const validateAndIndex = (
 					collectionHrefBySourceField.set(key, collectionHref)
 			}
 
-			const entityHref = routeHrefFromLoad(entry, routeFile)
-			if (routeFile.load != null && entityHref != null && (entityHrefsByType.get(routeFile.load.entity) ?? []).every((href) => href.selector !== entityHref.selector))
+				const entityHref = routeHrefFromLoad(entry, routeFile, entityFacetById)
+			if (
+				routeFile.load != null
+				&& entityHref != null
+				&& (entityHrefsByType.get(routeFile.load.entity) ?? []).every((href) => JSON.stringify({
+					href: href.href,
+					selector: href.selector,
+					conditions: href.conditions ?? [],
+					params: href.params,
+				}) !== JSON.stringify({
+					href: entityHref.href,
+					selector: entityHref.selector,
+					conditions: entityHref.conditions ?? [],
+					params: entityHref.params,
+				}) && (
+					href.selector !== entityHref.selector
+					|| (href.conditions?.length ?? 0) > 0
+					|| (entityHref.conditions?.length ?? 0) > 0
+				))
+			)
 				entityHrefsByType.set(routeFile.load.entity, [
 					...(entityHrefsByType.get(routeFile.load.entity) ?? []),
 					entityHref,
@@ -1676,13 +2293,14 @@ const validateAndIndex = (
 		collectionHrefByEntity,
 		collectionHrefBySourceField,
 		entityHrefsByType,
+		routeFixtureMetadataByRouteId,
 		generatedComponents,
 		sourceSelections: unique(collectSourceSelections(app)),
 	}
 }
 
 const deriveFiles = (
-	app: App,
+	normalizedApp: App,
 	indexes: AppIndexes,
 	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[],
 	sourceDefinitionModules: readonly SourceDefinitionModule[]
@@ -1692,16 +2310,18 @@ const deriveFiles = (
 		renderEntityTypeFile(indexes.entityTypes),
 		...indexes.activeEntities.map((entity) => renderEntitySchemaFile(entity, indexes)),
 		renderSchemaIndexFile(indexes),
-		renderSourceFile(app, checkedInSourceProviderModules),
-		renderSourceProviderFile(app, checkedInSourceProviderModules),
+		renderSourceFile(normalizedApp, checkedInSourceProviderModules),
+		renderSourceProviderFile(normalizedApp, checkedInSourceProviderModules),
 		...sourceDefinitionModules.map((module) => renderSourceDefinitionFile(module)),
-		renderSourceProvidersFile(app, checkedInSourceProviderModules, sourceDefinitionModules),
+		renderSourceProvidersFile(normalizedApp, checkedInSourceProviderModules, sourceDefinitionModules),
+		renderSourcesMarkdownFile(normalizedApp, checkedInSourceProviderModules),
 		renderSourceSelectionsFile(indexes.sourceSelections),
-		renderNavigationItemsFile(app),
+		renderNavigationItemsFile(normalizedApp),
 		renderSourcesIndexFile(),
 		renderSourcesServerIndexFile(),
-		renderOfficialArtifactsFile(app),
-		renderResolverIndexFile(app),
+		renderOfficialArtifactsFile(normalizedApp),
+		renderResolverIndexFile(normalizedApp),
+		renderE2eRouteFixtureMetadataFile(indexes),
 		...indexes.activeEntities.flatMap((entity) => [
 			renderSingularViewFile(entity, indexes),
 			renderPluralViewFile(entity, indexes),
@@ -1723,6 +2343,45 @@ const renderEntityTypeFile = (entityTypes: readonly string[]) => tsFile(
 	{
 		body: [
 			renderStringEnum('EntityType', entityTypes),
+		],
+	}
+)
+
+const renderE2eRouteFixtureMetadataFile = (indexes: AppIndexes) => tsFile(
+	'tests/e2e/_generatedRouteFixtureMetadata.ts',
+	{
+		body: [
+			'export type E2eRouteFacetPredicate =',
+			'\t| { readonly field: string, readonly equals: string | number | boolean | null }',
+			'\t| { readonly field: string, readonly contains: string | number | boolean | null }',
+			'\t| { readonly all: readonly E2eRouteFacetPredicate[] }',
+			'\t| { readonly any: readonly E2eRouteFacetPredicate[] }',
+			'',
+			'export type E2eRouteFixtureMetadata = {',
+			'\tid?: string',
+			'\tlabel?: string',
+			'\trouteKind?: string',
+			'\tfixture?: Readonly<Partial<Record<string, string>>>',
+			'\tvariants?: readonly Readonly<Partial<Record<string, string>>>[]',
+			'\trequiredFacets?: readonly string[]',
+			'\trequiredFacetPredicates?: readonly E2eRouteFacetPredicate[]',
+			'\tboundaryLiveOptional?: true',
+			'}',
+			'',
+			`export const e2eRouteFixtureMetadataByRouteId = ${renderObject(unique(indexes.routeEntries
+				.map((entry) => publicRouteId(entry.routePath))
+				.filter((href) => routeParamNames(href).length > 0)
+				.sort((left, right) => left.localeCompare(right, 'en', {
+					sensitivity: 'base',
+					numeric: true,
+				})))
+				.map((href) => [
+					q(href),
+					indexes.routeFixtureMetadataByRouteId.get(href) == null ?
+						'{}'
+					:
+						routeSurfaceMetadataEntries(indexes.routeFixtureMetadataByRouteId.get(href)),
+				]))} as const satisfies Record<string, E2eRouteFixtureMetadata>`,
 		],
 	}
 )
@@ -1811,8 +2470,8 @@ const renderEntitySchemaFile = (entity: Entity, indexes: AppIndexes) => {
 		selectorEnumSource,
 		'export default {',
 		indent(`entityType: ${enumAccess('EntityType', entity.entityType)},`),
-		indent(`label: ${q(entity.label)},`),
-		indent(`labelPlural: ${q(entity.labelPlural)},`),
+		indent(`label: ${q(entityLabel(entity))},`),
+		indent(`labelPlural: ${q(entityLabelPlural(entity))},`),
 		...(entity.description == null ? [] : [indent(`description: ${q(entity.description)},`)]),
 		indent('selectors: ['),
 		...entity.selectors.flatMap((selector) => [
@@ -1874,6 +2533,17 @@ const renderSchemaField = (fieldDefinition: EntityField, indexes: AppIndexes) =>
 					['itemIndex', fieldDefinition.when.itemIndex == null ? undefined : String(fieldDefinition.when.itemIndex)],
 				]),
 		],
+		[
+			'facet',
+			fieldDefinition.facet == null ?
+				undefined
+			:
+				renderObject([
+					['id', q(fieldDefinition.facet.id)],
+					['predicateFields', renderArray(fieldDefinition.facet.predicateFields.map(q))],
+					['predicate', fieldDefinition.facet.predicate == null ? undefined : renderFacetPredicate(fieldDefinition.facet.predicate)],
+				]),
+		],
 		['normalize', fieldDefinition.normalize],
 	]
 
@@ -1930,19 +2600,19 @@ const renderSchemaIndexFile = (indexes: AppIndexes) => {
 }
 
 const renderSourceFile = (
-	app: App,
+	normalizedApp: App,
 	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[]
 ) => tsFile(
 	'src/sources/Source.ts',
 	{
 		body: [
-			renderStringEnum('Source', unique(sourceRows(app, checkedInSourceProviderModules).map((source) => source.source))),
+			renderStringEnum('Source', unique(sourceRows(normalizedApp, checkedInSourceProviderModules).map((source) => source.source))),
 		],
 	}
 )
 
 const renderSourceProviderFile = (
-	app: App,
+	normalizedApp: App,
 	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[]
 ) => tsFile(
 	'src/sources/SourceProvider.ts',
@@ -1982,10 +2652,113 @@ const renderSourceProviderFile = (
 			'\torigins?: readonly SourceOrigin[]',
 			'}',
 			'',
-			renderStringEnum('SourceProvider', unique(sourceProviderRows(app, checkedInSourceProviderModules).map((provider) => provider.provider))),
+			renderStringEnum('SourceProvider', unique(sourceProviderRows(normalizedApp, checkedInSourceProviderModules).map((provider) => provider.provider))),
 		],
 	}
 )
+
+const renderMarkdownTableRow = (cells: readonly string[]) => (
+	`| ${cells.map((cell) => cell.replaceAll('|', '\\|')).join(' | ')} |`
+)
+
+const renderSourceCredentialSummary = (binding: SourceBinding) => (
+	binding.credentials.map((credential) => (
+		credential.keys == null || credential.keys.length === 0 ?
+			credential.scope
+		:
+			`${credential.scope} (${credential.keys.join(', ')})`
+	)).join('<br>')
+)
+
+const renderSourceEndpointSummary = (binding: SourceBinding) => (
+	binding.endpoints.map((endpoint) => (
+		[
+			endpoint.endpointKind,
+			endpoint.locator,
+			endpoint.origin == null ? undefined : `origin ${endpoint.origin}`,
+			endpoint.corsEnabled == null ? undefined : `CORS ${endpoint.corsEnabled}`,
+		]
+			.filter((part) => part != null)
+			.join('<br>')
+	)).join('<br>')
+)
+
+const renderSourceArtifactSummary = (binding: SourceBinding) => (
+	binding.artifacts == null || binding.artifacts.length === 0 ?
+		''
+	:
+		binding.artifacts.map((artifact) => (
+			`${artifact.kind}: ${artifact.path} (${artifact.generated ? 'generated' : 'checked-in'})`
+		)).join('<br>')
+)
+
+const renderSourceBindingDocRows = (
+	source: App['sources']['sources'][number],
+	providerLabel: string
+) => sourceBindings(source).map((binding) => renderMarkdownTableRow([
+	providerLabel,
+	String(source.provider),
+	String(source.source),
+	source.label,
+	`${binding.target.kind}:${binding.target.key}`,
+	renderSourceEndpointSummary(binding),
+	String(binding.wireProtocol),
+	String(binding.apiFamily),
+	binding.operationGroups.join('<br>'),
+	String(binding.delivery),
+	renderSourceCredentialSummary(binding),
+	renderSourceArtifactSummary(binding),
+]))
+
+const renderSourcesMarkdownFile = (
+	normalizedApp: App,
+	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[]
+) => {
+	const providerLabelByProvider = new Map(sourceProviderRows(normalizedApp, checkedInSourceProviderModules).map((provider) => [
+		provider.provider,
+		provider.label,
+	]))
+
+	return textFile('SOURCES.md', [
+		'# Blockhead Sources',
+		'',
+		'This file is generated from `APP.ts` source provider, source, binding, runtime binding, and artifact rows.',
+		'',
+		'## Source Bindings',
+		'',
+		renderMarkdownTableRow([
+			'Provider label',
+			'Provider',
+			'Source',
+			'Source label',
+			'Target',
+			'Endpoints',
+			'Wire protocol',
+			'API family',
+			'Operation groups',
+			'Delivery',
+			'Credentials',
+			'Artifacts',
+		]),
+		renderMarkdownTableRow([
+			'---',
+			'---',
+			'---',
+			'---',
+			'---',
+			'---',
+			'---',
+			'---',
+			'---',
+			'---',
+			'---',
+			'---',
+		]),
+		...sourceRows(normalizedApp, checkedInSourceProviderModules).flatMap((source) => (
+			renderSourceBindingDocRows(source, providerLabelByProvider.get(source.provider) ?? source.provider)
+		)),
+	])
+}
 
 const renderEnvSchema = (env: App['sources']['providers'][number]['env']) => (
 	env == null ?
@@ -1995,24 +2768,21 @@ const renderEnvSchema = (env: App['sources']['providers'][number]['env']) => (
 )
 
 const renderSourceProvidersFile = (
-	app: App,
+	normalizedApp: App,
 	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[],
 	sourceDefinitionModules: readonly SourceDefinitionModule[]
 ) => {
-	const sourcesByProvider = Map.groupBy(app.sources.sources, (source) => source.provider)
+	const sourcesByProvider = Map.groupBy(normalizedApp.sources.sources, (source) => source.provider)
 	const sourceDefinitionModuleBySource = new Map(sourceDefinitionModules.map((module) => [
 		module.source,
 		module,
 	]))
-	const providerDefinitions = app.sources.providers.map((provider) => {
+	const providerDefinitions = normalizedApp.sources.providers.map((provider) => {
 		const sources = sourcesByProvider.get(provider.provider) ?? []
 		const origins = [
 			...new Map(
 				sources
-					.flatMap((source) => [
-						...(source.binding == null ? [] : [source.binding]),
-						...(source.bindings ?? []),
-					])
+					.flatMap(sourceBindings)
 					.flatMap((binding) => binding.endpoints)
 					.flatMap((endpoint) => (
 						endpoint.origin == null ?
@@ -2033,10 +2803,9 @@ const renderSourceProvidersFile = (
 			['label', q(provider.label)],
 			['env', renderEnvSchema(provider.env)],
 			['sources', renderArray(sources.map((source) => sourceDefinitionModuleBySource.get(source.source)?.importName ?? renderSourceDefinition(source)))],
-			['bindings', renderArray(sources.flatMap((source) => [
-				...(source.binding == null ? [] : [renderSourceBinding(provider.provider, source.source, source.binding)]),
-				...(source.bindings ?? []).map((binding) => renderSourceBinding(provider.provider, source.source, binding)),
-			]))],
+			['bindings', renderArray(sources.flatMap((source) => (
+				sourceBindings(source).map((binding) => renderSourceBinding(provider.provider, source.source, binding))
+			)))],
 			['origins', origins.length === 0 ? undefined : renderArray(origins.map((origin) => renderObject([
 				['origin', q(origin.origin)],
 				['corsEnabled', String(origin.corsEnabled)],
@@ -2339,11 +3108,9 @@ const renderSourcesServerIndexFile = () => tsFile(
 	}
 )
 
-const renderOfficialArtifactsFile = (app: App) => {
-	const artifacts = app.sources.sources.flatMap((source) => [
-		...(source.binding == null ? [] : source.binding.artifacts ?? []),
-		...(source.bindings ?? []).flatMap((binding) => binding.artifacts ?? []),
-	])
+const renderOfficialArtifactsFile = (normalizedApp: App) => {
+	const artifacts = normalizedApp.sources.sources
+		.flatMap((source) => sourceBindings(source).flatMap((binding) => binding.artifacts ?? []))
 		.filter((artifact) => artifact.officialUrl != null)
 
 	return tsFile(
@@ -2394,18 +3161,18 @@ const renderResolverIndexFile = (app: App) => tsFile(
 
 const viewFieldNames = (entity: Entity, indexes: AppIndexes) => unique([
 	...entity.selectors.flatMap((selector) => selector.fields),
-	...viewItems(entity.singularView?.summary?.icon).flatMap((viewEntry) => itemFieldName(viewEntry)),
-	...viewItems(entity.singularView?.summary?.title).flatMap((viewEntry) => itemFieldName(viewEntry)),
-	...viewItems(entity.singularView?.summary?.value).flatMap((viewEntry) => itemFieldName(viewEntry)),
-	...viewItems(entity.singularView?.summary?.titleFallback).flatMap((viewEntry) => itemFieldName(viewEntry)),
-	...viewItems(entity.singularView?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...viewItems(entitySingularView(entity)?.summary?.icon).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...viewItems(entitySingularView(entity)?.summary?.title).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...viewItems(entitySingularView(entity)?.summary?.value).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...viewItems(entitySingularView(entity)?.summary?.titleFallback).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...viewItems(entitySingularView(entity)?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldName(viewEntry)),
 	...contentDlGroups(entity, indexes).flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldName(viewEntry))),
-	...(entity.singularView?.content?.body == null ? [] : [entity.singularView.content.body.field]),
-	...(entity.singularView?.content?.blocks ?? []).flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldName(viewEntry))),
-	...(entity.singularView?.details?.items ?? []).flatMap((group) => group.items.flatMap((viewEntry) => itemFieldName(viewEntry))),
-	...(entity.singularView?.details?.body == null ? [] : [entity.singularView.details.body.field]),
-	...(entity.singularView?.details?.tabs ?? []).flatMap((group) => (group.items ?? []).flatMap((viewEntry) => itemFieldName(viewEntry))),
-	...(entity.singularView?.carousels ?? []).flatMap((group) => group.sections.flatMap((section) => (section.items ?? []).flatMap((viewEntry) => itemFieldName(viewEntry)))),
+	...(entitySingularView(entity)?.content?.body == null ? [] : [entitySingularView(entity).content.body.field]),
+	...(entitySingularView(entity)?.content?.blocks ?? []).flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldName(viewEntry))),
+	...(entitySingularView(entity)?.details?.items ?? []).flatMap((group) => group.items.flatMap((viewEntry) => itemFieldName(viewEntry))),
+	...(entitySingularView(entity)?.details?.body == null ? [] : [entitySingularView(entity).details.body.field]),
+	...(entitySingularView(entity)?.details?.tabs ?? []).flatMap((group) => (group.items ?? []).flatMap((viewEntry) => itemFieldName(viewEntry))),
+	...(entitySingularView(entity)?.carousels ?? []).flatMap((group) => group.sections.flatMap((section) => (section.items ?? []).flatMap((viewEntry) => itemFieldName(viewEntry)))),
 ])
 
 const entitySelectorFieldNames = (entity: Entity) => new Set(entity.selectors.flatMap((selector) => selector.fields))
@@ -2507,7 +3274,7 @@ const renderDisplayExpression = (entity: Entity, indexes: AppIndexes, fieldName:
 				throw new Error(`${entity.entityType}.${fieldName} needs a valueType displayExpression before it can be rendered`)
 
 			if (fieldDefinition?.cardinality === EntityFieldCardinality.Many || fieldDefinition?.cardinality === EntityFieldCardinality.ZeroOrMany)
-				return `(${valueExpression}?.values ?? []).map((value) => String(value ?? '')).filter(Boolean).join(', ')`
+				return `${valueExpression}.values.map((value) => String(value ?? '')).filter(Boolean).join(', ')`
 
 			return textExpression(valueExpression)
 		}
@@ -2516,7 +3283,7 @@ const renderDisplayExpression = (entity: Entity, indexes: AppIndexes, fieldName:
 		return textExpression(expression)
 
 	if (fieldDefinition?.cardinality === EntityFieldCardinality.Many || fieldDefinition?.cardinality === EntityFieldCardinality.ZeroOrMany)
-		return `(${valueExpression}?.values ?? []).map((value) => ${textExpression(expression)}).filter(Boolean).join(', ')`
+		return `${valueExpression}.values.map((value) => ${textExpression(expression)}).filter(Boolean).join(', ')`
 
 	return `${valueExpression} == null ? '' : ${textExpression(expression.replace(/(?<!\.)\bvalue\b/g, `(${valueExpression})`))}`
 }
@@ -2765,7 +3532,7 @@ const viewItemTree = (viewEntries: readonly _ViewItem[]): _ViewItem[] => viewEnt
 	...(typeof viewEntry === 'object' && 'field' in viewEntry ? viewItemTree(viewItems(viewEntry.valuePrefix)) : []),
 ])
 
-const summarySerial = (entity: Entity) => entity.singularView?.summary?.serial
+const summarySerial = (entity: Entity) => entitySingularView(entity)?.summary?.serial
 
 const summarySerialItems = (entity: Entity) => {
 	const serial = summarySerial(entity)
@@ -2783,19 +3550,19 @@ const summarySerialItems = (entity: Entity) => {
 }
 
 const allViewItems = (entity: Entity) => viewItemTree([
-	...viewItems(entity.singularView?.summary?.icon),
+	...viewItems(entitySingularView(entity)?.summary?.icon),
 	...summarySerialItems(entity),
-	...viewItems(entity.singularView?.summary?.title),
-	...viewItems(entity.singularView?.summary?.value),
-	...viewItems(entity.singularView?.summary?.titleFallback),
-	...viewItems(entity.singularView?.summary?.HeadingAfter),
-	...viewItems(entity.singularView?.closed),
-	...(entity.singularView?.content?.dl ?? []).flat(),
-	...(entity.singularView?.content?.blocks ?? []).flat(),
-	...(entity.singularView?.details?.items ?? []).flatMap((group) => group.items),
-	...(entity.singularView?.details?.blocks ?? []).flat(),
-	...(entity.singularView?.details?.tabs ?? []).flatMap((group) => group.items ?? []),
-	...(entity.singularView?.carousels ?? []).flatMap((group) => group.sections.flatMap((section) => section.items ?? [])),
+	...viewItems(entitySingularView(entity)?.summary?.title),
+	...viewItems(entitySingularView(entity)?.summary?.value),
+	...viewItems(entitySingularView(entity)?.summary?.titleFallback),
+	...viewItems(entitySingularView(entity)?.summary?.HeadingAfter),
+	...viewItems(entitySingularView(entity)?.closed),
+	...(entitySingularView(entity)?.content?.dl ?? []).flat(),
+	...(entitySingularView(entity)?.content?.blocks ?? []).flat(),
+	...(entitySingularView(entity)?.details?.items ?? []).flatMap((group) => group.items),
+	...(entitySingularView(entity)?.details?.blocks ?? []).flat(),
+	...(entitySingularView(entity)?.details?.tabs ?? []).flatMap((group) => group.items ?? []),
+	...(entitySingularView(entity)?.carousels ?? []).flatMap((group) => group.sections.flatMap((section) => section.items ?? [])),
 ])
 
 const viewItemImports = (entity: Entity, indexes: AppIndexes) => {
@@ -2823,7 +3590,7 @@ const viewItemImports = (entity: Entity, indexes: AppIndexes) => {
 				expressionImports(param.value, expressionImportMap)
 		}
 	}
-	for (const section of entity.singularView?.carousels?.flatMap((carousel) => carousel.sections) ?? []) {
+	for (const section of entitySingularView(entity)?.carousels?.flatMap((carousel) => carousel.sections) ?? []) {
 		for (const param of section.href?.params ?? [])
 			expressionImports(param.value, expressionImportMap)
 	}
@@ -2843,30 +3610,30 @@ const viewUsesFormat = (entity: Entity, indexes: AppIndexes, formats: readonly s
 		return format != null && formats.includes(format)
 	})
 	|| (
-		entity.singularView?.content?.body?.format != null
-		&& formats.includes(entity.singularView.content.body.format)
+		entitySingularView(entity)?.content?.body?.format != null
+		&& formats.includes(entitySingularView(entity).content.body.format)
 	)
 	|| (
-		entity.singularView?.details?.body?.format != null
-		&& formats.includes(entity.singularView.details.body.format)
+		entitySingularView(entity)?.details?.body?.format != null
+		&& formats.includes(entitySingularView(entity).details.body.format)
 	)
 
 const declaredSummaryTitleEntries = (entity: Entity) => {
-	const configured = entity.singularView?.summary?.title
+	const configured = entitySingularView(entity)?.summary?.title
 	if (configured != null)
 		return viewItems(configured)
 
 	return []
 }
 
-const declaredSummaryValueEntries = (entity: Entity) => viewItems(entity.singularView?.summary?.value)
+const declaredSummaryValueEntries = (entity: Entity) => viewItems(entitySingularView(entity)?.summary?.value)
 
 const summaryVisualFieldNames = (entity: Entity) => new Set([
-	...viewItems(entity.singularView?.summary?.icon).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...viewItems(entitySingularView(entity)?.summary?.icon).flatMap((viewEntry) => itemFieldName(viewEntry)),
 	...declaredSummaryTitleEntries(entity).flatMap((viewEntry) => itemFieldName(viewEntry)),
-	...viewItems(entity.singularView?.summary?.titleFallback).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...viewItems(entitySingularView(entity)?.summary?.titleFallback).flatMap((viewEntry) => itemFieldName(viewEntry)),
 	...declaredSummaryValueEntries(entity).flatMap((viewEntry) => itemFieldName(viewEntry)),
-	...viewItems(entity.singularView?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldName(viewEntry)),
+	...viewItems(entitySingularView(entity)?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldName(viewEntry)),
 ])
 
 const defaultContentViewEntry = (indexes: AppIndexes, fieldDefinition: EntityField) => {
@@ -2883,10 +3650,10 @@ const defaultContentViewEntry = (indexes: AppIndexes, fieldDefinition: EntityFie
 
 const defaultContentDlGroups = (entity: Entity, indexes: AppIndexes) => {
 	if (
-		(entity.singularView?.content?.dl ?? []).length > 0
-		|| entity.singularView?.content?.body != null
-		|| (entity.singularView?.content?.blocks ?? []).length > 0
-		|| (entity.singularView?.latest ?? []).length > 0
+		(entitySingularView(entity)?.content?.dl ?? []).length > 0
+		|| entitySingularView(entity)?.content?.body != null
+		|| (entitySingularView(entity)?.content?.blocks ?? []).length > 0
+		|| (entitySingularView(entity)?.latest ?? []).length > 0
 	)
 		return []
 
@@ -2903,11 +3670,11 @@ const defaultContentDlGroups = (entity: Entity, indexes: AppIndexes) => {
 
 const contentDlGroups = (entity: Entity, indexes: AppIndexes) => {
 	const summaryFields = summaryVisualFieldNames(entity)
-	const modeledDlGroups = entity.singularView?.content?.dl ?? []
+	const modeledDlGroups = entitySingularView(entity)?.content?.dl ?? []
 	const effectiveDlGroups = modeledDlGroups.filter((viewEntries) => viewEntries.length > 0)
 	const openFieldNames = new Set(effectiveDlGroups.flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldName(viewEntry))))
 	const serialFieldName = summarySerial(entity)?.field
-	const closedItems = viewItems(entity.singularView?.closed)
+	const closedItems = viewItems(entitySingularView(entity)?.closed)
 		.filter((viewEntry) => itemFieldName(viewEntry).every((fieldName) => fieldName !== serialFieldName && !summaryFields.has(fieldName) && !openFieldNames.has(fieldName)))
 
 	return [
@@ -2931,11 +3698,11 @@ const contentDlGroups = (entity: Entity, indexes: AppIndexes) => {
 	]
 }
 
-const contentBlocks = (entity: Entity) => entity.singularView?.content?.blocks ?? []
+const contentBlocks = (entity: Entity) => entitySingularView(entity)?.content?.blocks ?? []
 
 const declaredRelationshipViewSections = (entity: Entity) => {
 	const configuredSections: RelationshipSection[] = [
-		...(entity.singularView?.lists ?? []).flatMap((list) => (
+		...(entitySingularView(entity)?.lists ?? []).flatMap((list) => (
 			list.field == null ?
 				[]
 			:
@@ -2947,10 +3714,11 @@ const declaredRelationshipViewSections = (entity: Entity) => {
 					component: list.component,
 					href: list.href,
 					emptyText: list.emptyText,
-					selection: list.query,
-					list,
-					props: list.props,
-					}]
+						selection: list.query,
+						list,
+						props: list.props,
+						conditions: list.conditions,
+						}]
 		)),
 	]
 
@@ -3073,7 +3841,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	const componentName = singularComponentName(entity.entityType)
 	const serial = summarySerial(entity)
 	const selectorOwnsSerial = serial != null && entity.selectors.some((selector) => selector.fields.includes(serial.field))
-	const configuredSummaryTitleItems = viewItems(entity.singularView?.summary?.title)
+	const configuredSummaryTitleItems = viewItems(entitySingularView(entity)?.summary?.title)
 	const rendersSerialTitle = (
 		serial != null
 		&& (
@@ -3090,16 +3858,16 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	)
 	const selectorFieldNames = entitySelectorFieldNames(entity)
 	const queryFields = unique([
-		...(entity.singularView?.query?.fields ?? []),
-		...viewItems(entity.singularView?.summary?.icon).flatMap((viewEntry) => itemFieldName(viewEntry)),
+		...(entitySingularView(entity)?.query?.fields ?? []),
+		...viewItems(entitySingularView(entity)?.summary?.icon).flatMap((viewEntry) => itemFieldName(viewEntry)),
 		...summarySerialItems(entity).flatMap((viewEntry) => itemFieldName(viewEntry)),
-		...viewItems(entity.singularView?.summary?.title).flatMap((viewEntry) => itemFieldName(viewEntry)),
-		...viewItems(entity.singularView?.summary?.value).flatMap((viewEntry) => itemFieldName(viewEntry)),
-		...viewItems(entity.singularView?.summary?.titleFallback).flatMap((viewEntry) => itemFieldName(viewEntry)),
-		...viewItems(entity.singularView?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldName(viewEntry)),
+		...viewItems(entitySingularView(entity)?.summary?.title).flatMap((viewEntry) => itemFieldName(viewEntry)),
+		...viewItems(entitySingularView(entity)?.summary?.value).flatMap((viewEntry) => itemFieldName(viewEntry)),
+		...viewItems(entitySingularView(entity)?.summary?.titleFallback).flatMap((viewEntry) => itemFieldName(viewEntry)),
+		...viewItems(entitySingularView(entity)?.summary?.HeadingAfter).flatMap((viewEntry) => itemFieldName(viewEntry)),
 	]).filter((fieldName) => fieldDefinitionByName(entity, fieldName) != null && !selectorFieldNames.has(fieldName))
 		const sections = declaredRelationshipViewSections(entity)
-	const detailsTabs = entity.singularView?.details?.tabs ?? []
+	const detailsTabs = entitySingularView(entity)?.details?.tabs ?? []
 	const summaryTitleEntityReferenceItems = (rendersSerialTitle ? [] : declaredSummaryTitleEntries(entity)).flatMap((viewEntry) => {
 		const fieldName = itemFieldName(viewEntry)[0]
 		const fieldDefinition = fieldName == null ? undefined : fieldDefinitionByName(entity, fieldName)
@@ -3116,7 +3884,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		:
 			[]
 	})
-	const summaryAfterEntityReferenceItems = viewItems(entity.singularView?.summary?.HeadingAfter).flatMap((viewEntry) => {
+	const summaryAfterEntityReferenceItems = viewItems(entitySingularView(entity)?.summary?.HeadingAfter).flatMap((viewEntry) => {
 		const fieldName = itemFieldName(viewEntry)[0]
 		const fieldDefinition = fieldName == null ? undefined : fieldDefinitionByName(entity, fieldName)
 		return fieldDefinition?.type === EntityFieldType.EntityReference && fieldDefinition.entityType != null ?
@@ -3141,7 +3909,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	)
 	const summaryTitleNeedsMarkup = summaryItemsNeedMarkup(declaredSummaryTitleEntries(entity))
 	const summaryValueNeedsMarkup = summaryItemsNeedMarkup(declaredSummaryValueEntries(entity))
-	const summaryIconFieldName = itemFieldName(entity.singularView?.summary?.icon ?? '')[0]
+	const summaryIconFieldName = itemFieldName(entitySingularView(entity)?.summary?.icon ?? '')[0]
 	const summaryIconFieldDefinition = summaryIconFieldName == null ? undefined : fieldDefinitionByName(entity, summaryIconFieldName)
 	const summaryIconEntityReferenceComponent = (
 		summaryIconFieldDefinition?.type === EntityFieldType.EntityReference
@@ -3158,7 +3926,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		:
 			[]
 	})
-	const carouselEntityReferenceItems = (entity.singularView?.carousels ?? []).flatMap((carousel) => carousel.sections.flatMap((section) => {
+	const carouselEntityReferenceItems = (entitySingularView(entity)?.carousels ?? []).flatMap((carousel) => carousel.sections.flatMap((section) => {
 		const fieldDefinition = section.field == null ? undefined : fieldDefinitionByName(entity, section.field)
 		return fieldDefinition?.type === EntityFieldType.EntityReference && fieldDefinition.entityType != null ?
 			[fieldDefinition.entityType]
@@ -3172,18 +3940,8 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 			viewEntry,
 		} satisfies RelationshipSection]
 	}))
-	const latestItems = (entity.singularView?.latest ?? []).filter((latest) => {
-		const component = latestComponentName(entity, latest)
-		return (
-			latest.Content != null
-			|| (
-				component != null
-				&& indexes.generatedComponents.has(component)
-				&& fieldDefinitionByName(entity, latest.field)?.entityType != null
-			)
-		)
-	})
-	const carousels = entity.singularView?.carousels ?? []
+	const latestItems = entitySingularView(entity)?.latest ?? []
+	const carousels = entitySingularView(entity)?.carousels ?? []
 	const usesSelect = (
 		latestItems.length > 0
 		|| summaryIconEntityReferenceComponent != null
@@ -3228,7 +3986,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 			const component = latestComponentName(entity, latest)
 			return component == null ? [] : [component]
 		}),
-		(entity.singularView?.details?.tabs ?? []).flatMap((tab) => (
+		(entitySingularView(entity)?.details?.tabs ?? []).flatMap((tab) => (
 			tab.items.flatMap((item) => item.component == null ? [] : [item.component])
 		)),
 		carousels.flatMap((carousel) => carousel.sections.flatMap((section) => {
@@ -3247,7 +4005,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		)),
 		...(summaryIconEntityReferenceComponent == null ? [] : [summaryIconEntityReferenceComponent])
 	))
-	const viewSourceSelection = entity.singularView?.query?.sources
+	const viewSourceSelection = entitySingularView(entity)?.query?.sources
 	const viewSourceSelectionFields = (
 		viewSourceSelection != null
 		&& !Array.isArray(viewSourceSelection)
@@ -3266,7 +4024,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		undefined
 	:
 		'selectedViewSources'
-	const query = renderQuery(entity.singularView?.query, queryFields, viewSourcesExpression, undefined, selectorFieldNames)
+	const query = renderQuery(entitySingularView(entity)?.query, queryFields, viewSourcesExpression, undefined, selectorFieldNames)
 	const sectionQueries = sections.map((section) => renderQuery(fieldQueryForName(entity, section.field, section.selection), []))
 	const latestQueries = latestItems.map((latest) => renderQuery(fieldQueryForName(entity, latest.field, latest.query), latest.fields ?? []))
 	const carouselQueries = carousels.flatMap((carousel) => carousel.sections.flatMap((section) => (
@@ -3281,7 +4039,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		&& carouselSectionComponent(entity, indexes, section) != null
 	)))
 	const namedSourceSelections = unique([
-		entity.singularView?.query?.sources,
+		entitySingularView(entity)?.query?.sources,
 		...sections.map((section) => section.selection?.sources),
 		...latestItems.map((latest) => latest.query?.sources),
 		...carousels.flatMap((carousel) => carousel.sections.flatMap((section) => (
@@ -3302,14 +4060,14 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	const fallbackTitleExpression = renderJoinedItemsExpression(
 		entity,
 		indexes,
-		viewItems(entity.singularView?.summary?.titleFallback),
+		viewItems(entitySingularView(entity)?.summary?.titleFallback),
 		pendingEntityExpression
 	)
 	const serialFallbackTitleExpression = serial == null ? renderFirstDeclaredExpression([pendingTitleExpression, fallbackTitleExpression]) : renderSerialTextExpression(entity, indexes, serial, pendingEntityExpression)
-	const titleFallbackExpression = renderFirstDeclaredExpression([serialFallbackTitleExpression, q(displayLabel(entity.label))])
-	const pendingTitleFallbackExpression = renderFirstDeclaredExpression([serial == null ? pendingTitleExpression : renderSerialTextExpression(entity, indexes, serial, pendingEntityExpression), 'title', fallbackTitleExpression, q(displayLabel(entity.label))])
+	const titleFallbackExpression = renderFirstDeclaredExpression([serialFallbackTitleExpression, q(displayLabel(entityLabel(entity)))])
+	const pendingTitleFallbackExpression = renderFirstDeclaredExpression([serial == null ? pendingTitleExpression : renderSerialTextExpression(entity, indexes, serial, pendingEntityExpression), 'title', fallbackTitleExpression, q(displayLabel(entityLabel(entity)))])
 	const entityTitleFallbackExpression = renderFirstDeclaredExpression([titleExpression, 'title', 'titleFallback'])
-	const pendingValueFallbackExpression = renderFirstDeclaredExpression([pendingValueExpression, pendingTitleExpression, 'title', fallbackTitleExpression, q(displayLabel(entity.label))])
+	const pendingValueFallbackExpression = renderFirstDeclaredExpression([pendingValueExpression, pendingTitleExpression, 'title', fallbackTitleExpression, q(displayLabel(entityLabel(entity)))])
 	const entityValueFallbackExpression = renderFirstDeclaredExpression([valueExpression, titleExpression, 'titleFallback'])
 	const entityHrefs = indexes.entityHrefsByType.get(entity.entityType) ?? []
 	const entityHrefImports = Array.from(
@@ -3344,14 +4102,15 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		indexes,
 		entity.entityType,
 		pendingEntityExpression,
-		pendingEntityExpression
+		pendingEntityExpression,
+		true
 	)
 	const importedViewItems = viewItemImports(entity, indexes)
 	const rawSnippets = rawSnippetSources(entity)
 	const entityName = camel(entity.entityType)
 	const iconMarkup = renderIconSnippet(entity, entityName)
 	const expressionImportSpecs = mergeImports([
-		...(entity.singularView?.imports ?? []).map((importSpec) => ({
+		...(entitySingularView(entity)?.imports ?? []).map((importSpec) => ({
 			from: importSpec.from,
 			defaultName: importSpec.default,
 			names: importSpec.names,
@@ -3402,7 +4161,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	const relationshipMarkup = renderRelationshipSections(entity, indexes, sections, entityName)
 	const detailTabsMarkup = renderDetailsTabs(entity, indexes, entityName)
 	const carouselMarkup = carousels.flatMap((carousel) => renderCarousel(entity, indexes, carousel))
-	const detailBlockMarkup = (entity.singularView?.details?.blocks ?? []).flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => renderContentBlock(
+	const detailBlockMarkup = (entitySingularView(entity)?.details?.blocks ?? []).flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => renderContentBlock(
 		entity,
 		indexes,
 		typeof viewEntry === 'object' && 'when' in viewEntry ? { ...viewEntry, when: 'always' } : viewEntry,
@@ -3412,7 +4171,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	const latestMarkup = latestItems.flatMap((latest) => renderLatestContentItem(entity, indexes, latest, 3))
 	const contentRowMarkupGroups = contentRows.map((viewEntries) => viewEntries.flatMap((viewEntry) => renderContentItem(entity, indexes, viewEntry, 'contentOpen', 3)))
 		.filter((group) => group.length > 0)
-	const contentBodyMarkup = renderBodySection(entity, indexes, entity.singularView?.content?.body, 'contentOpen', 2)
+	const contentBodyMarkup = renderBodySection(entity, indexes, entitySingularView(entity)?.content?.body, 'contentOpen', 2)
 	const contentBlockMarkup = contentBlocks(entity).flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => renderContentBlock(entity, indexes, viewEntry, 'contentOpen', 2)))
 	const usesViewDomId = true
 	const renderSummaryItemMarkup = (viewEntry: _ViewItem, viewEntryIndex: number, entityFieldsExpression: string, entityHrefFieldsExpression: string, refLayout: 'Title' | 'Value') => {
@@ -3439,7 +4198,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 				const referenceLevel = fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? 7 : 6
 				if (entitySelectorOwnsField(entity, fieldName)) {
 					const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
-				const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, selectorExpression, selectorExpression)
+				const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, selectorExpression, selectorExpression, true)
 
 					return [
 						`${'\t'.repeat(4)}<${componentIdentifier(component)}`,
@@ -3450,7 +4209,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 						`${'\t'.repeat(4)}/>`,
 					]
 				}
-			const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, `${targetEntityName}[EntityMetaKey.Selector]`, `${targetEntityName}[EntityMetaKey.Selector]`)
+			const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, `${targetEntityName}[EntityMetaKey.Selector]`, `${targetEntityName}[EntityMetaKey.Selector]`, true)
 
 				return [
 					`${'\t'.repeat(4)}<ResourceBoundary`,
@@ -3498,7 +4257,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 	const entitySummaryTitleMarkup = summaryTitleNeedsMarkup ? declaredSummaryTitleEntries(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, entitySummaryFieldsExpression, entitySummaryFieldsExpression, 'Title')) : []
 	const pendingSummaryValueMarkup = summaryValueNeedsMarkup ? declaredSummaryValueEntries(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, pendingSummaryFieldsExpression, pendingSummaryFieldsExpression, 'Value')) : []
 	const entitySummaryValueMarkup = summaryValueNeedsMarkup ? declaredSummaryValueEntries(entity).flatMap((viewEntry, viewEntryIndex) => renderSummaryItemMarkup(viewEntry, viewEntryIndex, entitySummaryFieldsExpression, entitySummaryFieldsExpression, 'Value')) : []
-	const detailBodyMarkup = renderBodySection(entity, indexes, entity.singularView?.details?.body, 'detailsOpen', 3)
+	const detailBodyMarkup = renderBodySection(entity, indexes, entitySingularView(entity)?.details?.body, 'detailsOpen', 3)
 	const detailsMarkup = [
 		...relationshipMarkup,
 		...detailTabsMarkup,
@@ -3518,10 +4277,22 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		...contentBlockMarkup,
 		...detailsMarkup,
 	].some((line) => line.includes('EntityProxyField'))
+	const usesSource = [
+		...iconMarkup,
+		...pendingSummaryTitleMarkup,
+		...entitySummaryTitleMarkup,
+		...pendingSummaryValueMarkup,
+		...entitySummaryValueMarkup,
+		...latestMarkup,
+		...contentRowMarkupGroups.flat(),
+		...contentBodyMarkup,
+		...contentBlockMarkup,
+		...detailsMarkup,
+	].some((line) => line.includes('Source.'))
 	const usesIconComponent = iconMarkup.some((line) => line.includes('<IconComponent'))
 	const typeAnnotationTooltipMarkup = (
-		entity.singularView?.TypeAnnotationTooltip != null ?
-			renderRawLines(entity.singularView.TypeAnnotationTooltip.raw, 2)
+		entitySingularView(entity)?.TypeAnnotationTooltip != null ?
+			renderRawLines(entitySingularView(entity).TypeAnnotationTooltip.raw, 2)
 		: entity.description != null ?
 			renderTooltipParagraphs([entity.description], 2)
 		:
@@ -3540,7 +4311,8 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		'import { schema } from \'$/schema/index.ts\'',
 		...expressionImportSpecs.map(renderImport),
 		...((
-			query.includes('Source.')
+			usesSource
+			|| query.includes('Source.')
 			|| sectionQueries.some((sectionQuery) => sectionQuery.includes('Source.'))
 			|| latestQueries.some((latestQuery) => latestQuery.includes('Source.'))
 			|| carouselQueries.some((carouselQuery) => carouselQuery.includes('Source.'))
@@ -3624,7 +4396,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		...iconMarkup,
 		...(iconMarkup.length === 0 ? [] : ['']),
 		'\t{#snippet Title()}',
-		...(entity.singularView?.summary?.Title == null && rendersSerialTitle ? renderSerialTitleSnippet(entity, indexes, serial, selectorOwnsSerial, entityName) : entity.singularView?.summary?.Title == null ? [
+		...(entitySingularView(entity)?.summary?.Title == null && rendersSerialTitle ? renderSerialTitleSnippet(entity, indexes, serial, selectorOwnsSerial, entityName) : entitySingularView(entity)?.summary?.Title == null ? [
 		`\t\t<ResourceBoundary resource={${entityName}}>`,
 		'\t\t\t{#snippet Pending()}',
 		...(pendingSummaryTitleMarkup.length === 0 ? [
@@ -3638,12 +4410,12 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 		] : entitySummaryTitleMarkup),
 		'\t\t\t{/snippet}',
 		'\t\t</ResourceBoundary>',
-		] : renderRawLines(entity.singularView.summary.Title.raw, 2)),
+		] : renderRawLines(entitySingularView(entity).summary.Title.raw, 2)),
 		'\t{/snippet}',
-		...(entity.singularView?.summary?.Value == null && !rendersSerialValue && declaredSummaryValueEntries(entity).length === 0 ? [] : [
+		...(entitySingularView(entity)?.summary?.Value == null && !rendersSerialValue && declaredSummaryValueEntries(entity).length === 0 ? [] : [
 			'',
 			'\t{#snippet Value()}',
-			...(entity.singularView?.summary?.Value == null && serial != null && rendersSerialValue ? renderSerialValueSnippet(entity, indexes, serial, selectorOwnsSerial, entityName) : entity.singularView?.summary?.Value == null ? [
+			...(entitySingularView(entity)?.summary?.Value == null && serial != null && rendersSerialValue ? renderSerialValueSnippet(entity, indexes, serial, selectorOwnsSerial, entityName) : entitySingularView(entity)?.summary?.Value == null ? [
 				`\t\t<ResourceBoundary resource={${entityName}}>`,
 				'\t\t\t{#snippet Pending()}',
 				...(pendingSummaryValueMarkup.length === 0 ? [
@@ -3657,7 +4429,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 				] : entitySummaryValueMarkup),
 				'\t\t\t{/snippet}',
 				'\t\t</ResourceBoundary>',
-			] : renderRawLines(entity.singularView.summary.Value.raw, 2)),
+			] : renderRawLines(entitySingularView(entity).summary.Value.raw, 2)),
 			'\t{/snippet}',
 		]),
 		...renderSummaryAfter(entity, indexes, entityName),
@@ -3671,7 +4443,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 			'',
 			'\t{#snippet Content({ open: contentOpen })}',
 			...(latestMarkup.length === 0 ? [] : [
-			`\t\t<dl${entity.singularView?.latestDlClassName == null ? '' : ` class=${q(entity.singularView.latestDlClassName)}`} data-column-item="center">`,
+			`\t\t<dl${entitySingularView(entity)?.latestDlClassName == null ? '' : ` class=${q(entitySingularView(entity).latestDlClassName)}`} data-column-item="center">`,
 			...latestMarkup,
 			'\t\t</dl>',
 			]),
@@ -3751,7 +4523,7 @@ const renderRawBlock = (
 const renderBodySection = (
 	entity: Entity,
 	indexes: AppIndexes,
-	body: NonNullable<Entity['singularView']>['content']['body'],
+	body: SingularView['content']['body'],
 	openExpression: string,
 	level: number
 ) => {
@@ -3834,7 +4606,7 @@ const renderSummaryAfterItem = (
 			const referenceLevel = fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? level + 3 : level + 2
 			if (entitySelectorOwnsField(entity, fieldName)) {
 				const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
-				const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, selectorExpression, selectorExpression)
+				const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, selectorExpression, selectorExpression, true)
 
 				return [
 					`${'\t'.repeat(level)}<span data-text="muted">`,
@@ -3847,7 +4619,7 @@ const renderSummaryAfterItem = (
 					`${'\t'.repeat(level)}</span>`,
 				]
 			}
-			const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, `${targetEntityName}[EntityMetaKey.Selector]`, `${targetEntityName}[EntityMetaKey.Selector]`)
+			const hrefExpression = renderEntityHrefExpression(indexes, targetEntity.entityType, `${targetEntityName}[EntityMetaKey.Selector]`, `${targetEntityName}[EntityMetaKey.Selector]`, true)
 
 			return [
 				`${'\t'.repeat(level)}<ResourceBoundary`,
@@ -3889,7 +4661,7 @@ const renderSummaryAfterItem = (
 }
 
 const renderSummaryAfter = (entity: Entity, indexes: AppIndexes, entityName: string) => {
-	const viewEntries = viewItems(entity.singularView?.summary?.HeadingAfter)
+	const viewEntries = viewItems(entitySingularView(entity)?.summary?.HeadingAfter)
 	if (viewEntries.length === 0)
 		return []
 
@@ -3910,15 +4682,15 @@ const renderSummaryAfter = (entity: Entity, indexes: AppIndexes, entityName: str
 }
 
 const renderIconSnippet = (entity: Entity, entityName: string) => {
-	if (entity.singularView?.summary?.Icon != null)
+	if (entitySingularView(entity)?.summary?.Icon != null)
 		return [
 			'',
 			'\t{#snippet Icon()}',
-			...renderRawLines(entity.singularView.summary.Icon.raw, 2),
+			...renderRawLines(entitySingularView(entity).summary.Icon.raw, 2),
 			'\t{/snippet}',
 		]
 
-	const icon = entity.singularView?.summary?.icon
+	const icon = entitySingularView(entity)?.summary?.icon
 	if (icon == null)
 		return []
 
@@ -3990,23 +4762,25 @@ const renderEntityReferenceDlItem = (
 	level: number
 ) => {
 	if (fieldDefinition.entityType == null)
-		return []
+		throw new Error(`${entity.entityType}.${fieldName} EntityReference field is missing entityType`)
 
 	const targetEntity = indexes.entityByType.get(fieldDefinition.entityType)
 	if (targetEntity == null)
-		return []
+		throw new Error(`${entity.entityType}.${fieldName} references missing entity type ${fieldDefinition.entityType}`)
 
 	const component = singularComponentIdentifier(targetEntity.entityType)
+	const itemSelection = typeof viewEntry === 'object' && 'selection' in viewEntry ? viewEntry.selection : undefined
+	const query = renderQuery(fieldQuery(fieldDefinition, itemSelection), [])
 	if (entitySelectorOwnsField(entity, fieldName)) {
 		const selectorExpression = fieldExpression('selection.entitySelector', fieldName)
-		const hrefExpression = renderEntityHrefExpression(indexes, fieldDefinition.entityType, selectorExpression, selectorExpression)
+		const hrefExpression = renderEntityHrefExpression(indexes, fieldDefinition.entityType, selectorExpression, selectorExpression, true)
 
 		return wrapWhen(viewEntry, openExpression, [
 			`${'\t'.repeat(level)}<div>`,
 			`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
 			`${'\t'.repeat(level + 1)}<dd>`,
 			`${'\t'.repeat(level + 2)}<${component}`,
-			renderSvelteAttribute(level + 3, 'selection', `select(EntityType.${fieldDefinition.entityType}, ${selectorExpression})`),
+			renderSvelteAttribute(level + 3, 'selection', `select(EntityType.${fieldDefinition.entityType}, ${selectorExpression}, ${query})`),
 			...(hrefExpression == null ? [] : [
 				renderSvelteAttribute(level + 3, 'href', hrefExpression),
 			]),
@@ -4023,7 +4797,8 @@ const renderEntityReferenceDlItem = (
 		indexes,
 		fieldDefinition.entityType,
 		`${targetEntityName}[EntityMetaKey.Selector]`,
-		`${targetEntityName}[EntityMetaKey.Selector]`
+		`${targetEntityName}[EntityMetaKey.Selector]`,
+		true
 	)
 	const entityViewLines = [
 		`${'\t'.repeat(level + 2)}<${component}`,
@@ -4040,7 +4815,7 @@ const renderEntityReferenceDlItem = (
 	if (fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne)
 		return wrapWhen(viewEntry, openExpression, [
 			`${'\t'.repeat(level)}<ResourceBoundary`,
-			renderSvelteAttribute(level + 1, 'resource', fieldResourceExpression('selection', fieldName, fieldDefinition.entityType, renderQuery(fieldQuery(fieldDefinition, undefined)), false)),
+			renderSvelteAttribute(level + 1, 'resource', fieldResourceExpression('selection', fieldName, fieldDefinition.entityType, query, false)),
 			`${'\t'.repeat(level)}>`,
 			`${'\t'.repeat(level + 1)}{#snippet children(${targetEntityName})}`,
 			`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null && ${targetEntityName}[EntityMetaKey.Selector] != null}`,
@@ -4060,7 +4835,7 @@ const renderEntityReferenceDlItem = (
 		`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
 		`${'\t'.repeat(level + 1)}<dd>`,
 		`${'\t'.repeat(level + 2)}<ResourceBoundary`,
-		renderSvelteAttribute(level + 3, 'resource', fieldResourceExpression('selection', fieldName, fieldDefinition.entityType, renderQuery(fieldQuery(fieldDefinition, undefined)), false)),
+		renderSvelteAttribute(level + 3, 'resource', fieldResourceExpression('selection', fieldName, fieldDefinition.entityType, query, false)),
 		`${'\t'.repeat(level + 2)}>`,
 		`${'\t'.repeat(level + 3)}{#snippet children(${targetEntityName})}`,
 		`${'\t'.repeat(level + 4)}{#if ${targetEntityName}[EntityMetaKey.Selector] != null}`,
@@ -4195,18 +4970,12 @@ const renderLatestContentItem = (
 	latest: EntityLatest,
 	level: number
 ) => {
-	if (latest.Content != null) {
-		const lines = renderRawLines(latest.Content.raw, level)
-
-		return renderConditionedEntityLines(latest.when, level, lines)
-	}
-
 	const latestFieldDefinition = fieldDefinitionByName(entity, latest.field)
 	const entityType = latestTargetEntityType(entity, latest)
 	const fieldEntityType = latestFieldDefinition?.entityType
 	const component = latestComponentName(entity, latest)
 	if (entityType == null || fieldEntityType == null || component == null)
-		return []
+		throw new Error(`${entity.entityType}.${latest.field} latest reference is missing target entity/component metadata`)
 	const latestEntityName = camel(entityType)
 	const latestEntitiesName = `${latestEntityName}s`
 	const latestSelectorName = `${latestEntityName}Selector`
@@ -4260,7 +5029,8 @@ const renderLatestContentItem = (
 		indexes,
 		entityType,
 		selectorExpression,
-		`${latestEntityName}[EntityMetaKey.Selector]`
+		`${latestEntityName}[EntityMetaKey.Selector]`,
+		true
 	)
 	const latestLabel = latest.label ?? latest.field
 
@@ -4293,7 +5063,7 @@ const renderLatestContentItem = (
 		`${'\t'.repeat(level)}</div>`,
 	]
 
-	return renderConditionedEntityLines(latest.when, level, lines)
+	return renderConditionedEntityLines(entity, latest.when, level, lines)
 }
 
 const renderRelationshipSections = (
@@ -4356,15 +5126,25 @@ const renderRelationshipSection = (entity: Entity, indexes: AppIndexes, section:
 		throw new Error(`${entity.entityType}.${section.field} relationship section field must reference an entity`)
 
 	if (fieldDefinition.type === EntityFieldType.EntityReference && component != null)
-		return renderEntityReferenceSection(entity, indexes, section, fieldDefinition, component)
+		return renderConditionedEntityLines(
+			entity,
+			section.conditions,
+			4,
+			renderEntityReferenceSection(entity, indexes, section, fieldDefinition, component)
+		)
 	if (fieldDefinition.type === EntityFieldType.EntitiesReference && component != null)
-		return renderEntitiesReferenceSection(entity, indexes, section, fieldDefinition, component)
+		return renderConditionedEntityLines(
+			entity,
+			section.conditions,
+			4,
+			renderEntitiesReferenceSection(entity, indexes, section, fieldDefinition, component)
+		)
 
 	throw new Error(`${entity.entityType}.${section.field} relationship section has unsupported cardinality`)
 }
 
 const detailTabId = (
-	tab: NonNullable<Entity['singularView']>['details']['tabs'][number]
+	tab: SingularView['details']['tabs'][number]
 ) => tab.id ?? (
 	tab.label
 		.toLowerCase()
@@ -4374,7 +5154,7 @@ const detailTabId = (
 )
 
 const detailTabSnippetName = (
-	tab: NonNullable<Entity['singularView']>['details']['tabs'][number]
+	tab: SingularView['details']['tabs'][number]
 ) => {
 	const name = detailTabId(tab)
 		.replace(/^[$_]+/, '')
@@ -4387,7 +5167,7 @@ const detailTabSnippetName = (
 }
 
 const detailTabConditionExpression = (
-	tab: NonNullable<Entity['singularView']>['details']['tabs'][number]
+	tab: SingularView['details']['tabs'][number]
 ) => (
 	tab.conditions == null || tab.conditions.length === 0 ?
 		undefined
@@ -4401,7 +5181,7 @@ const detailTabConditionExpression = (
 const renderDetailTab = (
 	entity: Entity,
 	indexes: AppIndexes,
-	tab: NonNullable<Entity['singularView']>['details']['tabs'][number],
+	tab: SingularView['details']['tabs'][number],
 	entityName: string
 ) => {
 	const viewEntries = tab.items ?? []
@@ -4463,7 +5243,7 @@ const renderDetailTab = (
 }
 
 const renderDetailsTabs = (entity: Entity, indexes: AppIndexes, entityName: string) => {
-	const tabs = (entity.singularView?.details?.tabs ?? []).filter((tab) => renderDetailTab(entity, indexes, tab, entityName).length > 0)
+	const tabs = (entitySingularView(entity)?.details?.tabs ?? []).filter((tab) => renderDetailTab(entity, indexes, tab, entityName).length > 0)
 	if (tabs.length === 0)
 		return []
 
@@ -4613,7 +5393,8 @@ const renderEntityHrefExpression = (
 	indexes: AppIndexes,
 	entityType: string,
 	fieldsExpression: string,
-	routeFieldsExpression: string
+	routeFieldsExpression: string,
+	partial = false
 ) => {
 	const entityHrefs = indexes.entityHrefsByType.get(entityType) ?? []
 	if (entityHrefs.length === 0)
@@ -4630,7 +5411,7 @@ const renderEntityHrefExpression = (
 			])
 		)
 		const condition = (entityHref.conditions ?? [])
-			.map((condition) => `${fieldExpression(fieldsExpression, condition.field)} === ${renderLiteral(condition.equals)}`)
+			.map((condition) => conditionExpression([condition], fieldsExpression, indexes.entityByType.get(entityType), partial))
 			.join(' && ')
 		const routeFieldCondition = entityHref.params
 			.map((param) => renderRouteExpressionCondition(routeFieldsExpression, param.value))
@@ -4673,6 +5454,7 @@ const renderEntityPageSelection = (
 
 	const selector = entity.selectors.find((item) => item.name === selectorName)
 	const sourceSelectorField = selector?.fields.includes('source') === true
+	const viewSourceSelection = entitySingularView(entity)?.query?.sources
 	const fields = viewResolvedFieldNames(entity, indexes)
 		.filter((fieldName) => {
 			const fieldDefinition = fieldDefinitionByName(entity, fieldName)
@@ -4682,14 +5464,24 @@ const renderEntityPageSelection = (
 			)
 		})
 
-	if (fields.length === 0 && !sourceSelectorField)
+	if (fields.length === 0 && !sourceSelectorField && viewSourceSelection == null)
 		return `select(EntityType.${entityType}, ${selectorExpression})`
+
+	const selectorSourceExpression = selectorExpression.includes('\n') ?
+		`(${selectorExpression}).source`
+	:
+		`${selectorExpression}.source`
+	const viewSourceLines = Array.isArray(viewSourceSelection) ? [
+		'\tsources: [',
+		...viewSourceSelection.map((source) => `\t\t${enumAccess('Source', source)},`),
+		'\t],',
+	] : []
 
 	return [
 		`select(EntityType.${entityType}, ${selectorExpression}, {`,
 		...(sourceSelectorField ? [
-			`\tsources: [${selectorExpression}.source],`,
-		] : []),
+			`\tsources: [${selectorSourceExpression}],`,
+		] : viewSourceLines),
 		...(fields.length === 0 ? [] : [
 			'\tfields: {',
 			...fields.map((field) => `\t\t${field}: true,`),
@@ -4758,7 +5550,7 @@ const renderCarousel = (
 		'\t\t\t</CollapsibleTabs>',
 	]
 
-	return renderConditionedEntityLines(carousel.conditions, 3, tabsLines)
+	return renderConditionedEntityLines(entity, carousel.conditions, 3, tabsLines)
 }
 
 const renderCarouselSection = (
@@ -4801,7 +5593,8 @@ const renderCarouselSection = (
 		indexes,
 		targetEntity,
 		`${targetEntityName}[EntityMetaKey.Selector]`,
-		`${targetEntityName}[EntityMetaKey.Selector]`
+		`${targetEntityName}[EntityMetaKey.Selector]`,
+		true
 	)
 	const hrefExpression = section.link == null ?
 		renderCollectionHrefExpression(entity, indexes, section.field, targetEntity)
@@ -4830,7 +5623,7 @@ const renderCarouselSection = (
 					'\t\t\t\t\t\t\t{:else}',
 				]),
 				`\t\t\t\t\t\t\t\t<${componentIdentifier(component)}`,
-				`\t\t\t\t\t\t\t\t\tselection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector])}`,
+				`\t\t\t\t\t\t\t\t\tselection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector], { sources: selection.sources })}`,
 				`\t\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
 				...(referenceHrefExpression == null ? [] : [renderSvelteAttribute(9, 'href', referenceHrefExpression)]),
 				`\t\t\t\t\t\t\t\t\tlayout={${itemLayout}}`,
@@ -4848,7 +5641,7 @@ const renderCarouselSection = (
 				'\t\t\t\t\t\t\t>',
 				`\t\t\t\t\t\t\t\t{#snippet Item({ item: ${targetEntityName} })}`,
 				`\t\t\t\t\t\t\t\t\t<${componentIdentifier(component)}`,
-				`\t\t\t\t\t\t\t\t\t\tselection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector])}`,
+				`\t\t\t\t\t\t\t\t\t\tselection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector], { sources: selection.sources })}`,
 				`\t\t\t\t\t\t\t\t\t\tprefetched={${targetEntityName}}`,
 				...(referenceHrefExpression == null ? [] : [renderSvelteAttribute(10, 'href', referenceHrefExpression)]),
 				`\t\t\t\t\t\t\t\t\t\tlayout={${itemLayout}}`,
@@ -4978,7 +5771,7 @@ const renderEntityReferenceSection = (
 	const targetEntityName = camel(targetEntity)
 	if (entitySelectorOwnsField(entity, section.field)) {
 		const selectorExpression = fieldExpression('selection.entitySelector', section.field)
-		const hrefExpression = renderEntityHrefExpression(indexes, targetEntity, selectorExpression, selectorExpression)
+		const hrefExpression = renderEntityHrefExpression(indexes, targetEntity, selectorExpression, selectorExpression, true)
 
 		return [
 			'\t\t\t\t<section data-column="gap-2">',
@@ -4996,7 +5789,8 @@ const renderEntityReferenceSection = (
 		indexes,
 		targetEntity,
 		`${targetEntityName}[EntityMetaKey.Selector]`,
-		`${targetEntityName}[EntityMetaKey.Selector]`
+		`${targetEntityName}[EntityMetaKey.Selector]`,
+		true
 	)
 	const referenceLevel = fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? 8 : 7
 
@@ -5011,7 +5805,7 @@ const renderEntityReferenceSection = (
 			`\t\t\t\t\t\t\t{#if ${targetEntityName} != null}`,
 		] : []),
 		`${'\t'.repeat(referenceLevel)}<${componentIdentifier(component)}`,
-		`${'\t'.repeat(referenceLevel + 1)}selection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector])}`,
+		`${'\t'.repeat(referenceLevel + 1)}selection={select(EntityType.${targetEntity}, ${targetEntityName}[EntityMetaKey.Selector], { sources: selection.sources })}`,
 		`${'\t'.repeat(referenceLevel + 1)}prefetched={${targetEntityName}}`,
 		...(hrefExpression == null ? [] : [renderSvelteAttribute(referenceLevel + 1, 'href', hrefExpression)]),
 		`${'\t'.repeat(referenceLevel + 1)}layout={EntityLayout.Summary}`,
@@ -5196,18 +5990,18 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 	const entityValueName = camel(entity.entityType)
 	const entityValuesName = camel(componentName.replace(/View$/, ''))
 	const uniqueEntityValuesName = `unique${pascal(entityValuesName)}`
-	const pluralView = entity.pluralView
+	const pluralView = entityPluralView(entity)
 	const row = pluralView?.row
 	const usesCustomRow = row != null
 	const serial = summarySerial(entity)
 	const rowTitleItems = usesCustomRow ? viewItems(row.title) : declaredSummaryTitleEntries(entity)
 	const rowValueItems = usesCustomRow ? viewItems(row.value) : declaredSummaryValueEntries(entity)
-	const rowAfterItems = usesCustomRow ? viewItems(row.HeadingAfter) : viewItems(entity.singularView?.summary?.HeadingAfter)
+	const rowAfterItems = usesCustomRow ? viewItems(row.HeadingAfter) : viewItems(entitySingularView(entity)?.summary?.HeadingAfter)
 	const rowItems = [
 		...(usesCustomRow ? [] : summarySerialItems(entity)),
 		...rowTitleItems,
 		...rowValueItems,
-		...(usesCustomRow ? [] : viewItems(entity.singularView?.summary?.titleFallback)),
+		...(usesCustomRow ? [] : viewItems(entitySingularView(entity)?.summary?.titleFallback)),
 		...rowAfterItems,
 	]
 	const itemLayout = (
@@ -5235,7 +6029,7 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 		),
 	])
 	const rowQueryFields = unique([
-		...(usesCustomRow ? [] : viewItems(entity.singularView?.summary?.icon)),
+		...(usesCustomRow ? [] : viewItems(entitySingularView(entity)?.summary?.icon)),
 		...rowItems,
 	].flatMap((item) => itemFieldName(item)).concat(rowHrefFields))
 	const query = renderQuery(pluralView?.query?.selection ?? pluralView?.query, rowQueryFields)
@@ -5313,7 +6107,8 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 		indexes,
 		entity.entityType,
 		`${entityValueName}[EntityMetaKey.Selector]`,
-		itemHrefFieldsExpression
+		itemHrefFieldsExpression,
+		true
 	)
 	const script = [
 		'// Types/constants',
@@ -5344,7 +6139,7 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 		'// State',
 		'let {',
 		'\tselection,',
-		`\ttitle = ${q(pluralView?.title ?? sentenceStart(entity.labelPlural))},`,
+		`\ttitle = ${q(pluralView?.title ?? sentenceStart(entityLabelPlural(entity)))},`,
 		`\ttypeAnnotationParagraphs = ${defaultTypeAnnotationParagraphs},`,
 		'\tplaceholderText,',
 		`\temptyText = ${pluralView?.emptyText == null ? 'undefined' : q(pluralView.emptyText)},`,
@@ -5454,7 +6249,7 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 			'\t\t\t\t\t{#if emptyText != null}',
 			'\t\t\t\t\t\t<p data-text="muted">{emptyText}</p>',
 			'\t\t\t\t\t{:else}',
-				`\t\t\t\t\t\t<p data-text="muted">No ${svelteText(sentenceStart(entity.labelPlural))} yet.</p>`,
+				`\t\t\t\t\t\t<p data-text="muted">No ${svelteText(sentenceStart(entityLabelPlural(entity)))} yet.</p>`,
 			'\t\t\t\t\t{/if}',
 			'\t\t\t\t{/snippet}',
 			'',
@@ -5464,7 +6259,7 @@ const renderPluralViewFile = (entity: Entity, indexes: AppIndexes) => {
 				`\t\t\t\t\t{@const ${itemHrefFieldsName} = { ...${entityValueName}${itemPrefetchedFieldOverrides.length === 0 ? '' : `, ${itemPrefetchedFieldOverrides.join(', ')}`}, ...${entityValueName}[EntityMetaKey.Selector] }}`,
 			]),
 			`\t\t\t\t\t<${singularComponentIdentifier(entity.entityType)}`,
-			`\t\t\t\t\t\tselection={select(EntityType.${entity.entityType}, ${entityValueName}[EntityMetaKey.Selector])}`,
+			`\t\t\t\t\t\tselection={select(EntityType.${entity.entityType}, ${entityValueName}[EntityMetaKey.Selector], { sources: selection.sources })}`,
 			`\t\t\t\t\t\tprefetched={${itemFieldsName}}`,
 			...(entityHrefExpression == null ? [] : [
 				renderSvelteAttribute(6, 'href', entityHrefExpression),
@@ -5553,29 +6348,61 @@ const renderViewsIndexFile = (entities: readonly Entity[]) => tsFile(
 const renderRouteFiles = (entry: RouteEntry, indexes: AppIndexes) => entry.files.flatMap((routeFile) => {
 	const routePath = `src/routes/${entry.routePath}/${routeFileName(routeFile.kind)}`.replaceAll('//', '/')
 	const layoutPath = `src/routes/${entry.routePath}/+layout.ts`.replaceAll('//', '/')
+	const pageModule = entry.files.find((file) => file.kind === _RouteFileKind.PageModule)
 	const pageSelectorDescendant = indexes.routeEntries.some((candidate) => (
 		candidate.routePath.startsWith(`${entry.routePath}/`)
 		&& candidate.files.some((candidateFile) => expressionUsesKind(candidateFile.collection?.source.selector, 'pageSelector'))
 	))
+	const surfaceDescendant = (
+		routeFile.surface != null
+		&& routeFile.surfaceInherited !== true
+		&& indexes.routeEntries.some((candidate) => (
+			candidate.routePath.startsWith(`${entry.routePath}/`)
+			&& candidate.files.some((candidateFile) => candidateFile.surface != null)
+		))
+	)
 	const shouldGenerateLayoutLoad = (
 		routeFile.load != null
-		&& pageSelectorDescendant
+		&& (pageSelectorDescendant || surfaceDescendant)
 		&& !entry.files.some((candidate) => candidate.kind === _RouteFileKind.LayoutModule)
 	)
 	if (routeFile.kind === _RouteFileKind.PageModule)
 		return [
 			...(shouldGenerateLayoutLoad ? [renderPageModuleFile(layoutPath, routeFile, indexes)] : []),
-			renderPageModuleFile(routePath, routeFile, indexes),
+			...(!shouldGenerateLayoutLoad && routeNeedsPageModule(routePath, routeFile, indexes) ? [renderPageModuleFile(routePath, routeFile, indexes)] : []),
 		]
 	if (routeFile.kind === _RouteFileKind.Layout)
 		return [renderLayoutFile(routePath, routeFile, indexes)]
 	if (routeFile.kind === _RouteFileKind.Page) {
+		const hasPageModule = entry.files.some((file) => file.kind === _RouteFileKind.PageModule)
+		const pageRouteFile = routeFile.load == null && pageModule?.load != null ?
+			{
+				...routeFile,
+				load: pageModule.load,
+			}
+		:
+			routeFile
+		const generatedPageModule = (
+			pageModule != null
+			&& routeNeedsPageModule(routePath.replace(/\+page\.svelte$/, '+page.ts'), pageModule, indexes)
+		)
 		const files = [
 			...(shouldGenerateLayoutLoad ? [renderPageModuleFile(layoutPath, routeFile, indexes)] : []),
-			renderPageFile(routePath, entry.routePath, routeFile, indexes),
+			renderPageFile(
+				routePath,
+				entry.routePath,
+				pageRouteFile,
+				indexes,
+				generatedPageModule,
+				hasPageModule && !generatedPageModule
+			),
 		]
-		if (routeFile.load != null)
-			files.push(renderPageModuleFile(routePath.replace(/\+page\.svelte$/, '+page.ts'), routeFile, indexes))
+		if (
+			!hasPageModule
+			&& !shouldGenerateLayoutLoad
+			&& routeNeedsPageModule(routePath.replace(/\+page\.svelte$/, '+page.ts'), pageRouteFile, indexes)
+		)
+			files.push(renderPageModuleFile(routePath.replace(/\+page\.svelte$/, '+page.ts'), pageRouteFile, indexes))
 		return files
 	}
 	if (routeFile.kind === _RouteFileKind.LayoutModule)
@@ -5584,11 +6411,124 @@ const renderRouteFiles = (entry: RouteEntry, indexes: AppIndexes) => entry.files
 	return []
 })
 
-const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: AppIndexes) => {
-	if (routeFile.load == null)
-		return tsFile(routePath, { body: ['export const load = () => ({})'] })
+const routeNeedsPageModule = (routePath: string, routeFile: RouteFile, indexes: AppIndexes) => (
+	routeFile.surface != null
+	&& routeFile.surfaceInherited !== true
+	&& routeFile.collection == null
+	&& routeSurfaceRequiresPageModule(routePath, indexes)
+	&& !routeSurfaceOwnedByAncestor(routePath, routeFile, indexes)
+)
 
-	const loadExpression = {
+const routeLoadSelectorExpression = (routeFile: RouteFile, context: Parameters<typeof renderExpression>[1]) => {
+	if (routeFile.load == null)
+		return undefined
+	if (routeFile.load.selectorFields != null)
+		return renderExpression(routeFile.load.selectorFields, context)
+
+	return renderObject((routeFile.load.fields ?? []).map((field) => [
+		field.field,
+		renderExpression(field.value, context),
+	]))
+}
+
+const routeLoadSelectorImports = (routeFile: RouteFile) => {
+	if (routeFile.load == null)
+		return []
+	if (routeFile.load.selectorFields != null)
+		return [...expressionImports(routeFile.load.selectorFields).entries()].map(([from, names]) => ({
+			from,
+			names: [...names],
+		}))
+
+	const imports = new Map<string, Set<string>>()
+	for (const field of routeFile.load.fields ?? [])
+		for (const [from, names] of expressionImports(field.value))
+			for (const name of names)
+				(imports.get(from) ?? imports.set(from, new Set()).get(from))?.add(name)
+
+	return [...imports.entries()].map(([from, names]) => ({
+		from,
+		names: [...names],
+	}))
+}
+
+const routePathPublicId = (routePath: string) => publicRouteId(routePath
+	.replace(/^src\/routes\//, '')
+	.replace(/\/\+(?:page|layout)\.ts$/, ''))
+
+const routeSurfaceNetworkParamName = (routePath: string, indexes: AppIndexes) => {
+	if (indexes.routeFixtureMetadataByRouteId.get(routePathPublicId(routePath)) == null)
+		return undefined
+
+	const paramNames = routeParamNames(routePathPublicId(routePath))
+	return (
+		paramNames.includes('networkSlug') ?
+			'networkSlug'
+		: paramNames.includes('caip2') ?
+			'caip2'
+		:
+			undefined
+	)
+}
+
+const routeSurfaceRequiresPageModule = (routePath: string, indexes: AppIndexes) => (
+	routeSurfaceNetworkParamName(routePath, indexes) != null
+)
+
+const routeSurfaceFacetsKey = (surface: NonNullable<RouteFile['surface']>) => (
+	(surface.requiredFacets ?? []).join('\0')
+)
+
+const routeSurfaceOwnedByAncestor = (routePath: string, routeFile: RouteFile, indexes: AppIndexes) => {
+	if (routeFile.surface == null)
+		return false
+
+	const href = routePathPublicId(routePath)
+	const surfaceFacetsKey = routeSurfaceFacetsKey(routeFile.surface)
+	return indexes.routeEntries.some((entry) => {
+		const entryHref = publicRouteId(entry.routePath)
+		return (
+			entryHref !== href
+			&& href.startsWith(`${entryHref}/`)
+			&& entry.files.some((file) => (
+				file.kind === _RouteFileKind.PageModule
+				&& file.surface != null
+				&& file.surfaceInherited !== true
+				&& routeSurfaceFacetsKey(file.surface) === surfaceFacetsKey
+			))
+		)
+	})
+}
+
+const routeSurfacePredicateExpression = (predicate: _AppFacetPredicate, entityExpression: string): string => (
+	'all' in predicate ?
+		`(${predicate.all.map((child) => routeSurfacePredicateExpression(child, entityExpression)).join(' && ')})`
+	: 'any' in predicate ?
+		`(${predicate.any.map((child) => routeSurfacePredicateExpression(child, entityExpression)).join(' || ')})`
+	: 'equals' in predicate ?
+		`${fieldExpression(entityExpression, predicate.field)} === ${renderLiteral(predicate.equals)}`
+	:
+		`${fieldExpression(entityExpression, predicate.field)}.includes(${renderLiteral(predicate.contains)})`
+)
+
+const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: AppIndexes) => {
+	const routeSurfaceMetadata = routeFile.surface == null ? undefined : indexes.routeFixtureMetadataByRouteId.get(routePathPublicId(routePath))
+	const routeSurfaceParamNames = routeParamNames(routePathPublicId(routePath))
+	const routeSurfaceNetworkParam = routeSurfaceNetworkParamName(routePath, indexes)
+	if (
+		routeSurfaceMetadata?.requiredFacetPredicates != null
+		&& routeSurfaceMetadata.requiredFacetPredicates.length > 0
+		&& routeSurfaceNetworkParam == null
+	)
+		throw new Error(`${routePath} route surface requires facets but has no networkSlug or caip2 route param`)
+
+	if (routeFile.load == null && routeSurfaceNetworkParam == null)
+		throw new Error(`${routePath} page module has no load data or route surface network context`)
+
+	const loadExpression = routeFile.load == null ?
+		undefined
+	:
+		{
 		kind: 'object',
 		fields: [
 			...(routeFile.load.selectorFields == null ? [] : [{
@@ -5605,9 +6545,20 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 			}]),
 		],
 	} satisfies _Expression
-	const imports = expressionImports(loadExpression)
+	const imports = loadExpression == null ? new Map<string, Set<string>>() : expressionImports(loadExpression)
 	const loadType = routePath.endsWith('+layout.ts') ? 'LayoutLoad' : 'PageLoad'
-	const fieldsExpression = routeFile.load.selectorFields == null ?
+	const fieldsExpression = routeFile.load == null ?
+		routeSurfaceNetworkParam === 'networkSlug' ?
+			renderObject([
+				['slug', 'params.networkSlug'],
+			])
+		: routeSurfaceNetworkParam === 'caip2' ?
+			renderObject([
+				['caip2', 'caip2SelectorValueFromString(decodeURIComponent(params.caip2))'],
+			])
+		:
+			undefined
+	: routeFile.load.selectorFields == null ?
 		renderObject((routeFile.load.fields ?? []).map((field) => [
 			field.field,
 			renderExpression(field.value, {
@@ -5618,19 +6569,64 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 		renderExpression(routeFile.load.selectorFields, {
 			params: 'params',
 		})
-	const entitySchemaName = `${routeFile.load.entity}Schema`
-	const selectorName = `${camel(routeFile.load.entity)}Selector`
+	const loadEntity = routeFile.load?.entity ?? (routeSurfaceNetworkParam == null ? undefined : EntityType.Network)
+	const entitySchemaName = loadEntity == null ? undefined : `${loadEntity}Schema`
+	const selectorName = loadEntity == null ? undefined : `${camel(loadEntity)}Selector`
+	const routeSurfaceNetworkExpression = (
+		routeSurfaceNetworkParam === 'networkSlug' ?
+			'networkBySlug[params.networkSlug]'
+		: routeSurfaceNetworkParam === 'caip2' ?
+			'networkByCaip2[decodeURIComponent(params.caip2)]'
+		:
+			undefined
+	)
+	const routeSurfaceGuardExpression = (
+		routeSurfaceNetworkExpression == null
+		|| routeSurfaceMetadata?.requiredFacetPredicates == null
+		|| routeSurfaceMetadata.requiredFacetPredicates.length === 0 ?
+			undefined
+		:
+			routeSurfaceMetadata.requiredFacetPredicates
+			.map((predicate) => routeSurfacePredicateExpression(predicate, 'routeSurfaceNetwork'))
+			.join(' && ')
+	)
+	const guardedFieldsExpression = (
+		fieldsExpression == null || routeSurfaceNetworkExpression == null ?
+			fieldsExpression
+		:
+			fieldsExpression.replaceAll(routeSurfaceNetworkExpression, 'routeSurfaceNetwork')
+	)
+	if (loadEntity == null || guardedFieldsExpression == null || selectorName == null || entitySchemaName == null)
+		throw new Error(`${routePath} page module has no selector parsing responsibility`)
+
 	const returnEntries: [string, string | undefined][] = [
 		['selector', selectorName],
 		[
+			'routeContextSelector',
+			routeFile.load == null && routeSurfaceNetworkParam === 'caip2' && selectorName != null ?
+				renderObject([
+					['$network', selectorName],
+				])
+			:
+				undefined,
+		],
+		[
 			'title',
-			routeFile.load.title == null ?
-				undefined
+			routeFile.load?.title == null ?
+				routeFile.load == null && routeSurfaceNetworkExpression != null ?
+					'routeSurfaceNetwork.name'
+				:
+					undefined
+			: routeSurfaceNetworkExpression == null ?
+				renderExpression(routeFile.load.title, {
+					params: 'params',
+					fields: selectorName,
+				})
 			:
 				renderExpression(routeFile.load.title, {
 					params: 'params',
 					fields: selectorName,
-				}),
+				}).replaceAll(routeSurfaceNetworkExpression, 'routeSurfaceNetwork'),
 		],
 	]
 
@@ -5642,39 +6638,60 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 					from: '@sveltejs/kit',
 					names: ['error'],
 				},
-				{
+				...(routeSurfaceNetworkExpression == null ? [] : [
+					{
+						from: '$/constants/Network.ts',
+						names: routeSurfaceNetworkParam === 'networkSlug' ? ['networkBySlug'] : ['networkByCaip2'],
+					},
+				]),
+				...(routeFile.load == null && routeSurfaceNetworkParam === 'caip2' ? [{
+					from: '$/lib/caip2.ts',
+					names: ['caip2SelectorValueFromString'],
+				}] : []),
+				...(loadEntity == null ? [] : [{
 					from: 'arktype',
 					names: ['type as arktype'],
-				},
+				}]),
 				...Array.from(imports).map(([from, names]) => ({
 					from,
 					names: [...names],
 				})),
-				{
+				...(loadEntity == null ? [] : [{
 					from: '$/schema/$schema.ts',
 					names: ['parseEntitySelector'],
 				},
 				{
-					from: schemaModulePath(routeFile.load.entity),
+					from: schemaModulePath(loadEntity),
 					defaultName: entitySchemaName,
 				},
 				{
 					from: '$/schema/index.ts',
 					names: ['schema'],
-				},
+				}]),
 				{
 					from: './$types',
 					typeNames: [loadType],
 				},
 			],
 			body: [
+				...(routeFile.surface == null ? [] : [
+					`// Route surface eligibility: requiredFacets=[${(routeFile.surface.requiredFacets ?? []).map((facet) => q(facet)).join(', ')}]`,
+				]),
 				`export const load: ${loadType} = ({ params }) => {`,
+				...(routeSurfaceNetworkExpression == null ? [] : [
+					`\tconst routeSurfaceNetwork = ${routeSurfaceNetworkExpression}`,
+					`\tif (routeSurfaceNetwork == null) error(404, 'Network route surface not found')`,
+					...(routeSurfaceGuardExpression == null ? [] : [
+						`\tif (!(${routeSurfaceGuardExpression})) error(404, 'Network facet not available')`,
+					]),
+					'',
+				]),
 				`\tconst ${selectorName} = parseEntitySelector(`,
 				'\t\tschema,',
 				`\t\t${entitySchemaName},`,
-				indent(fieldsExpression, 2),
+				indent(guardedFieldsExpression, 2),
 				'\t)',
-				`\tif (${selectorName} instanceof arktype.errors) error(404, ${q(`Invalid ${routeFile.load.entity} selector`)})`,
+				`\tif (${selectorName} instanceof arktype.errors) error(404, ${q(`Invalid ${loadEntity} selector`)})`,
 				'',
 				'\treturn ' + indent(renderObject(returnEntries)).trimStart(),
 				'}',
@@ -5683,7 +6700,14 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 	)
 }
 
-const renderPageFile = (routePath: string, appRoutePath: string, routeFile: RouteFile, indexes: AppIndexes) => {
+const renderPageFile = (
+	routePath: string,
+	appRoutePath: string,
+	routeFile: RouteFile,
+	indexes: AppIndexes,
+	hasGeneratedPageModule = false,
+	suppressRouteSurfacePageModule = false
+) => {
 	const viewEntity = routeFile.view?.entity
 	const collectionEntity = routeFile.collection?.entity
 	const collectionEntityDefinition = collectionEntity == null ? undefined : indexes.entityByType.get(collectionEntity)
@@ -5698,12 +6722,27 @@ const renderPageFile = (routePath: string, appRoutePath: string, routeFile: Rout
 			from,
 			names: [...names],
 		}))
+	const pageModuleRequired = (
+		hasGeneratedPageModule
+		|| (
+			!suppressRouteSurfacePageModule
+			&& routeNeedsPageModule(routePath.replace(/\+page\.svelte$/, '+page.ts'), routeFile, indexes)
+		)
+	)
+	const inlineSelectorExpression = pageModuleRequired ?
+		undefined
+	:
+		routeLoadSelectorExpression(routeFile, {
+			params: 'params',
+		})
 	const componentImports = unique([
 		...(component == null || componentFile == null ? [] : [`import ${component} from '${viewModulePath(componentFile)}'`]),
 		...(collectionComponent == null || collectionComponentFile == null ? [] : [`import ${collectionComponent} from '${viewModulePath(collectionComponentFile)}'`]),
 	])
 	const title = routeFile.text?.title ?? routeFile.text?.label ?? (viewEntity == null ? collectionEntity == null ? 'Blockhead' : indexes.entityByType.get(collectionEntity)?.labelPlural : indexes.entityByType.get(viewEntity)?.label)
 	const collectionQuery = routeFile.collection == null ? undefined : renderQuery(routeFile.collection.query, [])
+	const viewEntityDefinition = viewEntity == null ? undefined : indexes.entityByType.get(viewEntity)
+	const viewSelectionQuery = renderQuery(viewEntityDefinition == null ? undefined : entitySingularView(viewEntityDefinition)?.query, [])
 	const collectionHref = routeFile.collection == null ?
 		undefined
 	:
@@ -5714,13 +6753,13 @@ const renderPageFile = (routePath: string, appRoutePath: string, routeFile: Rout
 		|| routeParamNames(routeId(appRoutePath)).length > 0
 	)
 	const usesData = (
-		routeFile.load != null
-		|| routeFile.view?.entity != null
+		pageModuleRequired
 		|| expressionUsesKind(routeFile.collection?.source.selector, 'pageSelector')
 	)
 	const viewContentUsesParams = routeFile.view?.Content?.raw.includes('params') === true
-	const hasPageProps = usesData || collectionUsesParams || viewContentUsesParams
-	const selectorExpression = 'data.selector'
+	const selectorUsesParams = inlineSelectorExpression?.includes('params.') === true
+	const hasPageProps = usesData || collectionUsesParams || viewContentUsesParams || selectorUsesParams
+	const selectorExpression = inlineSelectorExpression ?? 'data.selector'
 	const routeFileUsesResolve = routeFile.view?.Content == null && (component != null && routeFile.view?.entity != null || routeFile.collection != null && collectionComponent != null)
 	const collectionSourceEntityDefinition = routeFile.collection == null ? undefined : indexes.entityByType.get(routeFile.collection.source.entity)
 	const collectionSelectionQuery = routeFile.collection == null || collectionSourceEntityDefinition == null ? '' : renderQuery(fieldQueryForName(
@@ -5740,8 +6779,9 @@ const renderPageFile = (routePath: string, appRoutePath: string, routeFile: Rout
 				]),
 				'import { EntityType } from \'$/schema/EntityType.ts\'',
 				...collectionExpressionImports.map(renderImport),
+				...(inlineSelectorExpression == null ? [] : routeLoadSelectorImports(routeFile).map(renderImport)),
 				...renderImportObject(routeFile.view?.imports).map(renderImport),
-				...(collectionQuery?.includes('Source.') || collectionSelectionQuery.includes('Source.') ? [
+				...(collectionQuery?.includes('Source.') || collectionSelectionQuery.includes('Source.') || viewSelectionQuery?.includes('Source.') ? [
 					'import { Source } from \'$/sources/Source.ts\'',
 				] : []),
 				'',
@@ -6120,8 +7160,8 @@ const sourceDefinitionModuleFromText = (
 	return undefined
 }
 
-const checkedInSourceProviderModules = async (app: App): Promise<CheckedInSourceProviderModule[]> => {
-	if (app.sources.includeCheckedInSourceProviderModules !== true)
+const checkedInSourceProviderModules = async (normalizedApp: App): Promise<CheckedInSourceProviderModule[]> => {
+	if (normalizedApp.sources.includeCheckedInSourceProviderModules !== true)
 		return []
 
 	const modules: CheckedInSourceProviderModule[] = []
@@ -6148,7 +7188,7 @@ const checkedInSourceProviderModules = async (app: App): Promise<CheckedInSource
 	}
 
 	await walk(path.join(generatedRoot, 'sources'))
-	return modules.filter((module) => !app.sources.providers.some((provider) => provider.provider === module.provider))
+	return modules.filter((module) => !normalizedApp.sources.providers.some((provider) => provider.provider === module.provider))
 }
 
 const sourceDefinitionModulePath = (
@@ -6467,23 +7507,43 @@ const cleanFiles = async (files: readonly GeneratedFile[]) => {
 	await removeEmptyRouteDirectories()
 }
 
+const checkGeneratedViewImportsResolve = async (files: readonly GeneratedFile[]) => {
+	const expected = new Set(files.map((generatedFile) => generatedFile.path))
+	const missing: string[] = []
+	for (const generatedFile of files) {
+		if (generatedFile.kind === 'text')
+			continue
+
+		const source = renderGeneratedFile(generatedFile)
+		for (const match of source.matchAll(/from ['"]\$\/views\/([^'"]+\.svelte)['"]/g)) {
+			const targetPath = `src/views/${match[1]}`
+			if (!expected.has(targetPath) && await readText(path.join(repoRoot, targetPath)) == null)
+				missing.push(`${generatedFile.path} imports missing ${targetPath}`)
+		}
+	}
+	if (missing.length > 0)
+		throw new Error(`Generated view imports do not resolve:\n${missing.join('\n')}`)
+}
+
 const main = async () => {
 	const command = process.argv[2] ?? 'check'
-	const checkedInSourceProviderModuleDefinitions = await checkedInSourceProviderModules(app)
+	const normalizedApp = normalizeApp(app)
+	const checkedInSourceProviderModuleDefinitions = await checkedInSourceProviderModules(normalizedApp)
 	const sourceDefinitionModuleDefinitions = await sourceDefinitionModules(sourceRows(
-		app,
+		normalizedApp,
 		checkedInSourceProviderModuleDefinitions
 	))
 	const indexes = validateAndIndex(
-		app,
+		normalizedApp,
 		checkedInSourceProviderModuleDefinitions
 	)
 	const files = deriveFiles(
-		app,
+		normalizedApp,
 		indexes,
 		checkedInSourceProviderModuleDefinitions,
 		sourceDefinitionModuleDefinitions
 	)
+	await checkGeneratedViewImportsResolve(files)
 
 	if (command === 'check') {
 		await checkFiles(files)

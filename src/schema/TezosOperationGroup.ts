@@ -71,7 +71,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$operations',
+			name: '$$operations',
 			label: 'operations',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosOperation,

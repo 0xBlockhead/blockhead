@@ -128,7 +128,7 @@
 				<dt>mint quote</dt>
 				<dd>
 					<BlockheadCashuMintQuoteView
-						selection={select(EntityType.BlockheadCashuMintQuote, selection.entitySelector.$mintQuote)}
+						selection={select(EntityType.BlockheadCashuMintQuote, selection.entitySelector.$mintQuote, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

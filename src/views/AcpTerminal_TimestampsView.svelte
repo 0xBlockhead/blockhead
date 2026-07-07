@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpTerminalTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpTerminal_Timestamp> })}
 					{@const acpTerminalTimestampFields = { ...acpTerminalTimestamp[EntityMetaKey.Selector], ...acpTerminalTimestamp }}
 					<AcpTerminal_TimestampView
-						selection={select(EntityType.AcpTerminal_Timestamp, acpTerminalTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpTerminal_Timestamp, acpTerminalTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpTerminalTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

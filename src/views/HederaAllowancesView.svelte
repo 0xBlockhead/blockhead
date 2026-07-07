@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaAllowance }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaAllowance> })}
 					{@const hederaAllowanceFields = { ...hederaAllowance[EntityMetaKey.Selector], ...hederaAllowance }}
 					<HederaAllowanceView
-						selection={select(EntityType.HederaAllowance, hederaAllowance[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaAllowance, hederaAllowance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaAllowanceFields}
 						layout={EntityLayout.Summary}
 						open={false}

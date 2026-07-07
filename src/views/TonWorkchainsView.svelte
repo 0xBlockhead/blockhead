@@ -106,7 +106,7 @@
 				{#snippet Item({ item: tonWorkchain }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.TonWorkchain> })}
 					{@const tonWorkchainFields = { ...tonWorkchain[EntityMetaKey.Selector], ...tonWorkchain }}
 					<TonWorkchainView
-						selection={select(EntityType.TonWorkchain, tonWorkchain[EntityMetaKey.Selector])}
+						selection={select(EntityType.TonWorkchain, tonWorkchain[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={tonWorkchainFields}
 						layout={EntityLayout.Summary}
 						open={false}

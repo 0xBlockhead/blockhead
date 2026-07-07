@@ -13,6 +13,7 @@ import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { Source } from '$/sources/Source.ts'
 import { ZcashShieldedPoolSelector } from '$/schema/ZcashShieldedPool.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { UtxoTransactionSelector } from '$/schema/UtxoTransaction.ts'
 import { ZcashShieldedActionSelector } from '$/schema/ZcashShieldedAction.ts'
 
@@ -139,6 +140,29 @@ export default {
 				noteProtocol: (snapshot) => snapshot.noteProtocol,
 			},
 		}),
+
+		defineResolver(Source.Zcashd_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertZcashMainnet(network)
+					return [
+						ZcashShieldedPoolKind.Sapling,
+						ZcashShieldedPoolKind.Orchard,
+					].map((pool) => ({
+						[EntityMetaKey.Selector]: {
+							$network: network,
+							pool,
+						},
+					}))
+				}
+			},
+		})({
+			fields: {
+				$$zcashShieldedPools: (pools) => pools,
+			},
+		}),
+
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
 			resolve: {

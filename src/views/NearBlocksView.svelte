@@ -120,7 +120,7 @@
 				{#snippet Item({ item: nearBlock }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearBlock> })}
 					{@const nearBlockFields = { ...nearBlock[EntityMetaKey.Selector], ...nearBlock }}
 					<NearBlockView
-						selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearBlock, nearBlock[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearBlockFields}
 						layout={EntityLayout.Summary}
 						open={false}

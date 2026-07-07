@@ -113,7 +113,7 @@
 				{#snippet Item({ item: ensReverseRecord }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.EnsReverseRecord> })}
 					{@const ensReverseRecordFields = { ...ensReverseRecord[EntityMetaKey.Selector], ...ensReverseRecord }}
 					<EnsReverseRecordView
-						selection={select(EntityType.EnsReverseRecord, ensReverseRecord[EntityMetaKey.Selector])}
+						selection={select(EntityType.EnsReverseRecord, ensReverseRecord[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ensReverseRecordFields}
 						layout={EntityLayout.Summary}
 						open={false}

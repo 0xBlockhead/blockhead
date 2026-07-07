@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -24,11 +24,6 @@
 </script>
 
 
-<svelte:head>
-	<title>EVM error • Blockhead</title>
-</svelte:head>
-
-
 <Page>
 	<EvmErrorView
 		href={
@@ -37,7 +32,12 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmError, data.selector, {
+			select(EntityType.EvmError, {
+				hex: decodeURIComponent(params.hex),
+			}, {
+				sources: [
+					Source.Openchain_Rest,
+				],
 				fields: {
 					signatures: true,
 				},

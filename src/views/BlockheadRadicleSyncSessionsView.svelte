@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadRadicleSyncSession }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadRadicleSyncSession> })}
 					{@const blockheadRadicleSyncSessionFields = { ...blockheadRadicleSyncSession[EntityMetaKey.Selector], ...blockheadRadicleSyncSession }}
 					<BlockheadRadicleSyncSessionView
-						selection={select(EntityType.BlockheadRadicleSyncSession, blockheadRadicleSyncSession[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadRadicleSyncSession, blockheadRadicleSyncSession[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadRadicleSyncSessionFields}
 						layout={EntityLayout.Summary}
 						open={false}

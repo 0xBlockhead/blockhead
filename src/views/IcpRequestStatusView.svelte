@@ -82,7 +82,7 @@
 				<dt>network</dt>
 				<dd>
 					<IcpNetworkView
-						selection={select(EntityType.IcpNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.IcpNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

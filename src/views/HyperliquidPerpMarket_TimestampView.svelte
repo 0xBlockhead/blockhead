@@ -81,7 +81,7 @@
 				<dt>perp market</dt>
 				<dd>
 					<HyperliquidPerpMarketView
-						selection={select(EntityType.HyperliquidPerpMarket, selection.entitySelector.$perpMarket)}
+						selection={select(EntityType.HyperliquidPerpMarket, selection.entitySelector.$perpMarket, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

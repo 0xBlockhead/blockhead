@@ -133,7 +133,7 @@
 				<dt>credential</dt>
 				<dd>
 					<BlockheadAgentCredentialStateView
-						selection={select(EntityType.BlockheadAgentCredentialState, selection.entitySelector.$credential)}
+						selection={select(EntityType.BlockheadAgentCredentialState, selection.entitySelector.$credential, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

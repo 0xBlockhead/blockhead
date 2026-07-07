@@ -84,7 +84,7 @@
 				<dt>network</dt>
 				<dd>
 					<KaspaNetworkView
-						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network)}
+						selection={select(EntityType.KaspaNetwork, selection.entitySelector.$network, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

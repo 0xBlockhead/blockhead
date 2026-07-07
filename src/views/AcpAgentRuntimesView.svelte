@@ -114,7 +114,7 @@
 				{#snippet Item({ item: acpAgentRuntime }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AcpAgentRuntime> })}
 					{@const acpAgentRuntimeFields = { ...acpAgentRuntime[EntityMetaKey.Selector], ...acpAgentRuntime }}
 					<AcpAgentRuntimeView
-						selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector])}
+						selection={select(EntityType.AcpAgentRuntime, acpAgentRuntime[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={acpAgentRuntimeFields}
 						layout={EntityLayout.Summary}
 						open={false}

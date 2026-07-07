@@ -114,7 +114,7 @@
 				{#snippet Item({ item: moneroStealthOutput }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.MoneroStealthOutput> })}
 					{@const moneroStealthOutputFields = { ...moneroStealthOutput[EntityMetaKey.Selector], ...moneroStealthOutput }}
 					<MoneroStealthOutputView
-						selection={select(EntityType.MoneroStealthOutput, moneroStealthOutput[EntityMetaKey.Selector])}
+						selection={select(EntityType.MoneroStealthOutput, moneroStealthOutput[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={moneroStealthOutputFields}
 						layout={EntityLayout.Summary}
 						open={false}

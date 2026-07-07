@@ -112,7 +112,7 @@
 				{#snippet Item({ item: lensNetwork }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.LensNetwork> })}
 					{@const lensNetworkFields = { ...lensNetwork[EntityMetaKey.Selector], ...lensNetwork }}
 					<LensNetworkView
-						selection={select(EntityType.LensNetwork, lensNetwork[EntityMetaKey.Selector])}
+						selection={select(EntityType.LensNetwork, lensNetwork[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={lensNetworkFields}
 						layout={EntityLayout.Summary}
 						open={false}

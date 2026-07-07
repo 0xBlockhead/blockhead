@@ -112,7 +112,7 @@
 				{#snippet Item({ item: blockheadPanelTree }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadPanelTree> })}
 					{@const blockheadPanelTreeFields = { ...blockheadPanelTree[EntityMetaKey.Selector], ...blockheadPanelTree }}
 					<BlockheadPanelTreeView
-						selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadPanelTree, blockheadPanelTree[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadPanelTreeFields}
 						layout={EntityLayout.Summary}
 						open={false}

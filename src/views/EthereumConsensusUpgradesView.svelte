@@ -117,7 +117,7 @@
 					{@const ethereumConsensusUpgradeFields = { ...ethereumConsensusUpgrade[EntityMetaKey.Selector], ...ethereumConsensusUpgrade }}
 					{@const ethereumConsensusUpgradeHrefFields = { ...ethereumConsensusUpgrade, ...ethereumConsensusUpgrade[EntityMetaKey.Selector] }}
 					<EthereumConsensusUpgradeView
-						selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector])}
+						selection={select(EntityType.EthereumConsensusUpgrade, ethereumConsensusUpgrade[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ethereumConsensusUpgradeFields}
 						href={
 							(ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2 !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2.namespace !== undefined && ethereumConsensusUpgradeHrefFields.$network !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2 !== undefined && ethereumConsensusUpgradeHrefFields.$network.caip2.reference !== undefined && ethereumConsensusUpgradeHrefFields.slug !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/(upgrades)/consensus/[upgradeSlug]', {

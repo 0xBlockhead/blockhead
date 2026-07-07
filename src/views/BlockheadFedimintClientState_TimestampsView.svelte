@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadFedimintClientStateTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadFedimintClientState_Timestamp> })}
 					{@const blockheadFedimintClientStateTimestampFields = { ...blockheadFedimintClientStateTimestamp[EntityMetaKey.Selector], ...blockheadFedimintClientStateTimestamp }}
 					<BlockheadFedimintClientState_TimestampView
-						selection={select(EntityType.BlockheadFedimintClientState_Timestamp, blockheadFedimintClientStateTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadFedimintClientState_Timestamp, blockheadFedimintClientStateTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadFedimintClientStateTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

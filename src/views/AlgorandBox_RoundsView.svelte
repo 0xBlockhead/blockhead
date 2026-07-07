@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandBoxRound }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandBox_Round> })}
 					{@const algorandBoxRoundFields = { ...algorandBoxRound[EntityMetaKey.Selector], ...algorandBoxRound }}
 					<AlgorandBox_RoundView
-						selection={select(EntityType.AlgorandBox_Round, algorandBoxRound[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandBox_Round, algorandBoxRound[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandBoxRoundFields}
 						layout={EntityLayout.Summary}
 						open={false}

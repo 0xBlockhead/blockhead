@@ -106,7 +106,7 @@
 				{#snippet Item({ item: algorandRound }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AlgorandRound> })}
 					{@const algorandRoundFields = { ...algorandRound[EntityMetaKey.Selector], ...algorandRound }}
 					<AlgorandRoundView
-						selection={select(EntityType.AlgorandRound, algorandRound[EntityMetaKey.Selector])}
+						selection={select(EntityType.AlgorandRound, algorandRound[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={algorandRoundFields}
 						layout={EntityLayout.Summary}
 						open={false}

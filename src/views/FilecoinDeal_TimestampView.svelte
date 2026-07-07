@@ -131,7 +131,7 @@
 				<dt>Deal</dt>
 				<dd>
 					<FilecoinDealView
-						selection={select(EntityType.FilecoinDeal, selection.entitySelector.$deal)}
+						selection={select(EntityType.FilecoinDeal, selection.entitySelector.$deal, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

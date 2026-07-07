@@ -114,7 +114,7 @@
 				{#snippet Item({ item: aptosCoinBalanceTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.AptosCoinBalance_Timestamp> })}
 					{@const aptosCoinBalanceTimestampFields = { ...aptosCoinBalanceTimestamp[EntityMetaKey.Selector], ...aptosCoinBalanceTimestamp }}
 					<AptosCoinBalance_TimestampView
-						selection={select(EntityType.AptosCoinBalance_Timestamp, aptosCoinBalanceTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.AptosCoinBalance_Timestamp, aptosCoinBalanceTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={aptosCoinBalanceTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

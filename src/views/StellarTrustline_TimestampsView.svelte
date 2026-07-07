@@ -106,7 +106,7 @@
 				{#snippet Item({ item: stellarTrustlineTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StellarTrustline_Timestamp> })}
 					{@const stellarTrustlineTimestampFields = { ...stellarTrustlineTimestamp[EntityMetaKey.Selector], ...stellarTrustlineTimestamp }}
 					<StellarTrustline_TimestampView
-						selection={select(EntityType.StellarTrustline_Timestamp, stellarTrustlineTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.StellarTrustline_Timestamp, stellarTrustlineTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={stellarTrustlineTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

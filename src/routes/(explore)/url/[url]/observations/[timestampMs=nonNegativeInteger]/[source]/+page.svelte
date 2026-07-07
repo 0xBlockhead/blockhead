@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import UrlPreview_TimestampView from '$/views/UrlPreview_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>URL preview timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,8 +33,20 @@
 			})
 		}
 		selection={
-			select(EntityType.UrlPreview_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.UrlPreview_Timestamp, {
+				$url: {
+					url: decodeURIComponent(params.url),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$url: {
+					url: decodeURIComponent(params.url),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					$image: true,
 					title: true,

@@ -115,7 +115,7 @@
 				{#snippet Item({ item: arweaveTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ArweaveTransaction> })}
 					{@const arweaveTransactionFields = { ...arweaveTransaction[EntityMetaKey.Selector], ...arweaveTransaction }}
 					<ArweaveTransactionView
-						selection={select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.ArweaveTransaction, arweaveTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={arweaveTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

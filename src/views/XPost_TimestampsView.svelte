@@ -115,7 +115,7 @@
 					{@const xPostTimestampFields = { ...xPostTimestamp[EntityMetaKey.Selector], ...xPostTimestamp }}
 					{@const xPostTimestampHrefFields = { ...xPostTimestamp, ...xPostTimestamp[EntityMetaKey.Selector] }}
 					<XPost_TimestampView
-						selection={select(EntityType.XPost_Timestamp, xPostTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.XPost_Timestamp, xPostTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={xPostTimestampFields}
 						href={
 							(xPostTimestampHrefFields.$post !== undefined && xPostTimestampHrefFields.$post.id !== undefined && xPostTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(x)/x/post/[postId]/observations/[timestampMs=nonNegativeInteger]', {

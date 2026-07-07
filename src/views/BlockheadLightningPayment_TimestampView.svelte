@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -108,7 +109,7 @@
 				<dt>Payment</dt>
 				<dd>
 					<BlockheadLightningPaymentView
-						selection={select(EntityType.BlockheadLightningPayment, selection.entitySelector.$payment)}
+						selection={select(EntityType.BlockheadLightningPayment, selection.entitySelector.$payment, {})}
 						href={
 							(selection.entitySelector.$payment.$network !== undefined && selection.entitySelector.$payment.$network.slug !== undefined && selection.entitySelector.$payment.paymentHash !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/payments/[paymentHash]', {
 								networkSlug: String(selection.entitySelector.$payment.$network.slug ?? ''),

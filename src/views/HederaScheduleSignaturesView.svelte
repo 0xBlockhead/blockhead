@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hederaScheduleSignature }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HederaScheduleSignature> })}
 					{@const hederaScheduleSignatureFields = { ...hederaScheduleSignature[EntityMetaKey.Selector], ...hederaScheduleSignature }}
 					<HederaScheduleSignatureView
-						selection={select(EntityType.HederaScheduleSignature, hederaScheduleSignature[EntityMetaKey.Selector])}
+						selection={select(EntityType.HederaScheduleSignature, hederaScheduleSignature[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hederaScheduleSignatureFields}
 						layout={EntityLayout.Summary}
 						open={false}

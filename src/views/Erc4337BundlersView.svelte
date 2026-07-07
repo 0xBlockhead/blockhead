@@ -115,7 +115,7 @@
 					{@const erc4337BundlerFields = { ...erc4337Bundler[EntityMetaKey.Selector], ...erc4337Bundler }}
 					{@const erc4337BundlerHrefFields = { ...erc4337Bundler, ...erc4337Bundler[EntityMetaKey.Selector] }}
 					<Erc4337BundlerView
-						selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector])}
+						selection={select(EntityType.Erc4337Bundler, erc4337Bundler[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={erc4337BundlerFields}
 						href={
 							(erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.caip2 !== undefined && erc4337BundlerHrefFields.$network.caip2.namespace !== undefined && erc4337BundlerHrefFields.$network !== undefined && erc4337BundlerHrefFields.$network.caip2 !== undefined && erc4337BundlerHrefFields.$network.caip2.reference !== undefined && erc4337BundlerHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/erc-4337/bundler/[address=evmAddress]', {

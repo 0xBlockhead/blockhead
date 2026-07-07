@@ -116,14 +116,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$operationGroups',
+			name: '$$operationGroups',
 			label: 'operation groups',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosOperationGroup,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$operations',
+			name: '$$operations',
 			label: 'operations',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosOperation,

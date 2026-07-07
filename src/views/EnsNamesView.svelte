@@ -114,7 +114,7 @@
 					{@const ensNameFields = { ...ensName[EntityMetaKey.Selector], ...ensName }}
 					{@const ensNameHrefFields = { ...ensName, ...ensName[EntityMetaKey.Selector] }}
 					<EnsNameView
-						selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector])}
+						selection={select(EntityType.EnsName, ensName[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ensNameFields}
 						href={
 							(ensNameHrefFields.name !== undefined ? resolve('/(explore)/(ens)/ens/name/[ensName]', {

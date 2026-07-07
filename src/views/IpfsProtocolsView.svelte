@@ -113,7 +113,7 @@
 				{#snippet Item({ item: ipfsProtocol }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.IpfsProtocol> })}
 					{@const ipfsProtocolFields = { ...ipfsProtocol[EntityMetaKey.Selector], ...ipfsProtocol }}
 					<IpfsProtocolView
-						selection={select(EntityType.IpfsProtocol, ipfsProtocol[EntityMetaKey.Selector])}
+						selection={select(EntityType.IpfsProtocol, ipfsProtocol[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={ipfsProtocolFields}
 						layout={EntityLayout.Summary}
 						open={false}

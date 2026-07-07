@@ -113,7 +113,7 @@
 				{#snippet Item({ item: globalEvmAbiCatalogTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType._GlobalEvmAbiCatalog_Timestamp> })}
 					{@const globalEvmAbiCatalogTimestampFields = { ...globalEvmAbiCatalogTimestamp[EntityMetaKey.Selector], ...globalEvmAbiCatalogTimestamp }}
 					<GlobalEvmAbiCatalog_TimestampView
-						selection={select(EntityType._GlobalEvmAbiCatalog_Timestamp, globalEvmAbiCatalogTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType._GlobalEvmAbiCatalog_Timestamp, globalEvmAbiCatalogTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={globalEvmAbiCatalogTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

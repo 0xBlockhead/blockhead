@@ -114,7 +114,7 @@
 				{#snippet Item({ item: quilibriumShard }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.QuilibriumShard> })}
 					{@const quilibriumShardFields = { ...quilibriumShard[EntityMetaKey.Selector], ...quilibriumShard }}
 					<QuilibriumShardView
-						selection={select(EntityType.QuilibriumShard, quilibriumShard[EntityMetaKey.Selector])}
+						selection={select(EntityType.QuilibriumShard, quilibriumShard[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={quilibriumShardFields}
 						layout={EntityLayout.Summary}
 						open={false}

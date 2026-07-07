@@ -114,7 +114,7 @@
 				{#snippet Item({ item: quilibriumAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.QuilibriumAccount> })}
 					{@const quilibriumAccountFields = { ...quilibriumAccount[EntityMetaKey.Selector], ...quilibriumAccount }}
 					<QuilibriumAccountView
-						selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.QuilibriumAccount, quilibriumAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={quilibriumAccountFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -122,7 +122,7 @@
 				<dt>Channel</dt>
 				<dd>
 					<FarcasterChannelView
-						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel)}
+						selection={select(EntityType.FarcasterChannel, selection.entitySelector.$channel, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

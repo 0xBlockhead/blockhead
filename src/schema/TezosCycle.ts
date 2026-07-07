@@ -64,7 +64,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$bakerTimestamps',
+			name: '$$bakerTimestamps',
 			label: 'baker timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.TezosBaker_Cycle_Timestamp,

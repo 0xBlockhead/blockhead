@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
 
 	// Context
@@ -13,7 +14,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +22,6 @@
 	import Page from '$/components/Page.svelte'
 	import EvmNetwork_TimestampView from '$/views/EvmNetwork_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>EVM network timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,8 +34,20 @@
 			})
 		}
 		selection={
-			select(EntityType.EvmNetwork_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.EvmNetwork_Timestamp, {
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$network: {
+					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					blockHeight: true,
 				},

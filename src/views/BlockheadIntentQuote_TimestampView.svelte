@@ -136,7 +136,7 @@
 				<dt>quote</dt>
 				<dd>
 					<BlockheadIntentQuoteView
-						selection={select(EntityType.BlockheadIntentQuote, selection.entitySelector.$quote)}
+						selection={select(EntityType.BlockheadIntentQuote, selection.entitySelector.$quote, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

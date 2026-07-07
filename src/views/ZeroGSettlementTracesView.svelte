@@ -114,7 +114,7 @@
 				{#snippet Item({ item: zeroGSettlementTrace }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.ZeroGSettlementTrace> })}
 					{@const zeroGSettlementTraceFields = { ...zeroGSettlementTrace[EntityMetaKey.Selector], ...zeroGSettlementTrace }}
 					<ZeroGSettlementTraceView
-						selection={select(EntityType.ZeroGSettlementTrace, zeroGSettlementTrace[EntityMetaKey.Selector])}
+						selection={select(EntityType.ZeroGSettlementTrace, zeroGSettlementTrace[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={zeroGSettlementTraceFields}
 						layout={EntityLayout.Summary}
 						open={false}

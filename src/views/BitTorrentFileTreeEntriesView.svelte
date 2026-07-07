@@ -113,7 +113,7 @@
 				{#snippet Item({ item: bitTorrentFileTreeEntry }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BitTorrentFileTreeEntry> })}
 					{@const bitTorrentFileTreeEntryFields = { ...bitTorrentFileTreeEntry[EntityMetaKey.Selector], ...bitTorrentFileTreeEntry }}
 					<BitTorrentFileTreeEntryView
-						selection={select(EntityType.BitTorrentFileTreeEntry, bitTorrentFileTreeEntry[EntityMetaKey.Selector])}
+						selection={select(EntityType.BitTorrentFileTreeEntry, bitTorrentFileTreeEntry[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={bitTorrentFileTreeEntryFields}
 						layout={EntityLayout.Summary}
 						open={false}

@@ -13,7 +13,6 @@
 
 	// State
 	let {
-		data,
 		params,
 	}: PageProps = $props()
 
@@ -22,11 +21,6 @@
 	import Page from '$/components/Page.svelte'
 	import RedditSubreddit_TimestampView from '$/views/RedditSubreddit_TimestampView.svelte'
 </script>
-
-
-<svelte:head>
-	<title>Reddit subreddit timestamp • Blockhead</title>
-</svelte:head>
 
 
 <Page>
@@ -39,8 +33,20 @@
 			})
 		}
 		selection={
-			select(EntityType.RedditSubreddit_Timestamp, data.selector, {
-				sources: [data.selector.source],
+			select(EntityType.RedditSubreddit_Timestamp, {
+				$subreddit: {
+					name: decodeURIComponent(params.name),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}, {
+				sources: [({
+				$subreddit: {
+					name: decodeURIComponent(params.name),
+				},
+				timestampMs: Number(params.timestampMs),
+				source: decodeURIComponent(params.source),
+			}).source],
 				fields: {
 					subscriberCount: true,
 					activeUserCount: true,

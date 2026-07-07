@@ -114,7 +114,7 @@
 				{#snippet Item({ item: starknetTransaction }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.StarknetTransaction> })}
 					{@const starknetTransactionFields = { ...starknetTransaction[EntityMetaKey.Selector], ...starknetTransaction }}
 					<StarknetTransactionView
-						selection={select(EntityType.StarknetTransaction, starknetTransaction[EntityMetaKey.Selector])}
+						selection={select(EntityType.StarknetTransaction, starknetTransaction[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={starknetTransactionFields}
 						layout={EntityLayout.Summary}
 						open={false}

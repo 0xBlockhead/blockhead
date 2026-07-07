@@ -114,7 +114,7 @@
 				{#snippet Item({ item: blockheadTransferIntent }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.BlockheadTransferIntent> })}
 					{@const blockheadTransferIntentFields = { ...blockheadTransferIntent[EntityMetaKey.Selector], ...blockheadTransferIntent }}
 					<BlockheadTransferIntentView
-						selection={select(EntityType.BlockheadTransferIntent, blockheadTransferIntent[EntityMetaKey.Selector])}
+						selection={select(EntityType.BlockheadTransferIntent, blockheadTransferIntent[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={blockheadTransferIntentFields}
 						layout={EntityLayout.Summary}
 						open={false}

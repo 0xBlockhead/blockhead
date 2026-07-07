@@ -114,7 +114,7 @@
 				{#snippet Item({ item: filecoinSector }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.FilecoinSector> })}
 					{@const filecoinSectorFields = { ...filecoinSector[EntityMetaKey.Selector], ...filecoinSector }}
 					<FilecoinSectorView
-						selection={select(EntityType.FilecoinSector, filecoinSector[EntityMetaKey.Selector])}
+						selection={select(EntityType.FilecoinSector, filecoinSector[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={filecoinSectorFields}
 						layout={EntityLayout.Summary}
 						open={false}

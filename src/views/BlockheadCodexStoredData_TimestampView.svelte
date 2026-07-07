@@ -132,7 +132,7 @@
 				<dt>stored data</dt>
 				<dd>
 					<BlockheadCodexStoredDataView
-						selection={select(EntityType.BlockheadCodexStoredData, selection.entitySelector.$storedData)}
+						selection={select(EntityType.BlockheadCodexStoredData, selection.entitySelector.$storedData, {})}
 						layout={EntityLayout.Value}
 						open={false}
 					/>

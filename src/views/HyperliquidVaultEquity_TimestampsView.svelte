@@ -106,7 +106,7 @@
 				{#snippet Item({ item: hyperliquidVaultEquityTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.HyperliquidVaultEquity_Timestamp> })}
 					{@const hyperliquidVaultEquityTimestampFields = { ...hyperliquidVaultEquityTimestamp[EntityMetaKey.Selector], ...hyperliquidVaultEquityTimestamp }}
 					<HyperliquidVaultEquity_TimestampView
-						selection={select(EntityType.HyperliquidVaultEquity_Timestamp, hyperliquidVaultEquityTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.HyperliquidVaultEquity_Timestamp, hyperliquidVaultEquityTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={hyperliquidVaultEquityTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

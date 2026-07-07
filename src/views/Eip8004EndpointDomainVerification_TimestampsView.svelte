@@ -114,7 +114,7 @@
 				{#snippet Item({ item: eip8004EndpointDomainVerificationTimestamp }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.Eip8004EndpointDomainVerification_Timestamp> })}
 					{@const eip8004EndpointDomainVerificationTimestampFields = { ...eip8004EndpointDomainVerificationTimestamp[EntityMetaKey.Selector], ...eip8004EndpointDomainVerificationTimestamp }}
 					<Eip8004EndpointDomainVerification_TimestampView
-						selection={select(EntityType.Eip8004EndpointDomainVerification_Timestamp, eip8004EndpointDomainVerificationTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.Eip8004EndpointDomainVerification_Timestamp, eip8004EndpointDomainVerificationTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={eip8004EndpointDomainVerificationTimestampFields}
 						layout={EntityLayout.Summary}
 						open={false}

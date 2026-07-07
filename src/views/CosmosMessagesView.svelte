@@ -116,7 +116,7 @@
 					{@const cosmosMessageFields = { ...cosmosMessage[EntityMetaKey.Selector], ...cosmosMessage }}
 					{@const cosmosMessageHrefFields = { ...cosmosMessage, ...cosmosMessage[EntityMetaKey.Selector] }}
 					<CosmosMessageView
-						selection={select(EntityType.CosmosMessage, cosmosMessage[EntityMetaKey.Selector])}
+						selection={select(EntityType.CosmosMessage, cosmosMessage[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosMessageFields}
 						href={
 							(cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.$network !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2 !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2.namespace !== undefined && cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.$network !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2 !== undefined && cosmosMessageHrefFields.$transaction.$network.caip2.reference !== undefined && cosmosMessageHrefFields.$transaction !== undefined && cosmosMessageHrefFields.$transaction.txHash !== undefined && cosmosMessageHrefFields.indexInTransaction !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/tx/[txHash]/messages/[messageIndex=nonNegativeInteger]', {

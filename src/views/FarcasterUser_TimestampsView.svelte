@@ -115,7 +115,7 @@
 					{@const farcasterUserTimestampFields = { ...farcasterUserTimestamp[EntityMetaKey.Selector], ...farcasterUserTimestamp }}
 					{@const farcasterUserTimestampHrefFields = { ...farcasterUserTimestamp, ...farcasterUserTimestamp[EntityMetaKey.Selector] }}
 					<FarcasterUser_TimestampView
-						selection={select(EntityType.FarcasterUser_Timestamp, farcasterUserTimestamp[EntityMetaKey.Selector])}
+						selection={select(EntityType.FarcasterUser_Timestamp, farcasterUserTimestamp[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={farcasterUserTimestampFields}
 						href={
 							(farcasterUserTimestampHrefFields.$user !== undefined && farcasterUserTimestampHrefFields.$user.fid !== undefined && farcasterUserTimestampHrefFields.timestampMs !== undefined ? resolve('/(social)/(farcaster)/farcaster/user/[userId=farcasterFid]/(user)/observations/[timestampMs=nonNegativeInteger]', {

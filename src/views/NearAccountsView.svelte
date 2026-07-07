@@ -119,7 +119,7 @@
 				{#snippet Item({ item: nearAccount }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.NearAccount> })}
 					{@const nearAccountFields = { ...nearAccount[EntityMetaKey.Selector], ...nearAccount }}
 					<NearAccountView
-						selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector])}
+						selection={select(EntityType.NearAccount, nearAccount[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={nearAccountFields}
 						layout={EntityLayout.Summary}
 						open={false}
