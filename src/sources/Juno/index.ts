@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { junoBindings } from '$/sources/Juno/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const junoJsonRpcSourceDefinition = {
+const junoOrigins = sourceOriginsFromBindings(junoBindings)
+
+const junoSourceProviderDefinition = {
 	provider: SourceProvider.Juno,
-	source: Source.Juno_JsonRpc,
-	label: 'Juno JSON-RPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Juno',
+	sources: [
+		{
+			provider: SourceProvider.Juno,
+			source: Source.Juno_JsonRpc,
+			label: 'Juno JSON-RPC',
+		},
+	],
+	bindings: junoBindings,
+	origins: junoOrigins,
+} satisfies SourceProviderDefinition
 
-export default junoJsonRpcSourceDefinition
+export default junoSourceProviderDefinition

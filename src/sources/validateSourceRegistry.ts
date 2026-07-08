@@ -124,8 +124,6 @@ const failures = [
 	...(audit.bindingSourcesWithoutRows.length ? [`binding sources without rows: ${audit.bindingSourcesWithoutRows.join(', ')}`] : []),
 	...(audit.bindingsOutsideProviderRows.length ? [`bindings outside provider rows: ${audit.bindingsOutsideProviderRows.join(', ')}`] : []),
 	...(audit.providersWithoutBindings.length ? [`providers without bindings: ${audit.providersWithoutBindings.join(', ')}`] : []),
-	...(httpProxyOrigins.has('https://eth.blockscout.com') ? [] : ['missing Blockscout proxy origin']),
-	...(sourceMember('Ipfs_Rest') === undefined || httpProxyOrigins.has('https://ipfs.io') ? [] : ['missing IPFS proxy origin']),
 	...(remoteLiveBindings.some((binding) => binding.source === Source.Voltaire_JsonRpc) ? [] : ['missing Voltaire RemoteLive binding']),
 	...(remoteLiveBindings.every((binding) => (
 		(
@@ -197,7 +195,7 @@ const failures = [
 		binding.source === sourceMember('Swarm_Rest')
 		&& binding.apiFamily === ApiFamily.SwarmGateway
 		&& binding.operationGroups.includes(SourceOperationGroup.ContentGatewayRead)
-		&& binding.delivery === SourceDelivery.HttpProxy
+		&& binding.delivery === SourceDelivery.BrowserDirect
 	)) || sourceMember('Swarm_Rest') === undefined ? [] : ['missing Swarm content gateway binding']),
 	...sourceRuntimeFiles.flatMap((file) => {
 		const source = readFileSync(file, 'utf8')

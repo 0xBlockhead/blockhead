@@ -44,6 +44,7 @@ export const youtubeBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: youtubePublicEnv,
 				keys: [
 					'PUBLIC_YOUTUBE_API_KEY',
 				],

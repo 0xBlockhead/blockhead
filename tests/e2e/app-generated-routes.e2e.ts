@@ -125,7 +125,6 @@ test.describe('APP-generated routes spot check', () => {
 			const issues = diagnostics.issues.filter((issue) => (
 				!issue.includes('Failed to load resource')
 				&& !issue.includes('404')
-				&& !issue.includes('failed every requested source')
 			))
 			expect(
 				issues,

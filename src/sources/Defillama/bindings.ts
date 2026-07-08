@@ -28,6 +28,7 @@ export const defillamaPublicEnv = arktype({
 const defillamaPublicCredentials = [
 	{
 		scope: SourceCredentialScope.PublicConfig,
+		env: defillamaPublicEnv,
 		keys: [
 			'PUBLIC_DEFILLAMA_PRO_API_KEY',
 		],

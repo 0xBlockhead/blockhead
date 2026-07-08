@@ -54,6 +54,7 @@ export const redditBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: redditPublicEnv,
 				keys: [
 					'PUBLIC_REDDIT_CLIENT_ID',
 					'PUBLIC_REDDIT_CLIENT_SECRET',

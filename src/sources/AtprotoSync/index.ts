@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { atprotoSyncBindings } from '$/sources/AtprotoSync/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const atprotoSyncXrpcSourceDefinition = {
+const atprotoSyncOrigins = sourceOriginsFromBindings(atprotoSyncBindings)
+
+const atprotoSyncSourceProviderDefinition = {
 	provider: SourceProvider.AtprotoSync,
-	source: Source.AtprotoSync_Xrpc,
-	label: 'AT Protocol sync XRPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'AT Protocol sync',
+	sources: [
+		{
+			provider: SourceProvider.AtprotoSync,
+			source: Source.AtprotoSync_Xrpc,
+			label: 'AT Protocol sync XRPC',
+		},
+	],
+	bindings: atprotoSyncBindings,
+	origins: atprotoSyncOrigins,
+} satisfies SourceProviderDefinition
 
-export default atprotoSyncXrpcSourceDefinition
+export default atprotoSyncSourceProviderDefinition

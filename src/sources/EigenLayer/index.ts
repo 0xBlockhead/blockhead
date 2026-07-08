@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { eigenLayerBindings } from '$/sources/EigenLayer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const eigenLayerContractsEvmSourceDefinition = {
+const eigenLayerOrigins = sourceOriginsFromBindings(eigenLayerBindings)
+
+const eigenLayerSourceProviderDefinition = {
 	provider: SourceProvider.EigenLayer,
-	source: Source.EigenLayerContracts_Evm,
-	label: 'EigenLayer contract catalog',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'EigenLayer',
+	sources: [
+		{
+			provider: SourceProvider.EigenLayer,
+			source: Source.EigenLayerContracts_Evm,
+			label: 'EigenLayer contract catalog',
+		},
+	],
+	bindings: eigenLayerBindings,
+	origins: eigenLayerOrigins,
+} satisfies SourceProviderDefinition
 
-export default eigenLayerContractsEvmSourceDefinition
+export default eigenLayerSourceProviderDefinition

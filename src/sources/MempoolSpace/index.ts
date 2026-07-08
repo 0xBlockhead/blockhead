@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { mempoolSpaceBindings } from '$/sources/MempoolSpace/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const mempoolSpaceRestSourceDefinition = {
+const mempoolSpaceOrigins = sourceOriginsFromBindings(mempoolSpaceBindings)
+
+const mempoolSpaceSourceProviderDefinition = {
 	provider: SourceProvider.MempoolSpace,
-	source: Source.MempoolSpace_Rest,
-	label: 'mempool.space REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'mempool.space',
+	sources: [
+		{
+			provider: SourceProvider.MempoolSpace,
+			source: Source.MempoolSpace_Rest,
+			label: 'mempool.space REST',
+		},
+	],
+	bindings: mempoolSpaceBindings,
+	origins: mempoolSpaceOrigins,
+} satisfies SourceProviderDefinition
 
-export default mempoolSpaceRestSourceDefinition
+export default mempoolSpaceSourceProviderDefinition

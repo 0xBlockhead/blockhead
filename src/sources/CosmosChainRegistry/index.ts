@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { cosmosChainRegistryBindings } from '$/sources/CosmosChainRegistry/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const cosmosChainRegistryGithubSourceDefinition = {
+const cosmosChainRegistryOrigins = sourceOriginsFromBindings(cosmosChainRegistryBindings)
+
+const cosmosChainRegistrySourceProviderDefinition = {
 	provider: SourceProvider.CosmosChainRegistry,
-	source: Source.CosmosChainRegistry_Github,
-	label: 'Cosmos Chain Registry name GitHub',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Cosmos Chain Registry name',
+	sources: [
+		{
+			provider: SourceProvider.CosmosChainRegistry,
+			source: Source.CosmosChainRegistry_Github,
+			label: 'Cosmos Chain Registry name GitHub',
+		},
+	],
+	bindings: cosmosChainRegistryBindings,
+	origins: cosmosChainRegistryOrigins,
+} satisfies SourceProviderDefinition
 
-export default cosmosChainRegistryGithubSourceDefinition
+export default cosmosChainRegistrySourceProviderDefinition

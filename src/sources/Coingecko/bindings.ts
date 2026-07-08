@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
@@ -12,6 +14,11 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
+export const coingeckoPublicEnv = arktype({
+	PUBLIC_COINGECKO_DEMO_API_KEY: 'string',
+	PUBLIC_COINGECKO_PRO_API_KEY: 'string',
+})
+
 const coingeckoHttpEndpoint = {
 	endpointKind: SourceEndpointKind.HttpUrl,
 	locator: 'https://api.coingecko.com/api/v3',
@@ -22,6 +29,7 @@ const coingeckoHttpEndpoint = {
 const coingeckoCredentials = [
 	{
 		scope: SourceCredentialScope.PublicConfig,
+		env: coingeckoPublicEnv,
 		keys: [
 			'PUBLIC_COINGECKO_DEMO_API_KEY',
 			'PUBLIC_COINGECKO_PRO_API_KEY',

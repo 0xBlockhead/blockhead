@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { voyagerBindings } from '$/sources/Voyager/bindings.ts'
 
-const voyagerRestSourceDefinition = {
+const voyagerOrigins = sourceOriginsFromBindings(voyagerBindings)
+
+const voyagerSourceProviderDefinition = {
 	provider: SourceProvider.Voyager,
-	source: Source.Voyager_Rest,
-	label: 'Voyager REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Voyager',
+	sources: [
+		{
+			provider: SourceProvider.Voyager,
+			source: Source.Voyager_Rest,
+			label: 'Voyager REST',
+		},
+	],
+	bindings: voyagerBindings,
+	origins: voyagerOrigins,
+} satisfies SourceProviderDefinition
 
-export default voyagerRestSourceDefinition
+export default voyagerSourceProviderDefinition

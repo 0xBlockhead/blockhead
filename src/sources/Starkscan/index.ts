@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { starkscanBindings } from '$/sources/Starkscan/bindings.ts'
 
-const starkscanRestSourceDefinition = {
+const starkscanOrigins = sourceOriginsFromBindings(starkscanBindings)
+
+const starkscanSourceProviderDefinition = {
 	provider: SourceProvider.Starkscan,
-	source: Source.Starkscan_Rest,
-	label: 'Starkscan REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Starkscan',
+	sources: [
+		{
+			provider: SourceProvider.Starkscan,
+			source: Source.Starkscan_Rest,
+			label: 'Starkscan REST',
+		},
+	],
+	bindings: starkscanBindings,
+	origins: starkscanOrigins,
+} satisfies SourceProviderDefinition
 
-export default starkscanRestSourceDefinition
+export default starkscanSourceProviderDefinition

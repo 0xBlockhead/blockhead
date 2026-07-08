@@ -27,6 +27,7 @@ const referenceFolderTestExcludes = [
 export default defineConfig({
 	resolve: {
 		alias: {
+			'$': resolve(import.meta.dirname, 'src'),
 			'bun:ffi': resolve(import.meta.dirname, 'shims/bun-ffi.js'),
 			'@tanstack/browser-db-sqlite-persistence': tanstackBrowserSqliteSrc,
 			'satteri-browser': satteriBrowserEntry,

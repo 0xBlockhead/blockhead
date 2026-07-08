@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { hyperliquidDocsBindings } from '$/sources/HyperliquidDocs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const hyperliquidDocsRestSourceDefinition = {
+const hyperliquidDocsOrigins = sourceOriginsFromBindings(hyperliquidDocsBindings)
+
+const hyperliquidDocsSourceProviderDefinition = {
 	provider: SourceProvider.HyperliquidDocs,
-	source: Source.HyperliquidDocs_Rest,
-	label: 'Hyperliquid docs REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Hyperliquid docs',
+	sources: [
+		{
+			provider: SourceProvider.HyperliquidDocs,
+			source: Source.HyperliquidDocs_Rest,
+			label: 'Hyperliquid docs REST',
+		},
+	],
+	bindings: hyperliquidDocsBindings,
+	origins: hyperliquidDocsOrigins,
+} satisfies SourceProviderDefinition
 
-export default hyperliquidDocsRestSourceDefinition
+export default hyperliquidDocsSourceProviderDefinition

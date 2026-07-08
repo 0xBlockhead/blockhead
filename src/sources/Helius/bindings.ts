@@ -45,6 +45,7 @@ export const heliusBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: heliusPublicEnv,
 				keys: [
 					'PUBLIC_HELIUS_API_KEY',
 				],

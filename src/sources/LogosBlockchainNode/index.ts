@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { logosBlockchainNodeBindings } from '$/sources/LogosBlockchainNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const logosBlockchainNodeRestSourceDefinition = {
+const logosBlockchainNodeOrigins = sourceOriginsFromBindings(logosBlockchainNodeBindings)
+
+const logosBlockchainNodeSourceProviderDefinition = {
 	provider: SourceProvider.LogosBlockchainNode,
-	source: Source.LogosBlockchainNode_Rest,
-	label: 'Logos blockchain node REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Logos blockchain node',
+	sources: [
+		{
+			provider: SourceProvider.LogosBlockchainNode,
+			source: Source.LogosBlockchainNode_Rest,
+			label: 'Logos blockchain node REST',
+		},
+	],
+	bindings: logosBlockchainNodeBindings,
+	origins: logosBlockchainNodeOrigins,
+} satisfies SourceProviderDefinition
 
-export default logosBlockchainNodeRestSourceDefinition
+export default logosBlockchainNodeSourceProviderDefinition

@@ -14,6 +14,10 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
+export const theGraphPublicEnv = arktype({
+	PUBLIC_THEGRAPH_API_KEY: 'string',
+})
+
 const theGraphGatewayOrigin = 'https://gateway.thegraph.com' as const
 
 export const theGraphBindings = [

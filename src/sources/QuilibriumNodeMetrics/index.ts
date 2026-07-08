@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { quilibriumNodeMetricsBindings } from '$/sources/QuilibriumNodeMetrics/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const quilibriumNodeMetricsPrometheusSourceDefinition = {
+const quilibriumNodeMetricsOrigins = sourceOriginsFromBindings(quilibriumNodeMetricsBindings)
+
+const quilibriumNodeMetricsSourceProviderDefinition = {
 	provider: SourceProvider.QuilibriumNodeMetrics,
-	source: Source.QuilibriumNodeMetrics_Prometheus,
-	label: 'Quilibrium node Prometheus',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Quilibrium node metrics',
+	sources: [
+		{
+			provider: SourceProvider.QuilibriumNodeMetrics,
+			source: Source.QuilibriumNodeMetrics_Prometheus,
+			label: 'Quilibrium node Prometheus',
+		},
+	],
+	bindings: quilibriumNodeMetricsBindings,
+	origins: quilibriumNodeMetricsOrigins,
+} satisfies SourceProviderDefinition
 
-export default quilibriumNodeMetricsPrometheusSourceDefinition
+export default quilibriumNodeMetricsSourceProviderDefinition

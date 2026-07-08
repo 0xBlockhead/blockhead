@@ -2155,11 +2155,7 @@
 														limit: 16,
 													})
 												}
-												href={
-													(selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.namespace !== undefined && selection.entitySelector.caip2 !== undefined && selection.entitySelector.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/contracts', {
-														caip2: `${String(selection.entitySelector.caip2.namespace ?? '')}:${String(selection.entitySelector.caip2.reference ?? '')}`,
-													}) : undefined)
-												}
+												href={resolve('/(explore)/contracts')}
 												CollapsibleProps={{ canToggle: false }}
 												open={open}
 												title={label}

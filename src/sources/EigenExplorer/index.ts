@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { eigenExplorerBindings } from '$/sources/EigenExplorer/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const eigenExplorerRestSourceDefinition = {
+const eigenExplorerOrigins = sourceOriginsFromBindings(eigenExplorerBindings)
+
+const eigenExplorerSourceProviderDefinition = {
 	provider: SourceProvider.EigenExplorer,
-	source: Source.EigenExplorer_Rest,
-	label: 'EigenExplorer REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'EigenExplorer',
+	sources: [
+		{
+			provider: SourceProvider.EigenExplorer,
+			source: Source.EigenExplorer_Rest,
+			label: 'EigenExplorer REST',
+		},
+	],
+	bindings: eigenExplorerBindings,
+	origins: eigenExplorerOrigins,
+} satisfies SourceProviderDefinition
 
-export default eigenExplorerRestSourceDefinition
+export default eigenExplorerSourceProviderDefinition

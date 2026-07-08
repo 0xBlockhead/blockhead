@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
@@ -11,6 +13,10 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 import { blockchairOrigin } from '$/sources/Blockchair/Rest/constants.ts'
+
+export const blockchairPublicEnv = arktype({
+	PUBLIC_BLOCKCHAIR_API_KEY: 'string',
+})
 
 export const blockchairBindings = [
 	{
@@ -37,6 +43,7 @@ export const blockchairBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: blockchairPublicEnv,
 				keys: [
 					'PUBLIC_BLOCKCHAIR_API_KEY',
 				],

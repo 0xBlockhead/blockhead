@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { zebraBindings } from '$/sources/Zebra/bindings.ts'
 
-const zebraJsonRpcSourceDefinition = {
+const zebraOrigins = sourceOriginsFromBindings(zebraBindings)
+
+const zebraSourceProviderDefinition = {
 	provider: SourceProvider.Zebra,
-	source: Source.Zebra_JsonRpc,
-	label: 'Zebra JSON-RPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Zebra',
+	sources: [
+		{
+			provider: SourceProvider.Zebra,
+			source: Source.Zebra_JsonRpc,
+			label: 'Zebra JSON-RPC',
+		},
+	],
+	bindings: zebraBindings,
+	origins: zebraOrigins,
+} satisfies SourceProviderDefinition
 
-export default zebraJsonRpcSourceDefinition
+export default zebraSourceProviderDefinition

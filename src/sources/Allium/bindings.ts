@@ -22,6 +22,7 @@ export const alliumPublicEnv = arktype({
 const alliumCredentials = [
 	{
 		scope: SourceCredentialScope.PublicConfig,
+		env: alliumPublicEnv,
 		keys: [
 			'PUBLIC_ALLIUM_API_KEY',
 		],

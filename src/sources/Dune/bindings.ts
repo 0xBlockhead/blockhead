@@ -22,6 +22,7 @@ export const dunePublicEnv = arktype({
 const duneCredentials = [
 	{
 		scope: SourceCredentialScope.PublicConfig,
+		env: dunePublicEnv,
 		keys: [
 			'PUBLIC_DUNE_API_KEY',
 		],

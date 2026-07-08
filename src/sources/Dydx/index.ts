@@ -1,13 +1,27 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { dydxBindings } from '$/sources/Dydx/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const dydxIndexerRestSourceDefinition = {
+const dydxOrigins = sourceOriginsFromBindings(dydxBindings)
+
+const dydxSourceProviderDefinition = {
 	provider: SourceProvider.Dydx,
-	source: Source.DydxIndexer_Rest,
-	label: 'dYdX Indexer REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'dYdX',
+	sources: [
+		{
+			provider: SourceProvider.Dydx,
+			source: Source.DydxIndexer_Rest,
+			label: 'dYdX Indexer REST',
+		},
+		{
+			provider: SourceProvider.Dydx,
+			source: Source.DydxValidator_Rest,
+			label: 'dYdX Validator REST',
+		},
+	],
+	bindings: dydxBindings,
+	origins: dydxOrigins,
+} satisfies SourceProviderDefinition
 
-export default dydxIndexerRestSourceDefinition
+export default dydxSourceProviderDefinition

@@ -22,6 +22,7 @@ export const coinMarketCapPublicEnv = arktype({
 const coinMarketCapCredentials = [
 	{
 		scope: SourceCredentialScope.PublicConfig,
+		env: coinMarketCapPublicEnv,
 		keys: [
 			'PUBLIC_COINMARKETCAP_API_KEY',
 		],

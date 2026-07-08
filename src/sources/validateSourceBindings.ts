@@ -17,7 +17,6 @@ const jsonRpcApiFamilies = new Set<ApiFamily>([
 	ApiFamily.SolanaJsonRpc,
 	ApiFamily.StarknetJsonRpc,
 	ApiFamily.SubstrateJsonRpc,
-	ApiFamily.TezosNodeRpc,
 ])
 
 const isTemplated = (value: string) => value.includes('{')

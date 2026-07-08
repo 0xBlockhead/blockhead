@@ -1,13 +1,37 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { circleCctpBindings } from '$/sources/CircleCctp/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const circleCctpIrisApiSourceDefinition = {
+const circleCctpOrigins = sourceOriginsFromBindings(circleCctpBindings)
+
+const circleCctpSourceProviderDefinition = {
 	provider: SourceProvider.CircleCctp,
-	source: Source.CircleCctp_IrisApi,
-	label: 'Circle CCTP Iris API',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Circle CCTP',
+	sources: [
+		{
+			provider: SourceProvider.CircleCctp,
+			source: Source.CircleCctp_IrisApi,
+			label: 'Circle CCTP Iris API',
+		},
+		{
+			provider: SourceProvider.CircleCctp,
+			source: Source.CircleCctpContracts_Evm,
+			label: 'Circle CCTP EVM contracts',
+		},
+		{
+			provider: SourceProvider.CircleCctp,
+			source: Source.CircleCctpContracts_Solana,
+			label: 'Circle CCTP Solana contracts',
+		},
+		{
+			provider: SourceProvider.CircleCctp,
+			source: Source.CircleCctpContracts_Stellar,
+			label: 'Circle CCTP Stellar contracts',
+		},
+	],
+	bindings: circleCctpBindings,
+	origins: circleCctpOrigins,
+} satisfies SourceProviderDefinition
 
-export default circleCctpIrisApiSourceDefinition
+export default circleCctpSourceProviderDefinition

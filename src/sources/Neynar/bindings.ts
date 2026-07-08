@@ -44,6 +44,7 @@ export const neynarBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: neynarPublicEnv,
 				keys: [
 					'PUBLIC_NEYNAR_API_KEY',
 				],

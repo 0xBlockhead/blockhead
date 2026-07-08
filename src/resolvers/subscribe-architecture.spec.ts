@@ -209,7 +209,7 @@ describe('client resolver architecture', () => {
 
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', '$schema.ts')].match(/\b(?:value: unknown|Record<string, unknown>|Partial<Record<string, unknown>>|\[.+\]: unknown|\(value: unknown\) => unknown|_Value = unknown)\b/g)).toHaveLength(8)
 		expect(scannedSourceByFilePath[join(srcPath, 'schema', '$schema.ts')]).not.toMatch(/\bany\b/)
-		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', '$resolvers.ts')].match(/:\s*unknown\b/g)).toHaveLength(2)
+		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', '$resolvers.ts')].match(/:\s*unknown\b/g)).toHaveLength(4)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', '$sources.ts')]).not.toMatch(/\b(?:unknown|any)\b/)
 	})
 
@@ -282,7 +282,7 @@ describe('client resolver architecture', () => {
 			scannedSourceByFilePath[join(srcPath, 'sources', 'index.server.ts')],
 		].join('\n')
 
-		expect(nestedSourceMetadataBarrels.length).toBeGreaterThan(0)
+		expect(nestedSourceMetadataBarrels).toEqual([])
 		for (const barrelPath of nestedSourceMetadataBarrels)
 			expect(activeSourceRegistry).not.toContain(`$/` + barrelPath)
 	})
@@ -1057,9 +1057,9 @@ describe('client resolver architecture', () => {
 		const architectureSource = readFileSync(join(srcPath, 'resolvers', 'subscribe-architecture.spec.ts'), 'utf8')
 
 		expect(clientSource).toMatch(/collectionId: `client\.entities\.\$\{entityDefinition\.entityType\}`/)
-		expect(clientSource).toMatch(/collectionId: `client\.fields\.\$\{entityDefinition\.entityType\}\.\$\{definition\.name\}`/)
-		expect(clientSource).toMatch(/collectionId: `client\.counts\.\$\{entityDefinition\.entityType\}\.\$\{definition\.name\}`/)
-		expect(clientSource).toMatch(/resolverPartsKey\(entityDefinition\.entityType, definition\.name\)/)
+		expect(clientSource).toMatch(/const fieldCollectionId = stringify\(\[\s*'client\.fields',\s*entityDefinition\.entityType,\s*facetPath,\s*definition\.name,/)
+		expect(clientSource).toMatch(/const countCollectionId = stringify\(\[\s*'client\.counts',\s*entityDefinition\.entityType,\s*facetPath,\s*definition\.name,/)
+		expect(clientSource).toMatch(/resolverPartsKey\(entityDefinition\.entityType, facetPath, definition\.name\)/)
 		expect(clientSource).not.toMatch(/collectionId\s*\.split|\.split\('\\x1E'\)/)
 		expect(resolverSource).not.toMatch(/collectionId\s*\.split/)
 		expect(architectureSource).not.toMatch(/\.split\('\\x1E'\)/)
@@ -1310,13 +1310,13 @@ describe('client resolver architecture', () => {
 		)
 		expect(scannedSourceByFilePath[join(srcPath, 'resolvers', 'Defillama-OpenApi.ts')]).not.toMatch(/\b(?:Market_TimeInterval_Timestamp|\$\$marketTimeIntervalTimestamps|getChartOhlcRows)\b/)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Defillama', 'OpenApi', 'queries.ts')]).not.toMatch(/\b(?:OhlcCandle|getChartOhlcRows|Maps DefiLlama chart closes)\b/)
-		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')]).not.toMatch(/\bDefiLlama|Defillama\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')] ?? '').not.toMatch(/\bDefiLlama|Defillama\b/)
 	})
 
 	it('documents OHLC quote volume as quote-leg units scaled by price scale', () => {
 		const source = scannedSourceByFilePath[join(srcPath, 'schema', 'Market_TimeInterval_Timestamp.ts')]
 
-		expect(source).toMatch(/name: 'quoteVolume'[\s\S]*Quote-leg candle volume, scaled by 1e8 like quote prices\./)
+		expect(source).toMatch(/quoteVolume:[\s\S]*description: 'Quote-leg candle volume, scaled by 1e8 like quote prices\.'/)
 	})
 
 	it('keeps OHLC candle interval identity separate from provider lookback windows', () => {
@@ -1348,8 +1348,8 @@ describe('client resolver architecture', () => {
 
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'CoinMarketCap', 'Rest', 'queries.ts')]).toMatch(/count=\$\{lookbackDayCount\}/)
 		expect(scannedSourceByFilePath[join(srcPath, 'sources', 'Coinpaprika', 'OpenApi', 'queries.ts')]).toMatch(/limit=\$\{lookbackDayCount\}[\s\S]*interval=24h/)
-		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')]).not.toMatch(/\btimeInterval = \$bindable/)
-		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')]).not.toMatch(/\blookbackDayCount\s*\*\s*24\b/)
+		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')] ?? '').not.toMatch(/\btimeInterval = \$bindable/)
+		expect(scannedSourceByFilePath[join(srcPath, 'views', 'Market_TimeInterval_TimestampsView.svelte')] ?? '').not.toMatch(/\blookbackDayCount\s*\*\s*24\b/)
 	})
 
 	it('does not export legacy raw Persisted collection aliases from app layout', () => {

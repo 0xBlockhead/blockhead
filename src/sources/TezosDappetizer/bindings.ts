@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 import { Source } from '$/sources/Source.ts'
 import { SourceProvider } from '$/sources/SourceProvider.ts'
 import {
@@ -10,6 +12,10 @@ import {
 	WireProtocol,
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
+
+export const tezosDappetizerPrivateEnv = arktype({
+	TEZOS_DAPPETIZER_DATABASE_URL: 'string',
+})
 
 export const tezosDappetizerBindings = [
 	{
@@ -34,6 +40,10 @@ export const tezosDappetizerBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.RuntimeSecret,
+				env: tezosDappetizerPrivateEnv,
+				keys: [
+					'TEZOS_DAPPETIZER_DATABASE_URL',
+				],
 			},
 		],
 	},

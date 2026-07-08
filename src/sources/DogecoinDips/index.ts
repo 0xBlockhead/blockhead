@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { dogecoinDipsBindings } from '$/sources/DogecoinDips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const dogecoinDipsGithubSourceDefinition = {
+const dogecoinDipsOrigins = sourceOriginsFromBindings(dogecoinDipsBindings)
+
+const dogecoinDipsSourceProviderDefinition = {
 	provider: SourceProvider.DogecoinDips,
-	source: Source.DogecoinDips_Github,
-	label: 'Dogecoin DIPs GitHub',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Dogecoin DIPs',
+	sources: [
+		{
+			provider: SourceProvider.DogecoinDips,
+			source: Source.DogecoinDips_Github,
+			label: 'Dogecoin DIPs GitHub',
+		},
+	],
+	bindings: dogecoinDipsBindings,
+	origins: dogecoinDipsOrigins,
+} satisfies SourceProviderDefinition
 
-export default dogecoinDipsGithubSourceDefinition
+export default dogecoinDipsSourceProviderDefinition

@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { tzktBindings } from '$/sources/Tzkt/bindings.ts'
 
-const tzktRestSourceDefinition = {
+const tzktOrigins = sourceOriginsFromBindings(tzktBindings)
+
+const tzktSourceProviderDefinition = {
 	provider: SourceProvider.Tzkt,
-	source: Source.Tzkt_Rest,
-	label: 'TzKT REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'TzKT',
+	sources: [
+		{
+			provider: SourceProvider.Tzkt,
+			source: Source.Tzkt_Rest,
+			label: 'TzKT REST',
+		},
+	],
+	bindings: tzktBindings,
+	origins: tzktOrigins,
+} satisfies SourceProviderDefinition
 
-export default tzktRestSourceDefinition
+export default tzktSourceProviderDefinition

@@ -652,16 +652,16 @@ describe('resolver registry live resolver architecture', () => {
 			sourceBackedExamples: unresolvedSourceBackedEntityTypes.slice(0, 20),
 		}).toEqual({
 			all: {
-				count: 674,
-				sha256: '8e6b03d3497e9784e153fe46b7807c1d2d85396f7b1df6ae13cc3b92feee6f05',
+				count: 673,
+				sha256: 'da8aebcedf6b5daf3b197adb180adc27f6b9d9f8097e7c8c1ce29526dad9c590',
 			},
 			sourceBacked: {
 				count: 222,
 				sha256: '1cbdf9624759c52f9970487fd2138fa076e64a71a717b90d3f53c57092eb24c3',
 			},
 			noDeclaredSource: {
-				count: 452,
-				sha256: '63476257159ade5538899d84b7571e522f6ee87e5bdc44fa92002c04cda1300a',
+				count: 451,
+				sha256: '558fd5a162f007389cbd546560c2c5dc1db729f218a310cb806de0bee213bd7e',
 			},
 			sourceBackedExamples: [
 				'_GlobalActivityPubNetwork_Timestamp',

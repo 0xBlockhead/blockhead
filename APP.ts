@@ -73020,7 +73020,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												},
 											],
 										},
-										field: "$$contracts",
+										field: ["Evm", "$$contracts"],
 									},
 									query: {
 										sources: [Source.Blockscout_Rest],
@@ -86038,6 +86038,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_BEACONCHAIN_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_BEACONCHAIN_API_KEY"],
 						},
 					],
@@ -86074,6 +86082,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_BLOCKCHAIR_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_BLOCKCHAIR_API_KEY"],
 						},
 					],
@@ -86302,6 +86318,18 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_COINGECKO_DEMO_API_KEY",
+										type: "string",
+									},
+									{
+										name: "PUBLIC_COINGECKO_PRO_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: [
 								"PUBLIC_COINGECKO_DEMO_API_KEY",
 								"PUBLIC_COINGECKO_PRO_API_KEY",
@@ -86351,6 +86379,18 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_COINGECKO_DEMO_API_KEY",
+										type: "string",
+									},
+									{
+										name: "PUBLIC_COINGECKO_PRO_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: [
 								"PUBLIC_COINGECKO_DEMO_API_KEY",
 								"PUBLIC_COINGECKO_PRO_API_KEY",
@@ -86440,6 +86480,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_COINPAPRIKA_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_COINPAPRIKA_API_KEY"],
 						},
 					],
@@ -88174,6 +88222,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_LND_MACAROON_HEX",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_LND_MACAROON_HEX"],
 						},
 					],
@@ -88416,6 +88472,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_LENS_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_LENS_API_KEY"],
 						},
 					],
@@ -88749,6 +88813,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_NEYNAR_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_NEYNAR_API_KEY"],
 						},
 					],
@@ -88985,6 +89057,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_SUBSCAN_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_SUBSCAN_API_KEY"],
 						},
 					],
@@ -89216,6 +89296,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_RSS2JSON_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_RSS2JSON_API_KEY"],
 						},
 					],
@@ -90108,6 +90196,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
+							env: {
+								keys: [
+									{
+										name: "PUBLIC_DUNE_API_KEY",
+										type: "string",
+									},
+								],
+							},
 							keys: ["PUBLIC_DUNE_API_KEY"],
 						},
 					],

@@ -44,6 +44,7 @@ export const mastodonBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: mastodonPublicEnv,
 				keys: [
 					'PUBLIC_MASTODON_ACCESS_TOKEN',
 				],

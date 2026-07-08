@@ -44,6 +44,7 @@ export const xBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: xPublicEnv,
 				keys: [
 					'PUBLIC_X_API_BEARER',
 				],

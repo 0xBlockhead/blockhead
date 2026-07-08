@@ -75,6 +75,7 @@ export const lightningLndBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: lightningLndPublicEnv,
 				keys: [
 					'PUBLIC_LND_MACAROON_HEX',
 				],

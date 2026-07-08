@@ -195,9 +195,35 @@ describe('source binding indexes', () => {
 	})
 
 	it('derives HTTP proxy origins from enabled HttpProxy HTTP endpoints', () => {
-		expect(httpProxyOrigins.has('https://eth.blockscout.com')).toBe(true)
-		if (sourceMember('Ipfs_Rest') !== undefined)
-			expect(httpProxyOrigins.has('https://ipfs.io')).toBe(true)
+		const expectedHttpProxyOrigins = new Set(
+			sourceBindings
+				.filter((binding) => binding.delivery === SourceDelivery.HttpProxy)
+				.flatMap((binding) => (
+					binding.endpoints
+						.filter((endpoint) => endpoint.endpointKind === SourceEndpointKind.HttpUrl)
+						.map((endpoint) => endpoint.origin ?? endpoint.locator)
+				))
+		)
+
+		expect(expectedHttpProxyOrigins.size).toBeGreaterThan(0)
+		for (const origin of expectedHttpProxyOrigins)
+			expect(httpProxyOrigins.has(origin)).toBe(true)
+	})
+
+	it('keeps public config credentials schema-backed', () => {
+		expect(sourceBindings.flatMap((binding) => (
+			binding.credentials.flatMap((credential) => (
+				credential.scope === SourceCredentialScope.PublicConfig && credential.keys != null ?
+					credential.keys.flatMap((key) => (
+						credential.env?.props.some((property) => property.key === key) === true ?
+							[]
+						:
+							[`${binding.source}:${key}`]
+					))
+				:
+					[]
+			))
+		))).toEqual([])
 	})
 
 	it('keeps RemoteLive WebSocket bindings out of the HTTP proxy origins', () => {

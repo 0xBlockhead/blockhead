@@ -45,6 +45,7 @@ export const subscanBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: subscanPublicEnv,
 				keys: [
 					'PUBLIC_SUBSCAN_API_KEY',
 				],

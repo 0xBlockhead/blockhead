@@ -1,13 +1,27 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { acpBindings } from '$/sources/Acp/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const acpLocalJsonRpcSourceDefinition = {
+const acpOrigins = sourceOriginsFromBindings(acpBindings)
+
+const acpSourceProviderDefinition = {
 	provider: SourceProvider.Acp,
-	source: Source.AcpLocal_JsonRpc,
-	label: 'ACP local JSON-RPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Agent Client Protocol',
+	sources: [
+		{
+			provider: SourceProvider.Acp,
+			source: Source.AcpLocal_JsonRpc,
+			label: 'ACP local JSON-RPC',
+		},
+		{
+			provider: SourceProvider.Acp,
+			source: Source.AcpRegistry_Rest,
+			label: 'ACP registry REST',
+		},
+	],
+	bindings: acpBindings,
+	origins: acpOrigins,
+} satisfies SourceProviderDefinition
 
-export default acpLocalJsonRpcSourceDefinition
+export default acpSourceProviderDefinition

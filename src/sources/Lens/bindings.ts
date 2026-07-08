@@ -14,6 +14,10 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
+export const lensPublicEnv = arktype({
+	PUBLIC_LENS_API_KEY: 'string',
+})
+
 const lensApiOrigin = 'https://api.lens.xyz' as const
 
 export const lensBindings = [

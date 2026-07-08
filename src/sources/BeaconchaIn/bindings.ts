@@ -22,6 +22,7 @@ export const beaconchaInPublicEnv = arktype({
 const beaconchaInCredentials = [
 	{
 		scope: SourceCredentialScope.PublicConfig,
+		env: beaconchaInPublicEnv,
 		keys: [
 			'PUBLIC_BEACONCHAIN_API_KEY',
 		],

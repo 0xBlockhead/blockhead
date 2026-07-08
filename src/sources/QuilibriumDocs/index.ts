@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { quilibriumDocsBindings } from '$/sources/QuilibriumDocs/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const quilibriumDocsRestSourceDefinition = {
+const quilibriumDocsOrigins = sourceOriginsFromBindings(quilibriumDocsBindings)
+
+const quilibriumDocsSourceProviderDefinition = {
 	provider: SourceProvider.QuilibriumDocs,
-	source: Source.QuilibriumDocs_Rest,
-	label: 'Quilibrium docs REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Quilibrium docs',
+	sources: [
+		{
+			provider: SourceProvider.QuilibriumDocs,
+			source: Source.QuilibriumDocs_Rest,
+			label: 'Quilibrium docs REST',
+		},
+	],
+	bindings: quilibriumDocsBindings,
+	origins: quilibriumDocsOrigins,
+} satisfies SourceProviderDefinition
 
-export default quilibriumDocsRestSourceDefinition
+export default quilibriumDocsSourceProviderDefinition

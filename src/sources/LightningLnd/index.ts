@@ -1,13 +1,27 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { lightningLndBindings } from '$/sources/LightningLnd/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const lightningLndGrpcSourceDefinition = {
+const lightningLndOrigins = sourceOriginsFromBindings(lightningLndBindings)
+
+const lightningLndSourceProviderDefinition = {
 	provider: SourceProvider.LightningLnd,
-	source: Source.LightningLnd_Grpc,
-	label: 'LND gRPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'LND',
+	sources: [
+		{
+			provider: SourceProvider.LightningLnd,
+			source: Source.LightningLnd_Grpc,
+			label: 'LND gRPC',
+		},
+		{
+			provider: SourceProvider.LightningLnd,
+			source: Source.LightningLnd_Rest,
+			label: 'LND REST',
+		},
+	],
+	bindings: lightningLndBindings,
+	origins: lightningLndOrigins,
+} satisfies SourceProviderDefinition
 
-export default lightningLndGrpcSourceDefinition
+export default lightningLndSourceProviderDefinition

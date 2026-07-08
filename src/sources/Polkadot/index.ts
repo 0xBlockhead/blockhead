@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { polkadotBindings } from '$/sources/Polkadot/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const polkadotJsonRpcSourceDefinition = {
+const polkadotOrigins = sourceOriginsFromBindings(polkadotBindings)
+
+const polkadotSourceProviderDefinition = {
 	provider: SourceProvider.Polkadot,
-	source: Source.Polkadot_JsonRpc,
-	label: 'Polkadot JSON-RPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Polkadot',
+	sources: [
+		{
+			provider: SourceProvider.Polkadot,
+			source: Source.Polkadot_JsonRpc,
+			label: 'Polkadot JSON-RPC',
+		},
+	],
+	bindings: polkadotBindings,
+	origins: polkadotOrigins,
+} satisfies SourceProviderDefinition
 
-export default polkadotJsonRpcSourceDefinition
+export default polkadotSourceProviderDefinition

@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { zcashZipsBindings } from '$/sources/ZcashZips/bindings.ts'
 
-const zcashZipsGithubSourceDefinition = {
+const zcashZipsOrigins = sourceOriginsFromBindings(zcashZipsBindings)
+
+const zcashZipsSourceProviderDefinition = {
 	provider: SourceProvider.ZcashZips,
-	source: Source.ZcashZips_Github,
-	label: 'Zcash ZIPs GitHub',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Zcash ZIPs',
+	sources: [
+		{
+			provider: SourceProvider.ZcashZips,
+			source: Source.ZcashZips_Github,
+			label: 'Zcash ZIPs GitHub',
+		},
+	],
+	bindings: zcashZipsBindings,
+	origins: zcashZipsOrigins,
+} satisfies SourceProviderDefinition
 
-export default zcashZipsGithubSourceDefinition
+export default zcashZipsSourceProviderDefinition

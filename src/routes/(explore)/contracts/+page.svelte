@@ -32,7 +32,7 @@
 					namespace: 'eip155',
 					reference: '1',
 				},
-			}).$$contracts({
+			}).Evm.$$contracts({
 				sources: [
 					Source.Blockscout_Rest,
 				],

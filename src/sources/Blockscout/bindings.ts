@@ -23,7 +23,7 @@ const blockscoutHttpEndpointByChainId = Object.fromEntries(
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: origin,
 				origin,
-				corsEnabled: false,
+				corsEnabled: true,
 			} satisfies SourceEndpoint,
 		])
 )
@@ -44,7 +44,7 @@ export const blockscoutBindings = Object.entries(blockscoutHttpEndpointByChainId
 				SourceOperationGroup.GenericRead,
 				SourceOperationGroup.BlockscoutAccountAbstraction,
 			],
-			delivery: SourceDelivery.HttpProxy,
+			delivery: SourceDelivery.BrowserDirect,
 			credentials: [
 				{
 					scope: SourceCredentialScope.None,
@@ -65,7 +65,7 @@ export const blockscoutBindings = Object.entries(blockscoutHttpEndpointByChainId
 				SourceOperationGroup.EtherscanAccountModule,
 				SourceOperationGroup.EtherscanContractModule,
 			],
-			delivery: SourceDelivery.HttpProxy,
+			delivery: SourceDelivery.BrowserDirect,
 			credentials: [
 				{
 					scope: SourceCredentialScope.None,

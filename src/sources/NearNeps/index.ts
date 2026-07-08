@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { nearNepsBindings } from '$/sources/NearNeps/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const nearNepsGithubSourceDefinition = {
+const nearNepsOrigins = sourceOriginsFromBindings(nearNepsBindings)
+
+const nearNepsSourceProviderDefinition = {
 	provider: SourceProvider.NearNeps,
-	source: Source.NearNeps_Github,
-	label: 'NEAR NEPs GitHub',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'NEAR NEPs',
+	sources: [
+		{
+			provider: SourceProvider.NearNeps,
+			source: Source.NearNeps_Github,
+			label: 'NEAR NEPs GitHub',
+		},
+	],
+	bindings: nearNepsBindings,
+	origins: nearNepsOrigins,
+} satisfies SourceProviderDefinition
 
-export default nearNepsGithubSourceDefinition
+export default nearNepsSourceProviderDefinition

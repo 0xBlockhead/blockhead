@@ -16,7 +16,7 @@ const mcpRegistryOrigin = 'https://registry.modelcontextprotocol.io' as const
 export const mcpBindings = [
 	{
 		provider: SourceProvider.Mcp,
-		source: Source.McpConfigured_Protocol,
+		source: Source.McpDeclared_Protocol,
 		target: {
 			kind: SourceTargetKind.LocalDevice,
 			key: 'mcp-configured',

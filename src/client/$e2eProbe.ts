@@ -121,15 +121,38 @@ export const openBlockheadBrowserDatabase = (
 	const openDatabase = () => openBrowserWASQLiteOPFSDatabase(options)
 		.then((database) => {
 			let queue = Promise.resolve()
+			let transactionComplete: Promise<void> | undefined
+			let resolveTransactionComplete: (() => void) | undefined
+			const execute: BrowserWASQLiteDatabase['execute'] = (sql, params) => {
+				const normalizedSql = sql.trim().toUpperCase()
+				const result = queue.then(async () => {
+					if (normalizedSql.startsWith('BEGIN')) {
+						while (transactionComplete != null)
+							await transactionComplete
+
+						const rows = await database.execute(sql, params)
+						transactionComplete = new Promise((resolve) => {
+							resolveTransactionComplete = resolve
+						})
+						return rows
+					}
+
+					const rows = await database.execute(sql, params)
+					if (normalizedSql.startsWith('COMMIT') || normalizedSql.startsWith('ROLLBACK')) {
+						resolveTransactionComplete?.()
+						transactionComplete = undefined
+						resolveTransactionComplete = undefined
+					}
+					return rows
+				})
+				queue = result.then(
+					() => undefined,
+					() => undefined
+				)
+				return result
+			}
 			return {
-				execute: (sql, params) => {
-					const result = queue.then(() => database.execute(sql, params))
-					queue = result.then(
-						() => undefined,
-						() => undefined
-					)
-					return result
-				},
+				execute,
 				close: async () => {
 					await queue
 					await database.close?.()
@@ -161,77 +184,134 @@ export const createE2EClientInstrumentation = <
 >(
 	basePersistence: _Persistence
 ) => {
+	let persistenceQueue = Promise.resolve()
+	const runSerializedPersistence = <_Result>(
+		fn: () => Promise<_Result>
+	) => {
+		const result = persistenceQueue.then(fn)
+		persistenceQueue = result.then(
+			() => undefined,
+			() => undefined
+		)
+		return result
+	}
 	const pendingPersistenceByCollection = new Map<string, Set<Promise<void>>>()
 	const waitForPersistence = async (collectionId: string) => {
 		await new Promise((resolve) => setTimeout(resolve, 50))
 		while ((pendingPersistenceByCollection.get(collectionId)?.size ?? 0) > 0)
 			await Promise.all(pendingPersistenceByCollection.get(collectionId) ?? [])
 	}
-	const traceAdapter = (collectionPersistence: PersistedCollectionPersistence) => ({
-		...collectionPersistence,
-		adapter: Object.assign(
-			Object.create(collectionPersistence.adapter),
-			{
-				applyCommittedTx: async (collectionId: string, tx: PersistedTx) => {
-					const persistencePromise = (async () => {
-						pushPersistenceTrace({
-							type: 'applyCommittedTx:start',
+	const traceAdapter = (collectionPersistence: PersistedCollectionPersistence) => {
+		const scanRows = collectionPersistence.adapter.scanRows?.bind(collectionPersistence.adapter)
+		const markIndexRemoved = collectionPersistence.adapter.markIndexRemoved?.bind(collectionPersistence.adapter)
+		const getStreamPosition = collectionPersistence.adapter.getStreamPosition?.bind(collectionPersistence.adapter)
+		return {
+			...collectionPersistence,
+			adapter: Object.assign(
+				Object.create(collectionPersistence.adapter),
+				{
+					applyCommittedTx: async (collectionId: string, tx: PersistedTx) => {
+						const persistencePromise = (async () => {
+							pushPersistenceTrace({
+								type: 'applyCommittedTx:start',
+								collectionId,
+								mutationCount: tx.mutations.length,
+								rowMetadataMutationCount: tx.rowMetadataMutations?.length ?? 0,
+								collectionMetadataMutationCount: tx.collectionMetadataMutations?.length ?? 0,
+							})
+							await runSerializedPersistence(() => (
+								collectionPersistence.adapter.applyCommittedTx(collectionId, tx)
+							))
+							pushPersistenceTrace({
+								type: 'applyCommittedTx:done',
+								collectionId,
+								mutationCount: tx.mutations.length,
+								rowMetadataMutationCount: tx.rowMetadataMutations?.length ?? 0,
+								collectionMetadataMutationCount: tx.collectionMetadataMutations?.length ?? 0,
+							})
+						})()
+						pendingPersistenceByCollection.set(
 							collectionId,
-							mutationCount: tx.mutations.length,
-							rowMetadataMutationCount: tx.rowMetadataMutations?.length ?? 0,
-							collectionMetadataMutationCount: tx.collectionMetadataMutations?.length ?? 0,
-						})
-						await collectionPersistence.adapter.applyCommittedTx(collectionId, tx)
-						pushPersistenceTrace({
-							type: 'applyCommittedTx:done',
-							collectionId,
-							mutationCount: tx.mutations.length,
-							rowMetadataMutationCount: tx.rowMetadataMutations?.length ?? 0,
-							collectionMetadataMutationCount: tx.collectionMetadataMutations?.length ?? 0,
-						})
-					})()
-					pendingPersistenceByCollection.set(
-						collectionId,
-						(pendingPersistenceByCollection.get(collectionId) ?? new Set()).add(persistencePromise)
-					)
-					try {
-						await persistencePromise
-					} catch (error) {
-						pushPersistenceTrace({
-							type: 'applyCommittedTx:error',
-							collectionId,
-							error: error instanceof Error ? error.message : String(error),
-						})
-						throw error
-					} finally {
-						pendingPersistenceByCollection.get(collectionId)?.delete(persistencePromise)
-					}
-				},
+							(pendingPersistenceByCollection.get(collectionId) ?? new Set()).add(persistencePromise)
+						)
+						try {
+							await persistencePromise
+						} catch (error) {
+							pushPersistenceTrace({
+								type: 'applyCommittedTx:error',
+								collectionId,
+								error: error instanceof Error ? error.message : String(error),
+							})
+							throw error
+						} finally {
+							pendingPersistenceByCollection.get(collectionId)?.delete(persistencePromise)
+						}
+					},
 					loadSubset: async (
 						collectionId: string,
 						options: LoadSubsetOptions,
 						context?: Parameters<NonNullable<PersistenceAdapter['loadSubset']>>[2]
 					) => {
-						const rows = await collectionPersistence.adapter.loadSubset(collectionId, options, context)
+						const rows = await runSerializedPersistence(() => (
+							collectionPersistence.adapter.loadSubset(collectionId, options, context)
+						))
 						pushPersistenceTrace({
 							type: 'loadSubset',
 							collectionId,
-						subsetRowCount: rows.length,
-					})
-					return rows
-				},
-				loadCollectionMetadata: async (collectionId: string) => {
-					const collectionMetadata = await collectionPersistence.adapter.loadCollectionMetadata?.(collectionId) ?? []
-					pushPersistenceTrace({
-						type: 'loadCollectionMetadata',
-						collectionId,
-						collectionMetadataCount: collectionMetadata.length,
-					})
-					return collectionMetadata
-				},
-			}
+							subsetRowCount: rows.length,
+						})
+						return rows
+					},
+					loadCollectionMetadata: async (collectionId: string) => {
+						const collectionMetadata = await runSerializedPersistence(async () => (
+							await collectionPersistence.adapter.loadCollectionMetadata?.(collectionId) ?? []
+						))
+						pushPersistenceTrace({
+							type: 'loadCollectionMetadata',
+							collectionId,
+							collectionMetadataCount: collectionMetadata.length,
+						})
+						return collectionMetadata
+					},
+					scanRows: scanRows == null ?
+						undefined
+					:
+						(
+							collectionId: string,
+							options?: Parameters<NonNullable<PersistenceAdapter['scanRows']>>[1]
+						) => runSerializedPersistence(() => (
+							scanRows(collectionId, options)
+						)),
+					ensureIndex: (
+						collectionId: string,
+						signature: string,
+						spec: Parameters<PersistenceAdapter['ensureIndex']>[2]
+					) => runSerializedPersistence(() => (
+						collectionPersistence.adapter.ensureIndex(
+							collectionId,
+							signature,
+							spec
+						)
+					)),
+					markIndexRemoved: markIndexRemoved == null ?
+						undefined
+					:
+						(
+							collectionId: string,
+							signature: string
+						) => runSerializedPersistence(() => (
+							markIndexRemoved(collectionId, signature)
+						)),
+					getStreamPosition: getStreamPosition == null ?
+						undefined
+					:
+						(collectionId: string) => runSerializedPersistence(() => (
+							getStreamPosition(collectionId)
+						)),
+				}
 			),
-	})
+		}
+	}
 	const resolvePersistenceForCollection = basePersistence.resolvePersistenceForCollection
 	const resolvePersistenceForMode = basePersistence.resolvePersistenceForMode
 	return {

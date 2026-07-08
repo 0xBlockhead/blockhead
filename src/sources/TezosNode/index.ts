@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { tezosNodeBindings } from '$/sources/TezosNode/bindings.ts'
 
-const tezosNodeRpcSourceDefinition = {
+const tezosNodeOrigins = sourceOriginsFromBindings(tezosNodeBindings)
+
+const tezosNodeSourceProviderDefinition = {
 	provider: SourceProvider.TezosNode,
-	source: Source.TezosNode_Rpc,
 	label: 'Tezos node RPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	sources: [
+		{
+			provider: SourceProvider.TezosNode,
+			source: Source.TezosNode_Rpc,
+			label: 'Tezos node RPC',
+		},
+	],
+	bindings: tezosNodeBindings,
+	origins: tezosNodeOrigins,
+} satisfies SourceProviderDefinition
 
-export default tezosNodeRpcSourceDefinition
+export default tezosNodeSourceProviderDefinition

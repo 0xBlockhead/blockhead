@@ -1,13 +1,27 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { nostrRelayBindings } from '$/sources/NostrRelay/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const nostrRelayNip11HttpSourceDefinition = {
+const nostrRelayOrigins = sourceOriginsFromBindings(nostrRelayBindings)
+
+const nostrRelaySourceProviderDefinition = {
 	provider: SourceProvider.NostrRelay,
-	source: Source.NostrRelay_Nip11_Http,
-	label: 'Nostr relay NIP-11 HTTP',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Nostr relay',
+	sources: [
+		{
+			provider: SourceProvider.NostrRelay,
+			source: Source.NostrRelay_Nip11_Http,
+			label: 'Nostr relay NIP-11 HTTP',
+		},
+		{
+			provider: SourceProvider.NostrRelay,
+			source: Source.NostrRelay_WebSocket,
+			label: 'Nostr relay WebSocket',
+		},
+	],
+	bindings: nostrRelayBindings,
+	origins: nostrRelayOrigins,
+} satisfies SourceProviderDefinition
 
-export default nostrRelayNip11HttpSourceDefinition
+export default nostrRelaySourceProviderDefinition

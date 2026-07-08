@@ -14,6 +14,10 @@ import {
 	type SourceBinding,
 } from '$/sources/SourceBinding.ts'
 
+export const etherscanPublicEnv = arktype({
+	PUBLIC_ETHERSCAN_API_KEY: 'string',
+})
+
 const etherscanOrigin = 'https://api.etherscan.io' as const
 
 export const etherscanBindings = [

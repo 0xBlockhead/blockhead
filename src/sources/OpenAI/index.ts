@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { openAiBindings } from '$/sources/OpenAI/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const openAIRestSourceDefinition = {
+const openAIOrigins = sourceOriginsFromBindings(openAiBindings)
+
+const openAISourceProviderDefinition = {
 	provider: SourceProvider.OpenAI,
-	source: Source.OpenAI_Rest,
-	label: 'OpenAI REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'OpenAI',
+	sources: [
+		{
+			provider: SourceProvider.OpenAI,
+			source: Source.OpenAI_Rest,
+			label: 'OpenAI REST',
+		},
+	],
+	bindings: openAiBindings,
+	origins: openAIOrigins,
+} satisfies SourceProviderDefinition
 
-export default openAIRestSourceDefinition
+export default openAISourceProviderDefinition

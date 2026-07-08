@@ -200,13 +200,6 @@ type CheckedInSourceProviderModule = {
 		label: string
 	}[]
 }
-type SourceDefinitionModule = {
-	path: string
-	importName: string
-	provider: string
-	source: string
-	label: string
-}
 
 const repoRoot = process.cwd()
 const execFileAsync = promisify(execFile)
@@ -2498,8 +2491,7 @@ const validateAndIndex = (
 const deriveFiles = (
 	normalizedApp: App,
 	indexes: AppIndexes,
-	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[],
-	sourceDefinitionModules: readonly SourceDefinitionModule[]
+	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[]
 ): GeneratedFile[] => {
 	const relationshipListViews = namedRelationshipListViews(indexes)
 	const files = [
@@ -2508,8 +2500,7 @@ const deriveFiles = (
 		renderSchemaIndexFile(indexes),
 		renderSourceFile(normalizedApp, checkedInSourceProviderModules),
 		renderSourceProviderFile(normalizedApp, checkedInSourceProviderModules),
-		...sourceDefinitionModules.map((module) => renderSourceDefinitionFile(module)),
-		renderSourceProvidersFile(normalizedApp, checkedInSourceProviderModules, sourceDefinitionModules),
+		renderSourceProvidersFile(checkedInSourceProviderModules),
 		renderSourcesMarkdownFile(normalizedApp, checkedInSourceProviderModules),
 		renderSourceSelectionsFile(indexes.sourceSelections),
 		renderNavigationItemsFile(normalizedApp),
@@ -3059,93 +3050,23 @@ const renderEnvSchema = (env: App['sources']['providers'][number]['env']) => (
 )
 
 const renderSourceProvidersFile = (
-	normalizedApp: App,
-	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[],
-	sourceDefinitionModules: readonly SourceDefinitionModule[]
-) => {
-	const sourcesByProvider = Map.groupBy(normalizedApp.sources.sources, (source) => source.provider)
-	const sourceDefinitionModuleBySource = new Map(sourceDefinitionModules.map((module) => [
-		module.source,
-		module,
-	]))
-	const providerDefinitions = normalizedApp.sources.providers.map((provider) => {
-		const sources = sourcesByProvider.get(provider.provider) ?? []
-		const origins = [
-			...new Map(
-				sources
-					.flatMap(sourceBindings)
-					.flatMap((binding) => binding.endpoints)
-					.flatMap((endpoint) => (
-						endpoint.origin == null ?
-							[]
-						:
-							[[
-								endpoint.origin,
-								{
-									origin: endpoint.origin,
-									corsEnabled: endpoint.corsEnabled === true,
-								},
-							]]
-					))
-			).values(),
-		]
-		return renderObject([
-			['provider', enumAccess('SourceProvider', provider.provider)],
-			['label', q(provider.label)],
-			['env', renderEnvSchema(provider.env)],
-			['sources', renderArray(sources.map((source) => sourceDefinitionModuleBySource.get(source.source)?.importName ?? renderSourceDefinition(source)))],
-			['bindings', renderArray(sources.flatMap((source) => (
-				sourceBindings(source).map((binding) => renderSourceBinding(provider.provider, source.source, binding))
-			)))],
-			['origins', origins.length === 0 ? undefined : renderArray(origins.map((origin) => renderObject([
-				['origin', q(origin.origin)],
-				['corsEnabled', String(origin.corsEnabled)],
-			])))],
-		])
-	})
-
-	return tsFile(
+	checkedInSourceProviderModules: readonly CheckedInSourceProviderModule[]
+) => (
+	tsFile(
 			'src/sources/$sourceProviders.ts',
 			{
 				imports: [
-					...sourceDefinitionModules.map((module) => ({
+					...checkedInSourceProviderModules.map((module) => ({
 						from: `$/sources/${module.path}`,
 						defaultName: module.importName,
 					})),
-					...checkedInSourceProviderModules.map((providerModule) => ({
-						from: `$/sources/${providerModule.path}`,
-						defaultName: providerModule.importName,
-					})),
-					{
-						from: 'arktype',
-						names: ['type'],
-				},
 				{
 					from: '$/sources/SourceProvider.ts',
-					names: ['SourceProvider'],
 					typeNames: ['SourceProviderDefinition'],
-				},
-				{
-					from: '$/sources/Source.ts',
-					names: ['Source'],
-				},
-				{
-					from: '$/sources/SourceBinding.ts',
-					names: [
-						'ApiFamily',
-						'SourceArtifactKind',
-						'SourceCredentialScope',
-						'SourceDelivery',
-						'SourceEndpointKind',
-						'SourceOperationGroup',
-						'SourceTargetKind',
-						'WireProtocol',
-					],
 				},
 			],
 				body: [
 					'export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [',
-					...providerDefinitions.map((definition) => indent(`${definition},`)),
 					...checkedInSourceProviderModules.map((providerModule) => indent(`${providerModule.importName},`)),
 					']',
 					'',
@@ -3153,7 +3074,7 @@ const renderSourceProvidersFile = (
 			],
 		}
 	)
-}
+)
 
 const renderSourceDefinition = (source: Pick<App['sources']['sources'][number], 'provider' | 'source' | 'label' | 'env'>) => renderObject([
 	['provider', enumAccess('SourceProvider', source.provider)],
@@ -3161,31 +3082,6 @@ const renderSourceDefinition = (source: Pick<App['sources']['sources'][number], 
 	['label', q(source.label)],
 	['env', renderEnvSchema(source.env)],
 ])
-
-const renderSourceDefinitionFile = (module: SourceDefinitionModule) => tsFile(
-	`src/sources/${module.path}`,
-	{
-		imports: [
-			{
-				from: '$/sources/Source.ts',
-				names: ['Source'],
-			},
-			{
-				from: '$/sources/SourceProvider.ts',
-				names: ['SourceProvider'],
-			},
-			{
-				from: '$/sources/$sources.ts',
-				typeNames: ['SourceDefinition as SourceDefinitionTemplate'],
-			},
-		],
-		body: [
-			`const ${module.importName} = ${renderSourceDefinition(module)} satisfies SourceDefinitionTemplate<SourceProvider, Source>`,
-			'',
-			`export default ${module.importName}`,
-		],
-	}
-)
 
 const renderSourceBinding = (
 	provider: string,
@@ -7491,7 +7387,17 @@ const sourceProviderModuleFromText = (
 		ts.ScriptKind.TS
 	)
 	const exportAssignment = sourceFile.statements.find(ts.isExportAssignment)
-	const expression = exportAssignment?.expression
+	const exportedExpression = exportAssignment?.expression
+	const expression = (
+		exportedExpression != null && ts.isIdentifier(exportedExpression) ?
+			sourceFile.statements
+				.filter(ts.isVariableStatement)
+				.flatMap((statement) => statement.declarationList.declarations)
+				.find((declaration) => ts.isIdentifier(declaration.name) && declaration.name.text === exportedExpression.text)
+				?.initializer
+		:
+			exportedExpression
+	)
 	const object = (
 		expression != null && ts.isSatisfiesExpression(expression) && ts.isObjectLiteralExpression(expression.expression) ?
 			expression.expression
@@ -7533,45 +7439,6 @@ const sourceProviderModuleFromText = (
 	}
 }
 
-const sourceDefinitionModuleFromText = (
-	filePath: string,
-	source: string
-): SourceDefinitionModule | undefined => {
-	const sourceFile = ts.createSourceFile(
-		filePath,
-		source,
-		ts.ScriptTarget.ESNext,
-		true,
-		ts.ScriptKind.TS
-	)
-	const objectLiterals: ts.ObjectLiteralExpression[] = []
-	const visit = (node: ts.Node) => {
-		if (ts.isObjectLiteralExpression(node))
-			objectLiterals.push(node)
-
-		ts.forEachChild(node, visit)
-	}
-	visit(sourceFile)
-
-	for (const object of objectLiterals) {
-		const provider = enumMemberName(objectProperty(object, 'provider')?.initializer ?? object)
-		const sourceId = enumMemberName(objectProperty(object, 'source')?.initializer ?? object)
-		const label = stringLiteralText(objectProperty(object, 'label')?.initializer ?? object)
-		if (provider == null || sourceId == null || label == null)
-			continue
-
-		return {
-			path: filePath.replace(/^src\/sources\//, ''),
-			importName: `${camel(sourceId)}SourceDefinition`,
-			provider,
-			source: sourceId,
-			label,
-		}
-	}
-
-	return undefined
-}
-
 const checkedInSourceProviderModules = async (normalizedApp: App): Promise<CheckedInSourceProviderModule[]> => {
 	if (normalizedApp.sources.includeCheckedInSourceProviderModules !== true)
 		return []
@@ -7600,114 +7467,7 @@ const checkedInSourceProviderModules = async (normalizedApp: App): Promise<Check
 	}
 
 	await walk(path.join(generatedRoot, 'sources'))
-	return modules.filter((module) => !normalizedApp.sources.providers.some((provider) => provider.provider === module.provider))
-}
-
-const sourceDefinitionModulePath = (
-	source: App['sources']['sources'][number],
-	existingModuleBySource: Map<string, SourceDefinitionModule>
-) => {
-	const existingModule = existingModuleBySource.get(source.source)
-	if (existingModule != null)
-		return existingModule.path
-
-	const sourceSuffix = String(source.source).startsWith(`${source.provider}_`) ?
-		String(source.source).slice(`${source.provider}_`.length)
-	:
-		String(source.source)
-	return `${source.provider}/${sourceSuffix.split('_').map((part) => pascal(part)).join('/')}/index.ts`
-}
-
-const trackedSourceIndexPaths = async () => {
-	try {
-		const { stdout } = await execFileAsync('git', [
-			'ls-files',
-			'src/sources/**/index.ts',
-		], {
-			cwd: repoRoot,
-		})
-		return stdout.trim().length === 0 ? [] : stdout.trim().split('\n')
-	}
-	catch {
-		return []
-	}
-}
-
-const trackedSourceDefinitionModules = async () => {
-	const modules: SourceDefinitionModule[] = []
-	for (const filePath of await trackedSourceIndexPaths()) {
-		if (filePath === 'src/sources/index.ts')
-			continue
-
-		let source: string
-		try {
-			source = (await execFileAsync('git', [
-				'show',
-				`HEAD:${filePath}`,
-			], {
-				cwd: repoRoot,
-			})).stdout
-		}
-		catch {
-			continue
-		}
-
-		if (sourceProviderModuleFromText(filePath, source) != null)
-			continue
-
-		const module = sourceDefinitionModuleFromText(filePath, source)
-		if (module != null)
-			modules.push(module)
-	}
-
 	return modules
-}
-
-const sourceDefinitionModules = async (
-	sources: readonly Pick<App['sources']['sources'][number], 'provider' | 'source' | 'label'>[]
-): Promise<SourceDefinitionModule[]> => {
-	const modules: SourceDefinitionModule[] = []
-	const walk = async (directory: string) => {
-		const entries = await fs.readdir(directory, {
-			withFileTypes: true,
-		})
-		for (const entry of entries) {
-			const absolutePath = path.join(directory, entry.name)
-			if (entry.isDirectory()) {
-				await walk(absolutePath)
-				continue
-			}
-			if (entry.name !== 'index.ts' || absolutePath === path.join(generatedRoot, 'sources/index.ts'))
-				continue
-
-			const filePath = relative(absolutePath)
-			const source = await fs.readFile(absolutePath, 'utf8')
-			if (sourceProviderModuleFromText(filePath, source) != null)
-				continue
-
-			const module = sourceDefinitionModuleFromText(filePath, source)
-			if (module != null)
-				modules.push(module)
-		}
-	}
-
-	await walk(path.join(generatedRoot, 'sources'))
-	const existingModuleBySource = new Map<string, SourceDefinitionModule>()
-	for (const module of [
-		...await trackedSourceDefinitionModules(),
-		...modules,
-	]) {
-		if (!existingModuleBySource.has(module.source))
-			existingModuleBySource.set(module.source, module)
-	}
-
-	return sources.map((source) => ({
-		path: sourceDefinitionModulePath(source, existingModuleBySource),
-		importName: `${camel(source.source)}SourceDefinition`,
-		provider: source.provider,
-		source: source.source,
-		label: source.label,
-	}))
 }
 
 const relative = (absolutePath: string) => path.relative(repoRoot, absolutePath)
@@ -7941,10 +7701,6 @@ const main = async () => {
 	const command = process.argv[2] ?? 'check'
 	const normalizedApp = normalizeApp(app)
 	const checkedInSourceProviderModuleDefinitions = await checkedInSourceProviderModules(normalizedApp)
-	const sourceDefinitionModuleDefinitions = await sourceDefinitionModules(sourceRows(
-		normalizedApp,
-		checkedInSourceProviderModuleDefinitions
-	))
 	const indexes = validateAndIndex(
 		normalizedApp,
 		checkedInSourceProviderModuleDefinitions
@@ -7952,8 +7708,7 @@ const main = async () => {
 	const files = deriveFiles(
 		normalizedApp,
 		indexes,
-		checkedInSourceProviderModuleDefinitions,
-		sourceDefinitionModuleDefinitions
+		checkedInSourceProviderModuleDefinitions
 	)
 	await checkGeneratedViewImportsResolve(files)
 

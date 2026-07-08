@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { litecoinLipsBindings } from '$/sources/LitecoinLips/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const litecoinLipsGithubSourceDefinition = {
+const litecoinLipsOrigins = sourceOriginsFromBindings(litecoinLipsBindings)
+
+const litecoinLipsSourceProviderDefinition = {
 	provider: SourceProvider.LitecoinLips,
-	source: Source.LitecoinLips_Github,
-	label: 'Litecoin LIPs GitHub',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Litecoin LIPs',
+	sources: [
+		{
+			provider: SourceProvider.LitecoinLips,
+			source: Source.LitecoinLips_Github,
+			label: 'Litecoin LIPs GitHub',
+		},
+	],
+	bindings: litecoinLipsBindings,
+	origins: litecoinLipsOrigins,
+} satisfies SourceProviderDefinition
 
-export default litecoinLipsGithubSourceDefinition
+export default litecoinLipsSourceProviderDefinition

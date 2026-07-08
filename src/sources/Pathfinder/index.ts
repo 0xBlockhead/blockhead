@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { pathfinderBindings } from '$/sources/Pathfinder/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const pathfinderJsonRpcSourceDefinition = {
+const pathfinderOrigins = sourceOriginsFromBindings(pathfinderBindings)
+
+const pathfinderSourceProviderDefinition = {
 	provider: SourceProvider.Pathfinder,
-	source: Source.Pathfinder_JsonRpc,
-	label: 'Pathfinder JSON-RPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Pathfinder',
+	sources: [
+		{
+			provider: SourceProvider.Pathfinder,
+			source: Source.Pathfinder_JsonRpc,
+			label: 'Pathfinder JSON-RPC',
+		},
+	],
+	bindings: pathfinderBindings,
+	origins: pathfinderOrigins,
+} satisfies SourceProviderDefinition
 
-export default pathfinderJsonRpcSourceDefinition
+export default pathfinderSourceProviderDefinition

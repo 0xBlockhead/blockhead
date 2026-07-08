@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
+import { zcashClientBackendBindings } from '$/sources/ZcashClientBackend/bindings.ts'
 
-const zcashClientBackendLocalSourceDefinition = {
+const zcashClientBackendOrigins = sourceOriginsFromBindings(zcashClientBackendBindings)
+
+const zcashClientBackendSourceProviderDefinition = {
 	provider: SourceProvider.ZcashClientBackend,
-	source: Source.ZcashClientBackend_Local,
-	label: 'zcash_client_backend local store',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'zcash_client_backend',
+	sources: [
+		{
+			provider: SourceProvider.ZcashClientBackend,
+			source: Source.ZcashClientBackend_Local,
+			label: 'zcash_client_backend local store',
+		},
+	],
+	bindings: zcashClientBackendBindings,
+	origins: zcashClientBackendOrigins,
+} satisfies SourceProviderDefinition
 
-export default zcashClientBackendLocalSourceDefinition
+export default zcashClientBackendSourceProviderDefinition

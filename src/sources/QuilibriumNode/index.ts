@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { quilibriumNodeBindings } from '$/sources/QuilibriumNode/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const quilibriumNodeGrpcSourceDefinition = {
+const quilibriumNodeOrigins = sourceOriginsFromBindings(quilibriumNodeBindings)
+
+const quilibriumNodeSourceProviderDefinition = {
 	provider: SourceProvider.QuilibriumNode,
-	source: Source.QuilibriumNode_Grpc,
-	label: 'Quilibrium node gRPC',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Quilibrium node',
+	sources: [
+		{
+			provider: SourceProvider.QuilibriumNode,
+			source: Source.QuilibriumNode_Grpc,
+			label: 'Quilibrium node gRPC',
+		},
+	],
+	bindings: quilibriumNodeBindings,
+	origins: quilibriumNodeOrigins,
+} satisfies SourceProviderDefinition
 
-export default quilibriumNodeGrpcSourceDefinition
+export default quilibriumNodeSourceProviderDefinition

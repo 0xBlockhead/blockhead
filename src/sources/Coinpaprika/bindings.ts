@@ -55,6 +55,7 @@ export const coinpaprikaBindings = [
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,
+				env: coinpaprikaPublicEnv,
 				keys: [
 					'PUBLIC_COINPAPRIKA_API_KEY',
 				],

@@ -1,13 +1,22 @@
-// Generated from APP.ts. Do not edit by hand.
-
-import type { SourceDefinition as SourceDefinitionTemplate } from '$/sources/$sources.ts'
+import { sourceOriginsFromBindings } from '$/sources/$sources.ts'
+import { anthropicBindings } from '$/sources/Anthropic/bindings.ts'
 import { Source } from '$/sources/Source.ts'
-import { SourceProvider } from '$/sources/SourceProvider.ts'
+import { SourceProvider, type SourceProviderDefinition } from '$/sources/SourceProvider.ts'
 
-const anthropicRestSourceDefinition = {
+const anthropicOrigins = sourceOriginsFromBindings(anthropicBindings)
+
+const anthropicSourceProviderDefinition = {
 	provider: SourceProvider.Anthropic,
-	source: Source.Anthropic_Rest,
-	label: 'Anthropic REST',
-} satisfies SourceDefinitionTemplate<SourceProvider, Source>
+	label: 'Anthropic',
+	sources: [
+		{
+			provider: SourceProvider.Anthropic,
+			source: Source.Anthropic_Rest,
+			label: 'Anthropic REST',
+		},
+	],
+	bindings: anthropicBindings,
+	origins: anthropicOrigins,
+} satisfies SourceProviderDefinition
 
-export default anthropicRestSourceDefinition
+export default anthropicSourceProviderDefinition
