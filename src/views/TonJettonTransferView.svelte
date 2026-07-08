@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -154,7 +154,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.TonJetton, false>('$jetton')}
+				resource={selection.$jetton}
 			>
 				{#snippet children(tonJetton)}
 					{#if tonJetton != null && tonJetton[EntityMetaKey.Selector] != null}
@@ -174,7 +174,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.TonAccount, false>('$from')}
+				resource={selection.$from}
 			>
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
@@ -194,7 +194,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.TonAccount, false>('$to')}
+				resource={selection.$to}
 			>
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}
@@ -214,7 +214,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.TonTrace, false>('$trace')}
+				resource={selection.$trace}
 			>
 				{#snippet children(tonTrace)}
 					{#if tonTrace != null && tonTrace[EntityMetaKey.Selector] != null}
@@ -234,7 +234,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.TonMessage, false>('$message')}
+				resource={selection.$message}
 			>
 				{#snippet children(tonMessage)}
 					{#if tonMessage != null && tonMessage[EntityMetaKey.Selector] != null}

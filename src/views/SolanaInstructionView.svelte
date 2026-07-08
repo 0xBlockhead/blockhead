@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -351,7 +351,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.SolanaProgram, false>('$program')}
+				resource={selection.$program}
 			>
 				{#snippet children(solanaProgram)}
 					{#if solanaProgram != null && solanaProgram[EntityMetaKey.Selector] != null}
@@ -418,10 +418,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SolanaAccountsView
-				selection={selection[EntityProxyField]<EntityType.SolanaAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='Accounts'
 				emptyText='No instruction accounts.'
-				id='SolanaAccountsView-$$accounts'
+				id='SolanaAccountsView-accounts'
 			/>
 		{/if}
 	{/snippet}

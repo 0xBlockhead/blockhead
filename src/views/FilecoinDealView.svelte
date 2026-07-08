@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -98,7 +98,7 @@
 		<ResourceBoundary resource={filecoinDeal}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.FilecoinMiner, false>('$provider')}
+					resource={selection.$provider}
 				>
 					{#snippet children(filecoinMiner)}
 						{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
@@ -113,7 +113,7 @@
 				</ResourceBoundary>
 
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.FilecoinActor, false>('$client')}
+					resource={selection.$client}
 				>
 					{#snippet children(filecoinActor)}
 						{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
@@ -131,7 +131,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.FilecoinMiner, false>('$provider')}
+					resource={selection.$provider}
 				>
 					{#snippet children(filecoinMiner)}
 						{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
@@ -146,7 +146,7 @@
 				</ResourceBoundary>
 
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.FilecoinActor, false>('$client')}
+					resource={selection.$client}
 				>
 					{#snippet children(filecoinActor)}
 						{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
@@ -249,7 +249,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.FilecoinMiner, false>('$provider')}
+				resource={selection.$provider}
 			>
 				{#snippet children(filecoinMiner)}
 					{#if filecoinMiner != null && filecoinMiner[EntityMetaKey.Selector] != null}
@@ -269,7 +269,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.FilecoinActor, false>('$client')}
+				resource={selection.$client}
 			>
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
@@ -610,9 +610,9 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<FilecoinDeal_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.FilecoinDeal_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
-				id='FilecoinDeal_TimestampsView-$$timestamps'
+				id='FilecoinDeal_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

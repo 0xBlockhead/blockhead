@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -214,7 +214,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$resolvedActor')}
+				resource={selection.$resolvedActor}
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
@@ -241,7 +241,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$resolverContract')}
+				resource={selection.$resolverContract}
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -269,7 +269,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$ownerActor')}
+				resource={selection.$ownerActor}
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}

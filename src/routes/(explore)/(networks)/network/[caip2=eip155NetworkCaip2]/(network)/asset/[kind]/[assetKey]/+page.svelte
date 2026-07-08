@@ -5,6 +5,7 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -20,29 +21,36 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import CosmosContractView from '$/views/CosmosContractView.svelte'
+	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 </script>
 
 
 <Page>
-	<CosmosContractView
+	<AssetInstanceView
 		href={
-			resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/contract/[address]', {
+			resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
 				caip2: params.caip2,
-				address: params.address,
+				kind: params.kind,
+				assetKey: params.assetKey,
 			})
 		}
 		selection={
-			select(EntityType.CosmosContract, {
+			select(EntityType.AssetInstance, {
 				$network: {
 					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 				},
-				address: decodeURIComponent(params.address),
+				kind: decodeURIComponent(params.kind),
+				assetKey: decodeURIComponent(params.assetKey),
 			}, {
+				sources: [
+					Source.Constants_Internal,
+				],
 				fields: {
-					codeId: true,
-					$creator: true,
-					$admin: true,
+					symbol: true,
+					name: true,
+					coinId: true,
+					decimals: true,
+					$icon: true,
 				},
 			})
 		}

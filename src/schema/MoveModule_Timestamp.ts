@@ -1,112 +1,97 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum MoveModule_TimestampSelector {
 	ModuleTimestampMsSource = 'ModuleTimestampMsSource',
 }
-export default {
+export const MoveModule_Timestamp = entity({
 	entityType: EntityType.MoveModule_Timestamp,
 	label: 'move module timestamp',
 	labelPlural: 'move module observations',
-	selectors: [
-		{
-			name: MoveModule_TimestampSelector.ModuleTimestampMsSource,
-			fields: [
-				'$module',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$module',
-			label: 'module',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.MoveModule,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'ledgerVersion',
-			label: 'ledger version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'packageVersion',
-			label: 'package version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'packageDigest',
-			label: 'package digest',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'bytecode',
-			label: 'bytecode',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'abi',
-			label: 'ABI',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'sourceCode',
-			label: 'source code',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'sourceDigest',
-			label: 'source digest',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$functions',
-			label: 'functions',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MoveFunction,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$structs',
-			label: 'structs',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MoveStruct,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$module: {
+		label: 'module',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.MoveModule,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	ledgerVersion: {
+		label: 'ledger version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	packageVersion: {
+		label: 'package version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	packageDigest: {
+		label: 'package digest',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	bytecode: {
+		label: 'bytecode',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	abi: {
+		label: 'ABI',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	sourceCode: {
+		label: 'source code',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	sourceDigest: {
+		label: 'source digest',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$functions: {
+		label: 'functions',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.MoveFunction,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$structs: {
+		label: 'structs',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.MoveStruct,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		ModuleTimestampMsSource: [
+			'$module',
+			'timestampMs',
+			'source',
+		],
+	},
+})

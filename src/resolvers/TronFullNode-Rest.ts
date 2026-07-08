@@ -193,7 +193,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => {
 					if (block.hash == null) throw new Error('TronFullNode_Rest: block missing hash')
 					return block.hash
@@ -206,8 +205,7 @@ export default {
 				version: (block) => block.version,
 				transactionCount: (block) => block.transactionCount,
 				$$transactions: (block) => block.$$transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -234,7 +232,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (transaction) => transaction.$block,
 				blockHeight: (transaction) => transaction.blockHeight,
 				timestampMs: (transaction) => transaction.timestampMs,
@@ -250,8 +247,7 @@ export default {
 				assetName: (transaction) => transaction.assetName,
 				rawDataHex: (transaction) => transaction.rawDataHex,
 				signatures: (transaction) => transaction.signatures ?? [],
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronAccount,
@@ -269,10 +265,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (account) => account.name,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronAccount,
@@ -288,10 +282,8 @@ export default {
 				],
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronAccount_Timestamp,
@@ -313,12 +305,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				balanceSun: (account) => account.balanceSun,
 				createdTimestampMs: (account) => account.createdTimestampMs,
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronFullNode_Rest, {
 			entityType: EntityType.TronTransactionReceipt,
@@ -333,13 +323,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				feeSun: (receipt) => receipt.feeSun,
 				result: (receipt) => receipt.result,
 				energyUsageTotal: (receipt) => receipt.energyUsageTotal,
 				netUsage: (receipt) => receipt.netUsage,
 				contractResultHex: (receipt) => receipt.contractResultHex,
-			},
-		}),
+			}),
 	],
 }

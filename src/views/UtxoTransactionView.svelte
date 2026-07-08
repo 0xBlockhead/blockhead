@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -433,7 +433,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.UtxoBlock, false>('$block')}
+				resource={selection.$block}
 			>
 				{#snippet children(utxoBlock)}
 					{#if utxoBlock != null && utxoBlock[EntityMetaKey.Selector] != null}
@@ -494,21 +494,21 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<UtxoInputsView
-				selection={selection[EntityProxyField]<EntityType.UtxoInput>('$$inputs')}
+				selection={selection.$$inputs}
 				title='Inputs'
-				id='UtxoInputsView-$$inputs'
+				id='UtxoInputsView-inputs'
 			/>
 
 			<UtxoOutputsView
-				selection={selection[EntityProxyField]<EntityType.UtxoOutput>('$$outputs')}
+				selection={selection.$$outputs}
 				title='Outputs'
-				id='UtxoOutputsView-$$outputs'
+				id='UtxoOutputsView-outputs'
 			/>
 
 			<ZcashShieldedActionsView
-				selection={selection[EntityProxyField]<EntityType.ZcashShieldedAction>('$$zcashShieldedActions')}
+				selection={selection.$$zcashShieldedActions}
 				title='Zcash shielded actions'
-				id='ZcashShieldedActionsView-$$zcashShieldedActions'
+				id='ZcashShieldedActionsView-zcash-shielded-actions'
 			/>
 		{/if}
 	{/snippet}

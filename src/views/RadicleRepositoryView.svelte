@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -111,7 +111,7 @@
 				<dt>Git repository</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.GitRepository, false>('$gitRepository')}
+						resource={selection.$gitRepository}
 					>
 						{#snippet children(gitRepository)}
 							{#if gitRepository[EntityMetaKey.Selector] != null}

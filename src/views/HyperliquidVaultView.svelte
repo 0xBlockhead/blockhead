@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -142,7 +142,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.HyperliquidAccount, false>('$leader')}
+				resource={selection.$leader}
 			>
 				{#snippet children(hyperliquidAccount)}
 					{#if hyperliquidAccount != null && hyperliquidAccount[EntityMetaKey.Selector] != null}

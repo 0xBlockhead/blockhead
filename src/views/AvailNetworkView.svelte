@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -177,31 +177,31 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AvailNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AvailNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='AvailNetwork_TimestampsView-$$timestamps'
+				id='AvailNetwork_TimestampsView-timestamps'
 			/>
 
 			<AvailBlocksView
-				selection={selection[EntityProxyField]<EntityType.AvailBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No blocks found.'
-				id='AvailBlocksView-$$blocks'
+				id='AvailBlocksView-blocks'
 			/>
 
 			<AvailAppIdsView
-				selection={selection[EntityProxyField]<EntityType.AvailAppId>('$$appIds')}
+				selection={selection.$$appIds}
 				title='app ids'
 				emptyText='No app IDs found.'
-				id='AvailAppIdsView-$$appIds'
+				id='AvailAppIdsView-app-ids'
 			/>
 
 			<AvailDataSubmissionsView
-				selection={selection[EntityProxyField]<EntityType.AvailDataSubmission>('$$dataSubmissions')}
+				selection={selection.$$dataSubmissions}
 				title='data submissions'
 				emptyText='No data submissions found.'
-				id='AvailDataSubmissionsView-$$dataSubmissions'
+				id='AvailDataSubmissionsView-data-submissions'
 			/>
 		{/if}
 	{/snippet}

@@ -33,11 +33,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				signatures: (timestamps) => timestamps.flatMap((timestamp) => timestamp.signatures),
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmSelector_Timestamp,
@@ -50,10 +48,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				signatures: (snapshot) => snapshot.signatures,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmTopic,
@@ -73,11 +69,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				signatures: (timestamps) => timestamps.flatMap((timestamp) => timestamp.signatures),
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmTopic_Timestamp,
@@ -90,10 +84,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				signatures: (snapshot) => snapshot.signatures,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmError,
@@ -122,11 +114,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				signatures: (timestamps) => timestamps.flatMap((timestamp) => timestamp.signatures),
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Openchain_Rest, {
 			entityType: EntityType.EvmError_Timestamp,
@@ -145,10 +135,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				signatures: (snapshot) => snapshot.signatures,
 				reachable: (snapshot) => snapshot.reachable,
-			},
-		}),
+			}),
 	],
 }

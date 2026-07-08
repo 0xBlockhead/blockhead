@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -121,45 +121,45 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<KaspaBlocksView
-				selection={selection[EntityProxyField]<EntityType.KaspaBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No Kaspa blocks.'
-				id='KaspaBlocksView-$$blocks'
+				id='KaspaBlocksView-blocks'
 			/>
 
 			<KaspaTransactionsView
-				selection={selection[EntityProxyField]<EntityType.KaspaTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Kaspa transactions.'
-				id='KaspaTransactionsView-$$transactions'
+				id='KaspaTransactionsView-transactions'
 			/>
 
 			<KaspaAcceptedTransactionsView
-				selection={selection[EntityProxyField]<EntityType.KaspaAcceptedTransaction>('$$acceptedTransactions')}
+				selection={selection.$$acceptedTransactions}
 				title='accepted transactions'
 				emptyText='No Kaspa accepted transactions.'
-				id='KaspaAcceptedTransactionsView-$$acceptedTransactions'
+				id='KaspaAcceptedTransactionsView-accepted-transactions'
 			/>
 
 			<KaspaAddressesView
-				selection={selection[EntityProxyField]<EntityType.KaspaAddress>('$$addresses')}
+				selection={selection.$$addresses}
 				title='addresses'
 				emptyText='No Kaspa addresses.'
-				id='KaspaAddressesView-$$addresses'
+				id='KaspaAddressesView-addresses'
 			/>
 
 			<KaspaNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.KaspaNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Kaspa network observations.'
-				id='KaspaNetwork_TimestampsView-$$timestamps'
+				id='KaspaNetwork_TimestampsView-timestamps'
 			/>
 
 			<KaspaVirtualChain_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.KaspaVirtualChain_Timestamp>('$$virtualChainTimestamps')}
+				selection={selection.$$virtualChainTimestamps}
 				title='virtual chain timestamps'
 				emptyText='No Kaspa virtual-chain observations.'
-				id='KaspaVirtualChain_TimestampsView-$$virtualChainTimestamps'
+				id='KaspaVirtualChain_TimestampsView-virtual-chain-timestamps'
 			/>
 		{/if}
 	{/snippet}

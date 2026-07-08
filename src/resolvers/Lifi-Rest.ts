@@ -27,7 +27,7 @@ import type {
 	LifiBlockExplorerUrlLike,
 	LifiChain,
 } from '$/sources/Lifi/Rest/types.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { CoinBridgeCapabilitySelector } from '$/schema/CoinBridgeCapability.ts'
 import { BridgeRouteSelector } from '$/schema/BridgeRoute.ts'
@@ -207,9 +207,9 @@ export default {
 
 	resolvers: [
 		defineResolver(Source.Lifi_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
 					if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
@@ -217,12 +217,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$icon: (network) => network.$icon,
-				executionEndpoints: (network) => network.executionEndpoints,
-				$$rpcUrls: (network) => network.$$rpcUrls,
-			},
-		}),
+				Evm: {
+					$$rpcUrls: (network) => network.$$rpcUrls,
+				},
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.CoinBridgeCapability,
@@ -238,14 +237,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				toolKey: (capability) => capability.toolKey,
 				railId: (capability) => capability.railId,
 				settlementModel: (capability) => capability.settlementModel,
 				verificationModel: (capability) => capability.verificationModel,
 				assetOutcome: (capability) => capability.assetOutcome,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRoute,
@@ -262,7 +259,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$steps: (route) => route.$$steps,
 				$fromNetwork: (route) => route.$fromNetwork,
 				$toNetwork: (route) => route.$toNetwork,
@@ -272,8 +268,7 @@ export default {
 				estimatedCostUsd: (route) => route.estimatedCostUsd,
 				estimatedDurationSeconds: (route) => route.estimatedDurationSeconds,
 				tags: (route) => route.tags,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.BridgeRouteStep,
@@ -293,7 +288,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				stepType: (step) => step.stepType,
 				tool: (step) => step.tool,
 				$fromNetwork: (step) => step.$fromNetwork,
@@ -304,8 +298,7 @@ export default {
 				settlementModel: (step) => step.settlementModel,
 				verificationModel: (step) => step.verificationModel,
 				assetOutcome: (step) => step.assetOutcome,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType._Global,
@@ -316,10 +309,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$evmNetworks: (networks) => networks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.Coin,
@@ -329,10 +320,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$bridgeCapabilities: (capabilities) => capabilities,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
@@ -355,10 +344,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$outboundBridgeCapabilities: (capabilities) => capabilities,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
 			entityType: EntityType.EvmCoinInstance,
@@ -381,15 +368,13 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$inboundBridgeCapabilities: (capabilities) => capabilities,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lifi_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, _context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, _context) => {
 					const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
 					const lifiChain = (await fetchChains()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(caip2.reference))
 					if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
@@ -410,9 +395,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$blockExplorerUrls: (urls) => urls,
-			},
-		}),
+			}),
 	],
 }

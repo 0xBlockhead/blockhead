@@ -21,7 +21,7 @@ import type {
 	EtherscanInternalTransaction,
 	EtherscanTokenTransferTagged,
 } from '$/sources/Etherscan/Rest/types.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { EvmNetwork_GasEstimate_TimestampSelector } from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
 import { EvmTokenTransferSelector } from '$/schema/EvmTokenTransfer.ts'
 import { EvmInternalTransferSelector } from '$/schema/EvmInternalTransfer.ts'
@@ -30,7 +30,8 @@ import { EvmNetworkAccountSelector } from '$/schema/EvmNetworkAccount.ts'
 import { EvmLogSelector } from '$/schema/EvmLog.ts'
 import { EvmTransactionSelector } from '$/schema/EvmTransaction.ts'
 
-type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.EvmNetwork, EvmNetworkSelector.Caip2>
+type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
+type NetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
 
 const evmNetworkIdFromChainId = (chainId: number): EvmNetworkId => ({
 	caip2: {
@@ -39,7 +40,7 @@ const evmNetworkIdFromChainId = (chainId: number): EvmNetworkId => ({
 	},
 })
 
-const chainIdFromEvmNetworkId = (network: EvmNetworkId) => Number(network.caip2.reference)
+const chainIdFromEvmNetworkId = (network: EvmNetworkId | NetworkId) => Number(network.caip2.reference)
 
 const evmContractRuntimeCodeFromGetCodeHex = (
 	codeHex: `0x${string}`
@@ -504,13 +505,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				slowGwei: (timestamp) => timestamp.slowGwei,
 				averageGwei: (timestamp) => timestamp.averageGwei,
 				fastGwei: (timestamp) => timestamp.fastGwei,
 				transport: (timestamp) => timestamp.transport,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTokenTransfer,
@@ -545,7 +544,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$log: (transfer) => transfer.$log,
 				indexInLog: (transfer) => transfer[EntityMetaKey.Selector].indexInLog,
 				standard: (transfer) => {
@@ -578,8 +576,7 @@ export default {
 							[EntityMetaKey.Selector]: transfer.$coinInstance[EntityMetaKey.Selector],
 						}
 				),
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmInternalTransfer,
@@ -610,7 +607,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$transaction: (transfer) => transfer.$transaction,
 				indexInTransaction: (transfer) => transfer[EntityMetaKey.Selector].indexInTransaction,
 				value: ({ value }) => value,
@@ -619,8 +615,7 @@ export default {
 				$from: (transfer) => transfer.$from,
 				$to: (transfer) => transfer.$to,
 				$createdContract: (transfer) => transfer.$createdContract,
-			},
-		}),
+			}),
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
 			resolve: {
@@ -637,10 +632,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				abi: (contract) => contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -666,10 +659,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$deployer: (contract) => contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -696,10 +687,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$creationTransaction: (contract) => contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -726,10 +715,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$implementation: (contract) => contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -748,10 +735,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				code: (contract) => contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -770,10 +755,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				codeHash: (contract) => contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmContract,
@@ -801,15 +784,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				storageSlotReads: (contract) => contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
+				[NetworkSelector.Caip2]: async (entitySelector) => {
 					await throwIfEtherscanRestUnsupportedChainId(chainIdFromEvmNetworkId(entitySelector))
 					return [
 						{
@@ -823,10 +804,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$gasEstimateTimestamps: (network) => network,
-			},
-		}),
+				Evm: {
+					$$gasEstimateTimestamps: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -865,10 +846,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$tokenTransfers: (account) => account,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -907,10 +886,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$internalTransfers: (account) => account,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmLog,
@@ -950,10 +927,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$tokenTransfers: (log) => log,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -990,10 +965,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$tokenTransfers: (transaction) => transaction,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Etherscan_Rest, {
 			entityType: EntityType.EvmTransaction,
@@ -1019,9 +992,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$internalTransfers: (transaction) => transaction,
-			},
-		}),
+			}),
 	],
 }

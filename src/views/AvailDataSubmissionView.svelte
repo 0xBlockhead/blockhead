@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -199,7 +199,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AvailBlock, false>('$block')}
+				resource={selection.$block}
 			>
 				{#snippet children(availBlock)}
 					{#if availBlock != null && availBlock[EntityMetaKey.Selector] != null}
@@ -219,7 +219,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AvailAppId, false>('$appId')}
+				resource={selection.$appId}
 			>
 				{#snippet children(availAppId)}
 					{#if availAppId != null && availAppId[EntityMetaKey.Selector] != null}

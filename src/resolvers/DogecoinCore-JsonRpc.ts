@@ -90,7 +90,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (snapshot) => snapshot.hash,
 				$parent: (snapshot) => snapshot.$parent,
 				timestampMs: (snapshot) => snapshot.timestampMs,
@@ -101,8 +100,7 @@ export default {
 				weightUnits: (snapshot) => snapshot.weightUnits,
 				transactionCount: (snapshot) => snapshot.transactionCount,
 				$$transactions: (snapshot) => snapshot.$$transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.DogecoinCore_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
@@ -131,14 +129,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				version: (snapshot) => snapshot.version,
 				lockTime: (snapshot) => snapshot.lockTime,
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
 				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 				weightUnits: (snapshot) => snapshot.weightUnits,
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
-			},
-		}),
+			}),
 	],
 }

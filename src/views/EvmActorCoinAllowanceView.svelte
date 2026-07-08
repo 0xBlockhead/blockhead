@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -178,7 +178,7 @@
 				<dt>Balance</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.EvmNetworkActorCoinBalance, false>('$actorCoin')}
+						resource={selection.$actorCoin}
 					>
 						{#snippet children(evmNetworkActorCoinBalance)}
 							{#if evmNetworkActorCoinBalance[EntityMetaKey.Selector] != null}
@@ -243,7 +243,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$spenderContract')}
+				resource={selection.$spenderContract}
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -273,10 +273,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmActorCoinAllowance_BlocksView
-				selection={selection[EntityProxyField]<EntityType.EvmActorCoinAllowance_Block>('$$blocks')}
+				selection={selection.$$blocks}
 				title='Blocks'
 				emptyText='No allowance blocks yet.'
-				id='EvmActorCoinAllowance_BlocksView-$$blocks'
+				id='EvmActorCoinAllowance_BlocksView-blocks'
 			/>
 		{/if}
 	{/snippet}

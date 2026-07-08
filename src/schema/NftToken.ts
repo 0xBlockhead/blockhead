@@ -1,68 +1,59 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum NftTokenSelector {
 	CollectionTokenKey = 'CollectionTokenKey',
 }
-export default {
+export const NftToken = entity({
 	entityType: EntityType.NftToken,
 	label: 'NFT token',
 	labelPlural: 'NFT tokens',
-	selectors: [
-		{
-			name: NftTokenSelector.CollectionTokenKey,
-			fields: [
-				'$collection',
-				'tokenKey',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$collection',
-			label: 'collection',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.NftCollection,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'tokenKey',
-			label: 'token key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'tokenId',
-			label: 'Token ID',
-			description: 'The token identifier within its collection or contract.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$assetObject',
-			label: 'asset object',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AssetObject,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$metadata',
-			label: 'metadata',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TokenMetadataDocument,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$usageRightTimestamps',
-			label: 'usage right timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.UsageRight_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$collection: {
+		label: 'collection',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.NftCollection,
+		cardinality: EntityFieldCardinality.One,
+	},
+	tokenKey: {
+		label: 'token key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	tokenId: {
+		label: 'Token ID',
+		description: 'The token identifier within its collection or contract.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$assetObject: {
+		label: 'asset object',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AssetObject,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$metadata: {
+		label: 'metadata',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.TokenMetadataDocument,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$usageRightTimestamps: {
+		label: 'usage right timestamps',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.UsageRight_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		CollectionTokenKey: [
+			'$collection',
+			'tokenKey',
+		],
+	},
+})

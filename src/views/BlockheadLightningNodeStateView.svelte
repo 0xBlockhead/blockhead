@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -118,7 +118,7 @@
 		<ResourceBoundary resource={blockheadLightningNodeState}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.LightningNode, false>('$node')}
+					resource={selection.$node}
 				>
 					{#snippet children(lightningNode)}
 						{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
@@ -144,7 +144,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.LightningNode, false>('$node')}
+					resource={selection.$node}
 				>
 					{#snippet children(lightningNode)}
 						{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
@@ -283,7 +283,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.LightningNode, false>('$node')}
+				resource={selection.$node}
 			>
 				{#snippet children(lightningNode)}
 					{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
@@ -313,38 +313,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLightningNodeState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningNodeState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No node-state observations.'
-				id='BlockheadLightningNodeState_TimestampsView-$$timestamps'
+				id='BlockheadLightningNodeState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadLightningChannelStatesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningChannelState>('$$channelStates')}
+				selection={selection.$$channelStates}
 				title='channel states'
 				emptyText='No local channel states.'
-				id='BlockheadLightningChannelStatesView-$$channelStates'
+				id='BlockheadLightningChannelStatesView-channel-states'
 			/>
 
 			<LightningChannelsView
-				selection={selection[EntityProxyField]<EntityType.LightningChannel>('$$channels')}
+				selection={selection.$$channels}
 				title='channels'
 				emptyText='No public channel refs.'
-				id='LightningChannelsView-$$channels'
+				id='LightningChannelsView-channels'
 			/>
 
 			<BlockheadLightningInvoicesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningInvoice>('$$invoices')}
+				selection={selection.$$invoices}
 				title='invoices'
 				emptyText='No invoices.'
-				id='BlockheadLightningInvoicesView-$$invoices'
+				id='BlockheadLightningInvoicesView-invoices'
 			/>
 
 			<BlockheadLightningPaymentsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningPayment>('$$payments')}
+				selection={selection.$$payments}
 				title='payments'
 				emptyText='No payments.'
-				id='BlockheadLightningPaymentsView-$$payments'
+				id='BlockheadLightningPaymentsView-payments'
 			/>
 		{/if}
 	{/snippet}

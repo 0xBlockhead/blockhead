@@ -122,14 +122,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				title: (subreddit) => subreddit.title,
 				publicDescription: (subreddit) => subreddit.publicDescription,
 				createdAt: (subreddit) => subreddit.createdAt,
 				over18: (subreddit) => subreddit.over18,
 				$icon: (subreddit) => subreddit.$icon,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
@@ -176,7 +174,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				title: (link) => link.title,
 				selftext: (link) => link.selftext,
 				url: (link) => link.url,
@@ -184,8 +181,7 @@ export default {
 				createdAt: (link) => link.createdAt,
 				$subreddit: (link) => link.$subreddit,
 				permalink: (link) => link.permalink,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
@@ -235,15 +231,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				body: (comment) => comment.body,
 				author: (comment) => comment.author,
 				createdAt: (comment) => comment.createdAt,
 				depth: (comment) => comment.depth,
 				$link: (comment) => comment.$link,
 				$parentComment: (comment) => comment.$parentComment,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit_Timestamp,
@@ -260,11 +254,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				subscriberCount: (timestamp) => timestamp.subscriberCount,
 				activeUserCount: (timestamp) => timestamp.activeUserCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink_Timestamp,
@@ -284,11 +276,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				score: (timestamp) => timestamp.score,
 				commentCount: (timestamp) => timestamp.commentCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment_Timestamp,
@@ -310,10 +300,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				score: (timestamp) => timestamp.score,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType._GlobalRedditNetwork,
@@ -335,10 +323,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedSubreddits: (subreddits) => subreddits,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType._GlobalRedditNetwork,
@@ -362,10 +348,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedLinks: (links) => links,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
@@ -387,10 +371,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditSubreddit,
@@ -414,10 +396,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$links: (links) => links,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
@@ -444,10 +424,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
@@ -468,10 +446,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$comments: (comments) => comments,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditLink,
@@ -488,12 +464,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$comments: {
 					resolveCount: (count) => count,
 				},
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
@@ -520,10 +494,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Reddit_PublicJson, {
 			entityType: EntityType.RedditComment,
@@ -550,9 +522,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$replies: (replies) => replies,
-			},
-		}),
+			}),
 	],
 }

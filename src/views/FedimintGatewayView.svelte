@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -211,17 +211,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<FedimintGateway_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.FedimintGateway_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='FedimintGateway_TimestampsView-$$timestamps'
+				id='FedimintGateway_TimestampsView-timestamps'
 			/>
 
 			<FedimintFederationsView
-				selection={selection[EntityProxyField]<EntityType.FedimintFederation>('$$federations')}
+				selection={selection.$$federations}
 				title='federations'
 				emptyText='No federations found.'
-				id='FedimintFederationsView-$$federations'
+				id='FedimintFederationsView-federations'
 			/>
 		{/if}
 	{/snippet}

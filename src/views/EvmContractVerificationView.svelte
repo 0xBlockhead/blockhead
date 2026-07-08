@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -336,7 +336,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContractCompilation, false>('$compilation')}
+				resource={selection.$compilation}
 			>
 				{#snippet children(evmContractCompilation)}
 					{#if evmContractCompilation != null && evmContractCompilation[EntityMetaKey.Selector] != null}
@@ -356,7 +356,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContractSourceBundle, false>('$sourceBundle')}
+				resource={selection.$sourceBundle}
 			>
 				{#snippet children(evmContractSourceBundle)}
 					{#if evmContractSourceBundle != null && evmContractSourceBundle[EntityMetaKey.Selector] != null}

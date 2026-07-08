@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -283,17 +283,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCodexStorageNodeState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCodexStorageNodeState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Codex node-state observations.'
-				id='BlockheadCodexStorageNodeState_TimestampsView-$$timestamps'
+				id='BlockheadCodexStorageNodeState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadCodexStoredDataEntriesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCodexStoredData>('$$storedData')}
+				selection={selection.$$storedData}
 				title='Stored Data'
 				emptyText='No stored data.'
-				id='BlockheadCodexStoredDataEntriesView-$$storedData'
+				id='BlockheadCodexStoredDataEntriesView-stored-data'
 			/>
 		{/if}
 	{/snippet}

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -91,7 +91,7 @@
 		<ResourceBoundary resource={mcpServerPackageVersion}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.McpServerPackage, false>('$package')}
+					resource={selection.$package}
 				>
 					{#snippet children(mcpServerPackage)}
 						{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
@@ -109,7 +109,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.McpServerPackage, false>('$package')}
+					resource={selection.$package}
 				>
 					{#snippet children(mcpServerPackage)}
 						{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
@@ -152,7 +152,7 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.McpServerPackage, false>('$package')}
+				resource={selection.$package}
 			>
 				{#snippet children(mcpServerPackage)}
 					{#if mcpServerPackage != null && mcpServerPackage[EntityMetaKey.Selector] != null}
@@ -207,7 +207,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AiArtifact, false>('$artifact')}
+				resource={selection.$artifact}
 			>
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -192,24 +192,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<DydxChainPerpetualPosition_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.DydxChainPerpetualPosition_Timestamp>('$$positions')}
+				selection={selection.$$positions}
 				title='positions'
 				emptyText='No dYdX position observations.'
-				id='DydxChainPerpetualPosition_TimestampsView-$$positions'
+				id='DydxChainPerpetualPosition_TimestampsView-positions'
 			/>
 
 			<DydxChainOrdersView
-				selection={selection[EntityProxyField]<EntityType.DydxChainOrder>('$$orders')}
+				selection={selection.$$orders}
 				title='orders'
 				emptyText='No dYdX orders.'
-				id='DydxChainOrdersView-$$orders'
+				id='DydxChainOrdersView-orders'
 			/>
 
 			<DydxChainSubaccount_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.DydxChainSubaccount_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No dYdX subaccount observations.'
-				id='DydxChainSubaccount_TimestampsView-$$timestamps'
+				id='DydxChainSubaccount_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

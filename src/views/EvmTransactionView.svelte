@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -143,7 +143,7 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmBlock, false>('$block')}
+				resource={selection.$block}
 			>
 				{#snippet children(evmBlock)}
 					{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
@@ -172,7 +172,7 @@
 				<dt>From</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$from')}
+						resource={selection.$from}
 					>
 						{#snippet children(evmAccount)}
 							{#if evmAccount[EntityMetaKey.Selector] != null}
@@ -194,7 +194,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$to')}
+				resource={selection.$to}
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
@@ -219,7 +219,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$contract')}
+				resource={selection.$contract}
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -933,45 +933,45 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmTokenTransfersView
-				selection={selection[EntityProxyField]<EntityType.EvmTokenTransfer>('$$tokenTransfers')}
+				selection={selection.$$tokenTransfers}
 				title='Token transfers'
-				id='EvmTokenTransfersView-$$tokenTransfers'
+				id='EvmTokenTransfersView-token-transfers'
 			/>
 
 			<EvmInternalTransfersView
-				selection={selection[EntityProxyField]<EntityType.EvmInternalTransfer>('$$internalTransfers')}
+				selection={selection.$$internalTransfers}
 				title='Internal transfers'
-				id='EvmInternalTransfersView-$$internalTransfers'
+				id='EvmInternalTransfersView-internal-transfers'
 			/>
 
 			<EvmLogsView
-				selection={selection[EntityProxyField]<EntityType.EvmLog>('$$logs')}
+				selection={selection.$$logs}
 				title='Receipt logs'
-				id='EvmLogsView-$$logs'
+				id='EvmLogsView-logs'
 			/>
 
 			<EvmBlobsView
-				selection={selection[EntityProxyField]<EntityType.EvmBlob>('$$blobs')}
+				selection={selection.$$blobs}
 				title='Blobs'
-				id='EvmBlobsView-$$blobs'
+				id='EvmBlobsView-blobs'
 			/>
 
 			<EvmUserOperationsView
-				selection={selection[EntityProxyField]<EntityType.EvmUserOperation>('$$userOperations')}
+				selection={selection.$$userOperations}
 				title='User operations'
-				id='EvmUserOperationsView-$$userOperations'
+				id='EvmUserOperationsView-user-operations'
 			/>
 
 			<Eip7702AuthorizationsView
-				selection={selection[EntityProxyField]<EntityType.Eip7702Authorization>('$$authorizations')}
+				selection={selection.$$authorizations}
 				title='EIP-7702 authorizations'
-				id='Eip7702AuthorizationsView-$$authorizations'
+				id='Eip7702AuthorizationsView-authorizations'
 			/>
 
 			<EvmTracesView
-				selection={selection[EntityProxyField]<EntityType.EvmTrace>('$$traces')}
+				selection={selection.$$traces}
 				title='Traces'
-				id='EvmTracesView-$$traces'
+				id='EvmTracesView-traces'
 			/>
 		{/if}
 	{/snippet}

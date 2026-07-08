@@ -753,7 +753,7 @@ Local collection query behavior:
 Verification:
 
 - Use `tests/e2e/tanstack-db-persistence.e2e.ts` for OPFS persistence checks. It clears OPFS, installs the client persistence probe (`window.__blockheadPersistenceProbe` / sessionStorage), cold-loads every discovered `+page` route, records cold `markLoaded` events, refreshes the same page, and asserts completed Entity/Field/Count Persisted collection subsets hydrate from OPFS without warm `remote` replay for the same `collectionId` + `loadedKey` or repeated catalog HTTP. The same file also keeps the direct `$client` EVM network probe and schema-version invalidation proof.
-- **CI / pre-merge gate:** `pnpm run test:e2e:persistence` (all discovered pages; dedicated dev server). Focus a single route with `E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/tanstack-db-persistence.e2e.ts -g "every discovered page"` or slice with `E2E_PATH_LIMIT=20`.
+- **CI / pre-merge gate:** `pnpm run test:e2e:persistence` is the focused persistence gate with a dedicated dev server. For all discovered pages, run `E2E_PATH_PATTERN='.' pnpm run test:e2e:persistence`. Focus a single route with `E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/tanstack-db-persistence.e2e.ts -g "probe route"` or slice with `E2E_PATH_LIMIT=20`.
 - Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures.
 - Current focused status must include the route-matrix refresh assertion. A narrow probe is acceptable while debugging only when the follow-up all-route gate is still required before closing persistence work.
 

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -285,17 +285,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<A2aTasksView
-				selection={selection[EntityProxyField]<EntityType.A2aTask>('$$tasks')}
+				selection={selection.$$tasks}
 				title='tasks'
 				emptyText='No A2A tasks.'
-				id='A2aTasksView-$$tasks'
+				id='A2aTasksView-tasks'
 			/>
 
 			<A2aAgentService_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.A2aAgentService_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No A2A service observations.'
-				id='A2aAgentService_TimestampsView-$$timestamps'
+				id='A2aAgentService_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

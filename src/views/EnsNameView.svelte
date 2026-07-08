@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -287,7 +287,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EnsName, false>('$parent')}
+				resource={selection.$parent}
 			>
 				{#snippet children(ensName)}
 					{#if ensName != null && ensName[EntityMetaKey.Selector] != null}
@@ -312,7 +312,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$resolverContract')}
+				resource={selection.$resolverContract}
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -338,7 +338,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$subgraphResolvedActor')}
+				resource={selection.$subgraphResolvedActor}
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
@@ -363,7 +363,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$ownerActor')}
+				resource={selection.$ownerActor}
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
@@ -392,24 +392,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EnsNamesView
-				selection={selection[EntityProxyField]<EntityType.EnsName>('$$subdomains')}
+				selection={selection.$$subdomains}
 				title='Subdomains'
 				emptyText='No subdomains for this ENS name yet.'
-				id='EnsNamesView-$$subdomains'
+				id='EnsNamesView-subdomains'
 			/>
 
 			<EnsRecordsView
-				selection={selection[EntityProxyField]<EntityType.EnsRecord>('$$records')}
+				selection={selection.$$records}
 				title='Records'
 				emptyText='No ENS records for this name yet.'
-				id='EnsRecordsView-$$records'
+				id='EnsRecordsView-records'
 			/>
 
 			<EnsName_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.EnsName_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
 				emptyText='No ENS name observations yet.'
-				id='EnsName_TimestampsView-$$timestamps'
+				id='EnsName_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

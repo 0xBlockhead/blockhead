@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -175,7 +175,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.QuilibriumAccount, false>('$account')}
+				resource={selection.$account}
 			>
 				{#snippet children(quilibriumAccount)}
 					{#if quilibriumAccount != null && quilibriumAccount[EntityMetaKey.Selector] != null}
@@ -195,7 +195,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.QuilibriumAccount, false>('$refundAccount')}
+				resource={selection.$refundAccount}
 			>
 				{#snippet children(quilibriumAccount)}
 					{#if quilibriumAccount != null && quilibriumAccount[EntityMetaKey.Selector] != null}

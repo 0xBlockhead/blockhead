@@ -163,12 +163,10 @@ export default {
 				}),
 			},
 		})({
-			fields: {
 				$$snapshots: (snapshot) => snapshot.$$snapshots.map((cardSnapshot) => ({
 					[EntityMetaKey.Selector]: cardSnapshot[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.A2aWellKnown_Http, {
 			entityType: EntityType.A2aAgentCard_Snapshot,
@@ -181,7 +179,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				fetchedAt: (snapshot) => snapshot.fetchedAt,
 				snapshotKind: (snapshot) => snapshot.snapshotKind,
 				name: (snapshot) => snapshot.name,
@@ -204,7 +201,6 @@ export default {
 				$$skills: (snapshot) => snapshot.$$skills.map((skill) => ({
 					[EntityMetaKey.Selector]: skill[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 	],
 }

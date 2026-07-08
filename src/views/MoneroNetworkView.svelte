@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -220,26 +220,26 @@
 		{#if detailsOpen}
 			<MoneroNetwork_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.MoneroNetwork_Timestamp>('$$timestamps', {
+						selection.$$timestamps({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
 						})
 					}
 				title='Observations'
-				id='MoneroNetwork_TimestampsView-$$timestamps'
+				id='MoneroNetwork_TimestampsView-timestamps'
 			/>
 
 			<MoneroBlocksView
 				selection={
-						selection[EntityProxyField]<EntityType.MoneroBlock>('$$blocks', {
+						selection.$$blocks({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
 						})
 					}
 				title='Blocks'
-				id='MoneroBlocksView-$$blocks'
+				id='MoneroBlocksView-blocks'
 			/>
 		{/if}
 	{/snippet}

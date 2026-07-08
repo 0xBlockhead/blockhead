@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -133,47 +133,47 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ActivityPubActorsView
-				selection={selection[EntityProxyField]<EntityType.ActivityPubActor>('$$observedActors')}
+				selection={selection.$$observedActors}
 				title='Observed actors'
 				href={resolve('/(social)/(activitypub)/activitypub/actors')}
 				emptyText='No ActivityPub actors in this observed.'
-				id='ActivityPubActorsView-$$observedActors'
+				id='ActivityPubActorsView-observed-actors'
 			/>
 
 			<ActivityPubNotesView
-				selection={selection[EntityProxyField]<EntityType.ActivityPubNote>('$$observedNotes')}
+				selection={selection.$$observedNotes}
 				title='Observed notes'
 				href={resolve('/(social)/(activitypub)/activitypub/notes')}
 				emptyText='No ActivityPub notes in this observed.'
-				id='ActivityPubNotesView-$$observedNotes'
+				id='ActivityPubNotesView-observed-notes'
 			/>
 
 			<ActivityPubInstancesView
-				selection={selection[EntityProxyField]<EntityType.ActivityPubInstance>('$$instances')}
+				selection={selection.$$instances}
 				title='Instances'
 				emptyText='No ActivityPub instances declared.'
-				id='ActivityPubInstancesView-$$instances'
+				id='ActivityPubInstancesView-instances'
 			/>
 
 			<ActivityPubInstancePeersView
-				selection={selection[EntityProxyField]<EntityType.ActivityPubInstancePeer>('$$instancePeers')}
+				selection={selection.$$instancePeers}
 				title='Instance peers'
 				emptyText='No ActivityPub instance peers in this observed.'
-				id='ActivityPubInstancePeersView-$$instancePeers'
+				id='ActivityPubInstancePeersView-instance-peers'
 			/>
 
 			<ActivityPubInstanceModeratedDomainsView
-				selection={selection[EntityProxyField]<EntityType.ActivityPubInstanceModeratedDomain>('$$instanceModeratedDomains')}
+				selection={selection.$$instanceModeratedDomains}
 				title='Instance moderated domains'
 				emptyText='No ActivityPub moderated domains in this observed.'
-				id='ActivityPubInstanceModeratedDomainsView-$$instanceModeratedDomains'
+				id='ActivityPubInstanceModeratedDomainsView-instance-moderated-domains'
 			/>
 
 			<GlobalActivityPubNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType._GlobalActivityPubNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Timestamps'
 				emptyText='No ActivityPub hub observations yet.'
-				id='_GlobalActivityPubNetwork_TimestampsView-$$timestamps'
+				id='_GlobalActivityPubNetwork_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

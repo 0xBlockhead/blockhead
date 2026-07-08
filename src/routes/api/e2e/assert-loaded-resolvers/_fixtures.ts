@@ -762,7 +762,7 @@ export const probeEntitySelectorByType: ProbeEntitySelectorByType = {
 		feedKey: 'e2e-probe-market-quote',
 	},
 
-	[EntityType.EvmNetwork]: mainnet,
+	[EntityType.Network]: mainnet,
 	[EntityType.EvmNetworkBridge]: {
 		$fromNetwork: mainnet,
 		$toNetwork: { caip2: {
@@ -1639,9 +1639,9 @@ export const catalogProbeSources = new Set<Source>([
 	* Matched before env/catalog/network defaults.
 	*/
 export const knownUpstreamGapProbeKeys = new Set<string>([
-	`field:${EntityType.EvmNetwork}.$$erc4337Bundlers:${Source.Blockscout_Rest}`,
-	`field:${EntityType.EvmNetwork}.$$erc4337Paymasters:${Source.Blockscout_Rest}`,
-	`field:${EntityType.EvmNetwork}.$$erc4337AccountFactories:${Source.Blockscout_Rest}`,
+	`field:${EntityType.Network}.$$erc4337Bundlers:${Source.Blockscout_Rest}`,
+	`field:${EntityType.Network}.$$erc4337Paymasters:${Source.Blockscout_Rest}`,
+	`field:${EntityType.Network}.$$erc4337AccountFactories:${Source.Blockscout_Rest}`,
 ])
 
 
@@ -1757,7 +1757,7 @@ export const parentEntitySelectorForResolverValuePart = (
 		entityType === EntityType.Network ?
 			bitcoin
 		:
-			entityType === EntityType.EvmNetwork ?
+			entityType === EntityType.Network ?
 				mainnet
 			:
 				entityType === EntityType.EvmAccount ?

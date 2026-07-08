@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -285,24 +285,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BnbBeaconToken_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconToken_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='BnbBeaconToken_TimestampsView-$$timestamps'
+				id='BnbBeaconToken_TimestampsView-timestamps'
 			/>
 
 			<BnbBeaconTokenTransfersView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconTokenTransfer>('$$transfers')}
+				selection={selection.$$transfers}
 				title='transfers'
 				emptyText='No transfers found.'
-				id='BnbBeaconTokenTransfersView-$$transfers'
+				id='BnbBeaconTokenTransfersView-transfers'
 			/>
 
 			<BnbBeaconTokenMigrationsView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconTokenMigration>('$$migrations')}
+				selection={selection.$$migrations}
 				title='migrations'
 				emptyText='No migrations found.'
-				id='BnbBeaconTokenMigrationsView-$$migrations'
+				id='BnbBeaconTokenMigrationsView-migrations'
 			/>
 		{/if}
 	{/snippet}

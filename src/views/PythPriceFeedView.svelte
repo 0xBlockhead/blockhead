@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -109,7 +109,7 @@
 		<ResourceBoundary resource={pythPriceFeed}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.Market, false>('$market')}
+					resource={selection.$market}
 				>
 					{#snippet children(market)}
 						{#if market != null && market[EntityMetaKey.Selector] != null}
@@ -139,7 +139,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.Market, false>('$market')}
+					resource={selection.$market}
 				>
 					{#snippet children(market)}
 						{#if market != null && market[EntityMetaKey.Selector] != null}
@@ -373,7 +373,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Market, false>('$market')}
+				resource={selection.$market}
 			>
 				{#snippet children(market)}
 					{#if market != null && market[EntityMetaKey.Selector] != null}
@@ -407,10 +407,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PythPriceFeed_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.PythPriceFeed_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Timestamps'
 				emptyText='No Pyth price feed observations.'
-				id='PythPriceFeed_TimestampsView-$$timestamps'
+				id='PythPriceFeed_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

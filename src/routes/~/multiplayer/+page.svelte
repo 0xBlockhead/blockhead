@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import BlockheadRoomPeersView from '$/views/BlockheadRoomPeersView.svelte'
@@ -52,7 +51,7 @@
 		{#snippet SectionRooms()}
 			<BlockheadRoomsView
 				href={resolve('/~/multiplayer/rooms')}
-				selection={select(EntityType._Global, { scope: '$$blockheadRooms' })[EntityProxyField]<EntityType.BlockheadRoom>('$$blockheadRooms')({
+				selection={select(EntityType._Global, { scope: '$$blockheadRooms' }).$$blockheadRooms({
 					sources: [Source.Local_Internal],
 				})}
 				id='rooms'
@@ -63,7 +62,7 @@
 		{#snippet SectionContacts()}
 			<BlockheadRoomPeersView
 				href={resolve('/~/multiplayer/contacts')}
-				selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' })[EntityProxyField]<EntityType.BlockheadRoomPeer>('$$blockheadRoomPeers')({
+				selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' }).$$blockheadRoomPeers({
 					sources: [Source.Local_Internal],
 				})}
 				id='contacts'

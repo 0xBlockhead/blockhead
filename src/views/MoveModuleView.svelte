@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -260,24 +260,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<MoveModule_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.MoveModule_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='MoveModule_TimestampsView-$$timestamps'
+				id='MoveModule_TimestampsView-timestamps'
 			/>
 
 			<MoveFunctionsView
-				selection={selection[EntityProxyField]<EntityType.MoveFunction>('$$functions')}
+				selection={selection.$$functions}
 				title='functions'
 				emptyText='No functions found.'
-				id='MoveFunctionsView-$$functions'
+				id='MoveFunctionsView-functions'
 			/>
 
 			<MoveStructsView
-				selection={selection[EntityProxyField]<EntityType.MoveStruct>('$$structs')}
+				selection={selection.$$structs}
 				title='structs'
 				emptyText='No structs found.'
-				id='MoveStructsView-$$structs'
+				id='MoveStructsView-structs'
 			/>
 		{/if}
 	{/snippet}

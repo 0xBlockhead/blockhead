@@ -5,7 +5,6 @@
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { calldataExamples, type CalldataExample } from '$/constants/calldata-examples.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { decodeCalldataWithSignature, decodeEventDataWithSignature, formatDecodedParamValue } from '$/lib/calldata-decode.ts'
 	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -155,14 +154,14 @@
 
 	const functionSignatures = $derived(
 		selector ?
-			selectorEntity[EntityProxyField]('signatures').current?.values.map(String) ?? EMPTY_SIGNATURES
+			selectorEntity.signatures.current?.values.map(String) ?? EMPTY_SIGNATURES
 		:
 			EMPTY_SIGNATURES,
 	)
 
 	const eventSignatures = $derived(
 		topic ?
-			topicEntity[EntityProxyField]('signatures').current?.values.map(String) ?? EMPTY_SIGNATURES
+			topicEntity.signatures.current?.values.map(String) ?? EMPTY_SIGNATURES
 		:
 			EMPTY_SIGNATURES,
 	)

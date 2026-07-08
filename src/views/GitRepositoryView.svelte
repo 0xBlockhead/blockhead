@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -244,31 +244,31 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<GitRefsView
-				selection={selection[EntityProxyField]<EntityType.GitRef>('$$refs')}
+				selection={selection.$$refs}
 				title='refs'
 				emptyText='No refs.'
-				id='GitRefsView-$$refs'
+				id='GitRefsView-refs'
 			/>
 
 			<GitObjectsView
-				selection={selection[EntityProxyField]<EntityType.GitObject>('$$objects')}
+				selection={selection.$$objects}
 				title='objects'
 				emptyText='No objects.'
-				id='GitObjectsView-$$objects'
+				id='GitObjectsView-objects'
 			/>
 
 			<GitRemotesView
-				selection={selection[EntityProxyField]<EntityType.GitRemote>('$$remotes')}
+				selection={selection.$$remotes}
 				title='remotes'
 				emptyText='No remotes.'
-				id='GitRemotesView-$$remotes'
+				id='GitRemotesView-remotes'
 			/>
 
 			<GitFetchObservationsView
-				selection={selection[EntityProxyField]<EntityType.GitFetchObservation>('$$fetches')}
+				selection={selection.$$fetches}
 				title='fetches'
 				emptyText='No fetch observations.'
-				id='GitFetchObservationsView-$$fetches'
+				id='GitFetchObservationsView-fetches'
 			/>
 		{/if}
 	{/snippet}

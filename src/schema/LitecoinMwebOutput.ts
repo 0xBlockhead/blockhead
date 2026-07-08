@@ -1,60 +1,52 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum LitecoinMwebOutputSelector {
 	LitecoinMwebTransactionOutputIndex = 'LitecoinMwebTransactionOutputIndex',
 }
-export default {
+export const LitecoinMwebOutput = entity({
 	entityType: EntityType.LitecoinMwebOutput,
 	label: 'litecoin MWEB output',
 	labelPlural: 'litecoin MWEB outputs',
-	selectors: [
-		{
-			name: LitecoinMwebOutputSelector.LitecoinMwebTransactionOutputIndex,
-			fields: [
-				'$transaction',
-				'outputIndex',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$transaction',
-			label: 'transaction',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.LitecoinMwebTransaction,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'outputIndex',
-			label: 'output index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'commitment',
-			label: 'commitment',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'senderPubkey',
-			label: 'sender public key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$localOutputState',
-			label: 'local output state',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadLitecoinMwebOutputState,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$transaction: {
+		label: 'transaction',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.LitecoinMwebTransaction,
+		cardinality: EntityFieldCardinality.One,
+	},
+	outputIndex: {
+		label: 'output index',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	commitment: {
+		label: 'commitment',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	senderPubkey: {
+		label: 'sender public key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$localOutputState: {
+		label: 'local output state',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BlockheadLitecoinMwebOutputState,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		LitecoinMwebTransactionOutputIndex: [
+			'$transaction',
+			'outputIndex',
+		],
+	},
+})

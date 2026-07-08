@@ -1,10 +1,10 @@
 // Generated from APP.ts. Do not edit by hand.
 
-export type E2eRouteFacetPredicate =
-	| { readonly field: string, readonly equals: string | number | boolean | null }
-	| { readonly field: string, readonly contains: string | number | boolean | null }
-	| { readonly all: readonly E2eRouteFacetPredicate[] }
-	| { readonly any: readonly E2eRouteFacetPredicate[] }
+export type E2eRouteProjectionCondition =
+	| { readonly path: readonly (string | number)[], readonly is: string | number | boolean | null }
+	| { readonly path: readonly (string | number)[], readonly isOneOf: readonly (string | number | boolean | null)[] }
+	| { readonly path: readonly (string | number)[], readonly includes: string | number | boolean | null }
+	| { readonly all: readonly E2eRouteProjectionCondition[] }
 
 export type E2eRouteFixtureMetadata = {
 	id?: string
@@ -12,8 +12,8 @@ export type E2eRouteFixtureMetadata = {
 	routeKind?: string
 	fixture?: Readonly<Partial<Record<string, string>>>
 	variants?: readonly Readonly<Partial<Record<string, string>>>[]
-	requiredFacets?: readonly string[]
-	requiredFacetPredicates?: readonly E2eRouteFacetPredicate[]
+	requiredProjections?: readonly (readonly string[])[]
+	requiredProjectionConditions?: readonly E2eRouteProjectionCondition[]
 	boundaryLiveOptional?: true
 }
 
@@ -64,7 +64,8 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				timestampMs: '1735689600000',
 			},
 		],
-		requiredFacetPredicates: [],
+		requiredProjections: [],
+		requiredProjectionConditions: [],
 	},
 	'/ens/name/[ensName]': {},
 	'/ens/name/[ensName]/observations/[timestampMs=nonNegativeInteger]/[source]': {},
@@ -118,13 +119,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -138,13 +143,37 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
+			},
+		],
+	},
+	'/network/[caip2=eip155NetworkCaip2]/asset/[kind]/[assetKey]': {
+		id: 'Network.Evm.AssetInstance',
+		fixture: {
+			kind: 'Native',
+			assetKey: 'ETH',
+		},
+		requiredProjections: [
+			[
+				'Evm',
+			],
+		],
+		requiredProjectionConditions: [
+			{
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -158,13 +187,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -182,13 +215,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				indexInTransaction: '0',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -202,13 +239,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -222,13 +263,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -242,13 +287,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -262,13 +311,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -282,13 +335,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -302,13 +359,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -322,13 +383,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -342,13 +407,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -364,13 +433,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				upgradeSlug: 'bellatrix',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -384,13 +457,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -406,13 +483,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -426,13 +507,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -446,13 +531,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -466,13 +555,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -486,13 +579,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -506,13 +603,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -526,13 +627,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -546,13 +651,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -566,13 +675,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -586,13 +699,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -606,13 +723,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -626,13 +747,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -646,13 +771,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -666,13 +795,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -686,13 +819,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -706,13 +843,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -726,13 +867,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -746,13 +891,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -766,13 +915,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -786,13 +939,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -806,13 +963,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -826,13 +987,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -846,13 +1011,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -866,13 +1035,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -886,13 +1059,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -906,13 +1083,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -926,13 +1107,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -946,13 +1131,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -966,13 +1155,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -986,13 +1179,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1006,13 +1203,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1026,13 +1227,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1046,13 +1251,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1066,13 +1275,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1086,13 +1299,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1106,13 +1323,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1126,13 +1347,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1146,13 +1371,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1166,13 +1395,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1186,13 +1419,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1206,13 +1443,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1226,13 +1467,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1246,13 +1491,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1266,13 +1515,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1286,13 +1539,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1306,13 +1563,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1326,13 +1587,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1346,13 +1611,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1366,13 +1635,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1386,13 +1659,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1406,13 +1683,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1426,13 +1707,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1452,13 +1737,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				index: '0',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1472,13 +1761,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1492,13 +1785,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1512,13 +1809,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1532,13 +1833,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1552,13 +1857,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1572,13 +1881,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1592,13 +1905,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1612,13 +1929,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1632,13 +1953,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1652,13 +1977,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1672,13 +2001,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1692,13 +2025,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1712,13 +2049,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1732,13 +2073,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1752,13 +2097,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1772,13 +2121,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				caip2: 'eip155:1',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -1789,22 +2142,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -1813,22 +2172,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -1837,22 +2202,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -1861,22 +2232,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -1885,22 +2262,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -1909,22 +2292,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -1933,46 +2322,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
-			},
-		],
-	},
-	'/network/[caip2=networkCaip2]/cosmos/contract/[address]': {
-		id: 'Network.Cosmos',
-		fixture: {
-			caip2: 'cosmos:cosmoshub-4',
-			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
-			source: 'CosmosSdk_Rest',
-		},
-		variants: [
-			{
-				caip2: 'cosmos:cosmoshub-4',
-				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
-				source: 'CosmosSdk_Rest',
-			},
-		],
-		requiredFacets: [
-			'Cosmos',
-		],
-		requiredFacetPredicates: [
-			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -1981,22 +2352,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2005,22 +2382,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2029,22 +2412,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2053,22 +2442,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2077,22 +2472,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2101,22 +2502,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2125,22 +2532,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2149,22 +2562,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2173,22 +2592,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2197,22 +2622,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2221,22 +2652,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2245,22 +2682,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2269,22 +2712,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2293,22 +2742,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2317,22 +2772,28 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			caip2: 'cosmos:cosmoshub-4',
 			address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+			height: '31000000',
 			source: 'CosmosSdk_Rest',
 		},
 		variants: [
 			{
 				caip2: 'cosmos:cosmoshub-4',
 				address: 'cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j',
+				height: '31000000',
 				source: 'CosmosSdk_Rest',
 			},
 		],
-		requiredFacets: [
-			'Cosmos',
+		requiredProjections: [
+			[
+				'Cosmos',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'CosmosSdk',
+				path: [
+					'executionModels',
+				],
+				includes: 'CosmosSdk',
 			},
 		],
 	},
@@ -2348,13 +2809,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'ethereum',
 			},
 		],
-		requiredFacets: [
-			'Evm',
+		requiredProjections: [
+			[
+				'Evm',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'Evm',
+				path: [
+					'executionModels',
+				],
+				includes: 'Evm',
 			},
 		],
 	},
@@ -2372,13 +2837,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'lightning',
 			},
 		],
-		requiredFacets: [
-			'Lightning',
+		requiredProjections: [
+			[
+				'Lightning',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'namespace',
-				equals: 'Lightning',
+				path: [
+					'namespace',
+				],
+				is: 'Lightning',
 			},
 		],
 	},
@@ -2394,13 +2863,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				channelId: '852861482917888001',
 			},
 		],
-		requiredFacets: [
-			'Lightning',
+		requiredProjections: [
+			[
+				'Lightning',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'namespace',
-				equals: 'Lightning',
+				path: [
+					'namespace',
+				],
+				is: 'Lightning',
 			},
 		],
 	},
@@ -2415,13 +2888,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'lightning',
 			},
 		],
-		requiredFacets: [
-			'Lightning',
+		requiredProjections: [
+			[
+				'Lightning',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'namespace',
-				equals: 'Lightning',
+				path: [
+					'namespace',
+				],
+				is: 'Lightning',
 			},
 		],
 	},
@@ -2437,13 +2914,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				paymentHash: 'e2e-probe-paymentHash',
 			},
 		],
-		requiredFacets: [
-			'Lightning',
+		requiredProjections: [
+			[
+				'Lightning',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'namespace',
-				equals: 'Lightning',
+				path: [
+					'namespace',
+				],
+				is: 'Lightning',
 			},
 		],
 	},
@@ -2457,13 +2938,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'lightning',
 			},
 		],
-		requiredFacets: [
-			'Lightning',
+		requiredProjections: [
+			[
+				'Lightning',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'namespace',
-				equals: 'Lightning',
+				path: [
+					'namespace',
+				],
+				is: 'Lightning',
 			},
 		],
 	},
@@ -2479,13 +2964,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				pubkey: '02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 			},
 		],
-		requiredFacets: [
-			'Lightning',
+		requiredProjections: [
+			[
+				'Lightning',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'namespace',
-				equals: 'Lightning',
+				path: [
+					'namespace',
+				],
+				is: 'Lightning',
 			},
 		],
 	},
@@ -2499,13 +2988,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'lightning',
 			},
 		],
-		requiredFacets: [
-			'Lightning',
+		requiredProjections: [
+			[
+				'Lightning',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'namespace',
-				equals: 'Lightning',
+				path: [
+					'namespace',
+				],
+				is: 'Lightning',
 			},
 		],
 	},
@@ -2521,13 +3014,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				paymentHash: 'e2e-probe-paymentHash',
 			},
 		],
-		requiredFacets: [
-			'Lightning',
+		requiredProjections: [
+			[
+				'Lightning',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'namespace',
-				equals: 'Lightning',
+				path: [
+					'namespace',
+				],
+				is: 'Lightning',
 			},
 		],
 	},
@@ -2541,13 +3038,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'polkadot',
 			},
 		],
-		requiredFacets: [
-			'Polkadot',
+		requiredProjections: [
+			[
+				'Polkadot',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'PolkadotRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'PolkadotRuntime',
 			},
 		],
 	},
@@ -2563,13 +3064,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				accountId: '5GrwvaEF5zXb26Fz9rcQpDWSQVu1csJn3S9qjQg9mT3S7v5F',
 			},
 		],
-		requiredFacets: [
-			'Polkadot',
+		requiredProjections: [
+			[
+				'Polkadot',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'PolkadotRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'PolkadotRuntime',
 			},
 		],
 	},
@@ -2589,13 +3094,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				source: 'SubstrateSidecar_Rest',
 			},
 		],
-		requiredFacets: [
-			'Polkadot',
+		requiredProjections: [
+			[
+				'Polkadot',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'PolkadotRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'PolkadotRuntime',
 			},
 		],
 	},
@@ -2609,13 +3118,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'polkadot',
 			},
 		],
-		requiredFacets: [
-			'Polkadot',
+		requiredProjections: [
+			[
+				'Polkadot',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'PolkadotRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'PolkadotRuntime',
 			},
 		],
 	},
@@ -2629,13 +3142,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'polkadot',
 			},
 		],
-		requiredFacets: [
-			'Polkadot',
+		requiredProjections: [
+			[
+				'Polkadot',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'PolkadotRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'PolkadotRuntime',
 			},
 		],
 	},
@@ -2649,13 +3166,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'polkadot',
 			},
 		],
-		requiredFacets: [
-			'Polkadot',
+		requiredProjections: [
+			[
+				'Polkadot',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'PolkadotRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'PolkadotRuntime',
 			},
 		],
 	},
@@ -2669,13 +3190,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'polkadot',
 			},
 		],
-		requiredFacets: [
-			'Polkadot',
+		requiredProjections: [
+			[
+				'Polkadot',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'PolkadotRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'PolkadotRuntime',
 			},
 		],
 	},
@@ -2689,13 +3214,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'polkadot',
 			},
 		],
-		requiredFacets: [
-			'Polkadot',
+		requiredProjections: [
+			[
+				'Polkadot',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'PolkadotRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'PolkadotRuntime',
 			},
 		],
 	},
@@ -2709,13 +3238,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2729,13 +3262,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2749,13 +3286,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2769,13 +3310,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2789,13 +3334,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2809,13 +3358,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2829,13 +3382,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2849,13 +3406,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2869,13 +3430,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2889,13 +3454,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2909,13 +3478,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2929,13 +3502,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2949,13 +3526,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2969,13 +3550,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -2989,13 +3574,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -3009,13 +3598,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -3029,13 +3622,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -3049,13 +3646,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -3069,13 +3670,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'solana',
 			},
 		],
-		requiredFacets: [
-			'Solana',
+		requiredProjections: [
+			[
+				'Solana',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'executionModels',
-				contains: 'SolanaRuntime',
+				path: [
+					'executionModels',
+				],
+				includes: 'SolanaRuntime',
 			},
 		],
 	},
@@ -3100,13 +3705,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3129,13 +3738,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3158,13 +3771,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3187,13 +3804,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3216,13 +3837,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3245,13 +3870,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3274,13 +3903,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3303,13 +3936,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3329,18 +3966,26 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				pool: 'orchard',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
-			'Zcash',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
+			[
+				'Zcash',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 			{
-				field: 'executionModels',
-				contains: 'ZcashShielded',
+				path: [
+					'executionModels',
+				],
+				includes: 'ZcashShielded',
 			},
 		],
 	},
@@ -3363,13 +4008,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3392,13 +4041,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3421,13 +4074,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3450,13 +4107,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3479,13 +4140,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3499,18 +4164,26 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'bitcoin-cash',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
-			'CashTokens',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
+			[
+				'CashTokens',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 			{
-				field: 'namespace',
-				equals: 'BitcoinCash',
+				path: [
+					'namespace',
+				],
+				is: 'BitcoinCash',
 			},
 		],
 	},
@@ -3524,18 +4197,26 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'bitcoin-cash',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
-			'CashTokens',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
+			[
+				'CashTokens',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 			{
-				field: 'namespace',
-				equals: 'BitcoinCash',
+				path: [
+					'namespace',
+				],
+				is: 'BitcoinCash',
 			},
 		],
 	},
@@ -3549,18 +4230,26 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'bitcoin-cash',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
-			'CashTokens',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
+			[
+				'CashTokens',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 			{
-				field: 'namespace',
-				equals: 'BitcoinCash',
+				path: [
+					'namespace',
+				],
+				is: 'BitcoinCash',
 			},
 		],
 	},
@@ -3583,13 +4272,17 @@ export const e2eRouteFixtureMetadataByRouteId = {
 				networkSlug: 'litecoin',
 			},
 		],
-		requiredFacets: [
-			'Utxo',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 		],
 	},
@@ -3602,18 +4295,26 @@ export const e2eRouteFixtureMetadataByRouteId = {
 			actionKind: 'spend',
 			actionIndex: '0',
 		},
-		requiredFacets: [
-			'Utxo',
-			'Zcash',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
+			[
+				'Zcash',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 			{
-				field: 'executionModels',
-				contains: 'ZcashShielded',
+				path: [
+					'executionModels',
+				],
+				includes: 'ZcashShielded',
 			},
 		],
 	},
@@ -3623,18 +4324,26 @@ export const e2eRouteFixtureMetadataByRouteId = {
 			networkSlug: 'zcash',
 			txId: '7fb6c4d3e2a1908070605040302010ffeeddccbbaa99887766554433221100ff',
 		},
-		requiredFacets: [
-			'Utxo',
-			'Zcash',
+		requiredProjections: [
+			[
+				'Utxo',
+			],
+			[
+				'Zcash',
+			],
 		],
-		requiredFacetPredicates: [
+		requiredProjectionConditions: [
 			{
-				field: 'ledgerModels',
-				contains: 'Utxo',
+				path: [
+					'ledgerModels',
+				],
+				includes: 'Utxo',
 			},
 			{
-				field: 'executionModels',
-				contains: 'ZcashShielded',
+				path: [
+					'executionModels',
+				],
+				includes: 'ZcashShielded',
 			},
 		],
 	},
@@ -3650,14 +4359,16 @@ export const e2eRouteFixtureMetadataByRouteId = {
 		fixture: {
 			eventId: 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
 		},
-		requiredFacetPredicates: [],
+		requiredProjections: [],
+		requiredProjectionConditions: [],
 	},
 	'/nostr/relay/[relayKey]': {},
 	'/nostr/repost/[eventId]': {
 		fixture: {
 			eventId: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
 		},
-		requiredFacetPredicates: [],
+		requiredProjections: [],
+		requiredProjectionConditions: [],
 	},
 	'/pool/[chainId=eip155ChainId]/[poolId]': {},
 	'/pool/[chainId=eip155ChainId]/[poolId]/block/[blockNumber=nonNegativeInteger]': {},
@@ -3665,10 +4376,38 @@ export const e2eRouteFixtureMetadataByRouteId = {
 	'/proposals/[specificationRealmSlug=specificationRealmSlug]': {},
 	'/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]': {},
 	'/proposals/[specificationRealmSlug=specificationRealmSlug]/[proposalKindSlug=proposalKindSlug]/[proposalRef=proposalRef]': {},
-	'/reddit/comment/[fullname]': {},
-	'/reddit/comment/[fullname]/observations': {},
-	'/reddit/comment/[fullname]/observations/[timestampMs=nonNegativeInteger]/[source]': {},
-	'/reddit/comment/[fullname]/replies': {},
+	'/reddit/comment/[fullname]': {
+		id: 'RedditComment.Fullname',
+		fixture: {
+			fullname: 't1_osbo75d',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
+	'/reddit/comment/[fullname]/observations': {
+		id: 'RedditComment.Observations',
+		fixture: {
+			fullname: 't1_osbo75d',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
+	'/reddit/comment/[fullname]/observations/[timestampMs=nonNegativeInteger]/[source]': {
+		id: 'RedditComment_Timestamp.CommentTimestampMsSource',
+		fixture: {
+			fullname: 't1_osbo75d',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
+	'/reddit/comment/[fullname]/replies': {
+		id: 'RedditComment.Replies',
+		fixture: {
+			fullname: 't1_osbo75d',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
 	'/reddit/link/[fullname]': {},
 	'/reddit/link/[fullname]/comments': {},
 	'/reddit/link/[fullname]/observations': {},
@@ -3698,12 +4437,47 @@ export const e2eRouteFixtureMetadataByRouteId = {
 	'/x/post/[postId]/observations/[timestampMs=nonNegativeInteger]': {},
 	'/x/user/[userId]': {},
 	'/x/user/[userId]/observations/[timestampMs=nonNegativeInteger]': {},
-	'/xmtp/account/[accountId]': {},
-	'/xmtp/conversation/[conversationId]': {},
-	'/youtube/channel/[channelId]': {},
-	'/youtube/channel/[channelId]/observations/[timestampMs]': {},
-	'/youtube/channel/[channelId]/playlists': {},
-	'/youtube/channel/[channelId]/videos': {},
+	'/xmtp/account/[address=evmAddress]': {},
+	'/xmtp/conversation/[conversationId]': {
+		id: 'XmtpConversation.Id',
+		fixture: {
+			conversationId: 'e2e-probe-conversation',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
+	'/youtube/channel/[channelId]': {
+		id: 'YoutubeChannel.ChannelId',
+		fixture: {
+			channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
+	'/youtube/channel/[channelId]/observations/[timestampMs]': {
+		id: 'YoutubeChannel_Timestamp.YoutubeChannelTimestampMs',
+		fixture: {
+			channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
+	'/youtube/channel/[channelId]/playlists': {
+		id: 'YoutubeChannel.Playlists',
+		fixture: {
+			channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
+	'/youtube/channel/[channelId]/videos': {
+		id: 'YoutubeChannel.Videos',
+		fixture: {
+			channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw',
+		},
+		requiredProjections: [],
+		requiredProjectionConditions: [],
+	},
 	'/youtube/comment/[videoId]/[commentId]': {},
 	'/youtube/comment/[videoId]/[commentId]/observations/[timestampMs]': {},
 	'/youtube/playlist/[playlistId]': {},

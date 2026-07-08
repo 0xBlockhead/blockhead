@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -84,7 +84,7 @@
 				<dt>network</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.TonNetwork, false>('$network')}
+						resource={selection.$network}
 					>
 						{#snippet children(tonNetwork)}
 							{#if tonNetwork[EntityMetaKey.Selector] != null}
@@ -136,7 +136,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.TonNftCollection, false>('$collection')}
+				resource={selection.$collection}
 			>
 				{#snippet children(tonNftCollection)}
 					{#if tonNftCollection != null && tonNftCollection[EntityMetaKey.Selector] != null}
@@ -191,7 +191,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.TonAccount, false>('$account')}
+				resource={selection.$account}
 			>
 				{#snippet children(tonAccount)}
 					{#if tonAccount != null && tonAccount[EntityMetaKey.Selector] != null}

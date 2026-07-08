@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -156,38 +156,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AptosAccount_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AptosAccount_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='AptosAccount_TimestampsView-$$timestamps'
+				id='AptosAccount_TimestampsView-timestamps'
 			/>
 
 			<AptosCoinBalance_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AptosCoinBalance_Timestamp>('$$balances')}
+				selection={selection.$$balances}
 				title='balances'
 				emptyText='No balances found.'
-				id='AptosCoinBalance_TimestampsView-$$balances'
+				id='AptosCoinBalance_TimestampsView-balances'
 			/>
 
 			<AptosAccountResourcesView
-				selection={selection[EntityProxyField]<EntityType.AptosAccountResource>('$$resources')}
+				selection={selection.$$resources}
 				title='resources'
 				emptyText='No resources found.'
-				id='AptosAccountResourcesView-$$resources'
+				id='AptosAccountResourcesView-resources'
 			/>
 
 			<MoveModulesView
-				selection={selection[EntityProxyField]<EntityType.MoveModule>('$$modules')}
+				selection={selection.$$modules}
 				title='modules'
 				emptyText='No modules found.'
-				id='MoveModulesView-$$modules'
+				id='MoveModulesView-modules'
 			/>
 
 			<AptosTransactionsView
-				selection={selection[EntityProxyField]<EntityType.AptosTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No transactions found.'
-				id='AptosTransactionsView-$$transactions'
+				id='AptosTransactionsView-transactions'
 			/>
 		{/if}
 	{/snippet}

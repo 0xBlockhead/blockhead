@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -30,7 +29,7 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$eip8004Services',
-			})[EntityProxyField]<EntityType.EvmNft>('$$eip8004Services', {
+			}).$$eip8004Services({
 				sources: [
 					Source.Eip8004Scan_Rest,
 				],

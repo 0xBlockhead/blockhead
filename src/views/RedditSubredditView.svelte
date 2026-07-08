@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -295,7 +295,7 @@
 		{#if detailsOpen}
 			<RedditLinksView
 				selection={
-						selection[EntityProxyField]<EntityType.RedditLink>('$$links', {
+						selection.$$links({
 							sources: [
 								Source.Constants_Internal,
 								Source.Reddit_PublicJson,
@@ -304,7 +304,7 @@
 					}
 				title='Submissions'
 				href={resolve('/(social)/(reddit)/reddit/links')}
-				id='RedditLinksView-$$links'
+				id='RedditLinksView-links'
 			/>
 		{/if}
 	{/snippet}

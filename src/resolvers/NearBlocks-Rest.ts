@@ -48,11 +48,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				amountYoctoNear: (snapshot) => snapshot.amountYoctoNear,
 				storageUsageBytes: (snapshot) => snapshot.storageUsageBytes,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearBlock,
@@ -85,13 +83,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (snapshot) => snapshot.hash,
 				$parent: (snapshot) => snapshot.$parent,
 				epochId: (snapshot) => snapshot.epochId,
 				timestampMs: (snapshot) => snapshot.timestampMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearBlocks_Rest, {
 			entityType: EntityType.NearTransaction,
@@ -163,13 +159,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$signer: (snapshot) => snapshot.$signer,
 				$receiver: (snapshot) => snapshot.$receiver,
 				nonce: (snapshot) => snapshot.nonce,
 				$$actions: (snapshot) => snapshot.$$actions,
 				$$executionOutcomes: (snapshot) => snapshot.$$executionOutcomes ?? [],
-			},
-		}),
+			}),
 	],
 }

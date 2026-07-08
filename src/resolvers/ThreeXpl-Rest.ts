@@ -79,11 +79,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				timestampMs: (block) => block.timestampMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.NearBlock,
@@ -103,11 +101,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				timestampMs: (block) => block.timestampMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.PolkadotBlock,
@@ -124,10 +120,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaBlock,
@@ -156,15 +150,13 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				blockHash: (block) => {
 					if (block.blockHash == null) throw new Error('ThreeXpl_Rest: Solana block missing block hash')
 					return block.blockHash
 				},
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
-			},
-		}),
+			}),
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaTransaction,
 			resolve: {
@@ -187,10 +179,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (transaction) => transaction.$block,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronBlock,
@@ -211,12 +201,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -244,12 +232,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (transaction) => transaction.$block,
 				blockHeight: (transaction) => transaction.blockHeight,
 				timestampMs: (transaction) => transaction.timestampMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoBlock,
@@ -270,12 +256,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.MoneroBlock,
@@ -305,10 +289,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$transactions: (transactions) => transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.SolanaBlock,
@@ -344,10 +326,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$transactions: (transactions) => transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.TronBlock,
@@ -378,10 +358,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$transactions: (transactions) => transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ThreeXpl_Rest, {
 			entityType: EntityType.UtxoBlock,
@@ -404,9 +382,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$transactions: (transactions) => transactions,
-			},
-		}),
+			}),
 	],
 }

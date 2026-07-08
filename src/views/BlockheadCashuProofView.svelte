@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -140,7 +140,7 @@
 				<dt>mint</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.CashuMint, false>('$mint')}
+						resource={selection.$mint}
 					>
 						{#snippet children(cashuMint)}
 							{#if cashuMint[EntityMetaKey.Selector] != null}
@@ -201,7 +201,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.CashuKeyset, false>('$keyset')}
+				resource={selection.$keyset}
 			>
 				{#snippet children(cashuKeyset)}
 					{#if cashuKeyset != null && cashuKeyset[EntityMetaKey.Selector] != null}
@@ -489,10 +489,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCashuProof_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCashuProof_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='BlockheadCashuProof_TimestampsView-$$timestamps'
+				id='BlockheadCashuProof_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

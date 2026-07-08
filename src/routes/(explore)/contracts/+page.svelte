@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -28,12 +27,12 @@
 		href={resolve('/(explore)/contracts')}
 		title='Contracts'
 		selection={
-			select(EntityType.EvmNetwork, {
+			select(EntityType.Network, {
 				caip2: {
 					namespace: 'eip155',
 					reference: '1',
 				},
-			})[EntityProxyField]<EntityType.EvmContract>('$$contracts', {
+			}).$$contracts({
 				sources: [
 					Source.Blockscout_Rest,
 				],

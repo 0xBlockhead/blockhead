@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -188,7 +188,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.Network, false>('$settlementNetwork', {
+					selection.$settlementNetwork({
 						sources: [
 							Source.Constants_Internal,
 						],
@@ -347,7 +347,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.ElementsAsset, false>('$nativeAsset', {
+					selection.$nativeAsset({
 						sources: [
 							Source.Esplora_Rest,
 						],
@@ -377,14 +377,14 @@
 		{#if detailsOpen}
 			<ElementsAssetsView
 				selection={
-						selection[EntityProxyField]<EntityType.ElementsAsset>('$$assets', {
+						selection.$$assets({
 							sources: [
 								Source.Esplora_Rest,
 							],
 						})
 					}
 				title='Assets'
-				id='ElementsAssetsView-$$assets'
+				id='ElementsAssetsView-assets'
 			/>
 		{/if}
 	{/snippet}

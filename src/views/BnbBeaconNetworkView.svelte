@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -260,45 +260,45 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BnbBeaconNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='BnbBeaconNetwork_TimestampsView-$$timestamps'
+				id='BnbBeaconNetwork_TimestampsView-timestamps'
 			/>
 
 			<BnbBeaconBlocksView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No blocks found.'
-				id='BnbBeaconBlocksView-$$blocks'
+				id='BnbBeaconBlocksView-blocks'
 			/>
 
 			<BnbBeaconTransactionsView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No transactions found.'
-				id='BnbBeaconTransactionsView-$$transactions'
+				id='BnbBeaconTransactionsView-transactions'
 			/>
 
 			<BnbValidatorsView
-				selection={selection[EntityProxyField]<EntityType.BnbValidator>('$$validators')}
+				selection={selection.$$validators}
 				title='validators'
 				emptyText='No validators found.'
-				id='BnbValidatorsView-$$validators'
+				id='BnbValidatorsView-validators'
 			/>
 
 			<BnbBeaconTokensView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconToken>('$$tokens')}
+				selection={selection.$$tokens}
 				title='tokens'
 				emptyText='No tokens found.'
-				id='BnbBeaconTokensView-$$tokens'
+				id='BnbBeaconTokensView-tokens'
 			/>
 
 			<BnbBeaconTokenMigrationsView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconTokenMigration>('$$migrationRecords')}
+				selection={selection.$$migrationRecords}
 				title='migration records'
 				emptyText='No migration records found.'
-				id='BnbBeaconTokenMigrationsView-$$migrationRecords'
+				id='BnbBeaconTokenMigrationsView-migration-records'
 			/>
 		{/if}
 	{/snippet}

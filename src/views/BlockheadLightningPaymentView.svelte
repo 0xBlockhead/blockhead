@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -292,7 +292,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadLightningNodeState, false>('$localNodeState')}
+				resource={selection.$localNodeState}
 			>
 				{#snippet children(blockheadLightningNodeState)}
 					{#if blockheadLightningNodeState != null && blockheadLightningNodeState[EntityMetaKey.Selector] != null}
@@ -312,7 +312,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadLightningInvoice, false>('$invoice')}
+				resource={selection.$invoice}
 			>
 				{#snippet children(blockheadLightningInvoice)}
 					{#if blockheadLightningInvoice != null && blockheadLightningInvoice[EntityMetaKey.Selector] != null}
@@ -379,10 +379,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLightningPayment_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningPayment_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
 				emptyText='No observations yet.'
-				id='BlockheadLightningPayment_TimestampsView-$$timestamps'
+				id='BlockheadLightningPayment_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

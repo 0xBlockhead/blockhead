@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -118,7 +118,7 @@
 		<ResourceBoundary resource={solanaTokenAccount}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.SolanaTokenMint, false>('$mint')}
+					resource={selection.$mint}
 				>
 					{#snippet children(solanaTokenMint)}
 						<span data-text="muted">
@@ -142,7 +142,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.SolanaTokenMint, false>('$mint')}
+					resource={selection.$mint}
 				>
 					{#snippet children(solanaTokenMint)}
 						<span data-text="muted">
@@ -201,7 +201,7 @@
 				<dt>Mint</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.SolanaTokenMint, false>('$mint')}
+						resource={selection.$mint}
 					>
 						{#snippet children(solanaTokenMint)}
 							{#if solanaTokenMint[EntityMetaKey.Selector] != null}
@@ -224,7 +224,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.SolanaAccount, false>('$account')}
+				resource={selection.$account}
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
@@ -250,7 +250,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.SolanaAccount, false>('$owner')}
+				resource={selection.$owner}
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
@@ -278,7 +278,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.SolanaAccount, false>('$delegate')}
+				resource={selection.$delegate}
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}
@@ -304,7 +304,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.SolanaAccount, false>('$closeAuthority')}
+				resource={selection.$closeAuthority}
 			>
 				{#snippet children(solanaAccount)}
 					{#if solanaAccount != null && solanaAccount[EntityMetaKey.Selector] != null}

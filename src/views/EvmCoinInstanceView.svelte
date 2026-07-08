@@ -4,12 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkByCaip2 } from '$/constants/Network.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { UrlString } from '$/schema/UrlString.ts'
 	import { Source } from '$/sources/Source.ts'
@@ -64,7 +65,7 @@
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
-	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 	import MediaView from '$/views/MediaView.svelte'
@@ -395,8 +396,27 @@
 			<div>
 				<dt>Network</dt>
 				<dd>
-					<EvmNetworkView
-						selection={select(EntityType.EvmNetwork, selection.entitySelector.$network, {})}
+					<NetworkView
+						selection={select(EntityType.Network, selection.entitySelector.$network, {})}
+						href={
+							(selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('CosmosSdk') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('Evm') && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=eip155NetworkSlug]', {
+								networkSlug: String(networkByCaip2[String(String(selection.entitySelector.$network.caip2.namespace) + ':' + String(selection.entitySelector.$network.caip2.reference))].slug ?? ''),
+							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('SolanaRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/solana', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : selection.entitySelector.$network.executionModels !== undefined && selection.entitySelector.$network.executionModels.values.includes('PolkadotRuntime') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/polkadot', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : selection.entitySelector.$network.ledgerModels !== undefined && selection.entitySelector.$network.ledgerModels.values.includes('Utxo') && selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]/utxo', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.namespace !== undefined && selection.entitySelector.$network.caip2 !== undefined && selection.entitySelector.$network.caip2.reference !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]', {
+								caip2: `${String(selection.entitySelector.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$network.caip2.reference ?? '')}`,
+							}) : selection.entitySelector.$network.slug !== undefined ? resolve('/(explore)/(networks)/network/[networkSlug=networkSlug]', {
+								networkSlug: String(selection.entitySelector.$network.slug ?? ''),
+							}) : undefined)
+						}
 						layout={EntityLayout.Value}
 						open={false}
 					/>
@@ -404,7 +424,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$contract')}
+				resource={selection.$contract}
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -430,7 +450,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmCoinInstance, false>('$canonicalInstance')}
+				resource={selection.$canonicalInstance}
 			>
 				{#snippet children(evmCoinInstance)}
 					{#if evmCoinInstance != null && evmCoinInstance[EntityMetaKey.Selector] != null}
@@ -456,7 +476,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Media, false>('$icon')}
+				resource={selection.$icon}
 			>
 				{#snippet children(media)}
 					{#if media != null && media[EntityMetaKey.Selector] != null}
@@ -486,7 +506,7 @@
 		{#if detailsOpen}
 			<CoinBridgeCapabilitiesView
 				selection={
-						selection[EntityProxyField]<EntityType.CoinBridgeCapability>('$$outboundBridgeCapabilities', {
+						selection.$$outboundBridgeCapabilities({
 							sources: [
 								Source.Lifi_Rest,
 							],
@@ -494,12 +514,12 @@
 					}
 				title='Outbound bridge capabilities'
 				emptyText='No outbound bridge capabilities for this instance yet.'
-				id='CoinBridgeCapabilitiesView-$$outboundBridgeCapabilities'
+				id='CoinBridgeCapabilitiesView-outbound-bridge-capabilities'
 			/>
 
 			<CoinBridgeCapabilitiesView
 				selection={
-						selection[EntityProxyField]<EntityType.CoinBridgeCapability>('$$inboundBridgeCapabilities', {
+						selection.$$inboundBridgeCapabilities({
 							sources: [
 								Source.Lifi_Rest,
 							],
@@ -507,23 +527,23 @@
 					}
 				title='Inbound bridge capabilities'
 				emptyText='No inbound bridge capabilities for this instance yet.'
-				id='CoinBridgeCapabilitiesView-$$inboundBridgeCapabilities'
+				id='CoinBridgeCapabilitiesView-inbound-bridge-capabilities'
 			/>
 
 			<MarketsView
-				selection={selection[EntityProxyField]<EntityType.Market>('$$marketsWithInstanceAsBase')}
+				selection={selection.$$marketsWithInstanceAsBase}
 				title='Markets with instance as base'
 				href={resolve('/(assets)/markets')}
 				emptyText='No markets use this instance as base yet.'
-				id='MarketsView-$$marketsWithInstanceAsBase'
+				id='MarketsView-markets-with-instance-as-base'
 			/>
 
 			<MarketsView
-				selection={selection[EntityProxyField]<EntityType.Market>('$$marketsWithInstanceAsQuote')}
+				selection={selection.$$marketsWithInstanceAsQuote}
 				title='Markets with instance as quote'
 				href={resolve('/(assets)/markets')}
 				emptyText='No markets use this instance as quote yet.'
-				id='MarketsView-$$marketsWithInstanceAsQuote'
+				id='MarketsView-markets-with-instance-as-quote'
 			/>
 		{/if}
 	{/snippet}

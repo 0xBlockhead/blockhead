@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -247,7 +247,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmNft, false>('$evmNft')}
+				resource={selection.$evmNft}
 			>
 				{#snippet children(evmNft)}
 					{#if evmNft != null && evmNft[EntityMetaKey.Selector] != null}
@@ -278,17 +278,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<Eip8004AgentRegistration_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.Eip8004AgentRegistration_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Timestamps'
 				emptyText='No EIP-8004 registration observations.'
-				id='Eip8004AgentRegistration_TimestampsView-$$timestamps'
+				id='Eip8004AgentRegistration_TimestampsView-timestamps'
 			/>
 
 			<Eip8004AgentRegistrationFilesView
-				selection={selection[EntityProxyField]<EntityType.Eip8004AgentRegistrationFile>('$$files')}
+				selection={selection.$$files}
 				title='Files'
 				emptyText='No EIP-8004 registration files.'
-				id='Eip8004AgentRegistrationFilesView-$$files'
+				id='Eip8004AgentRegistrationFilesView-files'
 			/>
 		{/if}
 	{/snippet}

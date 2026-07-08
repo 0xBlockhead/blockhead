@@ -6,8 +6,31 @@ import { blobscanRestApiOriginByChainId } from '$/sources/Blobscan/Rest/constant
 import type {
 	BlobscanBlobDetail,
 	BlobscanTransaction,
+	BlobscanTransactionBlob,
 } from '$/sources/Blobscan/Rest/types.ts'
 
+
+export const getTransaction = async ({
+	chainId,
+	txHash,
+}: {
+	chainId: number
+	txHash: string
+}): Promise<BlobscanTransaction | undefined> => {
+	const apiOrigin = blobscanRestApiOriginByChainId[chainId]
+	if (apiOrigin == null) return undefined
+
+	const txUrl = `${apiOrigin}/transactions/${encodeURIComponent(txHash)}`
+	try {
+		return await getJson<BlobscanTransaction>(
+			txUrl,
+			{ origins: blobscanOrigins }
+		)
+	}
+	catch {
+		return undefined
+	}
+}
 
 export const getBlobDetail = async ({
 	chainId,
@@ -21,21 +44,13 @@ export const getBlobDetail = async ({
 	const apiOrigin = blobscanRestApiOriginByChainId[chainId]
 	if (apiOrigin == null) return undefined
 
-	const txUrl = `${apiOrigin}/transactions/${encodeURIComponent(txHash)}`
-	let tx: BlobscanTransaction
-	try {
-		tx = await getJson<BlobscanTransaction>(
-			txUrl,
-			{ origins: blobscanOrigins }
-		)
-	}
-	catch {
-		return undefined
-	}
-
-	const blobs = tx.blobs
+	const blobs = (await getTransaction({
+		chainId,
+		txHash,
+	}))?.blobs
 	if (!Array.isArray(blobs)) return undefined
-	const row = blobs[blobIndex]
+	const row = blobs.at(blobIndex)
+	if (row == null) return undefined
 	const versionedHash = row.versionedHash
 	if (versionedHash == null || versionedHash === '') return undefined
 
@@ -52,4 +67,19 @@ export const getBlobDetail = async ({
 	}
 
 	return detail
+}
+
+export const getTransactionBlob = async ({
+	chainId,
+	txHash,
+	blobIndex,
+}: {
+	chainId: number
+	txHash: string
+	blobIndex: number
+}): Promise<BlobscanTransactionBlob | undefined> => {
+	return (await getTransaction({
+		chainId,
+		txHash,
+	}))?.blobs?.[blobIndex]
 }

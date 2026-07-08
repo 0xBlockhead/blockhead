@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -169,7 +169,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.DydxChainMarket, false>('$market')}
+				resource={selection.$market}
 			>
 				{#snippet children(dydxChainMarket)}
 					{#if dydxChainMarket != null && dydxChainMarket[EntityMetaKey.Selector] != null}
@@ -405,10 +405,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<DydxChainOrder_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.DydxChainOrder_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No dYdX order observations.'
-				id='DydxChainOrder_TimestampsView-$$timestamps'
+				id='DydxChainOrder_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -152,10 +152,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLogosBlockchainWalletKeyState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLogosBlockchainWalletKeyState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Logos blockchain wallet-key observations.'
-				id='BlockheadLogosBlockchainWalletKeyState_TimestampsView-$$timestamps'
+				id='BlockheadLogosBlockchainWalletKeyState_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

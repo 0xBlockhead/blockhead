@@ -93,7 +93,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				reference: (snapshot) => snapshot.reference,
 				contentPath: (snapshot) => snapshot.contentPath,
 				canonicalUri: (snapshot) => snapshot.canonicalUri,
@@ -107,7 +106,6 @@ export default {
 				isContentTypeInferred: (snapshot) => snapshot.isContentTypeInferred,
 				text: (snapshot) => snapshot.text,
 				$media: (snapshot) => snapshot.$media,
-			},
-		}),
+			}),
 	],
 }

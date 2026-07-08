@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -94,7 +94,7 @@
 		<ResourceBoundary resource={blockheadLightningHtlc}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.LightningChannel, false>('$channel')}
+					resource={selection.$channel}
 				>
 					{#snippet children(lightningChannel)}
 						<LightningChannelView
@@ -116,7 +116,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.LightningChannel, false>('$channel')}
+					resource={selection.$channel}
 				>
 					{#snippet children(lightningChannel)}
 						<LightningChannelView
@@ -177,7 +177,7 @@
 				<dt>channel</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.LightningChannel, false>('$channel')}
+						resource={selection.$channel}
 					>
 						{#snippet children(lightningChannel)}
 							{#if lightningChannel[EntityMetaKey.Selector] != null}

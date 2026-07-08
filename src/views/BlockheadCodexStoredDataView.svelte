@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -174,7 +174,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.CodexDataset, false>('$dataset')}
+				resource={selection.$dataset}
 			>
 				{#snippet children(codexDataset)}
 					{#if codexDataset != null && codexDataset[EntityMetaKey.Selector] != null}
@@ -233,10 +233,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCodexStoredData_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCodexStoredData_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No availability observations.'
-				id='BlockheadCodexStoredData_TimestampsView-$$timestamps'
+				id='BlockheadCodexStoredData_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

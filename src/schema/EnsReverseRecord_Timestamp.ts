@@ -1,63 +1,55 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum EnsReverseRecord_TimestampSelector {
 	ReverseRecordTimestampMsSource = 'ReverseRecordTimestampMsSource',
 }
-export default {
+export const EnsReverseRecord_Timestamp = entity({
 	entityType: EntityType.EnsReverseRecord_Timestamp,
 	label: 'ENS reverse record timestamp',
 	labelPlural: 'ENS reverse record observations',
-	selectors: [
-		{
-			name: EnsReverseRecord_TimestampSelector.ReverseRecordTimestampMsSource,
-			fields: [
-				'$reverseRecord',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$reverseRecord',
-			label: 'Reverse record',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EnsReverseRecord,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'verified',
-			label: 'Verified',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'resolverSelector',
-			label: 'Resolver selector',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$reverseRecord: {
+		label: 'Reverse record',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EnsReverseRecord,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	verified: {
+		label: 'Verified',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	resolverSelector: {
+		label: 'Resolver selector',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		ReverseRecordTimestampMsSource: [
+			'$reverseRecord',
+			'timestampMs',
+			'source',
+		],
+	},
+})

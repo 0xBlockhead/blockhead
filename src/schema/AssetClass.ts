@@ -1,91 +1,79 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum AssetClassSelector {
 	AssetInstanceClassKindClassKey = 'AssetInstanceClassKindClassKey',
 }
-export default {
+export const AssetClass = entity({
 	entityType: EntityType.AssetClass,
 	label: 'asset class',
 	labelPlural: 'asset classes',
 	description: 'A reusable asset classification used to group related asset instances and objects.',
-	selectors: [
-		{
-			name: AssetClassSelector.AssetInstanceClassKindClassKey,
-			fields: [
-				'$assetInstance',
-				'classKind',
-				'classKey',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$assetInstance',
-			label: 'Asset instance',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AssetInstance,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'classKind',
-			label: 'Class kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'classKey',
-			label: 'Class key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'label',
-			label: 'Label',
-			description: 'A human-readable name for the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'slot',
-			label: 'Slot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'partition',
-			label: 'Partition',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'series',
-			label: 'Series',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'maturityMs',
-			label: 'Maturity',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'valueDecimals',
-			label: 'Value decimals',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$assetInstance: {
+		label: 'Asset instance',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AssetInstance,
+		cardinality: EntityFieldCardinality.One,
+	},
+	classKind: {
+		label: 'Class kind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	classKey: {
+		label: 'Class key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	label: {
+		label: 'Label',
+		description: 'A human-readable name for the subject.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	slot: {
+		label: 'Slot',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	partition: {
+		label: 'Partition',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	series: {
+		label: 'Series',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	maturityMs: {
+		label: 'Maturity',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	valueDecimals: {
+		label: 'Value decimals',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		AssetInstanceClassKindClassKey: [
+			'$assetInstance',
+			'classKind',
+			'classKey',
+		],
+	},
+})

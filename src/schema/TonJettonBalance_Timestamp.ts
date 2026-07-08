@@ -1,99 +1,86 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum TonJettonBalance_TimestampSelector {
 	AccountJettonTimestampMsSource = 'AccountJettonTimestampMsSource',
 }
-export default {
+export const TonJettonBalance_Timestamp = entity({
 	entityType: EntityType.TonJettonBalance_Timestamp,
 	label: 'ton jetton balance timestamp',
 	labelPlural: 'ton jetton balance observations',
-	selectors: [
-		{
-			name: TonJettonBalance_TimestampSelector.AccountJettonTimestampMsSource,
-			fields: [
-				'$account',
-				'$jetton',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$account',
-			label: 'account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TonAccount,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$jetton',
-			label: 'jetton',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TonJetton,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'jettonWalletAddress',
-			label: 'jetton wallet address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'balanceNano',
-			label: 'balance nano',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'ownerAddress',
-			label: 'owner address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'masterAddress',
-			label: 'master address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'lastTransactionLt',
-			label: 'last transaction lt',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'locked',
-			label: 'locked',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$account: {
+		label: 'account',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.TonAccount,
+		cardinality: EntityFieldCardinality.One,
+	},
+	$jetton: {
+		label: 'jetton',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.TonJetton,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	jettonWalletAddress: {
+		label: 'jetton wallet address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	balanceNano: {
+		label: 'balance nano',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	ownerAddress: {
+		label: 'owner address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	masterAddress: {
+		label: 'master address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	lastTransactionLt: {
+		label: 'last transaction lt',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	locked: {
+		label: 'locked',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		AccountJettonTimestampMsSource: [
+			'$account',
+			'$jetton',
+			'timestampMs',
+			'source',
+		],
+	},
+})

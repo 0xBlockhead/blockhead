@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -99,7 +99,7 @@
 		<ResourceBoundary resource={blockheadZcashWalletState}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+					resource={selection.$network}
 				>
 					{#snippet children(network)}
 						<NetworkView
@@ -134,7 +134,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+					resource={selection.$network}
 				>
 					{#snippet children(network)}
 						<NetworkView
@@ -224,7 +224,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -247,7 +247,7 @@
 				<dt>network</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+						resource={selection.$network}
 					>
 						{#snippet children(network)}
 							{#if network[EntityMetaKey.Selector] != null}
@@ -501,24 +501,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadZcashWalletState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadZcashWalletState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Zcash wallet observations.'
-				id='BlockheadZcashWalletState_TimestampsView-$$timestamps'
+				id='BlockheadZcashWalletState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadZcashViewingKeysView
-				selection={selection[EntityProxyField]<EntityType.BlockheadZcashViewingKey>('$$viewingKeys')}
+				selection={selection.$$viewingKeys}
 				title='viewing keys'
 				emptyText='No Zcash viewing keys.'
-				id='BlockheadZcashViewingKeysView-$$viewingKeys'
+				id='BlockheadZcashViewingKeysView-viewing-keys'
 			/>
 
 			<BlockheadZcashNoteStatesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadZcashNoteState>('$$notes')}
+				selection={selection.$$notes}
 				title='notes'
 				emptyText='No Zcash notes.'
-				id='BlockheadZcashNoteStatesView-$$notes'
+				id='BlockheadZcashNoteStatesView-notes'
 			/>
 		{/if}
 	{/snippet}

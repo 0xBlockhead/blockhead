@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -115,7 +115,7 @@
 		<ResourceBoundary resource={blockheadSessionSimulation}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BlockheadSession, false>('$session')}
+					resource={selection.$session}
 				>
 					{#snippet children(blockheadSession)}
 						<span data-text="muted">
@@ -133,7 +133,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BlockheadSession, false>('$session')}
+					resource={selection.$session}
 				>
 					{#snippet children(blockheadSession)}
 						<span data-text="muted">
@@ -156,7 +156,7 @@
 				<dt>session</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.BlockheadSession, false>('$session')}
+						resource={selection.$session}
 					>
 						{#snippet children(blockheadSession)}
 							{#if blockheadSession[EntityMetaKey.Selector] != null}
@@ -479,17 +479,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadSessionSimulationCallsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadSessionSimulationCall>('$$calls')}
+				selection={selection.$$calls}
 				title='calls'
 				emptyText='No calls.'
-				id='BlockheadSessionSimulationCallsView-$$calls'
+				id='BlockheadSessionSimulationCallsView-calls'
 			/>
 
 			<BlockheadSessionSimulationLogsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadSessionSimulationLog>('$$logs')}
+				selection={selection.$$logs}
 				title='logs'
 				emptyText='No logs.'
-				id='BlockheadSessionSimulationLogsView-$$logs'
+				id='BlockheadSessionSimulationLogsView-logs'
 			/>
 		{/if}
 	{/snippet}

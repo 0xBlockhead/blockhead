@@ -80,13 +80,11 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		},
-			}),
+		}),
 
 		defineResolver(Source.BitcoinCashChips_Gitlab, {
 			entityType: EntityType._Global,
@@ -97,9 +95,7 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			$$proposals: (snapshot) => snapshot,
-		},
-			}),
+		}),
 	],
 }

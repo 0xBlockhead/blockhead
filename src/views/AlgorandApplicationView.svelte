@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -209,24 +209,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AlgorandBoxesView
-				selection={selection[EntityProxyField]<EntityType.AlgorandBox>('$$boxes')}
+				selection={selection.$$boxes}
 				title='boxes'
 				emptyText='No Algorand boxes.'
-				id='AlgorandBoxesView-$$boxes'
+				id='AlgorandBoxesView-boxes'
 			/>
 
 			<AlgorandApplicationLocalState_RoundsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandApplicationLocalState_Round>('$$localStateRounds')}
+				selection={selection.$$localStateRounds}
 				title='local state rounds'
 				emptyText='No Algorand application local state rounds.'
-				id='AlgorandApplicationLocalState_RoundsView-$$localStateRounds'
+				id='AlgorandApplicationLocalState_RoundsView-local-state-rounds'
 			/>
 
 			<AlgorandApplication_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandApplication_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Algorand application observations.'
-				id='AlgorandApplication_TimestampsView-$$timestamps'
+				id='AlgorandApplication_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

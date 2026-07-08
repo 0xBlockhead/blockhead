@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -94,7 +94,7 @@
 		<ResourceBoundary resource={acpAgentRuntime}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AcpAgentProgramVersion, false>('$programVersion')}
+					resource={selection.$programVersion}
 				>
 					{#snippet children(acpAgentProgramVersion)}
 						{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
@@ -112,7 +112,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AcpAgentProgramVersion, false>('$programVersion')}
+					resource={selection.$programVersion}
 				>
 					{#snippet children(acpAgentProgramVersion)}
 						{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
@@ -185,7 +185,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadSource, false>('$source')}
+				resource={selection.$source}
 			>
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
@@ -205,7 +205,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AcpAgentProgramVersion, false>('$programVersion')}
+				resource={selection.$programVersion}
 			>
 				{#snippet children(acpAgentProgramVersion)}
 					{#if acpAgentProgramVersion != null && acpAgentProgramVersion[EntityMetaKey.Selector] != null}
@@ -225,7 +225,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadAgentProgramInstall, false>('$programInstall')}
+				resource={selection.$programInstall}
 			>
 				{#snippet children(blockheadAgentProgramInstall)}
 					{#if blockheadAgentProgramInstall != null && blockheadAgentProgramInstall[EntityMetaKey.Selector] != null}
@@ -356,17 +356,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AcpSessionsView
-				selection={selection[EntityProxyField]<EntityType.AcpSession>('$$sessions')}
+				selection={selection.$$sessions}
 				title='sessions'
 				emptyText='No ACP sessions.'
-				id='AcpSessionsView-$$sessions'
+				id='AcpSessionsView-sessions'
 			/>
 
 			<AcpAgentRuntime_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AcpAgentRuntime_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No ACP runtime observations.'
-				id='AcpAgentRuntime_TimestampsView-$$timestamps'
+				id='AcpAgentRuntime_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

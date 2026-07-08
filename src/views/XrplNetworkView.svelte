@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -184,52 +184,52 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<XrplNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.XrplNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No XRPL network observations.'
-				id='XrplNetwork_TimestampsView-$$timestamps'
+				id='XrplNetwork_TimestampsView-timestamps'
 			/>
 
 			<XrplLedgersView
-				selection={selection[EntityProxyField]<EntityType.XrplLedger>('$$ledgers')}
+				selection={selection.$$ledgers}
 				title='ledgers'
 				emptyText='No XRPL ledgers.'
-				id='XrplLedgersView-$$ledgers'
+				id='XrplLedgersView-ledgers'
 			/>
 
 			<XrplTransactionsView
-				selection={selection[EntityProxyField]<EntityType.XrplTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No XRPL transactions.'
-				id='XrplTransactionsView-$$transactions'
+				id='XrplTransactionsView-transactions'
 			/>
 
 			<XrplAccountsView
-				selection={selection[EntityProxyField]<EntityType.XrplAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='accounts'
 				emptyText='No XRPL accounts.'
-				id='XrplAccountsView-$$accounts'
+				id='XrplAccountsView-accounts'
 			/>
 
 			<XrplLedgerEntriesView
-				selection={selection[EntityProxyField]<EntityType.XrplLedgerEntry>('$$ledgerEntries')}
+				selection={selection.$$ledgerEntries}
 				title='ledger entries'
 				emptyText='No XRPL ledger entries.'
-				id='XrplLedgerEntriesView-$$ledgerEntries'
+				id='XrplLedgerEntriesView-ledger-entries'
 			/>
 
 			<XrplAmmsView
-				selection={selection[EntityProxyField]<EntityType.XrplAmm>('$$amms')}
+				selection={selection.$$amms}
 				title='AMMs'
 				emptyText='No XRPL AMMs.'
-				id='XrplAmmsView-$$amms'
+				id='XrplAmmsView-amms'
 			/>
 
 			<XrplAmendmentsView
-				selection={selection[EntityProxyField]<EntityType.XrplAmendment>('$$amendments')}
+				selection={selection.$$amendments}
 				title='amendments'
 				emptyText='No XRPL amendments.'
-				id='XrplAmendmentsView-$$amendments'
+				id='XrplAmendmentsView-amendments'
 			/>
 		{/if}
 	{/snippet}

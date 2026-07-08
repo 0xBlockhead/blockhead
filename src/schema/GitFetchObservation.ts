@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -8,100 +8,86 @@ import { type } from 'arktype'
 export enum GitFetchObservationSelector {
 	RepositoryRemoteNameTimestampSource = 'RepositoryRemoteNameTimestampSource',
 }
-export default {
+export const GitFetchObservation = entity({
 	entityType: EntityType.GitFetchObservation,
 	label: 'Git fetch observation',
 	labelPlural: 'Git fetch observations',
-	selectors: [
-		{
-			name: GitFetchObservationSelector.RepositoryRemoteNameTimestampSource,
-			fields: [
-				'$repository',
-				'remoteName',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$repository',
-			label: 'repository',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.GitRepository,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'remoteName',
-			label: 'remote name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'protocolVersion',
-			label: 'protocol version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'advertisedRefs',
-			label: 'advertised refs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'wantedObjects',
-			label: 'wanted objects',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'receivedObjects',
-			label: 'received objects',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'packfileHash',
-			label: 'packfile hash',
-			type: EntityFieldType.Primitive,
-			primitiveType: (ZeroExHex),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'status',
-			label: 'status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'error',
-			label: 'error',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$repository: {
+		label: 'repository',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.GitRepository,
+		cardinality: EntityFieldCardinality.One,
+	},
+	remoteName: {
+		label: 'remote name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	protocolVersion: {
+		label: 'protocol version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	advertisedRefs: {
+		label: 'advertised refs',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	wantedObjects: {
+		label: 'wanted objects',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	receivedObjects: {
+		label: 'received objects',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	packfileHash: {
+		label: 'packfile hash',
+		type: EntityFieldType.Primitive,
+		primitiveType: (ZeroExHex),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	status: {
+		label: 'status',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	error: {
+		label: 'error',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		RepositoryRemoteNameTimestampSource: [
+			'$repository',
+			'remoteName',
+			'timestampMs',
+			'source',
+		],
+	},
+})

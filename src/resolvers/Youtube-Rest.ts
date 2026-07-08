@@ -74,15 +74,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				title: (channel) => channel.title,
 				description: (channel) => channel.description,
 				customUrl: (channel) => channel.customUrl,
 				publishedAt: (channel) => channel.publishedAt,
 				publishedAtMs: (channel) => channel.publishedAtMs,
 				$icon: (channel) => channel.$icon,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeVideo,
@@ -156,7 +154,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				title: (video) => video.title,
 				description: (video) => video.description,
 				publishedAt: (video) => video.publishedAt,
@@ -167,8 +164,7 @@ export default {
 				durationSeconds: (video) => video.durationSeconds,
 				$author: (video) => video.$author,
 				thumbnailUrl: (video) => video.thumbnailUrl,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubePlaylist,
@@ -198,14 +194,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				title: (playlist) => playlist.title,
 				description: (playlist) => playlist.description,
 				publishedAt: (playlist) => playlist.publishedAt,
 				publishedAtMs: (playlist) => playlist.publishedAtMs,
 				$channel: (playlist) => playlist.$channel,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeComment,
@@ -256,7 +250,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				text: (comment) => comment.text,
 				authorDisplayName: (comment) => comment.authorDisplayName,
 				$author: (comment) => comment.$author,
@@ -264,8 +257,7 @@ export default {
 				publishedAtMs: (comment) => comment.publishedAtMs,
 				$video: (comment) => comment.$video,
 				$parentComment: (comment) => comment.$parentComment,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeChannel_Timestamp,
@@ -289,12 +281,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				subscriberCount: (timestamp) => timestamp.subscriberCount,
 				videoCount: (timestamp) => timestamp.videoCount,
 				viewCount: (timestamp) => timestamp.viewCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeVideo_Timestamp,
@@ -318,12 +308,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				viewCount: (timestamp) => timestamp.viewCount,
 				likeCount: (timestamp) => timestamp.likeCount,
 				commentCount: (timestamp) => timestamp.commentCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeComment_Timestamp,
@@ -353,11 +341,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				likeCount: (timestamp) => timestamp.likeCount,
 				replyCount: (timestamp) => timestamp.replyCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubePlaylist_Timestamp,
@@ -375,10 +361,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				itemCount: (timestamp) => timestamp.itemCount,
-			},
-		}),
+			}),
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeChannel,
 			resolve: {
@@ -407,10 +391,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (channel) => channel,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeChannel,
@@ -433,10 +415,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$videos: (channel) => channel,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeChannel,
@@ -453,12 +433,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$videos: {
 					resolveCount: (count) => count,
 				},
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeChannel,
@@ -481,10 +459,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$playlists: (channel) => channel,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubePlaylist,
@@ -508,10 +484,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (playlist) => playlist,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubePlaylist,
@@ -539,10 +513,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$videos: (playlist) => playlist,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubePlaylist,
@@ -558,12 +530,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$videos: {
 					resolveCount: (count) => count,
 				},
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeVideo,
@@ -593,10 +563,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (video) => video,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeVideo,
@@ -642,10 +610,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$comments: (video) => video,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeVideo,
@@ -662,12 +628,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$comments: {
 					resolveCount: (count) => count,
 				},
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeComment,
@@ -702,10 +666,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (comment) => comment,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeComment,
@@ -755,10 +717,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$replies: (comment) => comment,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType.YoutubeComment,
@@ -781,12 +741,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$replies: {
 					resolveCount: (count) => count,
 				},
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType._GlobalYoutubeNetwork,
@@ -808,10 +766,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedChannels: (network) => network,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType._GlobalYoutubeNetwork,
@@ -834,10 +790,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedVideos: (network) => network,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Youtube_Rest, {
 			entityType: EntityType._GlobalYoutubeNetwork,
@@ -872,9 +826,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedPlaylists: (network) => network,
-			},
-		}),
+			}),
 	],
 }

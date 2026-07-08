@@ -20,7 +20,9 @@ import {
 	type EntityType,
 	type Schema,
 	entityFieldCardinalityIsMultiple,
+	entityFieldAddressKey,
 	entityFieldDefinitions,
+	entityFieldFacetPath,
 	entitySelectorKey,
 } from '$/schema/$schema.ts'
 import {
@@ -507,12 +509,14 @@ const fieldResourceQueries = <
 	>
 ) => {
 	const querySources = enabledSelectionSources(context, selection.sources)
+	const facetPathKey = stringify(entityFieldFacetPath(definition))
+	const fieldAddressKey = entityFieldAddressKey(entityType, entityFieldFacetPath(definition), fieldName)
 	const parentSelectorKey = entitySelectorKey(
 		context.schema,
 		context.entityDefinitionByType[entityType],
 		entitySelector
 	)
-	const fieldCollection = context.entityFieldCollections[entityType][fieldName]
+	const fieldCollection = context.entityFieldCollections[entityType][fieldAddressKey]
 	const rowsCollection = createLiveQueryCollection({
 		startSync: true,
 		query: (query) => {
@@ -523,19 +527,27 @@ const fieldResourceQueries = <
 				.where(({ row }) => (
 					selection.where == null ?
 						querySources == null ?
-							eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+							and(
+								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+								eq(row.facetPathKey, facetPathKey)
+							)
 						:
 							and(
 								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+								eq(row.facetPathKey, facetPathKey),
 								inArray(row[EntityMetaKey.Source], [...querySources])
 							)
 					:
 						and(
 							querySources == null ?
-								eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+								and(
+									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+									eq(row.facetPathKey, facetPathKey)
+								)
 							:
 								and(
 									eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+									eq(row.facetPathKey, facetPathKey),
 									inArray(row[EntityMetaKey.Source], [...querySources])
 								),
 							selection.where
@@ -573,7 +585,7 @@ const fieldResourceQueries = <
 	})
 	const countCollection = (
 		selection.count === true ?
-			context.entityFieldCountCollections[entityType][fieldName]
+			context.entityFieldCountCollections[entityType][fieldAddressKey]
 		:
 			undefined
 	)
@@ -593,10 +605,14 @@ const fieldResourceQueries = <
 							selection.where == null ?
 								and(
 									querySources == null ?
-										eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+										and(
+											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+											eq(row.facetPathKey, facetPathKey)
+										)
 									:
 										and(
 											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+											eq(row.facetPathKey, facetPathKey),
 											inArray(row[EntityMetaKey.Source], [...querySources])
 										),
 									eq(row.filterKey, stringify({}))
@@ -604,10 +620,14 @@ const fieldResourceQueries = <
 							:
 								and(
 									querySources == null ?
-										eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey)
+										and(
+											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+											eq(row.facetPathKey, facetPathKey)
+										)
 									:
 										and(
 											eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+											eq(row.facetPathKey, facetPathKey),
 											inArray(row[EntityMetaKey.Source], [...querySources])
 										),
 									eq(row.filterKey, stringify({})),
@@ -626,7 +646,9 @@ const fieldResourceQueries = <
 				query: (query) => (
 					query
 						.from({
-							row: context.entityFieldCollections[entityType][condition.fieldName],
+							row: context.entityFieldCollections[entityType][
+								entityFieldAddressKey(entityType, [], condition.fieldName)
+							],
 						})
 						.where(({ row }) => eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey))
 				),
@@ -636,7 +658,12 @@ const fieldResourceQueries = <
 		rows: liveQuerySnapshot(rowsCollection),
 		rowsFailure: () => collectionLoadFailure(
 			context,
-			`client.fields.${entityType}.${fieldName}`,
+			stringify([
+				'client.fields',
+				entityType,
+				entityFieldFacetPath(definition),
+				fieldName,
+			]),
 			parentSelectorKey,
 			querySources
 		),
@@ -645,7 +672,12 @@ const fieldResourceQueries = <
 		conditionRows: conditionRows === undefined ? undefined : liveQuerySnapshot(conditionRows),
 		countsFailure: () => collectionLoadFailure(
 			context,
-			`client.counts.${entityType}.${fieldName}`,
+			stringify([
+				'client.counts',
+				entityType,
+				entityFieldFacetPath(definition),
+				fieldName,
+			]),
 			parentSelectorKey,
 			querySources
 		),
@@ -668,9 +700,10 @@ export const subscribeEntityField = <
 		_Schema,
 		_EntityType,
 		Ref<WithVirtualProps<EntityFieldCollectionItem<_Schema>>>
-	> = {}
+	> = {},
+	fieldDefinition?: EntityFieldDefinition
 ) => {
-	const definition = entityFieldDefinitions(context.entityDefinitionByType[entityType])
+	const definition = fieldDefinition ?? entityFieldDefinitions(context.entityDefinitionByType[entityType])
 		.find((candidate) => candidate.name === fieldName)
 	if (definition == null)
 		throw new Error(`${entityType}.${fieldName} does not exist`)
@@ -697,6 +730,11 @@ export const subscribeEntityField = <
 				queries.counts,
 			]
 	)
+	const observedQueries = [
+		...liveQueries,
+		{ collection: queries.rowsCollection },
+		...(queries.countCollection === undefined ? [] : [{ collection: queries.countCollection }]),
+	]
 
 	return new TanStackLiveQueryResource(() => asQuerySnapshot(
 		[
@@ -734,10 +772,10 @@ export const subscribeEntityField = <
 			selection.count === true
 		)
 	), (update) => subscribeToLiveQueryCollections(
-		liveQueries,
+		observedQueries,
 		update,
 		context.collectionLoadFailures.subscribe
-	), () => waitForLiveQueryCollections(liveQueries))
+	), () => waitForLiveQueryCollections(observedQueries))
 }
 
 export const subscribeEntity = <
@@ -840,6 +878,14 @@ export const subscribeEntity = <
 				]
 		)),
 	]
+	const observedQueries = [
+		...liveQueries,
+		{ collection: context.entityCollections[entityType] },
+		...fields.flatMap(({ queries }) => [
+			{ collection: queries.rowsCollection },
+			...(queries.countCollection === undefined ? [] : [{ collection: queries.countCollection }]),
+		]),
+	]
 
 	return new TanStackLiveQueryResource(() => {
 		const fieldValues: Record<
@@ -930,8 +976,8 @@ export const subscribeEntity = <
 			}
 		)
 	}, (update) => subscribeToLiveQueryCollections(
-		liveQueries,
+		observedQueries,
 		update,
 		context.collectionLoadFailures.subscribe
-	), () => waitForLiveQueryCollections(liveQueries))
+	), () => waitForLiveQueryCollections(observedQueries))
 }

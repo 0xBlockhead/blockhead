@@ -51,12 +51,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				price: (snapshot) => snapshot.price,
 				transport: (snapshot) => snapshot.transport,
 				providerAssetId: (snapshot) => snapshot.providerAssetId,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -92,12 +90,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$quotes: (snapshot) => snapshot.map((quote) => ({
 					[EntityMetaKey.Selector]: quote[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -107,9 +103,7 @@ export default {
 				}),
 			},
 		})({
-			fields: {
 				$parentMarket: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

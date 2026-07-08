@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -151,7 +151,7 @@
 		<ResourceBoundary resource={blockheadLitecoinMwebWalletState}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+					resource={selection.$wallet}
 				>
 					{#snippet children(blockheadWallet)}
 						{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -171,7 +171,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+					resource={selection.$wallet}
 				>
 					{#snippet children(blockheadWallet)}
 						{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -223,7 +223,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -277,17 +277,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLitecoinMwebWalletState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLitecoinMwebWalletState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Litecoin MWEB wallet observations.'
-				id='BlockheadLitecoinMwebWalletState_TimestampsView-$$timestamps'
+				id='BlockheadLitecoinMwebWalletState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadLitecoinMwebOutputStatesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLitecoinMwebOutputState>('$$outputs')}
+				selection={selection.$$outputs}
 				title='outputs'
 				emptyText='No Litecoin MWEB outputs.'
-				id='BlockheadLitecoinMwebOutputStatesView-$$outputs'
+				id='BlockheadLitecoinMwebOutputStatesView-outputs'
 			/>
 		{/if}
 	{/snippet}

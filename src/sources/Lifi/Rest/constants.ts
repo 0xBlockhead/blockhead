@@ -17,10 +17,10 @@ export const stagingBaseUrl = stagingOrigin
 export const lifiRestOrigins = [
 	{
 		origin,
-		corsEnabled: false,
+		corsEnabled: true,
 	},
 	{
 		origin: stagingOrigin,
-		corsEnabled: false,
+		corsEnabled: true,
 	},
 ] as const

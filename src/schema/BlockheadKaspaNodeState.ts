@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
@@ -8,61 +8,52 @@ import { type } from 'arktype'
 export enum BlockheadKaspaNodeStateSelector {
 	ConnectionIdNetwork = 'ConnectionIdNetwork',
 }
-export default {
+export const BlockheadKaspaNodeState = entity({
 	entityType: EntityType.BlockheadKaspaNodeState,
 	label: 'blockhead kaspa node state',
 	labelPlural: 'blockhead kaspa node states',
-	selectors: [
-		{
-			name: BlockheadKaspaNodeStateSelector.ConnectionIdNetwork,
-			fields: [
-				'connectionId',
-				'$network',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'connectionId',
-			label: 'connection ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.KaspaNetwork,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'rpcUrl',
-			label: 'RPC URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: (UrlString),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'encoding',
-			label: 'encoding',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'networkId',
-			label: 'network ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.BlockheadKaspaNodeState_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	connectionId: {
+		label: 'connection ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$network: {
+		label: 'network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.KaspaNetwork,
+		cardinality: EntityFieldCardinality.One,
+	},
+	rpcUrl: {
+		label: 'RPC URL',
+		type: EntityFieldType.Primitive,
+		primitiveType: (UrlString),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	encoding: {
+		label: 'encoding',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	networkId: {
+		label: 'network ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$timestamps: {
+		label: 'timestamps',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.BlockheadKaspaNodeState_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		ConnectionIdNetwork: [
+			'connectionId',
+			'$network',
+		],
+	},
+})

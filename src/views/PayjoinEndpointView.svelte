@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -100,7 +100,7 @@
 		<ResourceBoundary resource={payjoinEndpoint}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.PayjoinDirectory, false>('$directory')}
+					resource={selection.$directory}
 				>
 					{#snippet children(payjoinDirectory)}
 						{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
@@ -120,7 +120,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.PayjoinDirectory, false>('$directory')}
+					resource={selection.$directory}
 				>
 					{#snippet children(payjoinDirectory)}
 						{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
@@ -221,7 +221,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.PayjoinDirectory, false>('$directory')}
+				resource={selection.$directory}
 			>
 				{#snippet children(payjoinDirectory)}
 					{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
@@ -245,17 +245,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PayjoinEndpoint_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.PayjoinEndpoint_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='PayjoinEndpoint_TimestampsView-$$timestamps'
+				id='PayjoinEndpoint_TimestampsView-timestamps'
 			/>
 
 			<BlockheadPayjoinSessionsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadPayjoinSession>('$$blockheadSessions')}
+				selection={selection.$$blockheadSessions}
 				title='blockhead sessions'
 				emptyText='No local payjoin sessions.'
-				id='BlockheadPayjoinSessionsView-$$blockheadSessions'
+				id='BlockheadPayjoinSessionsView-blockhead-sessions'
 			/>
 		{/if}
 	{/snippet}

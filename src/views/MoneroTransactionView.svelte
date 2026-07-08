@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -102,7 +102,7 @@
 			{#snippet Pending()}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.MoneroBlock, false>('$block', {
+						selection.$block({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
@@ -126,7 +126,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.MoneroBlock, false>('$block', {
+						selection.$block({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
@@ -235,7 +235,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.MoneroBlock, false>('$block', {
+					selection.$block({
 						sources: [
 							Source.MoneroDaemonRpc_JsonRpc,
 						],
@@ -379,26 +379,26 @@
 		{#if detailsOpen}
 			<MoneroKeyImagesView
 				selection={
-						selection[EntityProxyField]<EntityType.MoneroKeyImage>('$$keyImages', {
+						selection.$$keyImages({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
 						})
 					}
 				title='Key images'
-				id='MoneroKeyImagesView-$$keyImages'
+				id='MoneroKeyImagesView-key-images'
 			/>
 
 			<MoneroStealthOutputsView
 				selection={
-						selection[EntityProxyField]<EntityType.MoneroStealthOutput>('$$stealthOutputs', {
+						selection.$$stealthOutputs({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
 						})
 					}
 				title='Stealth outputs'
-				id='MoneroStealthOutputsView-$$stealthOutputs'
+				id='MoneroStealthOutputsView-stealth-outputs'
 			/>
 		{/if}
 	{/snippet}

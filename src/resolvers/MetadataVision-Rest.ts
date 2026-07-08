@@ -66,12 +66,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$previewTimestamps: (snapshot) => snapshot.$$previewTimestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.MetadataVision_Rest, {
 			entityType: EntityType.UrlPreview_Timestamp,
@@ -87,14 +85,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				title: (snapshot) => snapshot.title,
 				description: (snapshot) => snapshot.description,
 				siteName: (snapshot) => snapshot.siteName,
 				imageUrl: (snapshot) => snapshot.imageUrl,
 				$image: (snapshot) => snapshot.$image,
 				previewStatus: (snapshot) => snapshot.previewStatus,
-			},
-		}),
+			}),
 	],
 }

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -192,108 +192,108 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<TezosNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.TezosNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Tezos network observations.'
-				id='TezosNetwork_TimestampsView-$$timestamps'
+				id='TezosNetwork_TimestampsView-timestamps'
 			/>
 
 			<TezosBlocksView
-				selection={selection[EntityProxyField]<EntityType.TezosBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No Tezos blocks.'
-				id='TezosBlocksView-$$blocks'
+				id='TezosBlocksView-blocks'
 			/>
 
 			<TezosOperationGroupsView
-				selection={selection[EntityProxyField]<EntityType.TezosOperationGroup>('$$operationGroups')}
+				selection={selection.$$operationGroups}
 				title='operation groups'
 				emptyText='No Tezos operation groups.'
-				id='TezosOperationGroupsView-$$operationGroups'
+				id='TezosOperationGroupsView-operation-groups'
 			/>
 
 			<TezosOperationsView
-				selection={selection[EntityProxyField]<EntityType.TezosOperation>('$$operations')}
+				selection={selection.$$operations}
 				title='operations'
 				emptyText='No Tezos operations.'
-				id='TezosOperationsView-$$operations'
+				id='TezosOperationsView-operations'
 			/>
 
 			<TezosAccountsView
-				selection={selection[EntityProxyField]<EntityType.TezosAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='accounts'
 				emptyText='No Tezos accounts.'
-				id='TezosAccountsView-$$accounts'
+				id='TezosAccountsView-accounts'
 			/>
 
 			<TezosContractsView
-				selection={selection[EntityProxyField]<EntityType.TezosContract>('$$contracts')}
+				selection={selection.$$contracts}
 				title='contracts'
 				emptyText='No Tezos contracts.'
-				id='TezosContractsView-$$contracts'
+				id='TezosContractsView-contracts'
 			/>
 
 			<TezosBakersView
-				selection={selection[EntityProxyField]<EntityType.TezosBaker>('$$bakers')}
+				selection={selection.$$bakers}
 				title='bakers'
 				emptyText='No Tezos bakers.'
-				id='TezosBakersView-$$bakers'
+				id='TezosBakersView-bakers'
 			/>
 
 			<TezosCyclesView
-				selection={selection[EntityProxyField]<EntityType.TezosCycle>('$$cycles')}
+				selection={selection.$$cycles}
 				title='cycles'
 				emptyText='No Tezos cycles.'
-				id='TezosCyclesView-$$cycles'
+				id='TezosCyclesView-cycles'
 			/>
 
 			<TezosBakingRightsView
-				selection={selection[EntityProxyField]<EntityType.TezosBakingRight>('$$bakingRights')}
+				selection={selection.$$bakingRights}
 				title='baking rights'
 				emptyText='No Tezos baking rights.'
-				id='TezosBakingRightsView-$$bakingRights'
+				id='TezosBakingRightsView-baking-rights'
 			/>
 
 			<TezosTokensView
-				selection={selection[EntityProxyField]<EntityType.TezosToken>('$$tokens')}
+				selection={selection.$$tokens}
 				title='tokens'
 				emptyText='No Tezos tokens.'
-				id='TezosTokensView-$$tokens'
+				id='TezosTokensView-tokens'
 			/>
 
 			<TezosTokenTransfersView
-				selection={selection[EntityProxyField]<EntityType.TezosTokenTransfer>('$$tokenTransfers')}
+				selection={selection.$$tokenTransfers}
 				title='token transfers'
 				emptyText='No Tezos token transfers.'
-				id='TezosTokenTransfersView-$$tokenTransfers'
+				id='TezosTokenTransfersView-token-transfers'
 			/>
 
 			<TezosBigMapsView
-				selection={selection[EntityProxyField]<EntityType.TezosBigMap>('$$bigMaps')}
+				selection={selection.$$bigMaps}
 				title='big maps'
 				emptyText='No Tezos big maps.'
-				id='TezosBigMapsView-$$bigMaps'
+				id='TezosBigMapsView-big-maps'
 			/>
 
 			<TezosBigMapKeysView
-				selection={selection[EntityProxyField]<EntityType.TezosBigMapKey>('$$bigMapKeys')}
+				selection={selection.$$bigMapKeys}
 				title='big map keys'
 				emptyText='No Tezos big map keys.'
-				id='TezosBigMapKeysView-$$bigMapKeys'
+				id='TezosBigMapKeysView-big-map-keys'
 			/>
 
 			<TezosBigMap_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.TezosBigMap_Timestamp>('$$bigMapTimestamps')}
+				selection={selection.$$bigMapTimestamps}
 				title='big map timestamps'
 				emptyText='No Tezos big map observations.'
-				id='TezosBigMap_TimestampsView-$$bigMapTimestamps'
+				id='TezosBigMap_TimestampsView-big-map-timestamps'
 			/>
 
 			<TezosBigMapKey_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.TezosBigMapKey_Timestamp>('$$bigMapKeyTimestamps')}
+				selection={selection.$$bigMapKeyTimestamps}
 				title='big map key timestamps'
 				emptyText='No Tezos big map key observations.'
-				id='TezosBigMapKey_TimestampsView-$$bigMapKeyTimestamps'
+				id='TezosBigMapKey_TimestampsView-big-map-key-timestamps'
 			/>
 		{/if}
 	{/snippet}

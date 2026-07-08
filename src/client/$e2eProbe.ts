@@ -3,6 +3,10 @@ import type {
 	ClientEvent,
 } from '$/client/$client.svelte.ts'
 import {
+	openBrowserWASQLiteOPFSDatabase,
+	type BrowserWASQLiteDatabase,
+} from '@tanstack/browser-db-sqlite-persistence'
+import {
 	traceE2ECollections,
 	type E2ECollectionTrace,
 } from '$/client/$e2eTrace.ts'
@@ -76,6 +80,7 @@ declare global {
 		__blockheadWaSqliteDatabaseNameOverride?: string
 		__blockheadWaSqliteVfsNameOverride?: string
 		__blockheadPersistedCollectionSchemaVersionOverride?: number
+		__blockheadWaSqliteDatabasePromiseByKey?: Record<string, Promise<BrowserWASQLiteDatabase>>
 	}
 }
 
@@ -105,6 +110,39 @@ export const e2eSchemaVersion = (
 	:
 		defaultSchemaVersion
 )
+
+export const openBlockheadBrowserDatabase = (
+	options: {
+		databaseName: string
+		vfsName?: string
+	}
+) => {
+	const key = `${options.vfsName ?? 'opfs'}:${options.databaseName}`
+	const openDatabase = () => openBrowserWASQLiteOPFSDatabase(options)
+		.then((database) => {
+			let queue = Promise.resolve()
+			return {
+				execute: (sql, params) => {
+					const result = queue.then(() => database.execute(sql, params))
+					queue = result.then(
+						() => undefined,
+						() => undefined
+					)
+					return result
+				},
+				close: async () => {
+					await queue
+					await database.close?.()
+				},
+			} satisfies BrowserWASQLiteDatabase
+		})
+	if (typeof window === 'undefined')
+		return openDatabase()
+
+	window.__blockheadWaSqliteDatabasePromiseByKey ??= {}
+	window.__blockheadWaSqliteDatabasePromiseByKey[key] ??= openDatabase()
+	return window.__blockheadWaSqliteDatabasePromiseByKey[key]
+}
 
 const clientProbeRequested = () => (
 	e2eProbeEnabled

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -332,7 +332,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BitTorrentMetainfo, false>('$torrent')}
+				resource={selection.$torrent}
 			>
 				{#snippet children(bitTorrentMetainfo)}
 					{#if bitTorrentMetainfo != null && bitTorrentMetainfo[EntityMetaKey.Selector] != null}
@@ -356,10 +356,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<MagnetResolution_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.MagnetResolution_Timestamp>('$$resolutionTimestamps')}
+				selection={selection.$$resolutionTimestamps}
 				title='resolution timestamps'
 				emptyText='No resolution observations yet.'
-				id='MagnetResolution_TimestampsView-$$resolutionTimestamps'
+				id='MagnetResolution_TimestampsView-resolution-timestamps'
 			/>
 		{/if}
 	{/snippet}

@@ -14,16 +14,35 @@ import {
 import {
 	EntityMetaKey,
 	EntityFieldType,
+	ProjectionResolution,
+	type EntityFacetCondition,
+	type EntityFacetFieldName,
+	type EntityFacetId,
+	type EntityFieldDefinition,
 	type EntityFieldDefinitionByName,
 	type EntityFieldName,
+	type EntityDefinitionForEntityType,
 	type EntitySelector,
 	type EntityType,
+	type ProjectionValue,
 	type Schema,
+	entityFacetFieldName,
+	entityFieldAddressKey,
 	entityFieldDefinitions,
+	entityFieldFacetPath,
 } from '$/schema/$schema.ts'
 
 
 export const EntityProxyField = Symbol('EntityProxyField')
+
+type EntityProxyResourceFieldName =
+	| Extract<keyof SvelteKitResource<object>, string>
+	| 'entity'
+	| 'entitySelector'
+	| 'entityType'
+	| 'facetPath'
+	| 'sources'
+	| 'value'
 
 export type EntityProxyFieldResource<
 	_Schema extends Schema,
@@ -80,6 +99,47 @@ export type EntityProxyEntitiesResource<
 	}
 )
 
+export type EntityProxyProjectionResource<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetId extends EntityFacetId<_Schema, _EntityType>,
+> = (
+	& SvelteKitResource<ProjectionValue<{
+		readonly [
+			_FieldName in EntityFacetFieldName<_Schema, _EntityType, _FacetId> as (
+				_FieldName extends EntityProxyResourceFieldName ?
+					never
+				:
+					_FieldName
+			)
+		]: EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
+	}>>
+	& {
+		[EntityProxyField]: <
+			const _FieldName extends Extract<
+				EntityFieldName<_Schema, _EntityType>,
+				EntityProxyResourceFieldName
+			> = Extract<
+				EntityFieldName<_Schema, _EntityType>,
+				EntityProxyResourceFieldName
+			>,
+		>(
+			fieldName: _FieldName,
+			selection?: SubscribeSelection<_Schema, _EntityType>
+		) => EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
+	}
+	& {
+		readonly [
+			_FieldName in EntityFacetFieldName<_Schema, _EntityType, _FacetId> as (
+				_FieldName extends EntityProxyResourceFieldName ?
+					never
+				:
+					_FieldName
+			)
+		]: EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
+	}
+)
+
 export type EntityProxyData<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -101,16 +161,17 @@ export type EntityProxyResource<
 		entitySelector: EntitySelector<_Schema, _EntityType>
 		sources?: readonly string[]
 		[EntityProxyField]: <
-			const _FieldEntityType extends EntityType<_Schema> = EntityType<_Schema>,
-			const _Multiple extends boolean = true,
-			const _FieldName extends EntityFieldName<_Schema, _EntityType> = EntityFieldName<_Schema, _EntityType>,
+			const _FieldName extends Extract<
+				EntityFieldName<_Schema, _EntityType>,
+				EntityProxyResourceFieldName
+			> = Extract<
+				EntityFieldName<_Schema, _EntityType>,
+				EntityProxyResourceFieldName
+			>,
 		>(
 			fieldName: _FieldName,
 			selection?: SubscribeSelection<_Schema, _EntityType>
-		) => _Multiple extends true ?
-			EntityProxyEntitiesResource<_Schema, _FieldEntityType>
-		:
-			SvelteKitResource<SubscribeEntityReferenceResult<_Schema, _FieldEntityType> | undefined>
+		) => EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
 		value: {
 			entitySelector: EntitySelector<_Schema, _EntityType>
 			[EntityMetaKey.Selector]: EntitySelector<_Schema, _EntityType>
@@ -119,7 +180,12 @@ export type EntityProxyResource<
 	}
 	& {
 		readonly [
-			_FieldName in EntityFieldName<_Schema, _EntityType>
+			_FieldName in EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number]['name'] as (
+				_FieldName extends EntityProxyResourceFieldName ?
+					never
+				:
+					_FieldName
+			)
 		]: EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
 	}
 )
@@ -224,6 +290,119 @@ const projectResource = <_Input, _Output>(
 	},
 })
 
+const entityDataFieldValue = (
+	data: EntityResourceData<Schema, EntityType<Schema>>,
+	fieldName: string
+) => {
+	const selectorValue = Object.getOwnPropertyDescriptor(data.entitySelector, fieldName)?.value
+	if (selectorValue !== undefined)
+		return selectorValue
+
+	const fieldsValue = Object.getOwnPropertyDescriptor(data.fields, fieldName)?.value
+	if (
+		fieldsValue !== undefined
+		&& fieldsValue !== null
+		&& typeof fieldsValue === 'object'
+		&& 'values' in fieldsValue
+		&& Array.isArray(fieldsValue.values)
+	)
+		return fieldsValue.values
+
+	return fieldsValue
+}
+
+const projectionConditionResolution = (
+	entityType: EntityType<Schema>,
+	data: EntityResourceData<Schema, EntityType<Schema>>,
+	condition: EntityFacetCondition | undefined,
+	value: Record<PropertyKey, never>
+): ProjectionValue<Record<PropertyKey, never>> | undefined => {
+	if (condition == null)
+		return {
+			resolution: ProjectionResolution.Applicable,
+			value,
+		}
+
+	if ('all' in condition) {
+		const childResolutions = condition.all.map((child) => projectionConditionResolution(
+			entityType,
+			data,
+			child,
+			value
+		))
+		const blockedDependencies = childResolutions.flatMap((resolution) => (
+			resolution?.resolution === ProjectionResolution.Blocked ?
+				resolution.dependencies
+			:
+				[]
+		))
+		return (
+			blockedDependencies.length > 0 ?
+				{
+					resolution: ProjectionResolution.Blocked,
+					dependencies: blockedDependencies,
+				}
+			: childResolutions.every((resolution) => resolution?.resolution === ProjectionResolution.Applicable) ?
+				{
+					resolution: ProjectionResolution.Applicable,
+					value,
+				}
+			:
+				{
+					resolution: ProjectionResolution.NotApplicable,
+				}
+		)
+	}
+
+	const indexedItem = condition.path.at(-1)
+	const fieldName = condition.path.at(typeof indexedItem === 'number' ? -2 : -1)
+	if (typeof fieldName !== 'string')
+		return {
+			resolution: ProjectionResolution.Unsupported,
+		}
+
+	const fieldValue = entityDataFieldValue(data, fieldName)
+	if (fieldValue === undefined)
+		return {
+			resolution: ProjectionResolution.Blocked,
+			dependencies: [
+				{
+					entityType,
+					facetPath: [],
+					fieldName,
+				},
+			],
+		}
+
+	const conditionValue = (
+		typeof indexedItem === 'number' && Array.isArray(fieldValue) ?
+			fieldValue[indexedItem]
+		:
+			fieldValue
+	)
+	const predicateApplies = (
+		'is' in condition ?
+			conditionValue === condition.is
+		: 'isOneOf' in condition ?
+			condition.isOneOf.some((value) => value === conditionValue)
+		: Array.isArray(conditionValue) ?
+			conditionValue.some((value) => value === condition.includes)
+		:
+			false
+	)
+	return (
+		predicateApplies ?
+			{
+				resolution: ProjectionResolution.Applicable,
+				value,
+			}
+		:
+			{
+				resolution: ProjectionResolution.NotApplicable,
+			}
+	)
+}
+
 const projectReferenceData = (value: object | undefined) => (
 	value == null ?
 		undefined
@@ -245,14 +424,16 @@ export function createEntityFieldProxy<
 	entityType: _EntityType,
 	entitySelector: EntitySelector<_Schema, _EntityType>,
 	fieldName: _FieldName,
-	selection?: SubscribeSelection<_Schema, _EntityType, object>
+	selection?: SubscribeSelection<_Schema, _EntityType, object>,
+	fieldDefinition?: EntityFieldDefinition
 ): EntityProxyFieldResource<_Schema, _EntityType, _FieldName>
 export function createEntityFieldProxy(
 	context: ClientContext,
 	entityType: EntityType<Schema>,
 	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
 	fieldName: string,
-	selection: SubscribeSelection<Schema, EntityType<Schema>, object> = {}
+	selection: SubscribeSelection<Schema, EntityType<Schema>, object> = {},
+	fieldDefinition?: EntityFieldDefinition
 ): object {
 	let resource: SvelteKitResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>> | undefined
 	const getResource = (): SvelteKitResource<EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>> => {
@@ -262,21 +443,25 @@ export function createEntityFieldProxy(
 				entityType,
 				entitySelector,
 				fieldName,
-				selection
+				selection,
+				fieldDefinition
 			)
 
 		return resource
 	}
-	const fieldDefinition = entityFieldDefinitions(context.entityDefinitionByType[entityType])
-		.find((definition) => definition.name === fieldName)
-	if (fieldDefinition == null)
+	const resolvedFieldDefinition = fieldDefinition ?? entityFieldDefinitions(context.entityDefinitionByType[entityType])
+		.find((definition) => (
+			entityFieldFacetPath(definition).length === 0
+			&& definition.name === fieldName
+		))
+	if (resolvedFieldDefinition == null)
 		throw new Error(`${entityType}.${fieldName} does not exist`)
 	const project = (
 		data: EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>
 	): EntityFieldResourceData<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>> => (
 		(
-			fieldDefinition.type === EntityFieldType.EntityReference
-			|| fieldDefinition.type === EntityFieldType.EntitiesReference
+			resolvedFieldDefinition.type === EntityFieldType.EntityReference
+			|| resolvedFieldDefinition.type === EntityFieldType.EntitiesReference
 		)
 		&& data !== undefined
 		&& data !== null
@@ -307,7 +492,8 @@ export function createEntityFieldProxy(
 		mergeSelection(
 			selection,
 			selectionOverride
-		)
+		),
+		resolvedFieldDefinition
 	), {
 		apply(_target, _thisArgument, argumentsList) {
 			return createEntityFieldProxy(
@@ -318,7 +504,8 @@ export function createEntityFieldProxy(
 				mergeSelection(
 					selection,
 					argumentsList[0]
-				)
+				),
+				resolvedFieldDefinition
 			)
 		},
 		get(_target, property) {
@@ -334,7 +521,7 @@ export function createEntityFieldProxy(
 				return (
 					selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
 				) => {
-					if (fieldDefinition.type !== EntityFieldType.EntitiesReference)
+					if (resolvedFieldDefinition.type !== EntityFieldType.EntitiesReference)
 						return undefined
 
 					const references = createEntityFieldProxy(
@@ -348,7 +535,8 @@ export function createEntityFieldProxy(
 								limit: 1,
 								...selectionOverride,
 							}
-						)
+						),
+						resolvedFieldDefinition
 					)
 
 					return projectResource(
@@ -372,6 +560,131 @@ export function createEntityFieldProxy(
 			)
 		},
 	})
+}
+
+const createEntityProjectionProxy = (
+	context: ClientContext,
+	entityType: EntityType<Schema>,
+	entitySelector: EntitySelector<Schema, EntityType<Schema>>,
+	facetPath: readonly string[],
+	selection: SubscribeSelection<Schema, EntityType<Schema>, object>
+) => {
+	const fieldProxyByName = new Map<string, EntityProxyFieldResource<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>>()
+	const projectionProxyByFacetId = new Map<string, object>()
+	let resource: SvelteKitResource<ProjectionValue<Record<PropertyKey, never>>> | undefined
+	const getResource = (): SvelteKitResource<ProjectionValue<Record<PropertyKey, never>>> => {
+		if (resource === undefined)
+			resource = projectResource(
+				subscribeEntity(
+					context,
+					entityType,
+					entitySelector,
+					selection
+				),
+				(data) => projectionConditionResolution(
+					entityType,
+					data,
+					context.projectionDefinitionByEntityTypeAndPath[
+						entityFieldAddressKey(entityType, facetPath, '')
+					]?.condition,
+					projectionProxy
+				) ?? {
+					resolution: ProjectionResolution.Unsupported,
+				}
+			)
+
+		return resource
+	}
+
+	const projectionProxy = new Proxy<Record<PropertyKey, never>>({}, {
+		get(_target, property) {
+			if (property === 'entityType')
+				return entityType
+			if (property === 'entitySelector')
+				return entitySelector
+			if (property === 'facetPath')
+				return facetPath
+			if (property === 'sources')
+				return selection.sources
+			if (property === EntityProxyField)
+				return (
+					fieldName: string,
+					fieldSelection?: SubscribeSelection<Schema, EntityType<Schema>, object>
+				) => {
+					const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[entityType][
+						entityFieldAddressKey(entityType, facetPath, fieldName)
+					]
+					return createEntityFieldProxy(
+						context,
+						entityType,
+						entitySelector,
+						fieldDefinition?.name ?? fieldName,
+						mergeSelection(
+							selection,
+							fieldSelection
+						),
+						fieldDefinition
+					)
+				}
+			const value = resourceProperty(
+				getResource,
+				(data) => data,
+				property
+			)
+			if (value !== undefined)
+				return value
+			if (typeof property !== 'string')
+				return undefined
+
+			if (
+				context.projectionDefinitionByEntityTypeAndPath[
+					entityFieldAddressKey(entityType, [
+						...facetPath,
+						property,
+					], '')
+				] != null
+			) {
+				if (!projectionProxyByFacetId.has(property))
+					projectionProxyByFacetId.set(
+						property,
+						createEntityProjectionProxy(
+							context,
+							entityType,
+							entitySelector,
+							[
+								...facetPath,
+								property,
+							],
+							selection
+						)
+					)
+
+				return projectionProxyByFacetId.get(property)
+			}
+
+			const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[entityType][
+				entityFieldAddressKey(entityType, facetPath, property)
+			]
+			if (fieldDefinition == null)
+				return undefined
+
+			if (!fieldProxyByName.has(property))
+				fieldProxyByName.set(
+					property,
+					createEntityFieldProxy(
+						context,
+						entityType,
+						entitySelector,
+						fieldDefinition.name,
+						selection,
+						fieldDefinition
+					)
+				)
+
+			return fieldProxyByName.get(property)
+		},
+	})
+	return projectionProxy
 }
 
 export function createEntityProxy<
@@ -414,6 +727,7 @@ export function createEntityProxy(
 		return resource
 	}
 	const fieldProxyByName = new Map<string, EntityProxyFieldResource<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>>()
+	const projectionProxyByFacetId = new Map<string, object>()
 
 	return new Proxy((
 		selectionOverride?: SubscribeSelection<Schema, EntityType<Schema>, object>
@@ -475,24 +789,48 @@ export function createEntityProxy(
 			)
 			if (value !== undefined)
 				return value
+			if (typeof property === 'string') {
+				const fieldDefinition = context.entityFieldDefinitionByEntityTypePathAndName[entityType][
+					entityFieldAddressKey(entityType, [], property)
+				]
+				if (fieldDefinition != null) {
+					if (!fieldProxyByName.has(property))
+						fieldProxyByName.set(
+							property,
+							createEntityFieldProxy(
+								context,
+								entityType,
+								entitySelector,
+								property,
+								selection,
+								fieldDefinition
+							)
+						)
+
+					return fieldProxyByName.get(property)
+				}
+			}
 			if (
 				typeof property === 'string'
-				&& entityFieldDefinitions(context.entityDefinitionByType[entityType])
-					.some((fieldDefinition) => fieldDefinition.name === property)
+				&& context.projectionDefinitionByEntityTypeAndPath[
+					entityFieldAddressKey(entityType, [property], '')
+				] != null
 			) {
-				if (!fieldProxyByName.has(property))
-					fieldProxyByName.set(
+				if (!projectionProxyByFacetId.has(property))
+					projectionProxyByFacetId.set(
 						property,
-						createEntityFieldProxy(
+						createEntityProjectionProxy(
 							context,
 							entityType,
 							entitySelector,
-							property,
+							[
+								property,
+							],
 							selection
 						)
 					)
 
-				return fieldProxyByName.get(property)
+				return projectionProxyByFacetId.get(property)
 			}
 
 			return undefined

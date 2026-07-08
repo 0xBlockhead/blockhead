@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -221,7 +221,7 @@
 				<dt>network</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+						resource={selection.$network}
 					>
 						{#snippet children(network)}
 							{#if network[EntityMetaKey.Selector] != null}
@@ -259,7 +259,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.PayjoinDirectory, false>('$directory')}
+				resource={selection.$directory}
 			>
 				{#snippet children(payjoinDirectory)}
 					{#if payjoinDirectory != null && payjoinDirectory[EntityMetaKey.Selector] != null}
@@ -279,7 +279,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.PayjoinEndpoint, false>('$endpoint')}
+				resource={selection.$endpoint}
 			>
 				{#snippet children(payjoinEndpoint)}
 					{#if payjoinEndpoint != null && payjoinEndpoint[EntityMetaKey.Selector] != null}
@@ -718,7 +718,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.UtxoTransaction, false>('$finalTransaction')}
+				resource={selection.$finalTransaction}
 			>
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null && utxoTransaction[EntityMetaKey.Selector] != null}

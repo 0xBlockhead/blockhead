@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { type } from 'arktype'
@@ -8,111 +8,95 @@ import { type } from 'arktype'
 export enum BlockheadZcashNoteStateSelector {
 	WalletIdPoolNoteCommitment = 'WalletIdPoolNoteCommitment',
 }
-export default {
+export const BlockheadZcashNoteState = entity({
 	entityType: EntityType.BlockheadZcashNoteState,
 	label: 'blockhead zcash note state',
 	labelPlural: 'blockhead zcash note states',
-	selectors: [
-		{
-			name: BlockheadZcashNoteStateSelector.WalletIdPoolNoteCommitment,
-			fields: [
-				'walletId',
-				'pool',
-				'noteCommitment',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'walletId',
-			label: 'wallet ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$wallet',
-			label: 'wallet',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadWallet,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$shieldedAction',
-			label: 'shielded action',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ZcashShieldedAction,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'pool',
-			label: 'pool',
-			type: EntityFieldType.Primitive,
-			primitiveType: type.enumerated(...Object.values(ZcashShieldedPoolKind)),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'noteCommitment',
-			label: 'note commitment',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'nullifier',
-			label: 'nullifier',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'valueZatoshis',
-			label: 'value zatoshis',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'memo',
-			label: 'memo',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'diversifier',
-			label: 'diversifier',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'recipientAddress',
-			label: 'recipient address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'receivedTransactionId',
-			label: 'received transaction ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'receivedAtHeight',
-			label: 'received AT height',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.BlockheadZcashNoteState_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	walletId: {
+		label: 'wallet ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$wallet: {
+		label: 'wallet',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BlockheadWallet,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$shieldedAction: {
+		label: 'shielded action',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.ZcashShieldedAction,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	pool: {
+		label: 'pool',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.enumerated(...Object.values(ZcashShieldedPoolKind)),
+		cardinality: EntityFieldCardinality.One,
+	},
+	noteCommitment: {
+		label: 'note commitment',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	nullifier: {
+		label: 'nullifier',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	valueZatoshis: {
+		label: 'value zatoshis',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	memo: {
+		label: 'memo',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	diversifier: {
+		label: 'diversifier',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	recipientAddress: {
+		label: 'recipient address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	receivedTransactionId: {
+		label: 'received transaction ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	receivedAtHeight: {
+		label: 'received AT height',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$timestamps: {
+		label: 'timestamps',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.BlockheadZcashNoteState_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		WalletIdPoolNoteCommitment: [
+			'walletId',
+			'pool',
+			'noteCommitment',
+		],
+	},
+})

@@ -373,14 +373,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				epochId: (block) => block.epochId,
 				timestampMs: (block) => block.timestampMs,
 				$$chunks: (block) => block.$$chunks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearChunk,
@@ -430,12 +428,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				shardId: (chunk) => chunk.shardId,
 				gasUsed: (chunk) => chunk.gasUsed,
 				$$transactions: (chunk) => chunk.$$transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearTransaction,
@@ -448,14 +444,12 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$signer: (transaction) => transaction.$signer,
 				$receiver: (transaction) => transaction.$receiver,
 				nonce: (transaction) => transaction.nonce,
 				$$actions: (transaction) => transaction.$$actions,
 				$$executionOutcomes: (transaction) => transaction.$$executionOutcomes,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAction,
@@ -469,12 +463,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				actionKind: (action) => action.actionKind,
 				methodName: (action) => action.methodName,
 				depositYoctoNear: (action) => action.depositYoctoNear,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearExecutionOutcome,
@@ -494,12 +486,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				status: (outcome) => outcome.status,
 				gasBurnt: (outcome) => outcome.gasBurnt,
 				$$receipts: (outcome) => outcome.$$receipts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearReceipt,
@@ -522,11 +512,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$predecessor: (receipt) => receipt.$predecessor,
 				$receiver: (receipt) => receipt.$receiver,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccount,
@@ -553,12 +541,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				amountYoctoNear: (account) => account.amountYoctoNear,
 				storageUsageBytes: (account) => account.storageUsageBytes,
 				$contract: (account) => account.$contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearContract,
@@ -578,10 +564,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				codeHash: (contract) => contract.codeHash,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccount_Timestamp,
@@ -601,12 +585,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				amountYoctoNear: (timestamp) => timestamp.amountYoctoNear,
 				storageUsageBytes: (timestamp) => timestamp.storageUsageBytes,
 				codeHash: (timestamp) => timestamp.codeHash,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearContract_Timestamp,
@@ -626,10 +608,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				codeHash: (timestamp) => timestamp.codeHash,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccessKey,
@@ -645,11 +625,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				nonce: (accessKey) => accessKey.nonce,
 				permission: (accessKey) => accessKey.permission,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccessKey_Timestamp,
@@ -665,14 +643,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				nonce: (timestamp) => timestamp.nonce,
 				permission: (timestamp) => timestamp.permission,
 				allowanceYoctoNear: (timestamp) => timestamp.allowanceYoctoNear,
 				receiverId: (timestamp) => timestamp.receiverId,
 				methodNames: (timestamp) => timestamp.methodNames ?? [],
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearValidator,
@@ -688,7 +664,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				publicKey: (validator) => validator.publicKey,
 				stakeYoctoNear: (validator) => validator.stakeYoctoNear,
 				isSlashed: (validator) => validator.isSlashed,
@@ -696,8 +671,7 @@ export default {
 				producedBlocks: (validator) => validator.producedBlocks,
 				expectedChunks: (validator) => validator.expectedChunks,
 				producedChunks: (validator) => validator.producedChunks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearValidator_Timestamp,
@@ -721,7 +695,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				epochHeight: (timestamp) => timestamp.epochHeight,
 				epochStartHeight: (timestamp) => timestamp.epochStartHeight,
 				validatorSetRole: (timestamp) => timestamp.validatorSetRole,
@@ -732,8 +705,7 @@ export default {
 				producedBlocks: (timestamp) => timestamp.producedBlocks,
 				expectedChunks: (timestamp) => timestamp.expectedChunks,
 				producedChunks: (timestamp) => timestamp.producedChunks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
@@ -754,10 +726,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.Network,
@@ -778,10 +748,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$nearTimestamps: (timestamps) => timestamps,
-			},
-		}),
+				Near: {
+					$$timestamps: (timestamps) => timestamps,
+				},
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork_Timestamp,
@@ -791,9 +761,7 @@ export default {
 					return getNearNetworkTimestampFields()
 				}
 			},
-		})({
-			fields: nearNetworkTimestampFieldResolvers,
-		}),
+		})(nearNetworkTimestampFieldResolvers),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
@@ -823,10 +791,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$blocks: (blocks) => blocks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.Network,
@@ -856,10 +822,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$nearBlocks: (blocks) => blocks,
-			},
-		}),
+				Near: {
+					$$blocks: (blocks) => blocks,
+				},
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearNetwork,
@@ -881,10 +847,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$validators: (validators) => validators,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.Network,
@@ -906,10 +870,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$nearValidators: (validators) => validators,
-			},
-		}),
+				Near: {
+					$$validators: (validators) => validators,
+				},
+			}),
 
 		defineResolver(Source.NearRpc_JsonRpc, {
 			entityType: EntityType.NearAccount,
@@ -933,9 +897,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$accessKeys: (accessKeys) => accessKeys,
-			},
-		}),
+			}),
 	],
 }

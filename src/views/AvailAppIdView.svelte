@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -184,17 +184,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AvailAppId_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AvailAppId_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='AvailAppId_TimestampsView-$$timestamps'
+				id='AvailAppId_TimestampsView-timestamps'
 			/>
 
 			<AvailDataSubmissionsView
-				selection={selection[EntityProxyField]<EntityType.AvailDataSubmission>('$$dataSubmissions')}
+				selection={selection.$$dataSubmissions}
 				title='data submissions'
 				emptyText='No data submissions found.'
-				id='AvailDataSubmissionsView-$$dataSubmissions'
+				id='AvailDataSubmissionsView-data-submissions'
 			/>
 		{/if}
 	{/snippet}

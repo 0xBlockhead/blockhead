@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -78,7 +78,7 @@
 	id={viewDomId}
 	title={title ?? titleFallback}
 	href={
-		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.kind !== undefined && pendingEntity.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+		href ?? (pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.namespace !== undefined && pendingEntity.$network !== undefined && pendingEntity.$network.caip2 !== undefined && pendingEntity.$network.caip2.reference !== undefined && pendingEntity.kind !== undefined && pendingEntity.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
 			caip2: `${String(pendingEntity.$network.caip2.namespace ?? '')}:${String(pendingEntity.$network.caip2.reference ?? '')}`,
 			kind: String(pendingEntity.kind ?? ''),
 			assetKey: String(pendingEntity.assetKey ?? ''),
@@ -345,7 +345,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Media, false>('$icon')}
+				resource={selection.$icon}
 			>
 				{#snippet children(media)}
 					{#if media != null && media[EntityMetaKey.Selector] != null}
@@ -374,45 +374,45 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<TokenMetadataDocumentsView
-				selection={selection[EntityProxyField]<EntityType.TokenMetadataDocument>('$$metadata')}
+				selection={selection.$$metadata}
 				title='Metadata'
 				emptyText='No token metadata documents.'
-				id='TokenMetadataDocumentsView-$$metadata'
+				id='TokenMetadataDocumentsView-metadata'
 			/>
 
 			<TokenProgramExtension_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.TokenProgramExtension_Timestamp>('$$tokenProgramExtensions')}
+				selection={selection.$$tokenProgramExtensions}
 				title='Token program extensions'
 				emptyText='No token program extension observations.'
-				id='TokenProgramExtension_TimestampsView-$$tokenProgramExtensions'
+				id='TokenProgramExtension_TimestampsView-token-program-extensions'
 			/>
 
 			<RegulatedAssetProfilesView
-				selection={selection[EntityProxyField]<EntityType.RegulatedAssetProfile>('$$regulatedProfiles')}
+				selection={selection.$$regulatedProfiles}
 				title='Regulated profiles'
 				emptyText='No regulated asset profiles.'
-				id='RegulatedAssetProfilesView-$$regulatedProfiles'
+				id='RegulatedAssetProfilesView-regulated-profiles'
 			/>
 
 			<TransferRestrictionsView
-				selection={selection[EntityProxyField]<EntityType.TransferRestriction>('$$transferRestrictions')}
+				selection={selection.$$transferRestrictions}
 				title='Transfer restrictions'
 				emptyText='No transfer restrictions.'
-				id='TransferRestrictionsView-$$transferRestrictions'
+				id='TransferRestrictionsView-transfer-restrictions'
 			/>
 
 			<NftCollectionsView
-				selection={selection[EntityProxyField]<EntityType.NftCollection>('$$nftCollections')}
+				selection={selection.$$nftCollections}
 				title='NFT collections'
 				emptyText='No NFT collections.'
-				id='NftCollectionsView-$$nftCollections'
+				id='NftCollectionsView-nft-collections'
 			/>
 
 			<PayoutsView
-				selection={selection[EntityProxyField]<EntityType.Payout>('$$payouts')}
+				selection={selection.$$payouts}
 				title='Payouts'
 				emptyText='No payouts.'
-				id='PayoutsView-$$payouts'
+				id='PayoutsView-payouts'
 			/>
 		{/if}
 	{/snippet}

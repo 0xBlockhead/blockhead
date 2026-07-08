@@ -41,7 +41,6 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			finalized: (snapshot) => snapshot.finalized,
 			globalParticipationRate: (snapshot) => snapshot.globalParticipationRate,
 			validatorsCount: (snapshot) => snapshot.validatorsCount,
@@ -49,7 +48,6 @@ export default {
 			attesterSlashingsCount: (snapshot) => snapshot.attesterSlashingsCount,
 			proposerSlashingsCount: (snapshot) => snapshot.proposerSlashingsCount,
 			withdrawalsCount: (snapshot) => snapshot.withdrawalsCount,
-		},
-			}),
+		}),
 	],
 }

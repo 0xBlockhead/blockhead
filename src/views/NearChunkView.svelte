@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -100,7 +100,7 @@
 		<ResourceBoundary resource={nearChunk}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.NearBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(nearBlock)}
 						{#if nearBlock != null && nearBlock[EntityMetaKey.Selector] != null}
@@ -118,7 +118,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.NearBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(nearBlock)}
 						{#if nearBlock != null && nearBlock[EntityMetaKey.Selector] != null}
@@ -221,7 +221,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.NearBlock, false>('$block')}
+				resource={selection.$block}
 			>
 				{#snippet children(nearBlock)}
 					{#if nearBlock != null && nearBlock[EntityMetaKey.Selector] != null}
@@ -322,14 +322,14 @@
 		{#if detailsOpen}
 			<NearTransactionsView
 				selection={
-						selection[EntityProxyField]<EntityType.NearTransaction>('$$transactions', {
+						selection.$$transactions({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
 				title='Transactions'
-				id='NearTransactionsView-$$transactions'
+				id='NearTransactionsView-transactions'
 			/>
 		{/if}
 	{/snippet}

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -159,7 +159,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AssetObject, false>('$assetObject')}
+				resource={selection.$assetObject}
 			>
 				{#snippet children(assetObject)}
 					{#if assetObject != null && assetObject[EntityMetaKey.Selector] != null}
@@ -179,7 +179,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.TokenMetadataDocument, false>('$metadata')}
+				resource={selection.$metadata}
 			>
 				{#snippet children(tokenMetadataDocument)}
 					{#if tokenMetadataDocument != null && tokenMetadataDocument[EntityMetaKey.Selector] != null}
@@ -203,10 +203,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<UsageRight_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.UsageRight_Timestamp>('$$usageRightTimestamps')}
+				selection={selection.$$usageRightTimestamps}
 				title='usage right timestamps'
 				emptyText='No usage right observations.'
-				id='UsageRight_TimestampsView-$$usageRightTimestamps'
+				id='UsageRight_TimestampsView-usage-right-timestamps'
 			/>
 		{/if}
 	{/snippet}

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -146,7 +146,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AssetInstance, false>('$assetInstance')}
+				resource={selection.$assetInstance}
 			>
 				{#snippet children(assetInstance)}
 					{#if assetInstance != null && assetInstance[EntityMetaKey.Selector] != null}
@@ -157,7 +157,7 @@
 									selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector])}
 									prefetched={assetInstance}
 									href={
-										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+										(assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.namespace !== undefined && assetInstance[EntityMetaKey.Selector].$network !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2 !== undefined && assetInstance[EntityMetaKey.Selector].$network.caip2.reference !== undefined && assetInstance[EntityMetaKey.Selector].kind !== undefined && assetInstance[EntityMetaKey.Selector].assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
 											caip2: `${String(assetInstance[EntityMetaKey.Selector].$network.caip2.namespace ?? '')}:${String(assetInstance[EntityMetaKey.Selector].$network.caip2.reference ?? '')}`,
 											kind: String(assetInstance[EntityMetaKey.Selector].kind ?? ''),
 											assetKey: String(assetInstance[EntityMetaKey.Selector].assetKey ?? ''),
@@ -173,7 +173,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AssetClass, false>('$assetClass')}
+				resource={selection.$assetClass}
 			>
 				{#snippet children(assetClass)}
 					{#if assetClass != null && assetClass[EntityMetaKey.Selector] != null}
@@ -193,7 +193,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+				resource={selection.$network}
 			>
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
@@ -232,7 +232,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$distributorContract')}
+				resource={selection.$distributorContract}
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -476,10 +476,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PayoutClaim_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.PayoutClaim_Timestamp>('$$claims')}
+				selection={selection.$$claims}
 				title='claims'
 				emptyText='No payout claim observations.'
-				id='PayoutClaim_TimestampsView-$$claims'
+				id='PayoutClaim_TimestampsView-claims'
 			/>
 		{/if}
 	{/snippet}

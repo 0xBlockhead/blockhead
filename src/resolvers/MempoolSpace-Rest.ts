@@ -69,10 +69,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				slug: (network) => network.slug,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
@@ -108,7 +106,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				timestampMs: (block) => block.timestampMs,
@@ -118,8 +115,7 @@ export default {
 				sizeBytes: (block) => block.sizeBytes,
 				weightUnits: (block) => block.weightUnits,
 				transactionCount: (block) => block.transactionCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -155,7 +151,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (transaction) => transaction.$block,
 				version: (transaction) => transaction.version,
 				lockTime: (transaction) => transaction.lockTime,
@@ -164,8 +159,7 @@ export default {
 				virtualSizeBytes: (transaction) => transaction.virtualSizeBytes,
 				feeSats: (transaction) => transaction.feeSats,
 				isCoinbase: (transaction) => transaction.isCoinbase,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoInput,
@@ -202,14 +196,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$spentOutput: (input) => input.$spentOutput,
 				coinbaseScript: (input) => input.coinbaseScript,
 				scriptSigAsm: (input) => input.scriptSigAsm,
 				sequence: (input) => input.sequence,
 				witness: (input) => input.witness ?? [],
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoAddress,
@@ -234,11 +226,9 @@ export default {
 					}
 				},
 			})({
-				fields: {
 					address: (address) => address.address,
 					$$timestamps: (address) => address.$$timestamps,
-				},
-			}),
+				}),
 
 			defineResolver(Source.MempoolSpace_Rest, {
 				entityType: EntityType.UtxoAddress_Timestamp,
@@ -263,7 +253,6 @@ export default {
 					}
 				},
 			})({
-				fields: {
 					balanceSats: (address) => address.balanceSats,
 					transactionCount: (address) => address.transactionCount,
 					unspentOutputCount: (address) => address.unspentOutputCount,
@@ -271,8 +260,7 @@ export default {
 					spentOutputCount: (address) => address.spentOutputCount,
 					fundedValueSats: (address) => address.fundedValueSats,
 					spentValueSats: (address) => address.spentValueSats,
-				},
-			}),
+				}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoOutput,
@@ -302,14 +290,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				valueSats: (output) => output.valueSats,
 				scriptPubKeyAsm: (output) => output.scriptPubKeyAsm,
 				scriptPubKeyHex: (output) => output.scriptPubKeyHex,
 				scriptPubKeyType: (output) => output.scriptPubKeyType,
 				$address: (output) => output.$address,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.Network_Timestamp,
@@ -350,7 +336,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$network: (timestamp) => timestamp.$network,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
@@ -359,8 +344,7 @@ export default {
 				mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
 				mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
 				suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.Network,
@@ -373,10 +357,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				slug: (network) => network.slug,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.Network,
@@ -412,10 +394,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.Network,
@@ -434,10 +414,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$utxoBlocks: (blocks) => blocks,
-			},
-		}),
+				Utxo: {
+					$$blocks: (blocks) => blocks,
+				},
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.Network,
@@ -455,10 +435,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$utxoTransactions: (transactions) => transactions,
-			},
-		}),
+				Utxo: {
+					$$transactions: (transactions) => transactions,
+				},
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoBlock,
@@ -483,10 +463,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$transactions: (transactions) => transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -503,10 +481,8 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$$inputs: (inputs) => inputs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -523,9 +499,7 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$$outputs: (outputs) => outputs,
-			},
-		}),
+			}),
 	],
 }

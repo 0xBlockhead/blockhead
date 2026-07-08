@@ -6,7 +6,7 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { EvmRollupSelector } from '$/schema/EvmRollup.ts'
 
@@ -44,15 +44,13 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			name: (snapshot) => snapshot.name,
 			slug: (snapshot) => snapshot.slug,
 			type: (snapshot) => snapshot.type,
 			category: (snapshot) => snapshot.category,
 			hostChain: (snapshot) => snapshot.hostChain,
 			$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
-		},
-			}),
+		}),
 
 		defineResolver(Source.L2Beat_Rest, {
 			entityType: EntityType._Global,
@@ -91,15 +89,13 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			$$evmNetworks: (snapshot) => snapshot,
-		},
-			}),
+		}),
 
 		defineResolver(Source.L2Beat_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 				const {
 					l2beatHostChainToParentChainId,
 					l2BeatProjectIdByChainId,
@@ -120,15 +116,15 @@ export default {
 			}
 			}
 		})({
-				fields: {
-			$parent: (snapshot) => snapshot,
-		},
+				Evm: {
+					$parent: (snapshot) => snapshot
+				},
 			}),
 
 		defineResolver(Source.L2Beat_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
+				[NetworkSelector.Caip2]: async (entitySelector) => {
 				const {
 					l2BeatProjectIdByChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
@@ -147,15 +143,15 @@ export default {
 			}
 			}
 		})({
-				fields: {
-			$rollup: (snapshot) => snapshot,
-		},
+				Evm: {
+					$rollup: (snapshot) => snapshot
+				},
 			}),
 
 		defineResolver(Source.L2Beat_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 				const {
 					chainIdByL2BeatProjectId,
 					l2beatHostChainToParentChainId,
@@ -199,15 +195,15 @@ export default {
 			}
 			}
 		})({
-				fields: {
-			$$settledRollups: (snapshot) => snapshot,
-		},
+				Evm: {
+					$$settledRollups: (snapshot) => snapshot
+				},
 			}),
 
 		defineResolver(Source.L2Beat_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 				const {
 					chainIdByL2BeatProjectId,
 					l2beatHostChainToParentChainId,
@@ -249,9 +245,9 @@ export default {
 			}
 			}
 		})({
-				fields: {
-			$$childLayers: (snapshot) => snapshot,
-		},
+				Evm: {
+					$$childLayers: (snapshot) => snapshot
+				},
 			}),
 	],
 }

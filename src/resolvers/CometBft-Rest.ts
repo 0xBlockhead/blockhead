@@ -48,12 +48,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (snapshot) => snapshot.hash,
 				proposerConsensusAddress: (snapshot) => snapshot.proposerConsensusAddress,
 				timestampMs: (snapshot) => snapshot.timestampMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CometBft_Rest, {
 			entityType: EntityType.CosmosTransaction,
@@ -79,12 +77,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (snapshot) => snapshot.$block,
 				code: (snapshot) => snapshot.code,
 				gasWanted: (snapshot) => snapshot.gasWanted,
 				gasUsed: (snapshot) => snapshot.gasUsed,
-			},
-		}),
+			}),
 	],
 }

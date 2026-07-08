@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -127,24 +127,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<KaspaTransactionsView
-				selection={selection[EntityProxyField]<EntityType.KaspaTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Kaspa transactions.'
-				id='KaspaTransactionsView-$$transactions'
+				id='KaspaTransactionsView-transactions'
 			/>
 
 			<KaspaAddressUtxo_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.KaspaAddressUtxo_Timestamp>('$$utxos')}
+				selection={selection.$$utxos}
 				title='UTXOs'
 				emptyText='No Kaspa UTXO observations.'
-				id='KaspaAddressUtxo_TimestampsView-$$utxos'
+				id='KaspaAddressUtxo_TimestampsView-utxos'
 			/>
 
 			<KaspaAddress_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.KaspaAddress_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Kaspa address observations.'
-				id='KaspaAddress_TimestampsView-$$timestamps'
+				id='KaspaAddress_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

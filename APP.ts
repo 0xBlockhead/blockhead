@@ -1901,15 +1901,6 @@ const routeCaip2SelectorParamFromCaip2RouteParam = {
 	hrefValue: routeCaip2String(routeField("caip2")),
 }
 
-const routeEvmNetworkCaip2SelectorFromCaip2RouteParam = {
-	kind: "selector",
-	entity: EntityType.EvmNetwork,
-	selector: "Caip2",
-	params: [
-		routeCaip2SelectorParamFromCaip2RouteParam,
-	],
-} satisfies _Expression
-
 const routeNetworkCaip2SelectorFromCaip2RouteParam = {
 	kind: "selector",
 	entity: EntityType.Network,
@@ -1968,7 +1959,7 @@ const routeNetworkUpgradeRouteSegmentKey = routeTemplate([
 	},
 ])
 
-const routeEvmNetworkCaip2FromEntityReferenceField = (field: string) => routeCaip2String(routeProperty(routeProperty(routeField(field), "$network"), "caip2"))
+const routeNetworkCaip2FromEntityReferenceField = (field: string) => routeCaip2String(routeProperty(routeProperty(routeField(field), "$network"), "caip2"))
 const routeNetworkSlugFromCaip2 = (key: _Expression): _Expression => ({
 	kind: "catalogIndex",
 	from: "$/constants/Network.ts",
@@ -2230,16 +2221,13 @@ export type _ViewQuery = {
 
 type _ViewWhen = "always" | "closed" | "open"
 
-type _FacetFieldReference = {
-	facet: string
-	field: string
-}
+type _ProjectionFieldReference = readonly [string, string, ...string[]]
 
-type _FieldReference = string | _FacetFieldReference
+type _FieldReference = string | _ProjectionFieldReference
 
 export type _ViewItem =
 	| string
-	| _FacetFieldReference
+	| _ProjectionFieldReference
 	| {
 			kind?: _ViewItemKind.Text
 			label?: string
@@ -2375,7 +2363,7 @@ type _EntityView = {
 	layout?: string
 	query?: _ViewQuery
 	latest?: {
-		field: string
+		field: _FieldReference
 		label?: string
 		query?: _ViewQuery
 		fields?: string[]
@@ -2386,6 +2374,11 @@ type _EntityView = {
 		when?: {
 			field: string
 			equals: _Literal
+		}[]
+		conditions?: {
+			field: string
+			equals?: _Literal
+			contains?: _Literal
 		}[]
 	}[]
 	latestDlClassName?: string
@@ -2429,7 +2422,12 @@ type _EntityView = {
 			label?: string
 			description?: string
 			when?: _ViewWhen
-			field?: string
+			field?: _FieldReference
+			conditions?: {
+				field: string
+				equals?: _Literal
+				contains?: _Literal
+			}[]
 			link?: {
 				route: string
 				params?: {
@@ -2506,29 +2504,22 @@ type _SourceBinding = {
 	}[]
 }
 
-type _AppFacetPredicate =
+type _AppFacetCondition =
 	| {
-		field: string
-		equals: _Literal
+		path: readonly (string | number)[]
+		is: _Literal
 	}
 	| {
-		field: string
-		contains: _Literal
+		path: readonly (string | number)[]
+		isOneOf: readonly _Literal[]
 	}
 	| {
-		all: _AppFacetPredicate[]
+		path: readonly (string | number)[]
+		includes: _Literal
 	}
 	| {
-		any: _AppFacetPredicate[]
+		all: _AppFacetCondition[]
 	}
-
-type _SourceFacet = {
-	id: string
-	predicate?: _AppFacetPredicate
-	predicateFields?: string[]
-	binding?: _SourceBinding
-	bindings?: _SourceBinding[]
-}
 
 type _ValueTypeType =
 	| {
@@ -2567,16 +2558,15 @@ type _EntityField = {
 	defaultSources?: readonly Source[]
 	facet?: {
 		id: string
-		predicateFields: readonly string[]
-		predicate?: _AppFacetPredicate
+		condition?: _AppFacetCondition
 	}
 }
 
 type _EntityFacet = {
 	id: string
-	predicate: _AppFacetPredicate
-	predicateFields?: string[]
+	condition: _AppFacetCondition
 	fields?: _EntityField[]
+	facets?: _EntityFacet[]
 	sources?: {
 		field: string
 		sources: readonly Source[] | _SourceSelection
@@ -2625,8 +2615,8 @@ type _RouteFile = {
 		id: string
 		label?: string
 		routeKind?: "detail" | "hub" | "collection"
-		requiredFacets?: readonly string[]
-		requiredFacetPredicates?: readonly _AppFacetPredicate[]
+		requiredProjections?: readonly (readonly string[])[]
+		requiredProjectionConditions?: readonly _AppFacetCondition[]
 		fixture?: Readonly<Partial<Record<string, string>>>
 		variants?: readonly Readonly<Partial<Record<string, string>>>[]
 		boundaryLiveOptional?: true
@@ -2754,7 +2744,6 @@ export type App = {
 			env?: _SourceEnv
 			binding?: _SourceBinding
 			bindings?: _SourceBinding[]
-			facets?: _SourceFacet[]
 		}[]
 	}
 	resolvers: {
@@ -3971,7 +3960,7 @@ export const app = {
 					},
 					{ name: "$$networks", label: "networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
 					{ name: "$$networkStacks", label: "network stacks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.NetworkStack },
-					{ name: "$$evmNetworks", label: "EVM networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetwork },
+					{ name: "$$evmNetworks", label: "EVM networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
 					{ name: "$$networkUpgrades", label: "network upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumNetworkUpgrade },
 					{ name: "$$proposals", label: "proposals", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationProposal },
 					{ name: "$$specificationRealms", label: "specification realms", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.SpecificationRealm },
@@ -4502,7 +4491,7 @@ export const app = {
 					},
 					{
 						name: "relationshipModel",
-						label: "Relationship model",
+						label: "Connection model",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "string",
@@ -5208,7 +5197,7 @@ export const app = {
 					},
 					{
 						name: "relationshipModel",
-						label: "Relationship model",
+						label: "Connection model",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.ZeroOrOne,
 						valueType: "string",
@@ -10089,27 +10078,30 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						cardinality: EntityFieldCardinality.One,
 						valueType: "number",
 					},
-					{
-						name: "followersCount",
-						label: "Followers",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "number",
-					},
-					{
-						name: "followsCount",
-						label: "Following",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "number",
-					},
-					{
-						name: "postsCount",
-						label: "Posts",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "number",
-					},
+						{
+							name: "followersCount",
+							label: "Followers",
+							type: EntityFieldType.Primitive,
+							cardinality: EntityFieldCardinality.ZeroOrOne,
+							valueType: "number",
+							defaultSources: [Source.Atproto_Xrpc],
+						},
+						{
+							name: "followsCount",
+							label: "Following",
+							type: EntityFieldType.Primitive,
+							cardinality: EntityFieldCardinality.ZeroOrOne,
+							valueType: "number",
+							defaultSources: [Source.Atproto_Xrpc],
+						},
+						{
+							name: "postsCount",
+							label: "Posts",
+							type: EntityFieldType.Primitive,
+							cardinality: EntityFieldCardinality.ZeroOrOne,
+							valueType: "number",
+							defaultSources: [Source.Atproto_Xrpc],
+						},
 				],
 				views: {
 					singular: {
@@ -10178,7 +10170,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				],
 				views: {
 					singular: {
@@ -11182,7 +11174,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{ name: "slot", label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "indexInSlot", label: "Index in slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
@@ -11243,7 +11235,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{ name: "slot", label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "indexInSlot", label: "Index in slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
@@ -11297,7 +11289,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "epoch",
@@ -11489,7 +11481,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{ name: "slot", label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "kind", label: "Kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -11541,7 +11533,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "slot",
@@ -11715,7 +11707,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{ name: "period", label: "Period", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "validatorIndices", label: "Validator indices", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "numberArray" },
@@ -11771,7 +11763,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{ name: "indexInNetwork", label: "Index in network", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "pubkey", label: "Public key", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -11935,7 +11927,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{ name: "slot", label: "Slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 						{ name: "indexInSlot", label: "Index in slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
@@ -13825,8 +13817,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "toTokenAddress", label: "to token address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
 					{ name: "$fromNetwork", label: "from network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$toNetwork", label: "to network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
-					{ name: "$fromEvmNetwork", label: "from EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
-					{ name: "$toEvmNetwork", label: "to EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$fromEvmNetwork", label: "from EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
+					{ name: "$toEvmNetwork", label: "to EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$fromToken", label: "from token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "$toToken", label: "to token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "amount", label: "amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -16699,7 +16691,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				],
 				fields: [
 					{ name: "id", label: "ID", description: "The identifier assigned by the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "$room", label: "room", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadRoom },
 					{ name: "peerId", label: "peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "$account", label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
@@ -16739,7 +16731,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				],
 				fields: [
 					{ name: "id", label: "ID", description: "The identifier assigned by the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "$room", label: "room", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadRoom },
 					{ name: "fromPeerId", label: "from peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "toPeerId", label: "to peer ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -16947,7 +16939,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						cardinality: EntityFieldCardinality.One,
 						valueType: "string",
 					},
-					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "$participant0", label: "Participant 0", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 					{ name: "$participant1", label: "Participant 1", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 					{ name: "$asset", label: "Asset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmCoinInstance },
@@ -17052,7 +17044,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				fields: [
 					{ name: "$channel", label: "channel", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadStateChannel },
 					{ name: "$account", label: "account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "$$timestamps", label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BlockheadStateChannelDeposit_Timestamp },
 				],
 				views: {
@@ -17200,7 +17192,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "tokenInAddress", label: "token in address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
 					{ name: "tokenOutAddress", label: "token out address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
 					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
-					{ name: "$evmNetwork", label: "EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$evmNetwork", label: "EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$tokenIn", label: "token in", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "$tokenOut", label: "token out", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "amount", label: "amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -17254,7 +17246,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "$from", label: "from", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
 					{ name: "$to", label: "to", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
 					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
-					{ name: "$evmNetwork", label: "EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$evmNetwork", label: "EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$token", label: "token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "amount", label: "amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				],
@@ -17290,7 +17282,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				],
 				fields: [
 					{ name: "id", label: "ID", description: "The identifier assigned by the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "$room", label: "room", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.BlockheadRoom },
 					{ name: "$from", label: "from", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 					{ name: "$to", label: "to", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
@@ -18725,8 +18717,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "slippage", label: "Slippage", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "toAddress", label: "To address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{ name: "$$steps", label: "Steps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BridgeRouteStep, defaultSources: [Source.Lifi_Rest] },
-					{ name: "$fromNetwork", label: "From network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
-					{ name: "$toNetwork", label: "To network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$fromNetwork", label: "From network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+					{ name: "$toNetwork", label: "To network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "toAmount", label: "To amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 					{ name: "toAmountMin", label: "To amount min", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 					{ name: "estimatedCostUsd", label: "Estimated cost USD", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
@@ -18796,8 +18788,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "fromAddress", label: "from address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{ name: "slippage", label: "slippage", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "toAddress", label: "to address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
-					{ name: "$fromNetwork", label: "from network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
-					{ name: "$toNetwork", label: "to network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$fromNetwork", label: "from network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
+					{ name: "$toNetwork", label: "to network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "toAmount", label: "to amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 					{ name: "toAmountMin", label: "to amount min", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 					{ name: "estimatedCostUsd", label: "estimated cost usd", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -18864,8 +18856,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "stepType", label: "step type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "tool", label: "tool", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "toolName", label: "tool name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "$fromNetwork", label: "from network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
-					{ name: "$toNetwork", label: "to network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$fromNetwork", label: "from network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
+					{ name: "$toNetwork", label: "to network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$fromToken", label: "from token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "$toToken", label: "to token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "fromAmount", label: "from amount", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -18917,8 +18909,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "indexInRoute", label: "Index in route", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
 					{ name: "stepType", label: "Step type", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "tool", label: "Tool", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "$fromNetwork", label: "From network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
-					{ name: "$toNetwork", label: "To network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$fromNetwork", label: "From network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
+					{ name: "$toNetwork", label: "To network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$fromToken", label: "From token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "$toToken", label: "To token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "railId", label: "Rail ID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -18971,8 +18963,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "$destinationTx", label: "destination tx", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmTransaction },
 					{ name: "$sender", label: "sender", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
 					{ name: "$recipient", label: "recipient", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
-					{ name: "$fromNetwork", label: "from network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
-					{ name: "$toNetwork", label: "to network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$fromNetwork", label: "from network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
+					{ name: "$toNetwork", label: "to network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$fromToken", label: "from token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "$toToken", label: "to token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "amountIn", label: "amount in", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
@@ -22451,7 +22443,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						carousels: [
 								{
 									id: "relationshipModel",
-									label: "Relationship model",
+									label: "Connection model",
 									sections: [
 										{
 											id: "coin-instances",
@@ -22539,10 +22531,6 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 								names: ["CoinId"],
 							},
 							{
-								from: "$/client/$proxy.svelte.ts",
-								names: ["EntityProxyField"],
-							},
-							{
 								from: "$/components/CollapsibleTabs.svelte",
 								default: "CollapsibleTabs",
 							},
@@ -22604,7 +22592,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										selection={select(
 											EntityType._Global,
 											{ scope: '$$marketPrices' }
-										)[EntityProxyField]<EntityType.MarketPrice>('$$marketPrices')}
+										).$$marketPrices}
 										{id}
 										open={false}
 										title={label}
@@ -22654,7 +22642,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										selection={select(
 											EntityType._Global,
 											{ scope: '$$marketTimeIntervalTimestamps' }
-										)[EntityProxyField]<EntityType.Market_TimeInterval_Timestamp>('$$marketTimeIntervalTimestamps')}
+										).$$marketTimeIntervalTimestamps}
 										{id}
 										open
 										title={label}
@@ -22705,7 +22693,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										selection={select(
 											EntityType._Global,
 											{ scope: '$$markets' }
-										)[EntityProxyField]<EntityType.Market>('$$markets')}
+										).$$markets}
 										{id}
 										open={false}
 										title={label}
@@ -22746,7 +22734,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										selection={select(
 											EntityType.Coin,
 											{ coinId: CoinId.ETH }
-										)[EntityProxyField]<EntityType.EvmCoinInstance>('$$coinInstances')}
+										).$$coinInstances}
 										{id}
 										open
 										title={label}
@@ -23405,7 +23393,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				],
 				fields: [
 					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
-					{ name: "$evmNetwork", label: "EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$evmNetwork", label: "EVM network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$cosmosNetwork", label: "Cosmos network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "chainKind", label: "chain kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "consensusKind", label: "consensus kind", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -24057,7 +24045,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "NetworkUid", fields: ["$network", "uid"] },
 				],
 				fields: [
-					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "uid", label: "UID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
 					{ name: "$schema", label: "Schema", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EasSchema },
 					{ name: "schemaUid", label: "Schema UID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
@@ -24148,7 +24136,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "NetworkSchemaUid", fields: ["$network", "schemaUid"] },
 				],
 				fields: [
-					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "schemaUid", label: "Schema UID", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "zeroExHex" },
 					{ name: "schema", label: "Schema", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "resolver", label: "Resolver", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
@@ -24226,7 +24214,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				},
 				selectors: [{ name: "NetworkAvsAddress", fields: ["$network", "avsAddress"] }],
 				fields: [
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "avsAddress", label: "AVS address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{ name: "$avsAccount", label: "AVS account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetworkAccount },
 					{ name: "metadataUri", label: "metadata URI", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
@@ -24336,7 +24324,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				},
 				selectors: [{ name: "NetworkOperatorAddress", fields: ["$network", "operatorAddress"] }],
 				fields: [
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "operatorAddress", label: "operator address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{ name: "$operatorAccount", label: "operator account", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetworkAccount },
 					{ name: "earningsReceiver", label: "earnings receiver", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
@@ -24384,7 +24372,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				},
 				selectors: [{ name: "Network", fields: ["$network"] }],
 				fields: [
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "protocolName", label: "protocol name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "$delegationManager", label: "delegation manager", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
 					{ name: "$strategyManager", label: "strategy manager", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
@@ -24473,7 +24461,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "OperatorAvsSourceSlashId", fields: ["$operator", "$avs", "source", "slashId"] },
 				],
 				fields: [
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "transactionHash", label: "transaction hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 					{ name: "logIndex", label: "log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "source", label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -24511,7 +24499,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				},
 				selectors: [{ name: "NetworkStrategyAddress", fields: ["$network", "strategyAddress"] }],
 				fields: [
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "strategyAddress", label: "strategy address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{ name: "$strategyContract", label: "strategy contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
 					{ name: "underlyingToken", label: "underlying token", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
@@ -25548,7 +25536,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{ name: "address", label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{
@@ -25688,7 +25676,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{ name: "address", label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{
@@ -25815,7 +25803,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{ name: "address", label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{
@@ -25942,7 +25930,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{ name: "address", label: "Address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{ name: "userOperationsCount", label: "User operations", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -26072,7 +26060,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				selectors: [{ name: "Contract", fields: ["$contract"] }],
 				fields: [
 					{ name: "$contract", label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmContract },
-					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "$asset", label: "Asset", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "$shareToken", label: "Share token", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmCoinInstance },
 					{ name: "name", label: "Name", description: "The human-readable name of the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -26222,7 +26210,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "timestampMs",
@@ -26333,7 +26321,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{
 						name: "upgradeId",
@@ -26522,7 +26510,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{
 						name: "upgradeId",
@@ -26716,7 +26704,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{
 						name: "upgradeId",
@@ -27224,7 +27212,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{
 						name: "blockNumber",
@@ -27518,7 +27506,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "type",
@@ -27746,7 +27734,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "address",
@@ -28727,1264 +28715,6 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				},
 			},
 			{
-				entityType: EntityType.EvmNetwork,
-				labels: {
-					singular: "EVM network",
-					plural: "EVM networks",
-				},
-				description: "An EVM-compatible chain or rollup identified independently of any single RPC provider.",
-				selectors: [
-					{
-						name: "Slug",
-						fields: ["slug"],
-					},
-					{
-						name: "Caip2",
-						fields: ["caip2"],
-					},
-				],
-				fields: [
-					{
-						name: "slug",
-						label: "Slug",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "string",
-					},
-					{
-						name: "name",
-						label: "Name",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "string",
-					},
-					{
-						name: "caip2",
-						label: "CAIP-2",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.One,
-						valueType: "eip155Caip2",
-					},
-					{
-						name: "namespace",
-						label: "Namespace",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.One,
-						valueType: "string",
-					},
-					{
-						name: "environment",
-						label: "Environment",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "string",
-					},
-					{
-						name: "iconUrl",
-						label: "Icon URL",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "string",
-					},
-					{
-						name: "$icon",
-						label: "Icon",
-						type: EntityFieldType.EntityReference,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						entityType: EntityType.Media,
-					},
-					{
-						name: "$nativeCoin",
-						label: "Native coin",
-						type: EntityFieldType.EntityReference,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						entityType: EntityType.Coin,
-						defaultSources: [Source.Constants_Internal],
-					},
-					{
-						name: "$nativeCoinInstance",
-						label: "Native coin instance",
-						type: EntityFieldType.EntityReference,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						entityType: EntityType.EvmCoinInstance,
-						defaultSources: [Source.Constants_Internal],
-					},
-					{
-						name: "executionEndpoints",
-						label: "Execution endpoints",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.Many,
-						valueType: "string",
-					},
-					{
-						name: "consensusEndpoints",
-						label: "Consensus endpoints",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.Many,
-						valueType: "BeaconConsensusEndpoint",
-					},
-					{
-						name: "$$rpcUrls",
-						label: "RPC URLs",
-						type: EntityFieldType.EntitiesReference,
-						cardinality: EntityFieldCardinality.Many,
-						entityType: EntityType.Url,
-					},
-					{
-						name: "$$blockExplorerUrls",
-						label: "Block explorer URLs",
-						type: EntityFieldType.EntitiesReference,
-						cardinality: EntityFieldCardinality.Many,
-						entityType: EntityType.Url,
-					},
-					{
-						name: "$$faucetUrls",
-						label: "Faucet URLs",
-						type: EntityFieldType.EntitiesReference,
-						cardinality: EntityFieldCardinality.Many,
-						entityType: EntityType.Url,
-					},
-					{
-						name: "$$nativeAssets",
-						label: "Native assets",
-						type: EntityFieldType.EntitiesReference,
-						cardinality: EntityFieldCardinality.Many,
-						entityType: EntityType.AssetInstance,
-						defaultSources: [Source.Constants_Internal],
-					},
-					{
-						name: "$$testnets",
-						label: "Testnets",
-						type: EntityFieldType.EntitiesReference,
-						cardinality: EntityFieldCardinality.Many,
-						entityType: EntityType.Network,
-					},
-					{
-						name: "$$childLayers",
-						label: "Child layers",
-						type: EntityFieldType.EntitiesReference,
-						cardinality: EntityFieldCardinality.Many,
-						entityType: EntityType.Network,
-					},
-					{
-						name: "$parent",
-						label: "Parent network",
-						type: EntityFieldType.EntityReference,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						entityType: EntityType.Network,
-					},
-					{
-						name: "$mainnet",
-						label: "Mainnet",
-						type: EntityFieldType.EntityReference,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						entityType: EntityType.Network,
-					},
-					{
-						name: "$$siblingShardNetworks",
-						label: "Sibling shard networks",
-						type: EntityFieldType.EntitiesReference,
-						cardinality: EntityFieldCardinality.Many,
-						entityType: EntityType.EvmNetwork,
-					},
-					{
-						name: "shortName",
-						label: "Short name",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "string",
-					},
-					{
-						name: "registryStatus",
-						label: "Registry name status",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "string",
-					},
-					{
-						name: "peeringId",
-						label: "Peering ID",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "number",
-					},
-					{
-						name: "slip44",
-						label: "SLIP-44",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "number",
-					},
-						{
-							name: "$$upgrades",
-							label: "Upgrades",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EthereumNetworkUpgrade,
-							defaultSources: [Source.Constants_Internal],
-						},
-						{
-							name: "$$executionUpgrades",
-							label: "Execution upgrades",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EthereumExecutionUpgrade,
-							defaultSources: [Source.Constants_Internal],
-					},
-						{
-							name: "$$consensusUpgrades",
-							label: "Consensus upgrades",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EthereumConsensusUpgrade,
-							defaultSources: [Source.Constants_Internal],
-						},
-					{
-						name: "consensusProtocol",
-						label: "Consensus protocol",
-						type: EntityFieldType.Primitive,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						valueType: "string",
-					},
-						{
-							name: "$$bridges",
-							label: "Bridges",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmNetworkBridge,
-						},
-					{
-						name: "$rollup",
-						label: "Rollup",
-						type: EntityFieldType.EntityReference,
-						cardinality: EntityFieldCardinality.ZeroOrOne,
-						entityType: EntityType.EvmRollup,
-					},
-						{
-							name: "$$settledRollups",
-							label: "Settled rollups",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmRollup,
-						},
-						{
-							name: "$$timestamps",
-							label: "Timestamps",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.ZeroOrMany,
-							entityType: EntityType.EvmNetwork_Timestamp,
-							defaultSources: [Source.Voltaire_JsonRpc],
-						},
-						{
-							name: "$$blocks",
-							label: "Blocks",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmBlock,
-							defaultSources: [Source.Voltaire_JsonRpc, Source.Blockscout_Rest],
-						},
-						{
-							name: "$$transactions",
-							label: "Transactions",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmTransaction,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$contracts",
-							label: "Contracts",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmContract,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$precompiles",
-							label: "Precompiles",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmContract,
-							defaultSources: [Source.Constants_Internal],
-						},
-						{
-							name: "$$blobs",
-							label: "Blobs",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmBlob,
-							defaultSources: [Source.Voltaire_JsonRpc],
-						},
-						{
-							name: "$$gasFeeBlocks",
-							label: "Gas fee blocks",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.ZeroOrMany,
-							entityType: EntityType.EvmNetwork_GasFee_Block,
-							defaultSources: [Source.Voltaire_JsonRpc],
-						},
-						{
-							name: "$$gasEstimateTimestamps",
-							label: "Gas estimate timestamps",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.ZeroOrMany,
-							entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
-							defaultSources: [Source.Blockscout_Rest, Source.Etherscan_Rest],
-						},
-						{
-							name: "$$txpoolTimestamps",
-							label: "Txpool timestamps",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.ZeroOrMany,
-							entityType: EntityType.EvmNetwork_Txpool_Timestamp,
-							defaultSources: [Source.Voltaire_JsonRpc],
-						},
-						{
-							name: "$$erc20TokenTransfers",
-							label: "ERC-20 token transfers",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmTokenTransfer,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$nftTokenTransfers",
-							label: "NFT token transfers",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmTokenTransfer,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$erc4337SmartAccounts",
-							label: "ERC-4337 smart accounts",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.Erc4337SmartAccount,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$erc4337Bundlers",
-							label: "ERC-4337 bundlers",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.Erc4337Bundler,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$erc4337Paymasters",
-							label: "ERC-4337 paymasters",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.Erc4337Paymaster,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$erc4337AccountFactories",
-							label: "ERC-4337 account factories",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.Erc4337AccountFactory,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$userOperations",
-							label: "User operations",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EvmUserOperation,
-							defaultSources: [Source.Blockscout_Rest],
-						},
-						{
-							name: "$$beaconFinalityTimestamps",
-							label: "Beacon finality timestamps",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.EthereumBeaconFinality_Timestamp,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$beaconEpochs",
-							label: "Beacon epochs",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.BeaconEpoch,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$beaconSlots",
-							label: "Beacon slots",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.BeaconSlot,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$beaconCommittees",
-							label: "Beacon committees",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.BeaconCommittee,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$beaconSyncCommittees",
-							label: "Beacon sync committees",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.BeaconSyncCommittee,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$beaconAttestations",
-							label: "Beacon attestations",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.BeaconAttestation,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$beaconWithdrawals",
-							label: "Beacon withdrawals",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.BeaconWithdrawal,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$beaconSlashings",
-							label: "Beacon slashings",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.BeaconSlashing,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$beaconValidators",
-							label: "Beacon validators",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.BeaconValidator,
-							defaultSources: [Source.Beacon_Rest],
-						},
-						{
-							name: "$$mevRelays",
-							label: "MEV relays",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.MevRelay,
-							defaultSources: [Source.Constants_Internal],
-						},
-						{
-							name: "$$mevBuilders",
-							label: "MEV builders",
-							type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.MevBuilder,
-							defaultSources: [Source.MevRelay_Rest],
-						},
-						{
-							name: "$$mevProposerPayloadDelivered",
-														labels: {
-								singular: "MEV proposer payloads delivered",
-								plural: "MEV proposer payloads delivered",
-							},
-														type: EntityFieldType.EntitiesReference,
-							cardinality: EntityFieldCardinality.Many,
-							entityType: EntityType.MevRelay_ProposerPayloadDelivered,
-							defaultSources: [Source.MevRelay_Rest],
-			},
-
-
-				],
-				views: {
-					singular: {
-					query: {
-						sources: [Source.Constants_Internal],
-						fields: [
-							"name",
-							"caip2",
-							"$icon",
-						],
-						openFields: [
-							"$nativeCoinInstance",
-							"$parent",
-							"$mainnet",
-						],
-					},
-					TypeAnnotationTooltip: dedent`
-						<p>
-							Execution layer keyed by chain id applies transactions in block order; gas and fees are execution-layer notions.
-						</p>
-					`,
-					summary: {
-						icon: "$icon",
-						title: ["name"],
-						titleFallback: [{ field: "caip2" }],
-						Value: dedent`
-							<ResourceBoundary resource={evmNetwork}>
-								{#snippet Pending()}
-									{@const caip2 = selection.entitySelector.caip2 ?? prefetched.caip2}
-									{#if caip2 != null}
-										<span>
-											Chain {String(caip2.reference ?? '')}
-										</span>
-									{/if}
-								{/snippet}
-
-								{#snippet children(entity)}
-									{@const caip2 = entity.caip2 ?? selection.entitySelector.caip2 ?? prefetched.caip2}
-									{#if caip2 != null}
-										<span>
-											Chain {String(caip2.reference ?? '')}
-										</span>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						`,
-						Title: dedent`
-							<ResourceBoundary
-								resource={evmNetwork}
-								placeholderText="Resolving name..."
-							>
-								{#snippet Pending()}
-									{@const caip2 = selection.entitySelector.caip2 ?? prefetched.caip2}
-									{#if caip2 != null}
-										<span>
-											Chain {String(caip2.reference ?? '')}
-										</span>
-									{:else}
-										EVM network
-									{/if}
-								{/snippet}
-
-								{#snippet children(entity)}
-									{@const name = entity.name}
-									{#if name}
-										{String(name ?? '')}
-									{:else if (selection.entitySelector.caip2 ?? prefetched.caip2) != null}
-										{@const caip2 = selection.entitySelector.caip2 ?? prefetched.caip2}
-										<span>
-											Chain {String(caip2.reference ?? '')}
-										</span>
-									{:else}
-										EVM network
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						`,
-					},
-					latest: [
-						{
-							field: "$$upgrades",
-							label: "Upgrade",
-							query: {
-								sources: [Source.Constants_Internal],
-							},
-							sort: "sourceOrder",
-							direction: "desc",
-							view: "EthereumNetworkUpgradeView",
-						},
-						{
-							field: "$$blocks",
-							label: "Block",
-							query: {
-								sources: [Source.Voltaire_JsonRpc],
-								count: true,
-							},
-							sort: "blockNumber",
-							direction: "desc",
-							view: "EvmBlockView",
-						},
-						{
-							field: "$$beaconEpochs",
-							label: "Epoch",
-							when: [
-								{
-									field: "consensusProtocol",
-									equals: "EthereumBeacon",
-								},
-							],
-							query: {
-								sources: [Source.Beacon_Rest],
-							},
-							sort: "epoch",
-							direction: "desc",
-							view: "BeaconEpochView",
-						},
-						{
-							field: "$$beaconSlots",
-							label: "Slot",
-							when: [
-								{
-									field: "consensusProtocol",
-									equals: "EthereumBeacon",
-								},
-							],
-							query: {
-								sources: [Source.Beacon_Rest],
-							},
-							sort: "slot",
-							direction: "desc",
-							view: "BeaconSlotView",
-						},
-					],
-					latestDlClassName: "network-summary-head",
-					closed: ["caip2", "environment"],
-					content: {
-						dl: [
-							[
-								{
-									field: "environment",
-									enumConstantMap: "networkEnvironmentByEnvironment",
-									enumConstantFrom: "$/constants/Network.ts",
-								},
-								{ field: "caip2", format: "namespaceReference" },
-							],
-							[
-								{
-									field: "$nativeCoinInstance",
-									label: "Native currency",
-									when: "open",
-								},
-								{
-									field: "$parent",
-									label: "Parent",
-									when: "open",
-								},
-								{
-									field: "$mainnet",
-									when: "open",
-								},
-								{
-									field: "consensusProtocol",
-									label: "Consensus",
-									enumConstantMap: "consensusProtocolByProtocol",
-									enumConstantFrom: "$/constants/EvmNetwork.ts",
-									when: "open",
-								},
-								{ field: "registryStatus", when: "open" },
-								{ field: "peeringId", format: "number", when: "open" },
-								{ field: "slip44", format: "number", when: "open" },
-							],
-						],
-					},
-					carousels: [
-						{
-							id: "execution",
-							label: "Execution",
-							className: "network-view-collapsible-execution",
-							scrollContainerClassName: "network-carousel-execution",
-							sections: [
-								{
-									id: "execution-upgrades",
-									field: "$$executionUpgrades",
-									List: "EthereumExecutionUpgradesView",
-									label: "Upgrades",
-									link: {
-										route: "/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/upgrades",
-										params: [
-											{
-												param: "caip2",
-												value: routeNetworkLookup.caip2StringFromSelectorField,
-											},
-										],
-									},
-									selection: {
-										sources: [Source.Constants_Internal],
-										limit: 512,
-									},
-								},
-								{
-									id: "execution-blocks",
-									field: "$$blocks",
-									List: "EvmBlocksView",
-									label: "Blocks",
-									selection: {
-										sources: [Source.Voltaire_JsonRpc],
-										limit: 16,
-										count: true,
-									},
-								},
-									{
-										id: "execution-transactions",
-										field: "$$transactions",
-										List: "EvmTransactionsView",
-										label: "Transactions",
-										selection: {
-											sources: [Source.Blockscout_Rest],
-											limit: 16,
-										},
-									},
-								{
-									id: "execution-mempool",
-									field: "$$txpoolTimestamps",
-									List: "EvmNetwork_Txpool_TimestampsView",
-									label: "Mempool",
-									selection: {
-										sources: [Source.Voltaire_JsonRpc],
-										limit: 16,
-									},
-								},
-								{
-									id: "execution-gas-blocks",
-									field: "$$gasFeeBlocks",
-									List: "EvmNetwork_GasFee_BlocksView",
-									label: "Fee market",
-									selection: {
-										sources: [Source.Voltaire_JsonRpc],
-										limit: 16,
-									},
-								},
-								{
-									id: "execution-gas-estimates",
-										field: "$$gasEstimateTimestamps",
-										List: "EvmNetwork_GasEstimate_TimestampsView",
-										label: "Gas estimates",
-										selection: {
-											sources: [Source.Blockscout_Rest, Source.Etherscan_Rest],
-											limit: 16,
-										},
-									},
-								{
-									id: "execution-endpoints",
-									field: "$$rpcUrls",
-									List: "UrlsView",
-									label: "Endpoints",
-									selection: {
-										sources: [
-											Source.Constants_Internal,
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-											Source.Lifi_Rest,
-										],
-									},
-								},
-							],
-						},
-						{
-							id: "consensus-block-production",
-							label: "Consensus and block production",
-							className: "network-view-collapsible-consensus",
-							conditions: [
-								{
-									field: "consensusProtocol",
-									equals: "EthereumBeacon",
-								},
-							],
-							sections: [
-								{
-									id: "consensus-upgrades",
-									field: "$$consensusUpgrades",
-									List: "EthereumConsensusUpgradesView",
-									label: "Upgrades",
-									link: {
-										route: "/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/upgrades",
-										params: [
-											{
-												param: "caip2",
-												value: routeNetworkLookup.caip2StringFromSelectorField,
-											},
-										],
-									},
-									selection: {
-										sources: [Source.Constants_Internal],
-										limit: 512,
-									},
-								},
-								{
-									id: "consensus-finality",
-									field: "$$beaconFinalityTimestamps",
-									List: "EthereumBeaconFinality_TimestampsView",
-									label: "Finality",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-committees",
-									field: "$$beaconCommittees",
-									List: "BeaconCommitteesView",
-									label: "Committees",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-sync-committees",
-									field: "$$beaconSyncCommittees",
-									List: "BeaconSyncCommitteesView",
-									label: "Sync committees",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-attestations",
-									field: "$$beaconAttestations",
-									List: "BeaconAttestationsView",
-									label: "Attestations",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-withdrawals",
-									field: "$$beaconWithdrawals",
-									List: "BeaconWithdrawalsView",
-									label: "Withdrawals",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-slashings",
-									field: "$$beaconSlashings",
-									List: "BeaconSlashingsView",
-									label: "Slashings",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-validators",
-									field: "$$beaconValidators",
-									List: "BeaconValidatorsView",
-									label: "Validators",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-epochs",
-									field: "$$beaconEpochs",
-									List: "BeaconEpochsView",
-									label: "Epochs",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-slots",
-									field: "$$beaconSlots",
-									List: "BeaconSlotsView",
-									label: "Slots",
-									selection: {
-										sources: [Source.Beacon_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-mev-relays",
-									field: "$$mevRelays",
-									List: "MevRelaysView",
-									label: "Relays",
-									selection: {
-										sources: [Source.Constants_Internal],
-										limit: 64,
-									},
-								},
-								{
-									id: "consensus-mev-builders",
-									field: "$$mevBuilders",
-									List: "MevBuildersView",
-									label: "Builders",
-									selection: {
-										sources: [Source.MevRelay_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-mev-boost",
-									field: "$$mevProposerPayloadDelivered",
-									label: "MEV-Boost",
-									List: "MevRelay_ProposerPayloadDeliveredsView",
-									selection: {
-										sources: [Source.MevRelay_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "consensus-endpoints",
-									field: "consensusEndpoints",
-									label: "Endpoints",
-									emptyText: "Consensus endpoints are not listed for this network.",
-									items: [
-										{ field: "restBaseUrl", label: "REST" },
-										{
-											field: "consensusProtocol",
-											label: "Protocol",
-											enumConstantMap: "consensusProtocolByProtocol",
-											enumConstantFrom: "$/constants/EvmNetwork.ts",
-										},
-									],
-								},
-							],
-						},
-							{
-								id: "data-availability",
-								label: "Data availability",
-								className: "network-view-collapsible-data-availability",
-								sections: [
-								{
-									id: "data-availability-blobs",
-									field: "$$blobs",
-									List: "EvmBlobsView",
-									label: "Blobs",
-									selection: {
-										sources: [Source.Voltaire_JsonRpc],
-										limit: 16,
-									},
-								},
-							],
-						},
-						{
-							id: "contracts-accounts",
-							label: "Contracts and accounts",
-							className: "network-view-collapsible-contracts-accounts",
-							sections: [
-								{
-									id: "contracts-precompiles",
-									field: "$$precompiles",
-									label: "Precompiles",
-									description: "Catalog precompiles active at the chain head according to the execution upgrade schedule.",
-									List: "EvmContractsView",
-									link: {
-										route: "/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/precompiles",
-										params: [
-											{
-												param: "caip2",
-												value: routeNetworkLookup.caip2StringFromSelectorField,
-											},
-										],
-									},
-									selection: {
-										sources: [Source.Constants_Internal],
-										fields: ["precompileName"],
-										limit: 64,
-									},
-								},
-								{
-									id: "contracts-verified",
-									field: "$$contracts",
-									List: "EvmContractsView",
-									label: "Verified contracts",
-									link: {
-										route: "/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/contracts",
-										params: [
-											{
-												param: "caip2",
-												value: routeNetworkLookup.caip2StringFromSelectorField,
-											},
-										],
-									},
-									selection: {
-										sources: [Source.Blockscout_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "contracts-smart-accounts",
-									field: "$$erc4337SmartAccounts",
-									List: "Erc4337SmartAccountsView",
-									label: "Smart accounts",
-									selection: {
-										sources: [Source.Blockscout_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "contracts-bundlers",
-									field: "$$erc4337Bundlers",
-									List: "Erc4337BundlersView",
-									label: "Bundlers",
-									selection: {
-										sources: [Source.Blockscout_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "contracts-paymasters",
-									field: "$$erc4337Paymasters",
-									List: "Erc4337PaymastersView",
-									label: "Paymasters",
-									selection: {
-										sources: [Source.Blockscout_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "contracts-user-operations",
-									field: "$$userOperations",
-									List: "EvmUserOperationsView",
-									label: "User operations",
-									selection: {
-										sources: [Source.Blockscout_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "contracts-factories",
-									field: "$$erc4337AccountFactories",
-									List: "Erc4337AccountFactoriesView",
-									label: "Factories",
-									selection: {
-										sources: [Source.Blockscout_Rest],
-										limit: 16,
-									},
-								},
-							],
-						},
-						{
-							id: "assets",
-							label: "Assets",
-							className: "network-view-collapsible-assets",
-							sections: [
-								{
-									id: "assets-native-coin",
-									field: "$nativeCoin",
-									List: "CoinView",
-									label: "Native coin",
-									selection: {
-										sources: [Source.Constants_Internal],
-										fields: [
-											"name",
-											"symbol",
-										],
-									},
-									layout: EntityLayout.Title,
-								},
-								{
-									id: "assets-native-instance",
-									field: "$nativeCoinInstance",
-									List: "EvmCoinInstanceView",
-									label: "Native coin instance",
-									selection: {
-										sources: [Source.Constants_Internal],
-										fields: [
-											"symbol",
-											"name",
-											"$network",
-										],
-									},
-									layout: EntityLayout.Title,
-								},
-								{
-									id: "assets-native-assets",
-									field: "$$nativeAssets",
-									label: "Native assets",
-									List: "AssetInstancesView",
-									link: {
-										route: "/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/native-assets",
-										params: [
-											{
-												param: "caip2",
-												value: routeNetworkLookup.caip2StringFromSelectorField,
-											},
-										],
-									},
-								},
-								{
-									id: "assets-bridges",
-									field: "$$bridges",
-									List: "EvmNetworkBridgesView",
-									label: "Bridges",
-									selection: {
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-											Source.Lifi_Rest,
-										],
-									},
-								},
-								{
-									id: "assets-erc20-transfers",
-									field: "$$erc20TokenTransfers",
-									List: "EvmTokenTransfersView",
-									label: "ERC-20 transfers",
-									selection: {
-										sources: [Source.Blockscout_Rest],
-										limit: 16,
-									},
-								},
-								{
-									id: "assets-nft-transfers",
-									field: "$$nftTokenTransfers",
-									List: "EvmTokenTransfersView",
-									label: "NFT transfers",
-									selection: {
-										sources: [Source.Blockscout_Rest],
-										limit: 16,
-									},
-								},
-							],
-						},
-							{
-								id: "resources",
-								label: "Resources",
-								className: "network-view-collapsible-resources",
-								sections: [
-								{
-									id: "resources-faucets",
-									field: "$$faucetUrls",
-									List: "UrlsView",
-									label: "Faucets",
-									emptyText: "No faucet URLs listed for this network yet.",
-									selection: {
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-										],
-									},
-								},
-								{
-									id: "resources-block-explorers",
-									field: "$$blockExplorerUrls",
-									List: "UrlsView",
-									label: "Block explorers",
-									emptyText: "No block explorer URLs listed for this network yet.",
-									selection: {
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-											Source.Lifi_Rest,
-										],
-									},
-								},
-							],
-						},
-						{
-							id: "network-topology",
-							label: "Network topology",
-							className: "network-view-collapsible-network-topology",
-							sections: [
-								{
-									id: "network-topology-upgrades",
-									field: "$$upgrades",
-									List: "EthereumNetworkUpgradesView",
-									label: "Upgrades",
-									selection: {
-										sources: [Source.Constants_Internal],
-										limit: 512,
-									},
-								},
-								{
-									id: "network-topology-parent-layer",
-									field: "$parent",
-									List: "NetworkView",
-									label: "Parent",
-									emptyText: "Parent network is not listed for this network.",
-									selection: {
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-											Source.L2Beat_Rest,
-										],
-									},
-								},
-								{
-									id: "network-topology-rollup",
-									field: "$rollup",
-									List: "EvmRollupView",
-									label: "Rollup",
-									emptyText: "Rollup is not listed for this network.",
-									selection: {
-										sources: [Source.L2Beat_Rest],
-									},
-								},
-								{
-									id: "network-topology-sibling-shards",
-									field: "$$siblingShardNetworks",
-									List: "EvmNetworksView",
-									label: "Shards",
-									emptyText: "No sibling shard networks listed for this network yet.",
-									selection: {
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-										],
-										limit: 16,
-									},
-								},
-								{
-									id: "network-topology-testnets",
-									field: "$$testnets",
-									List: "NetworksView",
-									label: "Testnets",
-									emptyText: "No testnets listed for this network yet.",
-									selection: {
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-										],
-										limit: 16,
-									},
-								},
-								{
-									id: "network-topology-mainnet",
-									field: "$mainnet",
-									List: "NetworkView",
-									label: "Mainnet",
-									emptyText: "Mainnet is not listed for this network.",
-									selection: {
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-										],
-									},
-								},
-								{
-									id: "network-topology-child-layers",
-									field: "$$childLayers",
-									List: "NetworksView",
-									label: "Layers",
-									emptyText: "No child layer networks listed for this network yet.",
-									selection: {
-										sources: [
-											Source.Chainlist_Rest,
-											Source.EthereumLists_Rest,
-											Source.L2Beat_Rest,
-										],
-										limit: 16,
-									},
-								},
-								{
-									id: "network-topology-settled-rollups",
-									field: "$$settledRollups",
-									List: "EvmRollupsView",
-									label: "Settled rollups",
-									emptyText: "No settled rollups listed for this network yet.",
-									selection: {
-										sources: [Source.L2Beat_Rest],
-										limit: 16,
-									},
-								},
-							],
-						},
-					],
-				},
-					plural: { component: "EvmNetworksView",
-						TypeAnnotationTooltip: dedent`
-							<p>
-								Execution networks are identified by EIP-155 chain id; public registries publish RPC URLs, explorers, and native currency symbols.
-							</p>
-							<p>
-								Testnets, rollups, and app-chains reuse the same abstraction—only consensus parameters and fork schedules differ.
-							</p>
-						`,
-						entityRow: _ListEntityRow.Title,
-					},
-				},
-			},
-			{
 				entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 				labels: {
 					singular: "EVM network gas estimate timestamp",
@@ -30002,7 +28732,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "timestampMs",
@@ -30103,7 +28833,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "blockNumber",
@@ -30204,7 +28934,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				},
 			},
 			{
-				entityType: EntityType.EvmNetwork_Timestamp,
+					entityType: EntityType.EvmNetwork_Timestamp,
 				labels: {
 					singular: "EVM network timestamp",
 					plural: "EVM network observations",
@@ -30222,7 +28952,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "timestampMs",
@@ -30298,7 +29028,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "timestampMs",
@@ -30374,7 +29104,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "EvmNetworkEvmAccount", fields: ["$network", "$actor"] },
 				],
 				fields: [
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "$actor", label: "actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
 					{ name: "$$timestamps", label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetworkAccount_Timestamp },
 					{ name: "$$transactions", label: "transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction },
@@ -30457,7 +29187,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				],
 				fields: [
 					{ name: "$actor", label: "Actor", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
-					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "$contract", label: "Contract", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmContract },
 					{ name: "$coinInstance", label: "Coin", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmCoinInstance },
 					{ name: "symbol", label: "Symbol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
@@ -30573,14 +29303,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "From network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "$toNetwork",
 							label: "To network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "url",
@@ -30765,7 +29495,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						name: "relationshipModel",
-						label: "Relationship model",
+						label: "Connection model",
 						type: EntityFieldType.Primitive,
 						cardinality: EntityFieldCardinality.One,
 						valueType: "string",
@@ -30871,7 +29601,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "projectId",
@@ -30885,7 +29615,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Settlement network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.ZeroOrOne,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "name",
@@ -32016,7 +30746,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{
 						name: "txHash",
@@ -32483,7 +31213,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						name: "$network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{
 						name: "hash",
@@ -33202,7 +31932,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "$$feeds", label: "Feeds", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterFeed, defaultSources: [Source.Constants_Internal, Source.Farcaster_Rest] },
 					{ name: "$$users", label: "Users", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterUser },
 					{ name: "$$channels", label: "Channels", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.FarcasterChannel },
@@ -42075,7 +40805,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 						{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 						{ name: "registryName", label: "Registry name name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-						{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+						{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				],
 				views: {
 					singular: {
@@ -42721,7 +41451,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						primitiveType: { unit: "LensNetwork" },
 					},
 					{ name: "protocolName", label: "Protocol", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -42984,7 +41714,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "EvmNetworkId", fields: ["$network", "id"] },
 				],
 				fields: [
-					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "Network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "id", label: "ID", description: "The identifier assigned by the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "$pool", label: "Pool", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.LiquidityPool },
 					{ name: "$owner", label: "Owner", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmAccount },
@@ -43296,7 +42026,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						label: "Network",
 						type: EntityFieldType.EntityReference,
 						cardinality: EntityFieldCardinality.One,
-						entityType: EntityType.EvmNetwork,
+						entityType: EntityType.Network,
 					},
 					{ name: "id", label: "ID", description: "The identifier assigned by the source domain.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{
@@ -44100,7 +42830,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 													<dt>Latest derivative observation</dt>
 													<dd>
 														<ResourceBoundary
-															resource={selection[EntityProxyField]<EntityType.Market_Derivative_Timestamp>('$$derivativeTimestamps')({
+															resource={selection.$$derivativeTimestamps({
 																sources: [
 																	Source.Coingecko_OpenApi,
 																],
@@ -45516,7 +44246,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "builderPubkey",
@@ -45710,7 +44440,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "host",
@@ -45786,7 +44516,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							label: "Network",
 							type: EntityFieldType.EntityReference,
 							cardinality: EntityFieldCardinality.One,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 						},
 						{
 							name: "relayHost",
@@ -47688,9 +46418,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 				facets: [
 						{
 							id: "Evm",
-							predicate: {
-								field: "executionModels",
-								contains: "Evm",
+							condition: {
+								path: ["executionModels"],
+								includes: "Evm",
 							},
 							fields: [
 								{ name: "shortName", label: "Short name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -47704,7 +46434,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 								{ name: "$$upgrades", label: "Upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumNetworkUpgrade, defaultSources: [Source.Constants_Internal] },
 								{ name: "$$executionUpgrades", label: "Execution upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumExecutionUpgrade, defaultSources: [Source.Constants_Internal] },
 								{ name: "$$consensusUpgrades", label: "Consensus upgrades", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EthereumConsensusUpgrade, defaultSources: [Source.Constants_Internal] },
-								{ name: "$$timestamps", label: "EVM observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
+									{ name: "$$timestamps", label: "EVM observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
 								{ name: "$$blocks", label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmBlock, defaultSources: [Source.Voltaire_JsonRpc, Source.Blockscout_Rest] },
 								{ name: "$$transactions", label: "Transactions", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTransaction, defaultSources: [Source.Blockscout_Rest] },
 								{ name: "$$txpoolTimestamps", label: "Txpool timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.ZeroOrMany, entityType: EntityType.EvmNetwork_Txpool_Timestamp, defaultSources: [Source.Voltaire_JsonRpc] },
@@ -47739,18 +46469,83 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									{ name: "$$nftTokenTransfers", label: "NFT token transfers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmTokenTransfer, defaultSources: [Source.Blockscout_Rest] },
 									{ name: "$$testnets", label: "Testnets", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
 								{ name: "$$childLayers", label: "Child layers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
-								{ name: "$$siblingShardNetworks", label: "Sibling shard networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmNetwork },
+								{ name: "$$siblingShardNetworks", label: "Sibling shard networks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.Network },
 								{ name: "$$settledRollups", label: "Settled rollups", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.EvmRollup },
-							],
-							singularView: {
-								content: {
-									dl: [
-										[
-											{ field: { facet: "Evm", field: "consensusProtocol" }, label: "Consensus", enumConstantMap: "consensusProtocolByProtocol", enumConstantFrom: "$/constants/EvmNetwork.ts", when: "open" },
-											{ field: { facet: "Evm", field: "registryStatus" }, when: "open" },
-											{ field: { facet: "Evm", field: "peeringId" }, format: "number", when: "open" },
-											{ field: { facet: "Evm", field: "slip44" }, format: "number", when: "open" },
-										],
+								],
+								singularView: {
+									latestDlClassName: "network-summary-head",
+									latest: [
+										{
+											field: ["Evm", "$$upgrades"],
+											label: "Upgrade",
+											query: {
+												sources: [Source.Constants_Internal],
+												limit: 16,
+											},
+											fields: [
+												"name",
+												"activationBlock",
+											],
+											sort: "activationBlock",
+											direction: "desc",
+											view: "EthereumNetworkUpgradeView",
+										},
+										{
+											field: ["Evm", "$$blocks"],
+											label: "Block",
+											query: {
+												sources: [Source.Voltaire_JsonRpc],
+												limit: 16,
+											},
+											fields: [
+												"blockNumber",
+												"timestampMs",
+											],
+											sort: "blockNumber",
+											direction: "desc",
+											view: "EvmBlockView",
+										},
+										{
+											field: ["Evm", "$$beaconEpochs"],
+											label: "Epoch",
+											query: {
+												sources: [Source.Beacon_Rest],
+												limit: 16,
+											},
+											fields: [
+												"epoch",
+												"startSlot",
+												"endSlot",
+											],
+											sort: "epoch",
+											direction: "desc",
+											view: "BeaconEpochView",
+										},
+										{
+											field: ["Evm", "$$beaconSlots"],
+											label: "Slot",
+											query: {
+												sources: [Source.Beacon_Rest],
+												limit: 16,
+											},
+											fields: [
+												"slot",
+												"epoch",
+											],
+											sort: "slot",
+											direction: "desc",
+											view: "BeaconSlotView",
+										},
+									],
+									content: {
+										dl: [
+											[
+													{ field: ["Evm", "consensusProtocol"], label: "Consensus", enumConstantMap: "consensusProtocolByProtocol", enumConstantFrom: "$/constants/EvmNetwork.ts", when: "open" },
+													{ field: ["Evm", "registryStatus"], when: "open" },
+													{ field: ["Evm", "shortName"], when: "open" },
+												{ field: ["Evm", "peeringId"], format: "number", when: "open" },
+												{ field: ["Evm", "slip44"], format: "number", when: "open" },
+											],
 									],
 								},
 								carousels: [
@@ -47760,13 +46555,13 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										className: "network-view-collapsible-execution",
 										scrollContainerClassName: "network-carousel-execution",
 										sections: [
-											{ id: "evm-execution-upgrades", field: { facet: "Evm", field: "$$executionUpgrades" }, List: "EthereumExecutionUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-											{ id: "evm-execution-blocks", field: { facet: "Evm", field: "$$blocks" }, List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16, count: true } },
-											{ id: "evm-execution-transactions", field: { facet: "Evm", field: "$$transactions" }, List: "EvmTransactionsView", label: "Transactions", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-											{ id: "evm-execution-mempool", field: { facet: "Evm", field: "$$txpoolTimestamps" }, List: "EvmNetwork_Txpool_TimestampsView", label: "Mempool", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
-											{ id: "evm-execution-gas-blocks", field: { facet: "Evm", field: "$$gasFeeBlocks" }, List: "EvmNetwork_GasFee_BlocksView", label: "Fee market", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
-											{ id: "evm-execution-gas-estimates", field: { facet: "Evm", field: "$$gasEstimateTimestamps" }, List: "EvmNetwork_GasEstimate_TimestampsView", label: "Gas estimates", selection: { sources: [Source.Blockscout_Rest, Source.Etherscan_Rest], limit: 16 } },
-											{ id: "evm-execution-endpoints", field: { facet: "Evm", field: "$$rpcUrls" }, List: "UrlsView", label: "Endpoints", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
+											{ id: "evm-execution-upgrades", field: ["Evm", "$$executionUpgrades"], List: "EthereumExecutionUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
+											{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16, count: true } },
+											{ id: "evm-execution-transactions", field: ["Evm", "$$transactions"], List: "EvmTransactionsView", label: "Transactions", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-execution-mempool", field: ["Evm", "$$txpoolTimestamps"], List: "EvmNetwork_Txpool_TimestampsView", label: "Mempool", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
+											{ id: "evm-execution-gas-blocks", field: ["Evm", "$$gasFeeBlocks"], List: "EvmNetwork_GasFee_BlocksView", label: "Fee market", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
+											{ id: "evm-execution-gas-estimates", field: ["Evm", "$$gasEstimateTimestamps"], List: "EvmNetwork_GasEstimate_TimestampsView", label: "Gas estimates", selection: { sources: [Source.Blockscout_Rest, Source.Etherscan_Rest], limit: 16 } },
+											{ id: "evm-execution-endpoints", field: ["Evm", "$$rpcUrls"], List: "UrlsView", label: "Endpoints", selection: { sources: [Source.Constants_Internal, Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
 										],
 									},
 									{
@@ -47774,25 +46569,25 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										label: "Consensus and block production",
 										className: "network-view-collapsible-consensus",
 										conditions: [
-											{ field: { facet: "Evm", field: "consensusProtocol" }, equals: "EthereumBeacon" },
+											{ field: ["Evm", "consensusProtocol"], equals: "EthereumBeacon" },
 										],
 										sections: [
-											{ id: "evm-consensus-upgrades", field: { facet: "Evm", field: "$$consensusUpgrades" }, List: "EthereumConsensusUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-											{ id: "evm-consensus-finality", field: { facet: "Evm", field: "$$beaconFinalityTimestamps" }, List: "EthereumBeaconFinality_TimestampsView", label: "Finality", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-committees", field: { facet: "Evm", field: "$$beaconCommittees" }, List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-sync-committees", field: { facet: "Evm", field: "$$beaconSyncCommittees" }, List: "BeaconSyncCommitteesView", label: "Sync committees", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-attestations", field: { facet: "Evm", field: "$$beaconAttestations" }, List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-withdrawals", field: { facet: "Evm", field: "$$beaconWithdrawals" }, List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-slashings", field: { facet: "Evm", field: "$$beaconSlashings" }, List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-validators", field: { facet: "Evm", field: "$$beaconValidators" }, List: "BeaconValidatorsView", label: "Validators", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-epochs", field: { facet: "Evm", field: "$$beaconEpochs" }, List: "BeaconEpochsView", label: "Epochs", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-slots", field: { facet: "Evm", field: "$$beaconSlots" }, List: "BeaconSlotsView", label: "Slots", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
-											{ id: "evm-consensus-mev-relays", field: { facet: "Evm", field: "$$mevRelays" }, List: "MevRelaysView", label: "Relays", selection: { sources: [Source.Constants_Internal], limit: 64 } },
-											{ id: "evm-consensus-mev-builders", field: { facet: "Evm", field: "$$mevBuilders" }, List: "MevBuildersView", label: "Builders", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
-											{ id: "evm-consensus-mev-boost", field: { facet: "Evm", field: "$$mevProposerPayloadDelivered" }, List: "MevRelay_ProposerPayloadDeliveredsView", label: "MEV-Boost", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
+											{ id: "evm-consensus-upgrades", field: ["Evm", "$$consensusUpgrades"], List: "EthereumConsensusUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
+											{ id: "evm-consensus-finality", field: ["Evm", "$$beaconFinalityTimestamps"], List: "EthereumBeaconFinality_TimestampsView", label: "Finality", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-committees", field: ["Evm", "$$beaconCommittees"], List: "BeaconCommitteesView", label: "Committees", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-sync-committees", field: ["Evm", "$$beaconSyncCommittees"], List: "BeaconSyncCommitteesView", label: "Sync committees", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-attestations", field: ["Evm", "$$beaconAttestations"], List: "BeaconAttestationsView", label: "Attestations", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-withdrawals", field: ["Evm", "$$beaconWithdrawals"], List: "BeaconWithdrawalsView", label: "Withdrawals", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-slashings", field: ["Evm", "$$beaconSlashings"], List: "BeaconSlashingsView", label: "Slashings", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-validators", field: ["Evm", "$$beaconValidators"], List: "BeaconValidatorsView", label: "Validators", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-epochs", field: ["Evm", "$$beaconEpochs"], List: "BeaconEpochsView", label: "Epochs", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-slots", field: ["Evm", "$$beaconSlots"], List: "BeaconSlotsView", label: "Slots", selection: { sources: [Source.Beacon_Rest], limit: 16 } },
+											{ id: "evm-consensus-mev-relays", field: ["Evm", "$$mevRelays"], List: "MevRelaysView", label: "Relays", selection: { sources: [Source.Constants_Internal], limit: 64 } },
+											{ id: "evm-consensus-mev-builders", field: ["Evm", "$$mevBuilders"], List: "MevBuildersView", label: "Builders", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
+											{ id: "evm-consensus-mev-boost", field: ["Evm", "$$mevProposerPayloadDelivered"], List: "MevRelay_ProposerPayloadDeliveredsView", label: "MEV-Boost", selection: { sources: [Source.MevRelay_Rest], limit: 16 } },
 											{
 												id: "evm-consensus-endpoints",
-												field: { facet: "Evm", field: "consensusEndpoints" },
+												field: ["Evm", "consensusEndpoints"],
 												label: "Endpoints",
 												emptyText: "Consensus endpoints are not listed for this network.",
 												items: [
@@ -47812,7 +46607,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										label: "Data availability",
 										className: "network-view-collapsible-data-availability",
 										sections: [
-											{ id: "evm-data-availability-blobs", field: { facet: "Evm", field: "$$blobs" }, List: "EvmBlobsView", label: "Blobs", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
+											{ id: "evm-data-availability-blobs", field: ["Evm", "$$blobs"], List: "EvmBlobsView", label: "Blobs", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 										],
 									},
 									{
@@ -47820,13 +46615,13 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										label: "Contracts and accounts",
 										className: "network-view-collapsible-contracts-accounts",
 										sections: [
-											{ id: "evm-contracts-precompiles", field: { facet: "Evm", field: "$$precompiles" }, label: "Precompiles", description: "Catalog precompiles active at the chain head according to the execution upgrade schedule.", List: "EvmContractsView", selection: { sources: [Source.Constants_Internal], fields: ["precompileName"], limit: 64 } },
-											{ id: "evm-contracts-verified", field: { facet: "Evm", field: "$$contracts" }, List: "EvmContractsView", label: "Verified contracts", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-											{ id: "evm-contracts-smart-accounts", field: { facet: "Evm", field: "$$erc4337SmartAccounts" }, List: "Erc4337SmartAccountsView", label: "Smart accounts", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-											{ id: "evm-contracts-bundlers", field: { facet: "Evm", field: "$$erc4337Bundlers" }, List: "Erc4337BundlersView", label: "Bundlers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-											{ id: "evm-contracts-paymasters", field: { facet: "Evm", field: "$$erc4337Paymasters" }, List: "Erc4337PaymastersView", label: "Paymasters", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-											{ id: "evm-contracts-user-operations", field: { facet: "Evm", field: "$$userOperations" }, List: "EvmUserOperationsView", label: "User operations", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-											{ id: "evm-contracts-factories", field: { facet: "Evm", field: "$$erc4337AccountFactories" }, List: "Erc4337AccountFactoriesView", label: "Factories", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-contracts-precompiles", field: ["Evm", "$$precompiles"], label: "Precompiles", description: "Catalog precompiles active at the chain head according to the execution upgrade schedule.", List: "EvmContractsView", selection: { sources: [Source.Constants_Internal], fields: ["precompileName"], limit: 64 } },
+											{ id: "evm-contracts-verified", field: ["Evm", "$$contracts"], List: "EvmContractsView", label: "Verified contracts", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-contracts-smart-accounts", field: ["Evm", "$$erc4337SmartAccounts"], List: "Erc4337SmartAccountsView", label: "Smart accounts", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-contracts-bundlers", field: ["Evm", "$$erc4337Bundlers"], List: "Erc4337BundlersView", label: "Bundlers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-contracts-paymasters", field: ["Evm", "$$erc4337Paymasters"], List: "Erc4337PaymastersView", label: "Paymasters", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-contracts-user-operations", field: ["Evm", "$$userOperations"], List: "EvmUserOperationsView", label: "User operations", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-contracts-factories", field: ["Evm", "$$erc4337AccountFactories"], List: "Erc4337AccountFactoriesView", label: "Factories", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										],
 									},
 									{
@@ -47834,12 +46629,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										label: "Assets",
 										className: "network-view-collapsible-assets",
 										sections: [
-											{ id: "evm-assets-native-coin", field: { facet: "Evm", field: "$nativeCoin" }, label: "Native coin", List: "CoinView", selection: { sources: [Source.Constants_Internal], fields: ["name", "symbol"] } },
-											{ id: "evm-assets-native-instance", field: { facet: "Evm", field: "$nativeCoinInstance" }, label: "Native coin instance", List: "EvmCoinInstanceView", selection: { sources: [Source.Constants_Internal], fields: ["symbol", "name", "$network"] } },
+											{ id: "evm-assets-native-coin", field: ["Evm", "$nativeCoin"], label: "Native coin", List: "CoinView", selection: { sources: [Source.Constants_Internal], fields: ["name", "symbol"] } },
+											{ id: "evm-assets-native-instance", field: ["Evm", "$nativeCoinInstance"], label: "Native coin instance", List: "EvmCoinInstanceView", selection: { sources: [Source.Constants_Internal], fields: ["symbol", "name", "$network"] } },
 											{ id: "evm-assets-native-assets", field: "$$nativeAssets", label: "Native assets", List: "AssetInstancesView" },
-											{ id: "evm-assets-bridges", field: { facet: "Evm", field: "$$bridges" }, List: "EvmNetworkBridgesView", label: "Bridges", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
-											{ id: "evm-assets-erc20-transfers", field: { facet: "Evm", field: "$$erc20TokenTransfers" }, List: "EvmTokenTransfersView", label: "ERC-20 transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
-											{ id: "evm-assets-nft-transfers", field: { facet: "Evm", field: "$$nftTokenTransfers" }, List: "EvmTokenTransfersView", label: "NFT transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-assets-bridges", field: ["Evm", "$$bridges"], List: "EvmNetworkBridgesView", label: "Bridges", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.Lifi_Rest] } },
+											{ id: "evm-assets-erc20-transfers", field: ["Evm", "$$erc20TokenTransfers"], List: "EvmTokenTransfersView", label: "ERC-20 transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
+											{ id: "evm-assets-nft-transfers", field: ["Evm", "$$nftTokenTransfers"], List: "EvmTokenTransfersView", label: "NFT transfers", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										],
 									},
 									{
@@ -47847,14 +46642,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										label: "Network topology",
 										className: "network-view-collapsible-network-topology",
 										sections: [
-											{ id: "evm-network-topology-upgrades", field: { facet: "Evm", field: "$$upgrades" }, List: "EthereumNetworkUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-											{ id: "evm-network-topology-parent-layer", field: { facet: "Evm", field: "$parent" }, List: "NetworkView", label: "Parent", emptyText: "Parent network is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest] } },
-											{ id: "evm-network-topology-rollup", field: { facet: "Evm", field: "$rollup" }, List: "EvmRollupView", label: "Rollup", emptyText: "Rollup is not listed for this network.", selection: { sources: [Source.L2Beat_Rest] } },
-											{ id: "evm-network-topology-sibling-shards", field: { facet: "Evm", field: "$$siblingShardNetworks" }, List: "EvmNetworksView", label: "Shards", emptyText: "No sibling shard networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
-											{ id: "evm-network-topology-testnets", field: { facet: "Evm", field: "$$testnets" }, List: "NetworksView", label: "Testnets", emptyText: "No testnets listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
-											{ id: "evm-network-topology-mainnet", field: { facet: "Evm", field: "$mainnet" }, List: "NetworkView", label: "Mainnet", emptyText: "Mainnet is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] } },
-											{ id: "evm-network-topology-child-layers", field: { facet: "Evm", field: "$$childLayers" }, List: "NetworksView", label: "Layers", emptyText: "No child layer networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest], limit: 16 } },
-											{ id: "evm-network-topology-settled-rollups", field: { facet: "Evm", field: "$$settledRollups" }, List: "EvmRollupsView", label: "Settled rollups", emptyText: "No settled rollups listed for this network yet.", selection: { sources: [Source.L2Beat_Rest], limit: 16 } },
+											{ id: "evm-network-topology-upgrades", field: ["Evm", "$$upgrades"], List: "EthereumNetworkUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
+											{ id: "evm-network-topology-parent-layer", field: ["Evm", "$parent"], List: "NetworkView", label: "Parent", emptyText: "Parent network is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest] } },
+											{ id: "evm-network-topology-rollup", field: ["Evm", "$rollup"], List: "EvmRollupView", label: "Rollup", emptyText: "Rollup is not listed for this network.", selection: { sources: [Source.L2Beat_Rest] } },
+											{ id: "evm-network-topology-sibling-shards", field: ["Evm", "$$siblingShardNetworks"], List: "NetworksView", label: "Shards", emptyText: "No sibling shard networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
+											{ id: "evm-network-topology-testnets", field: ["Evm", "$$testnets"], List: "NetworksView", label: "Testnets", emptyText: "No testnets listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest], limit: 16 } },
+											{ id: "evm-network-topology-mainnet", field: ["Evm", "$mainnet"], List: "NetworkView", label: "Mainnet", emptyText: "Mainnet is not listed for this network.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest] } },
+											{ id: "evm-network-topology-child-layers", field: ["Evm", "$$childLayers"], List: "NetworksView", label: "Layers", emptyText: "No child layer networks listed for this network yet.", selection: { sources: [Source.Chainlist_Rest, Source.EthereumLists_Rest, Source.L2Beat_Rest], limit: 16 } },
+											{ id: "evm-network-topology-settled-rollups", field: ["Evm", "$$settledRollups"], List: "EvmRollupsView", label: "Settled rollups", emptyText: "No settled rollups listed for this network yet.", selection: { sources: [Source.L2Beat_Rest], limit: 16 } },
 										],
 									},
 								],
@@ -47862,9 +46657,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						},
 					{
 						id: "Cosmos",
-						predicate: {
-							field: "executionModels",
-							contains: "CosmosSdk",
+						condition: {
+							path: ["executionModels"],
+							includes: "CosmosSdk",
 						},
 						fields: [
 							{ name: "restEndpoints", label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
@@ -47880,8 +46675,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Consensus and block production",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "cosmos-consensus-blocks", field: { facet: "Cosmos", field: "$$blocks" }, List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CosmosSdk_Rest], limit: 16, count: true } },
-										{ id: "cosmos-consensus-validators", field: { facet: "Cosmos", field: "$$validators" }, List: "CosmosValidatorsView", label: "Validators", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
+										{ id: "cosmos-consensus-blocks", field: ["Cosmos", "$$blocks"], List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CosmosSdk_Rest], limit: 16, count: true } },
+										{ id: "cosmos-consensus-validators", field: ["Cosmos", "$$validators"], List: "CosmosValidatorsView", label: "Validators", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47889,7 +46684,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Accounts",
 									className: "network-view-collapsible-contracts-accounts",
 									sections: [
-										{ id: "cosmos-contracts-accounts-accounts", field: { facet: "Cosmos", field: "$$accounts" }, List: "CosmosAccountsView", label: "Accounts", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
+										{ id: "cosmos-contracts-accounts-accounts", field: ["Cosmos", "$$accounts"], List: "CosmosAccountsView", label: "Accounts", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47897,7 +46692,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Governance",
 									className: "network-view-collapsible-governance",
 									sections: [
-										{ id: "cosmos-governance-proposals", field: { facet: "Cosmos", field: "$$governanceProposals" }, List: "CosmosGovernanceProposalsView", label: "Proposals", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
+										{ id: "cosmos-governance-proposals", field: ["Cosmos", "$$governanceProposals"], List: "CosmosGovernanceProposalsView", label: "Proposals", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47907,7 +46702,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									sections: [
 										{
 											id: "cosmos-resources-endpoints",
-											field: { facet: "Cosmos", field: "restEndpoints" },
+											field: ["Cosmos", "restEndpoints"],
 											label: "Endpoints",
 											emptyText: "REST endpoints are not listed for this network.",
 											items: [
@@ -47923,9 +46718,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Polkadot",
-						predicate: {
-							field: "executionModels",
-							contains: "PolkadotRuntime",
+						condition: {
+							path: ["executionModels"],
+							includes: "PolkadotRuntime",
 						},
 						fields: [
 							{ name: "rpcEndpoints", label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
@@ -47942,8 +46737,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Consensus and block production",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "polkadot-consensus-blocks", field: { facet: "Polkadot", field: "$$blocks" }, List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16, count: true } },
-										{ id: "polkadot-consensus-validators", field: { facet: "Polkadot", field: "$$validators" }, List: "PolkadotValidatorsView", label: "Validators", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
+										{ id: "polkadot-consensus-blocks", field: ["Polkadot", "$$blocks"], List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16, count: true } },
+										{ id: "polkadot-consensus-validators", field: ["Polkadot", "$$validators"], List: "PolkadotValidatorsView", label: "Validators", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47952,8 +46747,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									className: "network-view-collapsible-assets",
 									sections: [
 										{ id: "polkadot-assets-native-assets", field: "$$nativeAssets", List: "AssetInstancesView", label: "Native assets", selection: { sources: [Source.Constants_Internal] } },
-										{ id: "polkadot-assets-registered", field: { facet: "Polkadot", field: "$$assets" }, List: "PolkadotAssetsView", label: "Assets", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
-										{ id: "polkadot-assets-balances", field: { facet: "Polkadot", field: "$$assetBalanceTimestamps" }, List: "PolkadotAssetBalance_TimestampsView", label: "Asset balance observations", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
+										{ id: "polkadot-assets-registered", field: ["Polkadot", "$$assets"], List: "PolkadotAssetsView", label: "Assets", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
+										{ id: "polkadot-assets-balances", field: ["Polkadot", "$$assetBalanceTimestamps"], List: "PolkadotAssetBalance_TimestampsView", label: "Asset balance observations", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47961,7 +46756,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Governance",
 									className: "network-view-collapsible-governance",
 									sections: [
-										{ id: "polkadot-governance-referendums", field: { facet: "Polkadot", field: "$$referendums" }, List: "PolkadotReferendumsView", label: "Referendums", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
+										{ id: "polkadot-governance-referendums", field: ["Polkadot", "$$referendums"], List: "PolkadotReferendumsView", label: "Referendums", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47971,7 +46766,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									sections: [
 										{
 											id: "polkadot-resources-endpoints",
-											field: { facet: "Polkadot", field: "rpcEndpoints" },
+											field: ["Polkadot", "rpcEndpoints"],
 											label: "Endpoints",
 											emptyText: "RPC endpoints are not listed for this network.",
 											items: [
@@ -47987,9 +46782,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Solana",
-						predicate: {
-							field: "executionModels",
-							contains: "SolanaRuntime",
+						condition: {
+							path: ["executionModels"],
+							includes: "SolanaRuntime",
 						},
 						fields: [
 							{ name: "rpcEndpoints", label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
@@ -48009,8 +46804,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									className: "network-view-collapsible-execution",
 									scrollContainerClassName: "network-carousel-execution",
 									sections: [
-										{ id: "solana-execution-blocks", field: { facet: "Solana", field: "$$blocks" }, List: "SolanaBlocksView", label: "Blocks", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16, count: true } },
-										{ id: "solana-execution-transactions", field: { facet: "Solana", field: "$$transactions" }, List: "SolanaTransactionsView", label: "Transactions", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-execution-blocks", field: ["Solana", "$$blocks"], List: "SolanaBlocksView", label: "Blocks", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16, count: true } },
+										{ id: "solana-execution-transactions", field: ["Solana", "$$transactions"], List: "SolanaTransactionsView", label: "Transactions", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48018,7 +46813,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Consensus and block production",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "solana-consensus-validators", field: { facet: "Solana", field: "$$validators" }, List: "SolanaValidatorsView", label: "Validators", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-consensus-validators", field: ["Solana", "$$validators"], List: "SolanaValidatorsView", label: "Validators", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48026,8 +46821,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Contracts and accounts",
 									className: "network-view-collapsible-contracts-accounts",
 									sections: [
-										{ id: "solana-contracts-accounts-accounts", field: { facet: "Solana", field: "$$accounts" }, List: "SolanaAccountsView", label: "Accounts", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
-										{ id: "solana-contracts-accounts-programs", field: { facet: "Solana", field: "$$programs" }, List: "SolanaProgramsView", label: "Programs", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-contracts-accounts-accounts", field: ["Solana", "$$accounts"], List: "SolanaAccountsView", label: "Accounts", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-contracts-accounts-programs", field: ["Solana", "$$programs"], List: "SolanaProgramsView", label: "Programs", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48036,8 +46831,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									className: "network-view-collapsible-assets",
 									sections: [
 										{ id: "solana-assets-native-assets", field: "$$nativeAssets", List: "AssetInstancesView", label: "Native assets", selection: { sources: [Source.Constants_Internal] } },
-										{ id: "solana-assets-token-accounts", field: { facet: "Solana", field: "$$tokenAccounts" }, List: "SolanaTokenAccountsView", label: "Token accounts", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
-										{ id: "solana-assets-token-mints", field: { facet: "Solana", field: "$$tokenMints" }, List: "SolanaTokenMintsView", label: "Token mints", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-assets-token-accounts", field: ["Solana", "$$tokenAccounts"], List: "SolanaTokenAccountsView", label: "Token accounts", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
+										{ id: "solana-assets-token-mints", field: ["Solana", "$$tokenMints"], List: "SolanaTokenMintsView", label: "Token mints", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48047,7 +46842,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									sections: [
 										{
 											id: "solana-resources-endpoints",
-											field: { facet: "Solana", field: "rpcEndpoints" },
+											field: ["Solana", "rpcEndpoints"],
 											label: "Endpoints",
 											emptyText: "RPC endpoints are not listed for this network.",
 											items: [
@@ -48063,9 +46858,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Utxo",
-						predicate: {
-							field: "ledgerModels",
-							contains: "Utxo",
+						condition: {
+							path: ["ledgerModels"],
+							includes: "Utxo",
 						},
 							fields: [
 								{ name: "$$blocks", label: "Blocks", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.UtxoBlock, defaultSources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest] },
@@ -48080,7 +46875,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										scrollContainerClassName: "network-carousel-chain-activity",
 										sections: [
 											{ id: "utxo-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16 } },
-											{ id: "utxo-consensus-blocks", field: { facet: "Utxo", field: "$$blocks" }, List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16, count: true } },
+											{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16, count: true } },
 										],
 									},
 									{
@@ -48089,8 +46884,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										className: "network-view-collapsible-transactions",
 										scrollContainerClassName: "network-carousel-transactions",
 										sections: [
-											{ id: "utxo-execution-transactions", field: { facet: "Utxo", field: "$$transactions" }, List: "UtxoTransactionsView", label: "Transactions", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.Zcashd_JsonRpc], limit: 16 } },
-											{ id: "utxo-execution-mempool", field: { facet: "Utxo", field: "$$transactions" }, List: "UtxoTransactionsView", label: "Mempool", selection: { sources: [Source.MempoolSpace_Rest], limit: 16 } },
+											{ id: "utxo-execution-transactions", field: ["Utxo", "$$transactions"], List: "UtxoTransactionsView", label: "Transactions", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest, Source.Zcashd_JsonRpc], limit: 16 } },
+											{ id: "utxo-execution-mempool", field: ["Utxo", "$$transactions"], List: "UtxoTransactionsView", label: "Mempool", selection: { sources: [Source.MempoolSpace_Rest], limit: 16 } },
 										],
 									},
 									{
@@ -48106,16 +46901,16 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						},
 					{
 						id: "CashTokens",
-						predicate: {
-							field: "namespace",
-							equals: "BitcoinCash",
+						condition: {
+							path: ["namespace"],
+							is: "BitcoinCash",
 						},
 					},
 					{
 						id: "Zcash",
-						predicate: {
-							field: "executionModels",
-							contains: "ZcashShielded",
+						condition: {
+							path: ["executionModels"],
+							includes: "ZcashShielded",
 						},
 						fields: [
 							{ name: "$$shieldedPools", label: "Shielded pools", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZcashShieldedPool, defaultSources: [Source.Zcashd_JsonRpc] },
@@ -48127,7 +46922,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Shielded protocol",
 									className: "network-view-collapsible-shielded-protocol",
 									sections: [
-										{ id: "zcash-shielded-pools", field: { facet: "Zcash", field: "$$shieldedPools" }, List: "ZcashShieldedPoolsView", label: "Shielded pools", selection: { sources: [Source.Zcashd_JsonRpc] } },
+										{ id: "zcash-shielded-pools", field: ["Zcash", "$$shieldedPools"], List: "ZcashShieldedPoolsView", label: "Shielded pools", selection: { sources: [Source.Zcashd_JsonRpc] } },
 									],
 								},
 							],
@@ -48135,9 +46930,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Bittensor",
-						predicate: {
-							field: "namespace",
-							equals: "Bittensor",
+						condition: {
+							path: ["namespace"],
+							is: "Bittensor",
 						},
 						fields: [
 							{ name: "$$timestamps", label: "Observations", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.BittensorNetwork_Timestamp, defaultSources: [Source.Bittensor_JsonRpc] },
@@ -48151,8 +46946,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "bittensor-chain-observations", field: { facet: "Bittensor", field: "$$timestamps" }, List: "BittensorNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16 } },
-										{ id: "bittensor-chain-blocks", field: { facet: "Bittensor", field: "$$blocks" }, List: "BittensorBlocksView", label: "Blocks", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16, count: true } },
+										{ id: "bittensor-chain-observations", field: ["Bittensor", "$$timestamps"], List: "BittensorNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16 } },
+										{ id: "bittensor-chain-blocks", field: ["Bittensor", "$$blocks"], List: "BittensorBlocksView", label: "Blocks", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16, count: true } },
 									],
 								},
 								{
@@ -48160,7 +46955,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Subnets",
 									className: "network-view-collapsible-subnets",
 									sections: [
-										{ id: "bittensor-subnets-subnets", field: { facet: "Bittensor", field: "$$subnets" }, List: "BittensorSubnetsView", label: "Subnets", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16 } },
+										{ id: "bittensor-subnets-subnets", field: ["Bittensor", "$$subnets"], List: "BittensorSubnetsView", label: "Subnets", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16 } },
 									],
 								},
 							],
@@ -48168,9 +46963,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "ZeroG",
-						predicate: {
-							field: "namespace",
-							equals: "ZeroG",
+						condition: {
+							path: ["namespace"],
+							is: "ZeroG",
 						},
 						fields: [
 							{ name: "chainId", label: "Chain ID", description: "The chain identifier used by the network family.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -48183,7 +46978,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							content: {
 								dl: [
 									[
-										{ field: { facet: "ZeroG", field: "chainId" }, format: "number" },
+										{ field: ["ZeroG", "chainId"], format: "number" },
 									],
 								],
 							},
@@ -48193,10 +46988,10 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Storage",
 									className: "network-view-collapsible-storage",
 									sections: [
-										{ id: "zero-g-storage-observations", field: { facet: "ZeroG", field: "$$timestamps" }, List: "ZeroGNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
-										{ id: "zero-g-storage-nodes", field: { facet: "ZeroG", field: "$$storageNodes" }, List: "ZeroGStorageNodesView", label: "Storage nodes", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
-										{ id: "zero-g-storage-data-blobs", field: { facet: "ZeroG", field: "$$dataBlobs" }, List: "ZeroGDataBlobsView", label: "Data blobs", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
-										{ id: "zero-g-storage-log-entries", field: { facet: "ZeroG", field: "$$storageLogEntries" }, List: "ZeroGStorageLogEntriesView", label: "Storage log entries", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
+										{ id: "zero-g-storage-observations", field: ["ZeroG", "$$timestamps"], List: "ZeroGNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
+										{ id: "zero-g-storage-nodes", field: ["ZeroG", "$$storageNodes"], List: "ZeroGStorageNodesView", label: "Storage nodes", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
+										{ id: "zero-g-storage-data-blobs", field: ["ZeroG", "$$dataBlobs"], List: "ZeroGDataBlobsView", label: "Data blobs", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
+										{ id: "zero-g-storage-log-entries", field: ["ZeroG", "$$storageLogEntries"], List: "ZeroGStorageLogEntriesView", label: "Storage log entries", selection: { sources: [Source.ZeroGStorageScan_Rest], limit: 16 } },
 									],
 								},
 							],
@@ -48204,15 +46999,15 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Quilibrium",
-						predicate: {
-							field: "namespace",
-							equals: "Quilibrium",
+						condition: {
+							path: ["namespace"],
+							is: "Quilibrium",
 						},
 						fields: [
-							{ name: "$$frames", label: "Frames", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumFrame, defaultSources: [Source.QuilibriumNode_Grpc] },
-							{ name: "$$provers", label: "Provers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumProver, defaultSources: [Source.QuilibriumNode_Grpc] },
-							{ name: "$$shards", label: "Shards", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumShard, defaultSources: [Source.QuilibriumNode_Grpc] },
-							{ name: "$$accounts", label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumAccount, defaultSources: [Source.QuilibriumNode_Grpc] },
+							{ name: "$$frames", label: "Frames", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumFrame },
+							{ name: "$$provers", label: "Provers", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumProver },
+							{ name: "$$shards", label: "Shards", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumShard },
+							{ name: "$$accounts", label: "Accounts", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.QuilibriumAccount },
 						],
 						singularView: {
 							carousels: [
@@ -48221,8 +47016,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Consensus",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "quilibrium-consensus-frames", field: { facet: "Quilibrium", field: "$$frames" }, List: "QuilibriumFramesView", label: "Frames", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
-										{ id: "quilibrium-consensus-provers", field: { facet: "Quilibrium", field: "$$provers" }, List: "QuilibriumProversView", label: "Provers", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
+										{ id: "quilibrium-consensus-frames", field: ["Quilibrium", "$$frames"], List: "QuilibriumFramesView", label: "Frames", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
+										{ id: "quilibrium-consensus-provers", field: ["Quilibrium", "$$provers"], List: "QuilibriumProversView", label: "Provers", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
 									],
 								},
 								{
@@ -48230,8 +47025,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "State",
 									className: "network-view-collapsible-state",
 									sections: [
-										{ id: "quilibrium-state-shards", field: { facet: "Quilibrium", field: "$$shards" }, List: "QuilibriumShardsView", label: "Shards", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
-										{ id: "quilibrium-state-accounts", field: { facet: "Quilibrium", field: "$$accounts" }, List: "QuilibriumAccountsView", label: "Accounts", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
+										{ id: "quilibrium-state-shards", field: ["Quilibrium", "$$shards"], List: "QuilibriumShardsView", label: "Shards", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
+										{ id: "quilibrium-state-accounts", field: ["Quilibrium", "$$accounts"], List: "QuilibriumAccountsView", label: "Accounts", selection: { sources: [Source.QuilibriumNode_Grpc], limit: 16 } },
 									],
 								},
 							],
@@ -48239,9 +47034,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Filecoin",
-						predicate: {
-							field: "namespace",
-							equals: "Filecoin",
+						condition: {
+							path: ["namespace"],
+							is: "Filecoin",
 						},
 						fields: [
 							{ name: "rpcEndpoints", label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Lotus_JsonRpc] },
@@ -48255,8 +47050,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "filecoin-chain-observations", field: { facet: "Filecoin", field: "$$timestamps" }, List: "FilecoinNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Lotus_JsonRpc], limit: 16 } },
-										{ id: "filecoin-chain-tipsets", field: { facet: "Filecoin", field: "$$tipsets" }, List: "FilecoinTipsetsView", label: "Tipsets", selection: { sources: [Source.Lotus_JsonRpc], limit: 16 } },
+										{ id: "filecoin-chain-observations", field: ["Filecoin", "$$timestamps"], List: "FilecoinNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Lotus_JsonRpc], limit: 16 } },
+										{ id: "filecoin-chain-tipsets", field: ["Filecoin", "$$tipsets"], List: "FilecoinTipsetsView", label: "Tipsets", selection: { sources: [Source.Lotus_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -48266,7 +47061,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									sections: [
 										{
 											id: "filecoin-resources-endpoints",
-											field: { facet: "Filecoin", field: "rpcEndpoints" },
+											field: ["Filecoin", "rpcEndpoints"],
 											label: "Endpoints",
 											emptyText: "RPC endpoints are not listed for this network.",
 											items: [
@@ -48282,9 +47077,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Near",
-						predicate: {
-							field: "namespace",
-							equals: "Near",
+						condition: {
+							path: ["namespace"],
+							is: "Near",
 						},
 						fields: [
 							{ name: "rpcEndpoints", label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.Constants_Internal] },
@@ -48299,8 +47094,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "near-chain-observations", field: { facet: "Near", field: "$$timestamps" }, List: "NearNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16 } },
-										{ id: "near-chain-blocks", field: { facet: "Near", field: "$$blocks" }, List: "NearBlocksView", label: "Blocks", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16, count: true } },
+										{ id: "near-chain-observations", field: ["Near", "$$timestamps"], List: "NearNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16 } },
+										{ id: "near-chain-blocks", field: ["Near", "$$blocks"], List: "NearBlocksView", label: "Blocks", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16, count: true } },
 									],
 								},
 								{
@@ -48308,7 +47103,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Consensus and validators",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "near-consensus-validators", field: { facet: "Near", field: "$$validators" }, List: "NearValidatorsView", label: "Validators", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16 } },
+										{ id: "near-consensus-validators", field: ["Near", "$$validators"], List: "NearValidatorsView", label: "Validators", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -48318,7 +47113,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									sections: [
 										{
 											id: "near-resources-endpoints",
-											field: { facet: "Near", field: "rpcEndpoints" },
+											field: ["Near", "rpcEndpoints"],
 											label: "Endpoints",
 											emptyText: "RPC endpoints are not listed for this network.",
 											items: [
@@ -48334,9 +47129,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Monero",
-						predicate: {
-							field: "namespace",
-							equals: "Monero",
+						condition: {
+							path: ["namespace"],
+							is: "Monero",
 						},
 						fields: [
 							{ name: "rpcEndpoints", label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.MoneroDaemonRpc_JsonRpc] },
@@ -48350,8 +47145,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "monero-chain-observations", field: { facet: "Monero", field: "$$timestamps" }, List: "MoneroNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.MoneroDaemonRpc_JsonRpc], limit: 16 } },
-										{ id: "monero-chain-blocks", field: { facet: "Monero", field: "$$blocks" }, List: "MoneroBlocksView", label: "Blocks", selection: { sources: [Source.MoneroDaemonRpc_JsonRpc], limit: 16 } },
+										{ id: "monero-chain-observations", field: ["Monero", "$$timestamps"], List: "MoneroNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.MoneroDaemonRpc_JsonRpc], limit: 16 } },
+										{ id: "monero-chain-blocks", field: ["Monero", "$$blocks"], List: "MoneroBlocksView", label: "Blocks", selection: { sources: [Source.MoneroDaemonRpc_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -48361,7 +47156,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									sections: [
 										{
 											id: "monero-resources-endpoints",
-											field: { facet: "Monero", field: "rpcEndpoints" },
+											field: ["Monero", "rpcEndpoints"],
 											label: "Endpoints",
 											emptyText: "RPC endpoints are not listed for this network.",
 											items: [
@@ -48377,9 +47172,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Lightning",
-						predicate: {
-							field: "namespace",
-							equals: "Lightning",
+						condition: {
+							path: ["namespace"],
+							is: "Lightning",
 						},
 						fields: [
 							{ name: "name", label: "Name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -48395,7 +47190,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							content: {
 								dl: [
 									[
-										{ field: { facet: "Lightning", field: "$settlementNetwork" }, label: "Settlement network", when: "open" },
+										{ field: ["Lightning", "$settlementNetwork"], label: "Settlement network", when: "open" },
 									],
 								],
 							},
@@ -48405,9 +47200,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Network graph",
 									className: "network-view-collapsible-network-graph",
 									sections: [
-										{ id: "lightning-network-observations", field: { facet: "Lightning", field: "$$timestamps" }, List: "LightningNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.LightningMempoolSpace_Rest], limit: 16 } },
-										{ id: "lightning-network-nodes", field: { facet: "Lightning", field: "$$nodes" }, List: "LightningNodesView", label: "Nodes", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
-										{ id: "lightning-network-channels", field: { facet: "Lightning", field: "$$channels" }, List: "LightningChannelsView", label: "Channels", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-network-observations", field: ["Lightning", "$$timestamps"], List: "LightningNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.LightningMempoolSpace_Rest], limit: 16 } },
+										{ id: "lightning-network-nodes", field: ["Lightning", "$$nodes"], List: "LightningNodesView", label: "Nodes", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-network-channels", field: ["Lightning", "$$channels"], List: "LightningChannelsView", label: "Channels", selection: { sources: [Source.LightningMempoolSpace_Rest, Source.LightningLnd_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48415,9 +47210,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Local node activity",
 									className: "network-view-collapsible-local-node-activity",
 									sections: [
-										{ id: "lightning-local-invoices", field: { facet: "Lightning", field: "$$invoices" }, List: "BlockheadLightningInvoicesView", label: "Invoices", selection: { sources: [Source.LightningLnd_Rest], limit: 16 } },
-										{ id: "lightning-local-payments", field: { facet: "Lightning", field: "$$payments" }, List: "BlockheadLightningPaymentsView", label: "Payments", selection: { sources: [Source.LightningLnd_Rest], limit: 16 } },
-										{ id: "lightning-local-node-states", field: { facet: "Lightning", field: "$$localNodeStates" }, List: "BlockheadLightningNodeStatesView", label: "Node states", selection: { sources: [Source.Local_Internal, Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-local-invoices", field: ["Lightning", "$$invoices"], List: "BlockheadLightningInvoicesView", label: "Invoices", selection: { sources: [Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-local-payments", field: ["Lightning", "$$payments"], List: "BlockheadLightningPaymentsView", label: "Payments", selection: { sources: [Source.LightningLnd_Rest], limit: 16 } },
+										{ id: "lightning-local-node-states", field: ["Lightning", "$$localNodeStates"], List: "BlockheadLightningNodeStatesView", label: "Node states", selection: { sources: [Source.Local_Internal, Source.LightningLnd_Rest], limit: 16 } },
 									],
 								},
 							],
@@ -48425,9 +47220,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Tron",
-						predicate: {
-							field: "namespace",
-							equals: "Tron",
+						condition: {
+							path: ["namespace"],
+							is: "Tron",
 						},
 						fields: [
 							{ name: "restEndpoints", label: "REST endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint", defaultSources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest] },
@@ -48444,9 +47239,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "tron-chain-observations", field: { facet: "Tron", field: "$$timestamps" }, List: "TronNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.TronGrid_Rest], limit: 16 } },
-										{ id: "tron-chain-blocks", field: { facet: "Tron", field: "$$blocks" }, List: "TronBlocksView", label: "Blocks", selection: { sources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest], limit: 16 } },
-										{ id: "tron-chain-witnesses", field: { facet: "Tron", field: "$$witnesses" }, List: "TronWitnessesView", label: "Witnesses", selection: { sources: [Source.TronGrid_Rest], limit: 16 } },
+										{ id: "tron-chain-observations", field: ["Tron", "$$timestamps"], List: "TronNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.TronGrid_Rest], limit: 16 } },
+										{ id: "tron-chain-blocks", field: ["Tron", "$$blocks"], List: "TronBlocksView", label: "Blocks", selection: { sources: [Source.TronGrid_Rest, Source.TronFullNode_Rest, Source.TronSolidityNode_Rest], limit: 16 } },
+										{ id: "tron-chain-witnesses", field: ["Tron", "$$witnesses"], List: "TronWitnessesView", label: "Witnesses", selection: { sources: [Source.TronGrid_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48454,8 +47249,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Assets",
 									className: "network-view-collapsible-assets",
 									sections: [
-										{ id: "tron-assets-tokens", field: { facet: "Tron", field: "$$tokens" }, List: "TronTokensView", label: "Tokens", selection: { sources: [Source.TronGrid_Rest], limit: 16 } },
-										{ id: "tron-assets-transfers", field: { facet: "Tron", field: "$$tokenTransfers" }, List: "TronTokenTransfersView", label: "Token transfers", selection: { sources: [Source.TronGrid_Rest], limit: 16 } },
+										{ id: "tron-assets-tokens", field: ["Tron", "$$tokens"], List: "TronTokensView", label: "Tokens", selection: { sources: [Source.TronGrid_Rest], limit: 16 } },
+										{ id: "tron-assets-transfers", field: ["Tron", "$$tokenTransfers"], List: "TronTokenTransfersView", label: "Token transfers", selection: { sources: [Source.TronGrid_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48465,7 +47260,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									sections: [
 										{
 											id: "tron-resources-endpoints",
-											field: { facet: "Tron", field: "restEndpoints" },
+											field: ["Tron", "restEndpoints"],
 											label: "Endpoints",
 											emptyText: "REST endpoints are not listed for this network.",
 											items: [
@@ -48481,9 +47276,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 					{
 						id: "Hyperliquid",
-						predicate: {
-							field: "namespace",
-							equals: "Hyperliquid",
+						condition: {
+							path: ["namespace"],
+							is: "Hyperliquid",
 						},
 						fields: [
 							{ name: "rpcEndpoints", label: "RPC endpoints", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "sourceEndpoint" },
@@ -48504,9 +47299,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Chain activity",
 									className: "network-view-collapsible-chain-activity",
 									sections: [
-										{ id: "hyperliquid-chain-observations", field: { facet: "Hyperliquid", field: "$$timestamps" }, List: "HyperliquidNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Hyperliquid_Rest, Source.Hyperliquid_JsonRpc], limit: 16 } },
-										{ id: "hyperliquid-chain-blocks", field: { facet: "Hyperliquid", field: "$$blocks" }, List: "HyperliquidBlocksView", label: "Blocks", selection: { sources: [Source.Hyperliquid_JsonRpc], limit: 16 } },
-										{ id: "hyperliquid-chain-transactions", field: { facet: "Hyperliquid", field: "$$transactions" }, List: "HyperliquidTransactionsView", label: "Transactions", selection: { sources: [Source.Hyperliquid_JsonRpc], limit: 16 } },
+										{ id: "hyperliquid-chain-observations", field: ["Hyperliquid", "$$timestamps"], List: "HyperliquidNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Hyperliquid_Rest, Source.Hyperliquid_JsonRpc], limit: 16 } },
+										{ id: "hyperliquid-chain-blocks", field: ["Hyperliquid", "$$blocks"], List: "HyperliquidBlocksView", label: "Blocks", selection: { sources: [Source.Hyperliquid_JsonRpc], limit: 16 } },
+										{ id: "hyperliquid-chain-transactions", field: ["Hyperliquid", "$$transactions"], List: "HyperliquidTransactionsView", label: "Transactions", selection: { sources: [Source.Hyperliquid_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -48514,7 +47309,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Consensus and validators",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "hyperliquid-consensus-validators", field: { facet: "Hyperliquid", field: "$$validators" }, List: "HyperliquidValidatorsView", label: "Validators", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
+										{ id: "hyperliquid-consensus-validators", field: ["Hyperliquid", "$$validators"], List: "HyperliquidValidatorsView", label: "Validators", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48522,10 +47317,10 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									label: "Markets",
 									className: "network-view-collapsible-markets",
 									sections: [
-										{ id: "hyperliquid-markets-perps", field: { facet: "Hyperliquid", field: "$$perpMarkets" }, List: "HyperliquidPerpMarketsView", label: "Perps", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
-										{ id: "hyperliquid-markets-spot-assets", field: { facet: "Hyperliquid", field: "$$spotAssets" }, List: "HyperliquidSpotAssetsView", label: "Spot assets", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
-										{ id: "hyperliquid-markets-spot-pairs", field: { facet: "Hyperliquid", field: "$$spotPairs" }, List: "HyperliquidSpotPairsView", label: "Spot pairs", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
-										{ id: "hyperliquid-markets-vaults", field: { facet: "Hyperliquid", field: "$$vaults" }, List: "HyperliquidVaultsView", label: "Vaults", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
+										{ id: "hyperliquid-markets-perps", field: ["Hyperliquid", "$$perpMarkets"], List: "HyperliquidPerpMarketsView", label: "Perps", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
+										{ id: "hyperliquid-markets-spot-assets", field: ["Hyperliquid", "$$spotAssets"], List: "HyperliquidSpotAssetsView", label: "Spot assets", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
+										{ id: "hyperliquid-markets-spot-pairs", field: ["Hyperliquid", "$$spotPairs"], List: "HyperliquidSpotPairsView", label: "Spot pairs", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
+										{ id: "hyperliquid-markets-vaults", field: ["Hyperliquid", "$$vaults"], List: "HyperliquidVaultsView", label: "Vaults", selection: { sources: [Source.Hyperliquid_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -48535,7 +47330,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									sections: [
 										{
 											id: "hyperliquid-resources-rpc-endpoints",
-											field: { facet: "Hyperliquid", field: "rpcEndpoints" },
+											field: ["Hyperliquid", "rpcEndpoints"],
 											label: "RPC endpoints",
 											emptyText: "RPC endpoints are not listed for this network.",
 											items: [
@@ -48546,7 +47341,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										},
 										{
 											id: "hyperliquid-resources-rest-endpoints",
-											field: { facet: "Hyperliquid", field: "restEndpoints" },
+											field: ["Hyperliquid", "restEndpoints"],
 											label: "REST endpoints",
 											emptyText: "REST endpoints are not listed for this network.",
 											items: [
@@ -48598,30 +47393,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							],
 						],
 					},
-					lists: [
-							{
-								field: "$$timestamps",
-								component: "Network_TimestampsView",
-								label: "Observations",
-							},
-							{ field: { facet: "Cosmos", field: "$$blocks" }, component: "CosmosBlocksView", label: "Cosmos blocks", emptyText: "No Cosmos blocks.", query: { sources: [Source.CosmosSdk_Rest], limit: 16, count: true } },
-							{ field: { facet: "Cosmos", field: "$$accounts" }, component: "CosmosAccountsView", label: "Cosmos accounts", emptyText: "No Cosmos accounts.", query: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
-							{ field: { facet: "Cosmos", field: "$$validators" }, component: "CosmosValidatorsView", label: "Cosmos validators", emptyText: "No Cosmos validators.", query: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
-							{ field: { facet: "Cosmos", field: "$$governanceProposals" }, component: "CosmosGovernanceProposalsView", label: "Cosmos governance proposals", emptyText: "No Cosmos governance proposals.", query: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
-							{
-								field: "$$nativeAssets",
-								component: "AssetInstancesView",
-							},
-							{
-								field: "$$blockExplorerUrls",
-								component: "UrlsView",
-							},
-							{
-								field: "$$faucetUrls",
-								component: "UrlsView",
-							},
-					],
-				},
+					},
 					plural: { component: "NetworksView",
 					entityRow: _ListEntityRow.Title,
 				},
@@ -49155,7 +47927,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "homeUrl", label: "home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "registryName", label: "registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-					{ name: "relationshipModel", label: "relationshipModel", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+					{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				],
 				views: {
 					singular: {
@@ -50169,7 +48941,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "EvmNetworkAddress", fields: ["$network", "address"] },
 				],
 				fields: [
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.Network },
 					{ name: "address", label: "Address", description: "The address or account identifier used by the source protocol.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "evmAddress" },
 					{ name: "$market", label: "market", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Market },
 					{ name: "label", label: "Label", description: "A human-readable name for the subject.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
@@ -50217,7 +48989,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "startedAtMs", label: "started AT ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "updatedAtMs", label: "updated AT ms", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
 					{ name: "answeredInRound", label: "answered in round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$network", label: "network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "blockNumber", label: "Block number", description: "The block height or number in its network.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 					{ name: "transactionHash", label: "transaction hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "logIndex", label: "log index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
@@ -52507,7 +51279,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 				],
 				views: {
 					singular: {
@@ -53089,7 +51861,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{
 						name: "$$rssFeeds",
 						label: "Feeds",
@@ -54793,10 +53565,6 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					entityRow: _ListEntityRow.Summary,
 					imports: [
 						{
-							from: "$/client/$proxy.svelte.ts",
-							names: ["EntityProxyField"],
-						},
-						{
 							from: "$/sources/Source.ts",
 							names: ["Source"],
 						},
@@ -54906,7 +53674,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																	realm: kind.entitySelector.realm,
 																	category: kind.entitySelector.category,
 																}
-															)[EntityProxyField]<EntityType.SpecificationProposal>('$$proposals')({
+															).$$proposals({
 																sources: [Source.Constants_Internal],
 															})}
 															filterCategory={kind.entitySelector.category}
@@ -55016,10 +53784,6 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					entityRow: _ListEntityRow.Summary,
 					imports: [
 						{
-							from: "$/client/$proxy.svelte.ts",
-							names: ["EntityProxyField"],
-						},
-						{
 							from: "$/sources/Source.ts",
 							names: ["Source"],
 						},
@@ -55121,7 +53885,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 															selection={select(
 																EntityType.SpecificationRealm,
 																{ realm: realm.entitySelector.realm }
-															)[EntityProxyField]<EntityType.SpecificationProposalKind>('$$proposalKinds')({
+															).$$proposalKinds({
 																sources: [Source.Constants_Internal],
 															})}
 															id={\`proposal-realm:\${String(realm.entitySelector.realm)}:proposal-kinds\`}
@@ -58804,7 +57568,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							name: "$network",
 							label: "network",
 							type: EntityFieldType.EntityReference,
-							entityType: EntityType.EvmNetwork,
+							entityType: EntityType.Network,
 							cardinality: EntityFieldCardinality.One,
 						},
 						{
@@ -59100,7 +57864,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 						{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "urlString" },
 						{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "urlString" },
 						{ name: "registryName", label: "Registry name name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-						{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
+						{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				],
 				views: {
 					singular: {
@@ -65320,7 +64084,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{
 						name: "$$xmtpConversations",
 						label: "Conversations",
@@ -65382,7 +64146,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "homeUrl", label: "Home URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "docsUrl", label: "Docs URL", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{ name: "registryName", label: "Registry name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-					{ name: "relationshipModel", label: "Relationship model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+					{ name: "relationshipModel", label: "Connection model", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
 					{
 						name: "$$xUsers",
 						label: "Users",
@@ -68185,7 +66949,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					{ name: "namespace", label: "Namespace", description: "The namespace that qualifies the identifier.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "environment", label: "environment", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 					{ name: "chainId", label: "Chain ID", description: "The chain identifier used by the network family.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-					{ name: "$executionNetwork", label: "execution network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmNetwork },
+					{ name: "$executionNetwork", label: "execution network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.Network },
 					{ name: "$consensusNetwork", label: "consensus network", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.ZeroGConsensusNetwork },
 					{ name: "$$timestamps", label: "timestamps", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZeroGNetwork_Timestamp },
 					{ name: "$$storageNodes", label: "storage nodes", type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Many, entityType: EntityType.ZeroGStorageNode },
@@ -68509,8 +67273,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									text: { title: "Accounts" },
 									view: {
 										imports: [
-											{ from: "$/client/$proxy.svelte.ts", names: ["EntityProxyField"] },
-											{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
+																						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 											{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 											{ from: "$/views/BlockheadWalletConnectionsView.svelte", default: "BlockheadWalletConnectionsView" },
 											{ from: "$/views/BlockheadBridgeTransactionsView.svelte", default: "BlockheadBridgeTransactionsView" },
@@ -68547,7 +67310,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														{#snippet SectionConnections()}
 															<BlockheadWalletConnectionsView
 																href={resolve('/~/accounts/connections')}
-																selection={select(EntityType._Global, { scope: '$$blockheadWalletConnections' })[EntityProxyField]<EntityType.BlockheadWalletConnection>('$$blockheadWalletConnections')({
+																selection={select(EntityType._Global, { scope: '$$blockheadWalletConnections' }).$$blockheadWalletConnections({
 																	sources: [Source.Local_Internal],
 																})}
 																id='wallet-connections'
@@ -68558,7 +67321,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														{#snippet SectionWatchedAccounts()}
 															<EvmAccountsView
 																href={resolve('/~/accounts/watched-accounts')}
-																selection={select(EntityType._Global, { scope: '$$actors' })[EntityProxyField]<EntityType.EvmAccount>('$$actors')({
+																selection={select(EntityType._Global, { scope: '$$actors' }).$$actors({
 																	sources: [Source.Local_Internal],
 																})}
 																id='accounts'
@@ -68569,7 +67332,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														{#snippet SectionBalances()}
 															<EvmNetworkActorCoinBalancesView
 																href={resolve('/~/accounts/balances')}
-																selection={select(EntityType._Global, { scope: '$$actorCoins' })[EntityProxyField]<EntityType.EvmNetworkActorCoinBalance>('$$actorCoins')({
+																selection={select(EntityType._Global, { scope: '$$actorCoins' }).$$actorCoins({
 																	sources: [Source.Allium_Rest],
 																})}
 																id='balances'
@@ -68587,7 +67350,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														{#snippet SectionTransactions()}
 															<BlockheadBridgeTransactionsView
 																href={resolve('/~/accounts/transactions')}
-																selection={select(EntityType._Global, { scope: '$$bridgeTransactions' })[EntityProxyField]<EntityType.BlockheadBridgeTransaction>('$$bridgeTransactions')({
+																selection={select(EntityType._Global, { scope: '$$bridgeTransactions' }).$$bridgeTransactions({
 																	sources: [Source.Local_Internal],
 																})}
 																id='transactions'
@@ -68655,7 +67418,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					fields: [
 																						{ name: "$actor", value: { kind: "selector", entity: EntityType.EvmAccount, selector: "InteropAddress", params: [{ field: "interopAddress", value: { kind: "template", parts: ["eip155:", { kind: "param", name: "chainId" }, ":", { kind: "param", name: "owner" }] } }] } },
 																						{ name: "$contract", value: { kind: "selector", entity: EntityType.EvmContract, selector: "EvmNetworkAddress", params: [
-																							{ field: "$network", value: { kind: "selector", entity: EntityType.EvmNetwork, selector: "Caip2", params: [{ field: "caip2", value: { kind: "object", fields: [{ name: "namespace", value: { kind: "literal", value: "eip155" } }, { name: "reference", value: { kind: "param", name: "chainId" } }] } }] } },
+																							{ field: "$network", value: { kind: "selector", entity: EntityType.Network, selector: "Caip2", params: [{ field: "caip2", value: { kind: "object", fields: [{ name: "namespace", value: { kind: "literal", value: "eip155" } }, { name: "reference", value: { kind: "param", name: "chainId" } }] } }] } },
 																							{ field: "address", param: "coin" },
 																						] } },
 																						{ name: "$spender", value: { kind: "selector", entity: EntityType.EvmAccount, selector: "InteropAddress", params: [{ field: "interopAddress", value: { kind: "template", parts: ["eip155:", { kind: "param", name: "chainId" }, ":", { kind: "param", name: "spender" }] } }] } },
@@ -68730,7 +67493,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																			fields: [
 																				{ name: "$actor", value: { kind: "selector", entity: EntityType.EvmAccount, selector: "InteropAddress", params: [{ field: "interopAddress", value: { kind: "template", parts: ["eip155:", { kind: "param", name: "chainId" }, ":", { kind: "param", name: "owner" }] } }] } },
 																				{ name: "$contract", value: { kind: "selector", entity: EntityType.EvmContract, selector: "EvmNetworkAddress", params: [
-																					{ field: "$network", value: { kind: "selector", entity: EntityType.EvmNetwork, selector: "Caip2", params: [{ field: "caip2", value: { kind: "object", fields: [{ name: "namespace", value: { kind: "literal", value: "eip155" } }, { name: "reference", value: { kind: "param", name: "chainId" } }] } }] } },
+																					{ field: "$network", value: { kind: "selector", entity: EntityType.Network, selector: "Caip2", params: [{ field: "caip2", value: { kind: "object", fields: [{ name: "namespace", value: { kind: "literal", value: "eip155" } }, { name: "reference", value: { kind: "param", name: "chainId" } }] } }] } },
 																					{ field: "address", param: "coin" },
 																				] } },
 																			],
@@ -68863,7 +67626,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					fields: [
 																						{ name: "$account", value: { kind: "selector", entity: EntityType.EvmAccount, selector: "InteropAddress", params: [{ field: "interopAddress", value: { kind: "template", parts: ["eip155:", { kind: "param", name: "chainId" }, ":", { kind: "param", name: "address" }] } }] } },
 																						{ name: "$sourceTx", value: { kind: "selector", entity: EntityType.EvmTransaction, selector: "EvmNetworkTxHash", params: [
-																							{ field: "$network", value: { kind: "selector", entity: EntityType.EvmNetwork, selector: "Caip2", params: [{ field: "caip2", value: { kind: "object", fields: [{ name: "namespace", value: { kind: "literal", value: "eip155" } }, { name: "reference", value: { kind: "param", name: "chainId" } }] } }] } },
+																							{ field: "$network", value: { kind: "selector", entity: EntityType.Network, selector: "Caip2", params: [{ field: "caip2", value: { kind: "object", fields: [{ name: "namespace", value: { kind: "literal", value: "eip155" } }, { name: "reference", value: { kind: "param", name: "chainId" } }] } }] } },
 																							{ field: "txHash", param: "sourceTxHash", decode: _ExpressionDecode.DecodeURIComponent },
 																						] } },
 																						{ name: "createdAt", value: { kind: "param", name: "createdAt", decode: _ExpressionDecode.Number } },
@@ -69125,8 +67888,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									text: { title: "Manage" },
 									view: {
 										imports: [
-											{ from: "$/client/$proxy.svelte.ts", names: ["EntityProxyField"] },
-											{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
+																						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 											{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 											{ from: "$/views/BlockheadSourcesView.svelte", default: "BlockheadSourcesView" },
 											{ from: "$/sources/Source.ts", names: ["Source"] },
@@ -69161,7 +67923,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														{#snippet SectionSources()}
 															<BlockheadSourcesView
 																href={resolve('/~/manage/sources')}
-																selection={select(EntityType._Global, { scope: '$$blockheadSources' })[EntityProxyField]<EntityType.BlockheadSource>('$$blockheadSources')({
+																selection={select(EntityType._Global, { scope: '$$blockheadSources' }).$$blockheadSources({
 																	sources: [Source.Local_Internal],
 																})}
 																id='sources'
@@ -69255,8 +68017,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									text: { title: "Multiplayer" },
 									view: {
 										imports: [
-											{ from: "$/client/$proxy.svelte.ts", names: ["EntityProxyField"] },
-											{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
+																						{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 											{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 											{ from: "$/views/BlockheadRoomPeersView.svelte", default: "BlockheadRoomPeersView" },
 											{ from: "$/views/BlockheadRoomsView.svelte", default: "BlockheadRoomsView" },
@@ -69288,7 +68049,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														{#snippet SectionRooms()}
 															<BlockheadRoomsView
 																href={resolve('/~/multiplayer/rooms')}
-																selection={select(EntityType._Global, { scope: '$$blockheadRooms' })[EntityProxyField]<EntityType.BlockheadRoom>('$$blockheadRooms')({
+																selection={select(EntityType._Global, { scope: '$$blockheadRooms' }).$$blockheadRooms({
 																	sources: [Source.Local_Internal],
 																})}
 																id='rooms'
@@ -69299,7 +68060,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														{#snippet SectionContacts()}
 															<BlockheadRoomPeersView
 																href={resolve('/~/multiplayer/contacts')}
-																selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' })[EntityProxyField]<EntityType.BlockheadRoomPeer>('$$blockheadRoomPeers')({
+																selection={select(EntityType._Global, { scope: '$$blockheadRoomPeers' }).$$blockheadRoomPeers({
 																	sources: [Source.Local_Internal],
 																})}
 																id='contacts'
@@ -69666,8 +68427,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							text: { title: "Assets" },
 							view: {
 								imports: [
-									{ from: "$/client/$proxy.svelte.ts", names: ["EntityProxyField"] },
-									{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
+																		{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 									{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 									{ from: "$/views/CoinsView.svelte", default: "CoinsView" },
 									{ from: "$/views/CurrenciesView.svelte", default: "CurrenciesView" },
@@ -69700,7 +68460,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												{#snippet SectionCoins()}
 													<CoinsView
 														href={resolve('/(assets)/coins')}
-														selection={select(EntityType._Global, { scope: '$$coins' })[EntityProxyField]<EntityType.Coin>('$$coins')}
+														selection={select(EntityType._Global, { scope: '$$coins' }).$$coins}
 														id='coins'
 														open={true}
 													/>
@@ -69709,7 +68469,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												{#snippet SectionCurrencies()}
 													<CurrenciesView
 														href={resolve('/(assets)/(currencies)/currencies')}
-														selection={select(EntityType._Global, { scope: '$$currencies' })[EntityProxyField]<EntityType.Currency>('$$currencies')}
+														selection={select(EntityType._Global, { scope: '$$currencies' }).$$currencies}
 														open={true}
 													/>
 												{/snippet}
@@ -69717,7 +68477,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												{#snippet SectionPools()}
 													<LiquidityPoolsView
 														href={resolve('/(assets)/pools')}
-														selection={select(EntityType._Global, { scope: '$$liquidityPools' })[EntityProxyField]<EntityType.LiquidityPool>('$$liquidityPools')}
+														selection={select(EntityType._Global, { scope: '$$liquidityPools' }).$$liquidityPools}
 														id='pools'
 														open={false}
 													/>
@@ -69906,8 +68666,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							text: { title: "Explore" },
 							view: {
 								imports: [
-									{ from: "$/client/$proxy.svelte.ts", names: ["EntityProxyField"] },
-									{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
+																		{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 									{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 									{ from: "$/views/EthereumNetworkUpgradesView.svelte", default: "EthereumNetworkUpgradesView" },
 									{ from: "$/views/NetworksView.svelte", default: "NetworksView" },
@@ -69944,7 +68703,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												{#snippet SectionNetworks()}
 													<NetworksView
 														href={resolve('/(explore)/networks')}
-														selection={select(EntityType._Global, { scope: '$$networks' })[EntityProxyField]<EntityType.Network>('$$networks')}
+														selection={select(EntityType._Global, { scope: '$$networks' }).$$networks}
 														id='networks'
 														open={true}
 													/>
@@ -69952,7 +68711,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 
 												{#snippet SectionUpgrades()}
 													<EthereumNetworkUpgradesView
-														selection={select(EntityType._Global, { scope: '$$networkUpgrades' })[EntityProxyField]<EntityType.EthereumNetworkUpgrade>('$$networkUpgrades')({
+														selection={select(EntityType._Global, { scope: '$$networkUpgrades' }).$$networkUpgrades({
 															sources: [Source.Constants_Internal],
 															limit: 512,
 														})}
@@ -69973,7 +68732,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 
 												{#snippet SectionProposals()}
 													<SpecificationRealmsView
-														selection={select(EntityType._Global, { scope: '$$specificationRealms' })[EntityProxyField]<EntityType.SpecificationRealm>('$$specificationRealms')({
+														selection={select(EntityType._Global, { scope: '$$specificationRealms' }).$$specificationRealms({
 															sources: [Source.Constants_Internal],
 														})}
 														id='proposal-realms'
@@ -69995,8 +68754,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							text: { title: "Services" },
 							view: {
 								imports: [
-									{ from: "$/client/$proxy.svelte.ts", names: ["EntityProxyField"] },
-									{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
+																		{ from: "$/components/CollapsibleTabs.svelte", default: "CollapsibleTabs" },
 									{ from: "$/components/Heading.svelte", default: "HeadingComponent" },
 									{ from: "$/views/EvmNftsView.svelte", default: "EvmNftsView" },
 									{ from: "$/sources/Source.ts", names: ["Source"] },
@@ -70026,7 +68784,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												{#snippet SectionAgents()}
 													<EvmNftsView
 														href={resolve('/services/agents')}
-														selection={select(EntityType._Global, { scope: '$$eip8004Services' })[EntityProxyField]<EntityType.EvmNft>('$$eip8004Services')({
+														selection={select(EntityType._Global, { scope: '$$eip8004Services' }).$$eip8004Services({
 															sources: [Source.Eip8004Scan_Rest],
 															limit: 100,
 														})}
@@ -70128,7 +68886,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																						field: "$network",
 																						value: {
 																							kind: "selector",
-																							entity: EntityType.EvmNetwork,
+																							entity: EntityType.Network,
 																							selector: "Caip2",
 																							params: [
 																								{
@@ -70865,8 +69623,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 															view: {
 																imports: [
 																	{ from: "$/constants/calldata-examples.ts", typeNames: ["CalldataExample"], names: ["calldataExamples"] },
-																	{ from: "$/client/$proxy.svelte.ts", names: ["EntityProxyField"] },
-																	{ from: "$/lib/calldata-decode.ts", names: ["decodeCalldataWithSignature", "decodeEventDataWithSignature", "formatDecodedParamValue"] },
+																																		{ from: "$/lib/calldata-decode.ts", names: ["decodeCalldataWithSignature", "decodeEventDataWithSignature", "formatDecodedParamValue"] },
 																	{ from: "$/schema/ZeroExHex.ts", names: ["EvmAddress", "ZeroExHex"] },
 																	{ from: "$/sources/Source.ts", names: ["Source"] },
 																	{ from: "$/lib/signature-paths.ts", names: ["normalizeEvmSelectorHex", "normalizeEvmTopicHex"] },
@@ -71006,14 +69763,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 
 																	const functionSignatures = $derived(
 																		selector ?
-																			selectorEntity[EntityProxyField]('signatures').current?.values.map(String) ?? EMPTY_SIGNATURES
+																			selectorEntity.signatures.current?.values.map(String) ?? EMPTY_SIGNATURES
 																		:
 																			EMPTY_SIGNATURES,
 																	)
 
 																	const eventSignatures = $derived(
 																		topic ?
-																			topicEntity[EntityProxyField]('signatures').current?.values.map(String) ?? EMPTY_SIGNATURES
+																			topicEntity.signatures.current?.values.map(String) ?? EMPTY_SIGNATURES
 																		:
 																			EMPTY_SIGNATURES,
 																	)
@@ -72824,7 +71581,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		name: "$network",
 																		value: {
 																			kind: "selector",
-																			entity: EntityType.EvmNetwork,
+																			entity: EntityType.Network,
 																			selector: "Caip2",
 																			params: [
 																				{
@@ -72881,7 +71638,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																										field: "$network",
 																										value: {
 																											kind: "selector",
-																											entity: EntityType.EvmNetwork,
+																											entity: EntityType.Network,
 																											selector: "Caip2",
 																											params: [
 																												{
@@ -72961,7 +71718,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																								field: "$network",
 																								value: {
 																									kind: "selector",
-																									entity: EntityType.EvmNetwork,
+																									entity: EntityType.Network,
 																									selector: "Caip2",
 																									params: [
 																										{
@@ -73275,7 +72032,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					name: "$network",
 																					value: {
 																						kind: "selector",
-																						entity: EntityType.EvmNetwork,
+																						entity: EntityType.Network,
 																						selector: "Caip2",
 																						params: [
 																							{
@@ -73303,7 +72060,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																			name: "$network",
 																			value: {
 																				kind: "selector",
-																				entity: EntityType.EvmNetwork,
+																				entity: EntityType.Network,
 																				selector: "Caip2",
 																				params: [
 																					{
@@ -73331,7 +72088,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																						field: "$network",
 																						value: {
 																							kind: "selector",
-																							entity: EntityType.EvmNetwork,
+																							entity: EntityType.Network,
 																							selector: "Caip2",
 																							params: [
 																								{
@@ -74144,42 +72901,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 					},
 				],
 			},
-			{
-				segment: "(explore)",
-				children: [
-					{
-						segment: "evm-networks",
-						files: [
-							{
-								kind: _RouteFileKind.Page,
-								view: {
-									component: "EvmNetworksView",
-								},
-								collection: {
-									entity: EntityType.EvmNetwork,
-									source: {
-										entity: "_Global",
-										selector: {
-											kind: "object",
-											fields: [
-												{
-													name: "scope",
-													value: { kind: "literal", value: "$$evmNetworks" },
-												},
-											],
-										},
-										field: "$$evmNetworks",
-									},
-								},
-								text: {
-									title: "EVM networks",
-								},
-							},
-						],
-					},
-					{
-						segment: "networks",
-						files: [
+				{
+					segment: "(explore)",
+					children: [
+						{
+							segment: "networks",
+							files: [
 							{
 								kind: _RouteFileKind.Page,
 								view: {
@@ -74277,7 +73004,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 								collection: {
 									entity: EntityType.EvmContract,
 									source: {
-										entity: EntityType.EvmNetwork,
+										entity: EntityType.Network,
 										selector: {
 											kind: "object",
 											fields: [
@@ -74327,7 +73054,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												kind: _RouteFileKind.PageModule,
 												surface: {
 													id: "Network.Evm",
-													requiredFacets: ["Evm"],
+													requiredProjections: [["Evm"]],
 													fixture: {
 														caip2: "eip155:1",
 													},
@@ -74419,7 +73146,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																								name: "$network",
 																								value: {
 																									kind: "selector",
-																									entity: EntityType.EvmNetwork,
+																									entity: EntityType.Network,
 																									selector: "Caip2",
 																									params: [
 																										routeCaip2SelectorParamFromCaip2RouteParam,
@@ -74462,9 +73189,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EvmBlock,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$blocks",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$blocks"],
 																	},
 																},
 																text: { title: "Blocks" },
@@ -74480,9 +73207,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EvmTransaction,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$transactions",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$transactions"],
 																	},
 																},
 																text: { title: "Transactions" },
@@ -74498,9 +73225,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EvmContract,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$contracts",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$contracts"],
 																	},
 																},
 																text: { title: "Contracts" },
@@ -74516,9 +73243,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EvmBlob,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$blobs",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$blobs"],
 																	},
 																},
 																text: { title: "Blobs" },
@@ -74536,9 +73263,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EthereumNetworkUpgrade,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$upgrades",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$upgrades"],
 																	},
 																},
 																text: { title: "Upgrades" },
@@ -74552,11 +73279,11 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																kind: _RouteFileKind.Page,
 																view: { component: "EvmNetwork_TimestampsView" },
 																collection: {
-																	entity: EntityType.EvmNetwork_Timestamp,
+																		entity: EntityType.EvmNetwork_Timestamp,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$timestamps",
+																			entity: EntityType.Network,
+																			selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																			field: ["Evm", "$$timestamps"],
 																	},
 																},
 																text: { title: "Observations" },
@@ -74570,10 +73297,10 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		segment: "[source]",
 																		files: [
 																			{
-																				kind: _RouteFileKind.PageModule,
-																				load: {
-																					entity: EntityType.EvmNetwork_Timestamp,
-																					selector: "NetworkTimestampMsSource",
+																					kind: _RouteFileKind.PageModule,
+																					load: {
+																						entity: EntityType.EvmNetwork_Timestamp,
+																						selector: "NetworkTimestampMsSource",
 																					href: {
 																						params: [
 																							{ param: "caip2", value: routeCaip2FromNetworkField },
@@ -74586,7 +73313,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -74598,14 +73325,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					],
 																				},
 																			},
-																			{
-																				kind: _RouteFileKind.Page,
-																				view: {
-																					entity: EntityType.EvmNetwork_Timestamp,
-																					selector: "NetworkTimestampMsSource",
-																					component: "EvmNetwork_TimestampView",
+																				{
+																					kind: _RouteFileKind.Page,
+																					view: {
+																						entity: EntityType.EvmNetwork_Timestamp,
+																						selector: "NetworkTimestampMsSource",
+																						component: "EvmNetwork_TimestampView",
+																					},
 																				},
-																			},
 																		],
 																	},
 																],
@@ -74620,12 +73347,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																view: { component: "EvmNetwork_Txpool_TimestampsView" },
 																collection: {
 																	entity: EntityType.EvmNetwork_Txpool_Timestamp,
-																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$txpoolTimestamps",
+																		source: {
+																			entity: EntityType.Network,
+																			selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																			field: ["Evm", "$$txpoolTimestamps"],
+																		},
 																	},
-																},
 																text: { title: "Mempool" },
 															},
 														],
@@ -74671,7 +73398,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -74705,12 +73432,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																view: { component: "EvmNetwork_GasFee_BlocksView" },
 																collection: {
 																	entity: EntityType.EvmNetwork_GasFee_Block,
-																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$gasFeeBlocks",
+																		source: {
+																			entity: EntityType.Network,
+																			selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																			field: ["Evm", "$$gasFeeBlocks"],
+																		},
 																	},
-																},
 																text: { title: "Fee market" },
 															},
 														],
@@ -74755,7 +73482,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -74788,12 +73515,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																view: { component: "EvmNetwork_GasEstimate_TimestampsView" },
 																collection: {
 																	entity: EntityType.EvmNetwork_GasEstimate_Timestamp,
-																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$gasEstimateTimestamps",
+																		source: {
+																			entity: EntityType.Network,
+																			selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																			field: ["Evm", "$$gasEstimateTimestamps"],
+																		},
 																	},
-																},
 																text: { title: "Gas estimates" },
 															},
 														],
@@ -74839,7 +73566,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -74874,9 +73601,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.BeaconEpoch,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconEpochs",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconEpochs"],
 																	},
 																},
 																text: { title: "Beacon epochs" },
@@ -74892,9 +73619,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.BeaconSlot,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconSlots",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconSlots"],
 																	},
 																},
 																text: { title: "Beacon slots" },
@@ -74910,9 +73637,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.BeaconCommittee,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconCommittees",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconCommittees"],
 																	},
 																},
 																text: { title: "Beacon committees" },
@@ -74928,9 +73655,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.BeaconSyncCommittee,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconSyncCommittees",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconSyncCommittees"],
 																	},
 																},
 																text: { title: "Beacon sync committees" },
@@ -74946,9 +73673,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.BeaconAttestation,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconAttestations",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconAttestations"],
 																	},
 																},
 																text: { title: "Beacon attestations" },
@@ -74964,9 +73691,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.BeaconWithdrawal,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconWithdrawals",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconWithdrawals"],
 																	},
 																},
 																text: { title: "Beacon withdrawals" },
@@ -74982,9 +73709,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.BeaconSlashing,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconSlashings",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconSlashings"],
 																	},
 																},
 																text: { title: "Beacon slashings" },
@@ -75000,9 +73727,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.BeaconValidator,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconValidators",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconValidators"],
 																	},
 																},
 																text: { title: "Beacon validators" },
@@ -75018,9 +73745,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EvmNetworkBridge,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$bridges",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$bridges"],
 																	},
 																},
 																text: { title: "Bridges" },
@@ -75102,7 +73829,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$fromNetwork",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75113,7 +73840,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$toNetwork",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									{ field: "caip2", value: routeCaip2ParamValueFromString("toCaip2") },
@@ -75147,9 +73874,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EvmContract,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$precompiles",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$precompiles"],
 																	},
 																},
 																text: { title: "Precompiles" },
@@ -75175,6 +73902,65 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														],
 													},
 													{
+														segment: "asset",
+														children: [
+															{
+																segment: "[kind]",
+																children: [
+																	{
+																		segment: "[assetKey]",
+																		files: [
+																			{
+																				kind: _RouteFileKind.PageModule,
+																				surface: {
+																					id: "Network.Evm.AssetInstance",
+																					fixture: {
+																						kind: "Native",
+																						assetKey: "ETH",
+																					},
+																				},
+																				load: {
+																					entity: EntityType.AssetInstance,
+																					selector: "NetworkKindAssetKey",
+																					href: {
+																						params: [
+																							{ param: "caip2", value: routeCaip2String(routeFieldProperty("$network", "caip2")) },
+																							{ param: "kind", value: { kind: "field", name: "kind" } },
+																							{ param: "assetKey", value: { kind: "field", name: "assetKey" } },
+																						],
+																					},
+																					fields: [
+																						{
+																							field: "$network",
+																							value: {
+																								kind: "selector",
+																								entity: EntityType.Network,
+																								selector: "Caip2",
+																								params: [
+																									routeCaip2SelectorParamFromCaip2RouteParam,
+																								],
+																							},
+																						},
+																						{ field: "kind", value: { kind: "param", name: "kind", decode: _ExpressionDecode.DecodeURIComponent } },
+																						{ field: "assetKey", value: { kind: "param", name: "assetKey", decode: _ExpressionDecode.DecodeURIComponent } },
+																					],
+																				},
+																			},
+																			{
+																				kind: _RouteFileKind.Page,
+																				view: {
+																					entity: EntityType.AssetInstance,
+																					selector: "NetworkKindAssetKey",
+																					component: "AssetInstanceView",
+																				},
+																			},
+																		],
+																	},
+																],
+															},
+														],
+													},
+													{
 														segment: "erc-20-transfers",
 														files: [
 															{
@@ -75183,9 +73969,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EvmTokenTransfer,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$erc20TokenTransfers",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$erc20TokenTransfers"],
 																	},
 																},
 																text: { title: "ERC-20 transfers" },
@@ -75201,9 +73987,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EvmTokenTransfer,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$nftTokenTransfers",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$nftTokenTransfers"],
 																	},
 																},
 																text: { title: "NFT transfers" },
@@ -75219,9 +74005,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.Url,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$rpcUrls",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$rpcUrls"],
 																	},
 																},
 																text: { title: "RPC URLs" },
@@ -75304,7 +74090,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					field: "$network",
 																					value: {
 																						kind: "selector",
-																						entity: EntityType.EvmNetwork,
+																						entity: EntityType.Network,
 																						selector: "Caip2",
 																						params: [
 																							routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75390,7 +74176,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																															field: "$network",
 																															value: {
 																																kind: "selector",
-																																entity: EntityType.EvmNetwork,
+																																entity: EntityType.Network,
 																																selector: "Caip2",
 																																params: [
 																																	routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75477,7 +74263,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75525,7 +74311,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																											field: "$network",
 																											value: {
 																												kind: "selector",
-																												entity: EntityType.EvmNetwork,
+																												entity: EntityType.Network,
 																												selector: "Caip2",
 																												params: [
 																													routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75601,7 +74387,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75643,7 +74429,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																										selector: "TransactionIndexInTransaction",
 																										href: {
 																											params: [
-																												{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$transaction") },
+																												{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$transaction") },
 																												{ param: "transactionId", value: { kind: "property", value: { kind: "field", name: "$transaction" }, property: "txHash" } },
 																												{ param: "indexInTransaction", value: { kind: "field", name: "indexInTransaction" } },
 																											],
@@ -75660,7 +74446,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																															field: "$network",
 																															value: {
 																																kind: "selector",
-																																entity: EntityType.EvmNetwork,
+																																entity: EntityType.Network,
 																																selector: "Caip2",
 																																params: [
 																																	routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75708,7 +74494,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									selector: "TransactionIndexInTransaction",
 																									href: {
 																										params: [
-																											{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$transaction") },
+																											{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$transaction") },
 																											{ param: "transactionId", value: { kind: "property", value: { kind: "field", name: "$transaction" }, property: "txHash" } },
 																											{ param: "indexInTransaction", value: { kind: "field", name: "indexInTransaction" } },
 																										],
@@ -75725,7 +74511,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																														field: "$network",
 																														value: {
 																															kind: "selector",
-																															entity: EntityType.EvmNetwork,
+																															entity: EntityType.Network,
 																															selector: "Caip2",
 																															params: [
 																																routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75832,7 +74618,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																																			field: "$network",
 																																			value: {
 																																				kind: "selector",
-																																				entity: EntityType.EvmNetwork,
+																																				entity: EntityType.Network,
 																																				selector: "Caip2",
 																																				params: [
 																																					routeCaip2SelectorParamFromCaip2RouteParam,
@@ -75924,7 +74710,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76002,7 +74788,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																													field: "$network",
 																													value: {
 																														kind: "selector",
-																														entity: EntityType.EvmNetwork,
+																														entity: EntityType.Network,
 																														selector: "Caip2",
 																														params: [
 																															routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76076,7 +74862,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							selector: "TransactionIndexInTransaction",
 																							href: {
 																								params: [
-																									{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$transaction") },
+																									{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$transaction") },
 																									{ param: "transactionId", value: { kind: "property", value: { kind: "field", name: "$transaction" }, property: "txHash" } },
 																									{ param: "indexInTransaction", value: { kind: "field", name: "indexInTransaction" } },
 																								],
@@ -76093,7 +74879,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																												field: "$network",
 																												value: {
 																													kind: "selector",
-																													entity: EntityType.EvmNetwork,
+																													entity: EntityType.Network,
 																													selector: "Caip2",
 																													params: [
 																														routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76195,7 +74981,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76264,7 +75050,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76346,7 +75132,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76383,9 +75169,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																collection: {
 																	entity: EntityType.EthereumBeaconFinality_Timestamp,
 																	source: {
-																		entity: EntityType.EvmNetwork,
-																		selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																		field: "$$beaconFinalityTimestamps",
+																		entity: EntityType.Network,
+																		selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$beaconFinalityTimestamps"],
 																	},
 																},
 																text: { title: "Beacon finality" },
@@ -76429,7 +75215,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					field: "$network",
 																					value: {
 																						kind: "selector",
-																						entity: EntityType.EvmNetwork,
+																						entity: EntityType.Network,
 																						selector: "Caip2",
 																						params: [
 																							routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76464,9 +75250,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		collection: {
 																			entity: EntityType.MevRelay,
 																			source: {
-																				entity: EntityType.EvmNetwork,
-																				selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																				field: "$$mevRelays",
+																				entity: EntityType.Network,
+																				selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$mevRelays"],
 																			},
 																		},
 																		text: { title: "MEV relays" },
@@ -76482,9 +75268,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		collection: {
 																			entity: EntityType.MevBuilder,
 																			source: {
-																				entity: EntityType.EvmNetwork,
-																				selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																				field: "$$mevBuilders",
+																				entity: EntityType.Network,
+																				selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$mevBuilders"],
 																			},
 																		},
 																		text: { title: "MEV builders" },
@@ -76500,9 +75286,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		collection: {
 																			entity: EntityType.MevRelay_ProposerPayloadDelivered,
 																			source: {
-																				entity: EntityType.EvmNetwork,
-																				selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																				field: "$$mevProposerPayloadDelivered",
+																				entity: EntityType.Network,
+																				selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$mevProposerPayloadDelivered"],
 																			},
 																		},
 																		text: { title: "MEV payloads" },
@@ -76549,7 +75335,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76635,7 +75421,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																																	field: "$network",
 																																	value: {
 																																		kind: "selector",
-																																		entity: EntityType.EvmNetwork,
+																																		entity: EntityType.Network,
 																																		selector: "Caip2",
 																																		params: [
 																																			routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76709,7 +75495,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76795,7 +75581,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																																	field: "$network",
 																																	value: {
 																																		kind: "selector",
-																																		entity: EntityType.EvmNetwork,
+																																		entity: EntityType.Network,
 																																		selector: "Caip2",
 																																		params: [
 																																			routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76877,7 +75663,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																											field: "$network",
 																											value: {
 																												kind: "selector",
-																												entity: EntityType.EvmNetwork,
+																												entity: EntityType.Network,
 																												selector: "Caip2",
 																												params: [
 																													routeCaip2SelectorParamFromCaip2RouteParam,
@@ -76948,7 +75734,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					field: "$network",
 																					value: {
 																						kind: "selector",
-																						entity: EntityType.EvmNetwork,
+																						entity: EntityType.Network,
 																						selector: "Caip2",
 																						params: [
 																							routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77011,7 +75797,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					field: "$network",
 																					value: {
 																						kind: "selector",
-																						entity: EntityType.EvmNetwork,
+																						entity: EntityType.Network,
 																						selector: "Caip2",
 																						params: [
 																							routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77055,7 +75841,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									field: "$network",
 																									value: {
 																										kind: "selector",
-																										entity: EntityType.EvmNetwork,
+																										entity: EntityType.Network,
 																										selector: "Caip2",
 																										params: [
 																											routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77102,7 +75888,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									field: "$network",
 																									value: {
 																										kind: "selector",
-																										entity: EntityType.EvmNetwork,
+																										entity: EntityType.Network,
 																										selector: "Caip2",
 																										params: [
 																											routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77149,7 +75935,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									field: "$network",
 																									value: {
 																										kind: "selector",
-																										entity: EntityType.EvmNetwork,
+																										entity: EntityType.Network,
 																										selector: "Caip2",
 																										params: [
 																											routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77217,7 +76003,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																											field: "$network",
 																											value: {
 																												kind: "selector",
-																												entity: EntityType.EvmNetwork,
+																												entity: EntityType.Network,
 																												selector: "Caip2",
 																												params: [
 																													routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77270,7 +76056,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					field: "$network",
 																					value: {
 																						kind: "selector",
-																						entity: EntityType.EvmNetwork,
+																						entity: EntityType.Network,
 																						selector: "Caip2",
 																						params: [
 																							routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77315,7 +76101,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					field: "$network",
 																					value: {
 																						kind: "selector",
-																						entity: EntityType.EvmNetwork,
+																						entity: EntityType.Network,
 																						selector: "Caip2",
 																						params: [
 																							routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77352,7 +76138,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									selector: "ValidatorSlotSource",
 																									href: {
 																										params: [
-																											{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$validator") },
+																											{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$validator") },
 																											{ param: "validatorIndex", value: routeFieldProperty("$validator", "indexInNetwork") },
 																											{ param: "slot", value: { kind: "field", name: "slot" } },
 																											{ param: "source", value: { kind: "field", name: "source" } },
@@ -77370,7 +76156,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																														field: "$network",
 																														value: {
 																															kind: "selector",
-																															entity: EntityType.EvmNetwork,
+																															entity: EntityType.Network,
 																															selector: "Caip2",
 																															params: [
 																																routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77416,9 +76202,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		collection: {
 																			entity: EntityType.Erc4337SmartAccount,
 																			source: {
-																				entity: EntityType.EvmNetwork,
-																				selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																				field: "$$erc4337SmartAccounts",
+																				entity: EntityType.Network,
+																				selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$erc4337SmartAccounts"],
 																			},
 																		},
 																		text: { title: "ERC-4337 smart accounts" },
@@ -77434,9 +76220,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		collection: {
 																			entity: EntityType.Erc4337Bundler,
 																			source: {
-																				entity: EntityType.EvmNetwork,
-																				selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																				field: "$$erc4337Bundlers",
+																				entity: EntityType.Network,
+																				selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$erc4337Bundlers"],
 																			},
 																		},
 																		text: { title: "ERC-4337 bundlers" },
@@ -77452,9 +76238,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		collection: {
 																			entity: EntityType.Erc4337Paymaster,
 																			source: {
-																				entity: EntityType.EvmNetwork,
-																				selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																				field: "$$erc4337Paymasters",
+																				entity: EntityType.Network,
+																				selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$erc4337Paymasters"],
 																			},
 																		},
 																		text: { title: "ERC-4337 paymasters" },
@@ -77470,9 +76256,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		collection: {
 																			entity: EntityType.Erc4337AccountFactory,
 																			source: {
-																				entity: EntityType.EvmNetwork,
-																				selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																				field: "$$erc4337AccountFactories",
+																				entity: EntityType.Network,
+																				selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$erc4337AccountFactories"],
 																			},
 																		},
 																		text: { title: "ERC-4337 account factories" },
@@ -77488,9 +76274,9 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		collection: {
 																			entity: EntityType.EvmUserOperation,
 																			source: {
-																				entity: EntityType.EvmNetwork,
-																				selector: routeEvmNetworkCaip2SelectorFromCaip2RouteParam,
-																				field: "$$userOperations",
+																				entity: EntityType.Network,
+																				selector: routeNetworkCaip2SelectorFromCaip2RouteParam,
+																		field: ["Evm", "$$userOperations"],
 																			},
 																		},
 																		text: { title: "ERC-4337 user operations" },
@@ -77519,7 +76305,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77557,7 +76343,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									params: [
 																										{ field: "$network", value: {
 																											kind: "selector",
-																											entity: EntityType.EvmNetwork,
+																											entity: EntityType.Network,
 																											selector: "Caip2",
 																											params: [
 																												routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77586,7 +76372,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																											selector: "AccountTimestampMsSource",
 																											href: {
 																												params: [
-																													{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$account") },
+																													{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$account") },
 																													{ param: "address", value: { kind: "property", value: { kind: "field", name: "$account" }, property: "address" } },
 																													{ param: "timestampMs", value: { kind: "field", name: "timestampMs" } },
 																													{ param: "source", value: { kind: "field", name: "source" } },
@@ -77602,7 +76388,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																														params: [
 																															{ field: "$network", value: {
 																																kind: "selector",
-																																entity: EntityType.EvmNetwork,
+																																entity: EntityType.Network,
 																																selector: "Caip2",
 																																params: [
 																																	routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77657,7 +76443,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77695,7 +76481,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									params: [
 																										{ field: "$network", value: {
 																											kind: "selector",
-																											entity: EntityType.EvmNetwork,
+																											entity: EntityType.Network,
 																											selector: "Caip2",
 																											params: [
 																												routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77724,7 +76510,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																											selector: "BundlerTimestampMsSource",
 																											href: {
 																												params: [
-																													{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$bundler") },
+																													{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$bundler") },
 																													{ param: "address", value: { kind: "property", value: { kind: "field", name: "$bundler" }, property: "address" } },
 																													{ param: "timestampMs", value: { kind: "field", name: "timestampMs" } },
 																													{ param: "source", value: { kind: "field", name: "source" } },
@@ -77740,7 +76526,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																														params: [
 																															{ field: "$network", value: {
 																																kind: "selector",
-																																entity: EntityType.EvmNetwork,
+																																entity: EntityType.Network,
 																																selector: "Caip2",
 																																params: [
 																																	routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77795,7 +76581,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77833,7 +76619,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									params: [
 																										{ field: "$network", value: {
 																											kind: "selector",
-																											entity: EntityType.EvmNetwork,
+																											entity: EntityType.Network,
 																											selector: "Caip2",
 																											params: [
 																												routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77862,7 +76648,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																											selector: "PaymasterTimestampMsSource",
 																											href: {
 																												params: [
-																													{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$paymaster") },
+																													{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$paymaster") },
 																													{ param: "address", value: { kind: "property", value: { kind: "field", name: "$paymaster" }, property: "address" } },
 																													{ param: "timestampMs", value: { kind: "field", name: "timestampMs" } },
 																													{ param: "source", value: { kind: "field", name: "source" } },
@@ -77878,7 +76664,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																														params: [
 																															{ field: "$network", value: {
 																																kind: "selector",
-																																entity: EntityType.EvmNetwork,
+																																entity: EntityType.Network,
 																																selector: "Caip2",
 																																params: [
 																																	routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77933,7 +76719,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																							field: "$network",
 																							value: {
 																								kind: "selector",
-																								entity: EntityType.EvmNetwork,
+																								entity: EntityType.Network,
 																								selector: "Caip2",
 																								params: [
 																									routeCaip2SelectorParamFromCaip2RouteParam,
@@ -77971,7 +76757,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																									params: [
 																										{ field: "$network", value: {
 																											kind: "selector",
-																											entity: EntityType.EvmNetwork,
+																											entity: EntityType.Network,
 																											selector: "Caip2",
 																											params: [
 																												routeCaip2SelectorParamFromCaip2RouteParam,
@@ -78000,7 +76786,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																											selector: "FactoryTimestampMsSource",
 																											href: {
 																												params: [
-																													{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$factory") },
+																													{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$factory") },
 																													{ param: "address", value: { kind: "property", value: { kind: "field", name: "$factory" }, property: "address" } },
 																													{ param: "timestampMs", value: { kind: "field", name: "timestampMs" } },
 																													{ param: "source", value: { kind: "field", name: "source" } },
@@ -78016,7 +76802,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																														params: [
 																															{ field: "$network", value: {
 																																kind: "selector",
-																																entity: EntityType.EvmNetwork,
+																																entity: EntityType.Network,
 																																selector: "Caip2",
 																																params: [
 																																	routeCaip2SelectorParamFromCaip2RouteParam,
@@ -78091,7 +76877,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					field: "$network",
 																					value: {
 																						kind: "selector",
-																						entity: EntityType.EvmNetwork,
+																						entity: EntityType.Network,
 																						selector: "Caip2",
 																						params: [
 																							routeCaip2SelectorParamFromCaip2RouteParam,
@@ -78239,22 +77025,24 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 													files: [
 														{
 															kind: _RouteFileKind.PageModule,
-															surface: {
-																id: "Network.Cosmos",
-																requiredFacets: ["Cosmos"],
-																fixture: {
-																	caip2: "cosmos:cosmoshub-4",
-																	address: "cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j",
-																	source: Source.CosmosSdk_Rest,
-																},
-																variants: [
-																	{
+																surface: {
+																	id: "Network.Cosmos",
+																	requiredProjections: [["Cosmos"]],
+																	fixture: {
 																		caip2: "cosmos:cosmoshub-4",
 																		address: "cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j",
+																		height: "31000000",
 																		source: Source.CosmosSdk_Rest,
 																	},
-																],
-															},
+																	variants: [
+																		{
+																			caip2: "cosmos:cosmoshub-4",
+																			address: "cosmos1qphf0ferqcch0jca9hlqfm3x0eds3dpkac4g9j",
+																			height: "31000000",
+																			source: Source.CosmosSdk_Rest,
+																		},
+																	],
+																},
 															load: {
 																entity: EntityType.Network,
 																selector: "Caip2",
@@ -78281,14 +77069,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														{
 															segment: "observations",
 															files: [
-																{
-																	kind: _RouteFileKind.Page,
-																	view: { component: "Network_TimestampsView" },
-																	collection: {
-																		entity: EntityType.Network_Timestamp,
-																		source: {
-																			entity: EntityType.Network,
-																			selector: {
+																	{
+																		kind: _RouteFileKind.Page,
+																		view: { component: "Network_TimestampsView" },
+																		collection: {
+																			entity: EntityType.Network_Timestamp,
+																			source: {
+																				entity: EntityType.Network,
+																				selector: {
 																				kind: "selector",
 																				entity: EntityType.Network,
 																				selector: "Caip2",
@@ -78309,11 +77097,11 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		{
 																			segment: "[source]",
 																			files: [
-																				{
-																					kind: _RouteFileKind.PageModule,
-																					load: {
-																						entity: EntityType.Network_Timestamp,
-																						selector: "NetworkTimestampMsSource",
+																					{
+																						kind: _RouteFileKind.PageModule,
+																						load: {
+																							entity: EntityType.Network_Timestamp,
+																							selector: "NetworkTimestampMsSource",
 																						href: {
 																							params: [
 																								{ param: "caip2", value: routeCaip2FromNetworkField },
@@ -78338,14 +77126,14 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																						],
 																					},
 																				},
-																					{
-																						kind: _RouteFileKind.Page,
-																						view: {
+																						{
+																							kind: _RouteFileKind.Page,
+																							view: {
 																							entity: EntityType.Network_Timestamp,
-																							selector: "NetworkTimestampMsSource",
-																							component: "Network_TimestampView",
+																								selector: "NetworkTimestampMsSource",
+																								component: "Network_TimestampView",
+																							},
 																						},
-																					},
 																			],
 																		},
 																	],
@@ -78370,7 +77158,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					routeCaip2SelectorParamFromCaip2RouteParam,
 																				],
 																			},
-																			field: { facet: "Cosmos", field: "$$validators" },
+																			field: ["Cosmos", "$$validators"],
 																		},
 																	},
 																	text: { title: "Cosmos validators" },
@@ -78469,7 +77257,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																										selector: "ValidatorTimestampMsSource",
 																										href: {
 																											params: [
-																												{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$validator") },
+																												{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$validator") },
 																												{ param: "operatorAddress", value: { kind: "property", value: { kind: "field", name: "$validator" }, property: "operatorAddress" } },
 																												{ param: "timestampMs", value: { kind: "field", name: "timestampMs" } },
 																												{ param: "source", value: { kind: "field", name: "source" } },
@@ -78539,7 +77327,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					routeCaip2SelectorParamFromCaip2RouteParam,
 																				],
 																			},
-																			field: { facet: "Cosmos", field: "$$governanceProposals" },
+																			field: ["Cosmos", "$$governanceProposals"],
 																		},
 																	},
 																	text: { title: "Cosmos governance proposals" },
@@ -78638,7 +77426,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																												selector: "ProposalTimestampMsSource",
 																												href: {
 																													params: [
-																														{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$proposal") },
+																														{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$proposal") },
 																														{ param: "proposalId", value: { kind: "property", value: { kind: "field", name: "$proposal" }, property: "proposalId" } },
 																														{ param: "timestampMs", value: { kind: "field", name: "timestampMs" } },
 																														{ param: "source", value: { kind: "field", name: "source" } },
@@ -78782,53 +77570,8 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																},
 															],
 														},
-														{
-															segment: "contract",
-															children: [
-																{
-																	segment: "[address]",
-																	files: [
-																		{
-																			kind: _RouteFileKind.PageModule,
-																			load: {
-																				entity: EntityType.CosmosContract,
-																				selector: "NetworkAddress",
-																				href: {
-																					params: [
-																						{ param: "caip2", value: routeCaip2FromNetworkField },
-																						{ param: "address", value: { kind: "field", name: "address" } },
-																					],
-																				},
-																				fields: [
-																					{
-																						field: "$network",
-																						value: {
-																							kind: "selector",
-																							entity: EntityType.Network,
-																							selector: "Caip2",
-																							params: [
-																								routeCaip2SelectorParamFromCaip2RouteParam,
-																							],
-																						},
-																					},
-																					{ field: "address", value: { kind: "param", name: "address", decode: _ExpressionDecode.DecodeURIComponent } },
-																				],
-																			},
-																		},
-																		{
-																			kind: _RouteFileKind.Page,
-																			view: {
-																				entity: EntityType.CosmosContract,
-																				selector: "NetworkAddress",
-																				component: "CosmosContractView",
-																			},
-																		},
-																	],
-																},
-															],
-														},
-														{
-															segment: "block",
+															{
+																segment: "block",
 															children: [
 																{
 																	segment: "[height=nonNegativeInteger]",
@@ -78999,7 +77742,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																								selector: "TransactionIndexInTransaction",
 																								href: {
 																									params: [
-																										{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$transaction") },
+																										{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$transaction") },
 																										{ param: "txHash", value: { kind: "property", value: { kind: "field", name: "$transaction" }, property: "txHash" } },
 																										{ param: "messageIndex", value: { kind: "field", name: "indexInTransaction" } },
 																									],
@@ -79139,7 +77882,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																										selector: "AccountTimestampMsSource",
 																										href: {
 																											params: [
-																												{ param: "caip2", value: routeEvmNetworkCaip2FromEntityReferenceField("$account") },
+																												{ param: "caip2", value: routeNetworkCaip2FromEntityReferenceField("$account") },
 																												{ param: "address", value: { kind: "property", value: { kind: "field", name: "$account" }, property: "address" } },
 																												{ param: "timestampMs", value: { kind: "field", name: "timestampMs" } },
 																												{ param: "source", value: { kind: "field", name: "source" } },
@@ -79292,7 +78035,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 													kind: _RouteFileKind.PageModule,
 													surface: {
 														id: "Network.EvmSlug",
-														requiredFacets: ["Evm"],
+														requiredProjections: [["Evm"]],
 														fixture: {
 															networkSlug: "ethereum",
 														},
@@ -79342,7 +78085,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														kind: _RouteFileKind.PageModule,
 														surface: {
 															id: "Network.Solana",
-															requiredFacets: ["Solana"],
+															requiredProjections: [["Solana"]],
 															fixture: {
 																networkSlug: "solana",
 															},
@@ -79475,7 +78218,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Solana", field: "$$blocks" },
+																		field: ["Solana", "$$blocks"],
 																	},
 																},
 																text: { title: "Solana blocks" },
@@ -79500,7 +78243,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Solana", field: "$$transactions" },
+																		field: ["Solana", "$$transactions"],
 																	},
 																},
 																text: { title: "Solana transactions" },
@@ -79525,7 +78268,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Solana", field: "$$accounts" },
+																		field: ["Solana", "$$accounts"],
 																	},
 																},
 																text: { title: "Solana accounts" },
@@ -79550,7 +78293,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Solana", field: "$$tokenAccounts" },
+																		field: ["Solana", "$$tokenAccounts"],
 																	},
 																},
 																text: { title: "Solana token accounts" },
@@ -79575,7 +78318,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Solana", field: "$$tokenMints" },
+																		field: ["Solana", "$$tokenMints"],
 																	},
 																},
 																text: { title: "Solana token mints" },
@@ -79600,7 +78343,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Solana", field: "$$validators" },
+																		field: ["Solana", "$$validators"],
 																	},
 																},
 																text: { title: "Solana validators" },
@@ -79625,7 +78368,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Solana", field: "$$programs" },
+																		field: ["Solana", "$$programs"],
 																	},
 																},
 																text: { title: "Solana programs" },
@@ -80115,7 +78858,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		{ field: "slug", param: "networkSlug" },
 																	],
 																},
-																field: { facet: "Utxo", field: "$$blocks" },
+																field: ["Utxo", "$$blocks"],
 															},
 														},
 														text: { title: "Blocks" },
@@ -80176,7 +78919,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		{ field: "slug", param: "networkSlug" },
 																	],
 																},
-																field: { facet: "Utxo", field: "$$transactions" },
+																field: ["Utxo", "$$transactions"],
 															},
 														},
 														text: { title: "Transactions" },
@@ -80226,7 +78969,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														view: { component: "LightningChannelsView" },
 														surface: {
 															id: "LightningNetwork.Channels",
-															requiredFacets: ["Lightning"],
+															requiredProjections: [["Lightning"]],
 															fixture: {
 																networkSlug: "lightning",
 															},
@@ -80305,7 +79048,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																view: { entity: EntityType.LightningChannel, selector: "NetworkChannelId", component: "LightningChannelView" },
 																surface: {
 																	id: "LightningChannel.NetworkChannelId",
-																	requiredFacets: ["Lightning"],
+																	requiredProjections: [["Lightning"]],
 																	fixture: {
 																		networkSlug: "lightning",
 																		channelId: "852861482917888001",
@@ -80330,7 +79073,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														view: { component: "BlockheadLightningInvoicesView" },
 														surface: {
 															id: "BlockheadLightningInvoice.Network",
-															requiredFacets: ["Lightning"],
+															requiredProjections: [["Lightning"]],
 															fixture: {
 																networkSlug: "lightning",
 															},
@@ -80411,7 +79154,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																view: { entity: EntityType.BlockheadLightningInvoice, selector: "NetworkPaymentHash", component: "BlockheadLightningInvoiceView" },
 																surface: {
 																	id: "BlockheadLightningInvoice.NetworkPaymentHash",
-																	requiredFacets: ["Lightning"],
+																	requiredProjections: [["Lightning"]],
 																	fixture: {
 																		networkSlug: "lightning",
 																		paymentHash: "e2e-probe-paymentHash",
@@ -80436,7 +79179,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														view: { component: "LightningNodesView" },
 														surface: {
 															id: "LightningNode.Network",
-															requiredFacets: ["Lightning"],
+															requiredProjections: [["Lightning"]],
 															fixture: {
 																networkSlug: "lightning",
 															},
@@ -80515,7 +79258,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																view: { entity: EntityType.LightningNode, selector: "NetworkPublicKey", component: "LightningNodeView" },
 																surface: {
 																	id: "LightningNode.NetworkPublicKey",
-																	requiredFacets: ["Lightning"],
+																	requiredProjections: [["Lightning"]],
 																	fixture: {
 																		networkSlug: "lightning",
 																		pubkey: "02aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -80540,7 +79283,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														view: { component: "BlockheadLightningPaymentsView" },
 														surface: {
 															id: "BlockheadLightningPayment.Network",
-															requiredFacets: ["Lightning"],
+															requiredProjections: [["Lightning"]],
 															fixture: {
 																networkSlug: "lightning",
 															},
@@ -80621,7 +79364,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																view: { entity: EntityType.BlockheadLightningPayment, selector: "NetworkPaymentHash", component: "BlockheadLightningPaymentView" },
 																surface: {
 																	id: "BlockheadLightningPayment.NetworkPaymentHash",
-																	requiredFacets: ["Lightning"],
+																	requiredProjections: [["Lightning"]],
 																	fixture: {
 																		networkSlug: "lightning",
 																		paymentHash: "e2e-probe-paymentHash",
@@ -80656,7 +79399,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		{ field: "slug", param: "networkSlug" },
 																	],
 																},
-																field: { facet: "Cosmos", field: "$$governanceProposals" },
+																field: ["Cosmos", "$$governanceProposals"],
 															},
 														},
 														text: { title: "Governance" },
@@ -80670,7 +79413,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														kind: _RouteFileKind.PageModule,
 														surface: {
 															id: "Network.Polkadot",
-															requiredFacets: ["Polkadot"],
+															requiredProjections: [["Polkadot"]],
 															fixture: {
 																networkSlug: "polkadot",
 															},
@@ -81111,7 +79854,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 														kind: _RouteFileKind.PageModule,
 														surface: {
 															id: "Network.Utxo",
-															requiredFacets: ["Utxo"],
+															requiredProjections: [["Utxo"]],
 															fixture: {
 																networkSlug: "bitcoin",
 															},
@@ -81223,7 +79966,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Utxo", field: "$$blocks" },
+																		field: ["Utxo", "$$blocks"],
 																	},
 																},
 																text: { title: "UTXO blocks" },
@@ -81248,7 +79991,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																				{ field: "slug", param: "networkSlug" },
 																			],
 																		},
-																		field: { facet: "Utxo", field: "$$transactions" },
+																		field: ["Utxo", "$$transactions"],
 																	},
 																},
 																text: { title: "UTXO transactions" },
@@ -81265,7 +80008,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																		kind: _RouteFileKind.PageModule,
 																		surface: {
 																			id: "ZcashShieldedPool.NetworkPool",
-																			requiredFacets: ["Utxo", "Zcash"],
+																			requiredProjections: [["Utxo"], ["Zcash"]],
 																			fixture: {
 																				networkSlug: "zcash",
 																				pool: "orchard",
@@ -81573,7 +80316,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																										kind: _RouteFileKind.PageModule,
 																										surface: {
 																											id: "Network.Utxo.CashTokens",
-																											requiredFacets: ["CashTokens"],
+																											requiredProjections: [["CashTokens"]],
 																											fixture: {
 																												networkSlug: "bitcoin-cash",
 																											},
@@ -81638,7 +80381,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																										kind: _RouteFileKind.PageModule,
 																										surface: {
 																											id: "Network.Utxo.CashTokens",
-																											requiredFacets: ["CashTokens"],
+																											requiredProjections: [["CashTokens"]],
 																											fixture: {
 																												networkSlug: "bitcoin-cash",
 																											},
@@ -81703,7 +80446,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																												kind: _RouteFileKind.PageModule,
 																												surface: {
 																													id: "Network.Utxo.CashTokens",
-																													requiredFacets: ["CashTokens"],
+																													requiredProjections: [["CashTokens"]],
 																													fixture: {
 																														networkSlug: "bitcoin-cash",
 																													},
@@ -81776,7 +80519,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					kind: _RouteFileKind.Page,
 																					surface: {
 																						id: "ZcashShieldedAction.Transaction",
-																						requiredFacets: ["Zcash"],
+																						requiredProjections: [["Zcash"]],
 																						fixture: {
 																							networkSlug: "zcash",
 																							txId: "7fb6c4d3e2a1908070605040302010ffeeddccbbaa99887766554433221100ff",
@@ -81829,7 +80572,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																											kind: _RouteFileKind.PageModule,
 																											surface: {
 																												id: "ZcashShieldedAction.TransactionPoolActionKindIndexInTransaction",
-																												requiredFacets: ["Zcash"],
+																												requiredProjections: [["Zcash"]],
 																												fixture: {
 																													networkSlug: "zcash",
 																													txId: "7fb6c4d3e2a1908070605040302010ffeeddccbbaa99887766554433221100ff",
@@ -83688,7 +82431,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 										segment: "account",
 										children: [
 											{
-												segment: "[accountId]",
+												segment: "[address=evmAddress]",
 												files: [
 													{
 														kind: _RouteFileKind.PageModule,
@@ -83700,7 +82443,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																	field: "address",
 																	value: {
 																		kind: "param",
-																		name: "accountId",
+																		name: "address",
 																		decode: _ExpressionDecode.DecodeURIComponent,
 																	},
 																},
@@ -83750,6 +82493,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												files: [
 													{
 														kind: _RouteFileKind.PageModule,
+														surface: {
+															id: "XmtpConversation.Id",
+															fixture: {
+																conversationId: "e2e-probe-conversation",
+															},
+														},
 														load: {
 															entity: EntityType.XmtpConversation,
 															selector: "Id",
@@ -85517,6 +84266,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												files: [
 													{
 														kind: _RouteFileKind.PageModule,
+														surface: {
+															id: "RedditComment.Fullname",
+															fixture: {
+																fullname: "t1_osbo75d",
+															},
+														},
 														load: {
 															entity: EntityType.RedditComment,
 															selector: "Fullname",
@@ -85551,6 +84306,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																	files: [
 																		{
 																			kind: _RouteFileKind.Page,
+																			surface: {
+																				id: "RedditComment.Replies",
+																				fixture: {
+																					fullname: "t1_osbo75d",
+																				},
+																			},
 																			view: {
 																				component: "RedditCommentsView",
 																			},
@@ -85586,6 +84347,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																	files: [
 																		{
 																			kind: _RouteFileKind.Page,
+																			surface: {
+																				id: "RedditComment.Observations",
+																				fixture: {
+																					fullname: "t1_osbo75d",
+																				},
+																			},
 																			view: { component: "RedditComment_TimestampsView" },
 																			collection: {
 																				entity: EntityType.RedditComment_Timestamp,
@@ -85619,6 +84386,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																					files: [
 																						{
 																							kind: _RouteFileKind.PageModule,
+																							surface: {
+																								id: "RedditComment_Timestamp.CommentTimestampMsSource",
+																								fixture: {
+																									fullname: "t1_osbo75d",
+																								},
+																							},
 																							load: {
 																								entity: EntityType.RedditComment_Timestamp,
 																								selector: "CommentTimestampMsSource",
@@ -85826,6 +84599,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 												files: [
 													{
 														kind: _RouteFileKind.PageModule,
+														surface: {
+															id: "YoutubeChannel.ChannelId",
+															fixture: {
+																channelId: "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+															},
+														},
 														load: {
 															entity: EntityType.YoutubeChannel,
 															selector: "ChannelId",
@@ -85860,6 +84639,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																files: [
 																	{
 																		kind: _RouteFileKind.PageModule,
+																		surface: {
+																			id: "YoutubeChannel_Timestamp.YoutubeChannelTimestampMs",
+																			fixture: {
+																				channelId: "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+																			},
+																		},
 																		load: {
 																			entity:
 																				EntityType.YoutubeChannel_Timestamp,
@@ -85919,6 +84704,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																files: [
 																		{
 																			kind: _RouteFileKind.Page,
+																			surface: {
+																				id: "YoutubeChannel.Videos",
+																				fixture: {
+																					channelId: "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+																				},
+																			},
 																			view: {
 																				component: "YoutubeVideosView",
 																			},
@@ -85954,6 +84745,12 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 																files: [
 																		{
 																			kind: _RouteFileKind.Page,
+																			surface: {
+																				id: "YoutubeChannel.Playlists",
+																				fixture: {
+																					channelId: "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+																				},
+																			},
 																			view: {
 																				component: "YoutubePlaylistsView",
 																			},
@@ -87313,7 +86110,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									endpointKind: SourceEndpointKind.HttpUrl,
 									locator: endpoint.origin,
 									origin: endpoint.origin,
-									corsEnabled: false,
+									corsEnabled: true,
 								},
 							],
 							wireProtocol: WireProtocol.HttpRest,
@@ -87322,7 +86119,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 								SourceOperationGroup.GenericRead,
 								SourceOperationGroup.BlockscoutAccountAbstraction,
 							],
-							delivery: SourceDelivery.HttpProxy,
+							delivery: SourceDelivery.BrowserDirect,
 							credentials: [
 								{
 									scope: SourceCredentialScope.None,
@@ -87339,7 +86136,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 									endpointKind: SourceEndpointKind.HttpUrl,
 									locator: endpoint.origin,
 									origin: endpoint.origin,
-									corsEnabled: false,
+									corsEnabled: true,
 								},
 							],
 							wireProtocol: WireProtocol.HttpRest,
@@ -87348,7 +86145,7 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 								SourceOperationGroup.EtherscanAccountModule,
 								SourceOperationGroup.EtherscanContractModule,
 							],
-							delivery: SourceDelivery.HttpProxy,
+							delivery: SourceDelivery.BrowserDirect,
 							credentials: [
 								{
 									scope: SourceCredentialScope.None,
@@ -89431,13 +88228,13 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://li.quest",
 							origin: "https://li.quest",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
 					apiFamily: ApiFamily.OpenApiHttp,
 					operationGroups: [SourceOperationGroup.GenericRead],
-					delivery: SourceDelivery.HttpProxy,
+					delivery: SourceDelivery.BrowserDirect,
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
@@ -89459,19 +88256,19 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://li.quest",
 							origin: "https://li.quest",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://staging.li.quest",
 							origin: "https://staging.li.quest",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
 					apiFamily: ApiFamily.RestJson,
 					operationGroups: [SourceOperationGroup.GenericRead],
-					delivery: SourceDelivery.HttpProxy,
+					delivery: SourceDelivery.BrowserDirect,
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
@@ -89609,19 +88406,13 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.lens.xyz/graphql",
 							origin: "https://api.lens.xyz",
-							corsEnabled: false,
-						},
-						{
-							endpointKind: SourceEndpointKind.HttpUrl,
-							locator: "https://api.hey.xyz/graphql",
-							origin: "https://api.hey.xyz",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.Graphql,
 					apiFamily: ApiFamily.GraphqlHttp,
 					operationGroups: [SourceOperationGroup.GenericRead],
-					delivery: SourceDelivery.HttpProxy,
+					delivery: SourceDelivery.BrowserDirect,
 					credentials: [
 						{
 							scope: SourceCredentialScope.PublicConfig,
@@ -90251,13 +89042,13 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.piped.private.coffee",
 							origin: "https://api.piped.private.coffee",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
 					apiFamily: ApiFamily.RestJson,
 					operationGroups: [SourceOperationGroup.GenericRead],
-					delivery: SourceDelivery.HttpProxy,
+					delivery: SourceDelivery.BrowserDirect,
 					credentials: [
 						{
 							scope: SourceCredentialScope.None,
@@ -90451,19 +89242,19 @@ type: EntityFieldType.EntitiesReference, cardinality: EntityFieldCardinality.Man
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://api.gateway.ethswarm.org",
 							origin: "https://api.gateway.ethswarm.org",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 						{
 							endpointKind: SourceEndpointKind.HttpUrl,
 							locator: "https://gateway.ethswarm.org",
 							origin: "https://gateway.ethswarm.org",
-							corsEnabled: false,
+							corsEnabled: true,
 						},
 					],
 					wireProtocol: WireProtocol.HttpRest,
 					apiFamily: ApiFamily.SwarmGateway,
 					operationGroups: [SourceOperationGroup.ContentGatewayRead],
-					delivery: SourceDelivery.HttpProxy,
+					delivery: SourceDelivery.BrowserDirect,
 					credentials: [{ scope: SourceCredentialScope.None }],
 					artifacts: [
 						{

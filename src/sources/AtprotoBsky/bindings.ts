@@ -26,7 +26,7 @@ export const atprotoBskyBindings = [
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: atprotoAppViewBySlug.bsky_public.origin,
 				origin: atprotoAppViewBySlug.bsky_public.origin,
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.Xrpc,
@@ -34,7 +34,7 @@ export const atprotoBskyBindings = [
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.HttpProxy,
+		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
 				scope: SourceCredentialScope.None,

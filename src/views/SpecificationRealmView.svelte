@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -183,11 +183,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SpecificationProposalKindsView
-				selection={selection[EntityProxyField]<EntityType.SpecificationProposalKind>('$$proposalKinds')}
+				selection={selection.$$proposalKinds}
 				title='Proposal kinds'
 				href={resolve('/(explore)/(proposals)/proposals')}
 				emptyText='No proposal kinds for this realm.'
-				id='SpecificationProposalKindsView-$$proposalKinds'
+				id='SpecificationProposalKindsView-proposal-kinds'
 			/>
 		{/if}
 	{/snippet}

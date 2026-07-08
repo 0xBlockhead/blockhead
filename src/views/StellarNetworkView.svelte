@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -223,80 +223,80 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<StellarNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.StellarNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Stellar network observations.'
-				id='StellarNetwork_TimestampsView-$$timestamps'
+				id='StellarNetwork_TimestampsView-timestamps'
 			/>
 
 			<StellarLedgersView
-				selection={selection[EntityProxyField]<EntityType.StellarLedger>('$$ledgers')}
+				selection={selection.$$ledgers}
 				title='ledgers'
 				emptyText='No Stellar ledgers.'
-				id='StellarLedgersView-$$ledgers'
+				id='StellarLedgersView-ledgers'
 			/>
 
 			<StellarTransactionsView
-				selection={selection[EntityProxyField]<EntityType.StellarTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Stellar transactions.'
-				id='StellarTransactionsView-$$transactions'
+				id='StellarTransactionsView-transactions'
 			/>
 
 			<StellarOperationsView
-				selection={selection[EntityProxyField]<EntityType.StellarOperation>('$$operations')}
+				selection={selection.$$operations}
 				title='operations'
 				emptyText='No Stellar operations.'
-				id='StellarOperationsView-$$operations'
+				id='StellarOperationsView-operations'
 			/>
 
 			<StellarAccountsView
-				selection={selection[EntityProxyField]<EntityType.StellarAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='accounts'
 				emptyText='No Stellar accounts.'
-				id='StellarAccountsView-$$accounts'
+				id='StellarAccountsView-accounts'
 			/>
 
 			<StellarAssetsView
-				selection={selection[EntityProxyField]<EntityType.StellarAsset>('$$assets')}
+				selection={selection.$$assets}
 				title='assets'
 				emptyText='No Stellar assets.'
-				id='StellarAssetsView-$$assets'
+				id='StellarAssetsView-assets'
 			/>
 
 			<StellarClaimableBalancesView
-				selection={selection[EntityProxyField]<EntityType.StellarClaimableBalance>('$$claimableBalances')}
+				selection={selection.$$claimableBalances}
 				title='claimable balances'
 				emptyText='No Stellar claimable balances.'
-				id='StellarClaimableBalancesView-$$claimableBalances'
+				id='StellarClaimableBalancesView-claimable-balances'
 			/>
 
 			<SorobanContractsView
-				selection={selection[EntityProxyField]<EntityType.SorobanContract>('$$contracts')}
+				selection={selection.$$contracts}
 				title='contracts'
 				emptyText='No Soroban contracts.'
-				id='SorobanContractsView-$$contracts'
+				id='SorobanContractsView-contracts'
 			/>
 
 			<StellarLiquidityPoolsView
-				selection={selection[EntityProxyField]<EntityType.StellarLiquidityPool>('$$liquidityPools')}
+				selection={selection.$$liquidityPools}
 				title='liquidity pools'
 				emptyText='No Stellar liquidity pools.'
-				id='StellarLiquidityPoolsView-$$liquidityPools'
+				id='StellarLiquidityPoolsView-liquidity-pools'
 			/>
 
 			<StellarOffersView
-				selection={selection[EntityProxyField]<EntityType.StellarOffer>('$$offers')}
+				selection={selection.$$offers}
 				title='offers'
 				emptyText='No Stellar offers.'
-				id='StellarOffersView-$$offers'
+				id='StellarOffersView-offers'
 			/>
 
 			<StellarTradesView
-				selection={selection[EntityProxyField]<EntityType.StellarTrade>('$$trades')}
+				selection={selection.$$trades}
 				title='trades'
 				emptyText='No Stellar trades.'
-				id='StellarTradesView-$$trades'
+				id='StellarTradesView-trades'
 			/>
 		{/if}
 	{/snippet}

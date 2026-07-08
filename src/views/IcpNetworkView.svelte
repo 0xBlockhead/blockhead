@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -182,38 +182,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<IcpNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.IcpNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No ICP network observations.'
-				id='IcpNetwork_TimestampsView-$$timestamps'
+				id='IcpNetwork_TimestampsView-timestamps'
 			/>
 
 			<IcpSubnetsView
-				selection={selection[EntityProxyField]<EntityType.IcpSubnet>('$$subnets')}
+				selection={selection.$$subnets}
 				title='subnets'
 				emptyText='No ICP subnets.'
-				id='IcpSubnetsView-$$subnets'
+				id='IcpSubnetsView-subnets'
 			/>
 
 			<IcpCanistersView
-				selection={selection[EntityProxyField]<EntityType.IcpCanister>('$$canisters')}
+				selection={selection.$$canisters}
 				title='canisters'
 				emptyText='No ICP canisters.'
-				id='IcpCanistersView-$$canisters'
+				id='IcpCanistersView-canisters'
 			/>
 
 			<IcpLedgerCanistersView
-				selection={selection[EntityProxyField]<EntityType.IcpLedgerCanister>('$$ledgerCanisters')}
+				selection={selection.$$ledgerCanisters}
 				title='ledger canisters'
 				emptyText='No ICP ledger canisters.'
-				id='IcpLedgerCanistersView-$$ledgerCanisters'
+				id='IcpLedgerCanistersView-ledger-canisters'
 			/>
 
 			<IcpRequestStatusesView
-				selection={selection[EntityProxyField]<EntityType.IcpRequestStatus>('$$requestStatuses')}
+				selection={selection.$$requestStatuses}
 				title='request statuses'
 				emptyText='No ICP request statuses.'
-				id='IcpRequestStatusesView-$$requestStatuses'
+				id='IcpRequestStatusesView-request-statuses'
 			/>
 		{/if}
 	{/snippet}

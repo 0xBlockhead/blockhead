@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -93,7 +93,7 @@
 				<AssetInstanceView
 					selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 					href={
-						(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+						(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
 							caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
 							kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 							assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
@@ -109,7 +109,7 @@
 				<AssetInstanceView
 					selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance)}
 					href={
-						(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+						(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
 							caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
 							kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 							assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
@@ -130,7 +130,7 @@
 					<AssetInstanceView
 						selection={select(EntityType.AssetInstance, selection.entitySelector.$assetInstance, {})}
 						href={
-							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+							(selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.namespace !== undefined && selection.entitySelector.$assetInstance.$network !== undefined && selection.entitySelector.$assetInstance.$network.caip2 !== undefined && selection.entitySelector.$assetInstance.$network.caip2.reference !== undefined && selection.entitySelector.$assetInstance.kind !== undefined && selection.entitySelector.$assetInstance.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
 								caip2: `${String(selection.entitySelector.$assetInstance.$network.caip2.namespace ?? '')}:${String(selection.entitySelector.$assetInstance.$network.caip2.reference ?? '')}`,
 								kind: String(selection.entitySelector.$assetInstance.kind ?? ''),
 								assetKey: String(selection.entitySelector.$assetInstance.assetKey ?? ''),
@@ -177,45 +177,45 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<RegulatedAssetProfile_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.RegulatedAssetProfile_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No regulated asset profile observations.'
-				id='RegulatedAssetProfile_TimestampsView-$$timestamps'
+				id='RegulatedAssetProfile_TimestampsView-timestamps'
 			/>
 
 			<IssuerPowersView
-				selection={selection[EntityProxyField]<EntityType.IssuerPower>('$$issuerPowers')}
+				selection={selection.$$issuerPowers}
 				title='issuer powers'
 				emptyText='No issuer powers.'
-				id='IssuerPowersView-$$issuerPowers'
+				id='IssuerPowersView-issuer-powers'
 			/>
 
 			<ClaimTopicRequirementsView
-				selection={selection[EntityProxyField]<EntityType.ClaimTopicRequirement>('$$claimRequirements')}
+				selection={selection.$$claimRequirements}
 				title='claim requirements'
 				emptyText='No claim topic requirements.'
-				id='ClaimTopicRequirementsView-$$claimRequirements'
+				id='ClaimTopicRequirementsView-claim-requirements'
 			/>
 
 			<TrustedIssuersView
-				selection={selection[EntityProxyField]<EntityType.TrustedIssuer>('$$trustedIssuers')}
+				selection={selection.$$trustedIssuers}
 				title='trusted issuers'
 				emptyText='No trusted issuers.'
-				id='TrustedIssuersView-$$trustedIssuers'
+				id='TrustedIssuersView-trusted-issuers'
 			/>
 
 			<ComplianceModulesView
-				selection={selection[EntityProxyField]<EntityType.ComplianceModule>('$$complianceModules')}
+				selection={selection.$$complianceModules}
 				title='compliance modules'
 				emptyText='No compliance modules.'
-				id='ComplianceModulesView-$$complianceModules'
+				id='ComplianceModulesView-compliance-modules'
 			/>
 
 			<TransferRestrictionsView
-				selection={selection[EntityProxyField]<EntityType.TransferRestriction>('$$restrictions')}
+				selection={selection.$$restrictions}
 				title='restrictions'
 				emptyText='No transfer restrictions.'
-				id='TransferRestrictionsView-$$restrictions'
+				id='TransferRestrictionsView-restrictions'
 			/>
 		{/if}
 	{/snippet}

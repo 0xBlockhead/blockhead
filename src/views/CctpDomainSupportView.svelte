@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -220,7 +220,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+				resource={selection.$network}
 			>
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
@@ -507,17 +507,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CctpMessagesView
-				selection={selection[EntityProxyField]<EntityType.CctpMessage>('$$messages')}
+				selection={selection.$$messages}
 				title='Messages'
 				emptyText='No CCTP messages.'
-				id='CctpMessagesView-$$messages'
+				id='CctpMessagesView-messages'
 			/>
 
 			<CctpBurnFee_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.CctpBurnFee_Timestamp>('$$burnFeeTimestamps')}
+				selection={selection.$$burnFeeTimestamps}
 				title='Burn fee timestamps'
 				emptyText='No CCTP burn fee observations.'
-				id='CctpBurnFee_TimestampsView-$$burnFeeTimestamps'
+				id='CctpBurnFee_TimestampsView-burn-fee-timestamps'
 			/>
 		{/if}
 	{/snippet}

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -113,7 +113,7 @@
 		<ResourceBoundary resource={blockheadZcashViewingKey}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+					resource={selection.$network}
 				>
 					{#snippet children(network)}
 						<span data-text="muted">
@@ -150,7 +150,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+					resource={selection.$network}
 				>
 					{#snippet children(network)}
 						<span data-text="muted">
@@ -219,7 +219,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -242,7 +242,7 @@
 				<dt>network</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+						resource={selection.$network}
 					>
 						{#snippet children(network)}
 							{#if network[EntityMetaKey.Selector] != null}
@@ -606,10 +606,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadZcashViewingKey_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadZcashViewingKey_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Zcash viewing-key observations.'
-				id='BlockheadZcashViewingKey_TimestampsView-$$timestamps'
+				id='BlockheadZcashViewingKey_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

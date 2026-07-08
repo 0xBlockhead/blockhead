@@ -5,7 +5,7 @@
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import { EntityProxyField, type EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -236,7 +236,7 @@
 											realm: kind.entitySelector.realm,
 											category: kind.entitySelector.category,
 										}
-									)[EntityProxyField]<EntityType.SpecificationProposal>('$$proposals')({
+									).$$proposals({
 										sources: [Source.Constants_Internal],
 									})}
 									filterCategory={kind.entitySelector.category}

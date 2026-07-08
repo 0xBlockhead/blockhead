@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -202,7 +202,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.A2aAgentService, false>('$a2aAgentService')}
+				resource={selection.$a2aAgentService}
 			>
 				{#snippet children(a2aAgentService)}
 					{#if a2aAgentService != null && a2aAgentService[EntityMetaKey.Selector] != null}
@@ -222,7 +222,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.McpServer, false>('$mcpServer')}
+				resource={selection.$mcpServer}
 			>
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
@@ -242,7 +242,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Eip8004AgentServiceEndpoint, false>('$eip8004ServiceEndpoint')}
+				resource={selection.$eip8004ServiceEndpoint}
 			>
 				{#snippet children(eip8004AgentServiceEndpoint)}
 					{#if eip8004AgentServiceEndpoint != null && eip8004AgentServiceEndpoint[EntityMetaKey.Selector] != null}
@@ -262,7 +262,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadAgentConnection, false>('$blockheadConnection')}
+				resource={selection.$blockheadConnection}
 			>
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -113,7 +113,7 @@
 		<ResourceBoundary resource={dogecoinBlockAuxPow}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.DogecoinAuxPowParentBlockHeader, false>('$parentBlockHeader')}
+					resource={selection.$parentBlockHeader}
 				>
 					{#snippet children(dogecoinAuxPowParentBlockHeader)}
 						{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
@@ -131,7 +131,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.DogecoinAuxPowParentBlockHeader, false>('$parentBlockHeader')}
+					resource={selection.$parentBlockHeader}
 				>
 					{#snippet children(dogecoinAuxPowParentBlockHeader)}
 						{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
@@ -169,7 +169,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.DogecoinAuxPowParentBlockHeader, false>('$parentBlockHeader')}
+				resource={selection.$parentBlockHeader}
 			>
 				{#snippet children(dogecoinAuxPowParentBlockHeader)}
 					{#if dogecoinAuxPowParentBlockHeader != null && dogecoinAuxPowParentBlockHeader[EntityMetaKey.Selector] != null}
@@ -189,7 +189,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.DogecoinAuxPowMerkleBranch, false>('$coinbaseBranch')}
+				resource={selection.$coinbaseBranch}
 			>
 				{#snippet children(dogecoinAuxPowMerkleBranch)}
 					{#if dogecoinAuxPowMerkleBranch != null && dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector] != null}
@@ -209,7 +209,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.DogecoinAuxPowMerkleBranch, false>('$chainBranch')}
+				resource={selection.$chainBranch}
 			>
 				{#snippet children(dogecoinAuxPowMerkleBranch)}
 					{#if dogecoinAuxPowMerkleBranch != null && dogecoinAuxPowMerkleBranch[EntityMetaKey.Selector] != null}

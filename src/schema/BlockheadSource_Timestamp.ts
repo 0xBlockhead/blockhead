@@ -1,97 +1,84 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum BlockheadSource_TimestampSelector {
 	SourceTimestampMs = 'SourceTimestampMs',
 }
-export default {
+export const BlockheadSource_Timestamp = entity({
 	entityType: EntityType.BlockheadSource_Timestamp,
 	label: 'blockhead source timestamp',
 	labelPlural: 'blockhead source observations',
-	selectors: [
-		{
-			name: BlockheadSource_TimestampSelector.SourceTimestampMs,
-			fields: [
-				'$source',
-				'timestampMs',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadSource,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'enabled',
-			label: 'Enabled',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'health',
-			label: 'Health',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'latencyMs',
-			label: 'Latency ms',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'statusCode',
-			label: 'Status code',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'error',
-			label: 'Error',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'rateLimitRemaining',
-			label: 'Rate limit remaining',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'rateLimitResetMs',
-			label: 'Rate limit reset ms',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'resolverCount',
-			label: 'Resolver count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BlockheadSource,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	enabled: {
+		label: 'Enabled',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	health: {
+		label: 'Health',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	latencyMs: {
+		label: 'Latency ms',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	statusCode: {
+		label: 'Status code',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	error: {
+		label: 'Error',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	rateLimitRemaining: {
+		label: 'Rate limit remaining',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	rateLimitResetMs: {
+		label: 'Rate limit reset ms',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	resolverCount: {
+		label: 'Resolver count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		SourceTimestampMs: [
+			'$source',
+			'timestampMs',
+		],
+	},
+})

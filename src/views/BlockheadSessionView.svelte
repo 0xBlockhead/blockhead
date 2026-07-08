@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -257,7 +257,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadSessionSimulation, false>('$latestSimulation')}
+				resource={selection.$latestSimulation}
 			>
 				{#snippet children(blockheadSessionSimulation)}
 					{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
@@ -316,24 +316,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadSessionActionsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadSessionAction>('$$actions')}
+				selection={selection.$$actions}
 				title='Actions'
 				emptyText='No actions.'
-				id='BlockheadSessionActionsView-$$actions'
+				id='BlockheadSessionActionsView-actions'
 			/>
 
 			<BlockheadIntentInvocationsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadIntentInvocation>('$$intentInvocations')}
+				selection={selection.$$intentInvocations}
 				title='intent invocations'
 				emptyText='No intent invocations.'
-				id='BlockheadIntentInvocationsView-$$intentInvocations'
+				id='BlockheadIntentInvocationsView-intent-invocations'
 			/>
 
 			<BlockheadSessionSimulationsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadSessionSimulation>('$$simulations')}
+				selection={selection.$$simulations}
 				title='Simulations'
 				emptyText='No simulations.'
-				id='BlockheadSessionSimulationsView-$$simulations'
+				id='BlockheadSessionSimulationsView-simulations'
 			/>
 		{/if}
 	{/snippet}

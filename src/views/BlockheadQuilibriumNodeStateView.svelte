@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -410,24 +410,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadQuilibriumNodeState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadQuilibriumNodeState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Quilibrium node observations.'
-				id='BlockheadQuilibriumNodeState_TimestampsView-$$timestamps'
+				id='BlockheadQuilibriumNodeState_TimestampsView-timestamps'
 			/>
 
 			<QuilibriumFramesView
-				selection={selection[EntityProxyField]<EntityType.QuilibriumFrame>('$$frames')}
+				selection={selection.$$frames}
 				title='frames'
 				emptyText='No Quilibrium frames.'
-				id='QuilibriumFramesView-$$frames'
+				id='QuilibriumFramesView-frames'
 			/>
 
 			<QuilibriumProversView
-				selection={selection[EntityProxyField]<EntityType.QuilibriumProver>('$$provers')}
+				selection={selection.$$provers}
 				title='provers'
 				emptyText='No Quilibrium provers.'
-				id='QuilibriumProversView-$$provers'
+				id='QuilibriumProversView-provers'
 			/>
 		{/if}
 	{/snippet}

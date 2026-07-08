@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -363,24 +363,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LightningChannelsView
-				selection={selection[EntityProxyField]<EntityType.LightningChannel>('$$channels')}
+				selection={selection.$$channels}
 				title='Channels'
 				emptyText='No channels yet.'
-				id='LightningChannelsView-$$channels'
+				id='LightningChannelsView-channels'
 			/>
 
 			<LightningNode_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.LightningNode_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
 				emptyText='No observations yet.'
-				id='LightningNode_TimestampsView-$$timestamps'
+				id='LightningNode_TimestampsView-timestamps'
 			/>
 
 			<BlockheadLightningNodeStatesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningNodeState>('$$localNodeStates')}
+				selection={selection.$$localNodeStates}
 				title='Local node states'
 				emptyText='No local node states.'
-				id='BlockheadLightningNodeStatesView-$$localNodeStates'
+				id='BlockheadLightningNodeStatesView-local-node-states'
 			/>
 		{/if}
 	{/snippet}

@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import EvmNftsView from '$/views/EvmNftsView.svelte'
@@ -50,7 +49,7 @@
 		{#snippet SectionAgents()}
 			<EvmNftsView
 				href={resolve('/services/agents')}
-				selection={select(EntityType._Global, { scope: '$$eip8004Services' })[EntityProxyField]<EntityType.EvmNft>('$$eip8004Services')({
+				selection={select(EntityType._Global, { scope: '$$eip8004Services' }).$$eip8004Services({
 					sources: [Source.Eip8004Scan_Rest],
 					limit: 100,
 				})}

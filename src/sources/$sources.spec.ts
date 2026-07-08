@@ -385,10 +385,10 @@ describe('source provider registry', () => {
 		}
 	})
 
-	it('keeps Piped proxy origins static provider metadata instead of public-env call-site rows', () => {
+	it('keeps Piped origins static provider metadata instead of public-env call-site rows', () => {
 		expect(Piped.origins).toEqual([{
 			origin: pipedApiDefaultOrigin,
-			corsEnabled: false,
+			corsEnabled: true,
 		}])
 		expect(readFileSync(join(process.cwd(), 'src', 'sources', 'Piped', 'Rest', 'client.ts'), 'utf8')).toMatch(/\borigins:\s*Piped\.origins\b/)
 		for (const filePath of globSync('src/sources/Piped/**/*.ts'))

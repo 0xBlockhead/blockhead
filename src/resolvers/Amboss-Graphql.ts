@@ -51,11 +51,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				shortChannelId: (snapshot) => snapshot.shortChannelId,
 				$node1: (snapshot) => snapshot.$node1,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Amboss_Graphql, {
 			entityType: EntityType.LightningNetwork,
@@ -75,9 +73,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$nodes: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

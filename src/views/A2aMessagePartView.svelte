@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -127,7 +127,7 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.A2aMessage, false>('$message')}
+				resource={selection.$message}
 			>
 				{#snippet children(a2aMessage)}
 					{#if a2aMessage != null && a2aMessage[EntityMetaKey.Selector] != null}
@@ -147,7 +147,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.A2aArtifact, false>('$artifact')}
+				resource={selection.$artifact}
 			>
 				{#snippet children(a2aArtifact)}
 					{#if a2aArtifact != null && a2aArtifact[EntityMetaKey.Selector] != null}
@@ -346,7 +346,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AiArtifact, false>('$aiArtifact')}
+				resource={selection.$aiArtifact}
 			>
 				{#snippet children(aiArtifact)}
 					{#if aiArtifact != null && aiArtifact[EntityMetaKey.Selector] != null}

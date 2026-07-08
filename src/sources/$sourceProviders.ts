@@ -1727,7 +1727,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://eth.blockscout.com',
 						origin: 'https://eth.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1736,7 +1736,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.GenericRead,
 					SourceOperationGroup.BlockscoutAccountAbstraction,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1755,7 +1755,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://eth.blockscout.com',
 						origin: 'https://eth.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1764,7 +1764,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.EtherscanAccountModule,
 					SourceOperationGroup.EtherscanContractModule,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1783,7 +1783,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://optimism.blockscout.com',
 						origin: 'https://optimism.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1792,7 +1792,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.GenericRead,
 					SourceOperationGroup.BlockscoutAccountAbstraction,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1811,7 +1811,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://optimism.blockscout.com',
 						origin: 'https://optimism.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1820,7 +1820,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.EtherscanAccountModule,
 					SourceOperationGroup.EtherscanContractModule,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1839,7 +1839,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://gnosis.blockscout.com',
 						origin: 'https://gnosis.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1848,7 +1848,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.GenericRead,
 					SourceOperationGroup.BlockscoutAccountAbstraction,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1867,7 +1867,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://gnosis.blockscout.com',
 						origin: 'https://gnosis.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1876,7 +1876,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.EtherscanAccountModule,
 					SourceOperationGroup.EtherscanContractModule,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1895,7 +1895,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://polygon.blockscout.com',
 						origin: 'https://polygon.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1904,7 +1904,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.GenericRead,
 					SourceOperationGroup.BlockscoutAccountAbstraction,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1923,7 +1923,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://polygon.blockscout.com',
 						origin: 'https://polygon.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1932,7 +1932,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.EtherscanAccountModule,
 					SourceOperationGroup.EtherscanContractModule,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1951,7 +1951,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://base.blockscout.com',
 						origin: 'https://base.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1960,7 +1960,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.GenericRead,
 					SourceOperationGroup.BlockscoutAccountAbstraction,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -1979,7 +1979,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://base.blockscout.com',
 						origin: 'https://base.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -1988,7 +1988,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.EtherscanAccountModule,
 					SourceOperationGroup.EtherscanContractModule,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -2007,7 +2007,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://arbitrum.blockscout.com',
 						origin: 'https://arbitrum.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -2016,7 +2016,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.GenericRead,
 					SourceOperationGroup.BlockscoutAccountAbstraction,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -2035,7 +2035,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://arbitrum.blockscout.com',
 						origin: 'https://arbitrum.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -2044,7 +2044,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.EtherscanAccountModule,
 					SourceOperationGroup.EtherscanContractModule,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -2063,7 +2063,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://eth-sepolia.blockscout.com',
 						origin: 'https://eth-sepolia.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -2072,7 +2072,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.GenericRead,
 					SourceOperationGroup.BlockscoutAccountAbstraction,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -2091,7 +2091,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://eth-sepolia.blockscout.com',
 						origin: 'https://eth-sepolia.blockscout.com',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -2100,7 +2100,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 					SourceOperationGroup.EtherscanAccountModule,
 					SourceOperationGroup.EtherscanContractModule,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -2111,31 +2111,31 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		origins: [
 			{
 				origin: 'https://eth.blockscout.com',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				origin: 'https://optimism.blockscout.com',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				origin: 'https://gnosis.blockscout.com',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				origin: 'https://polygon.blockscout.com',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				origin: 'https://base.blockscout.com',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				origin: 'https://arbitrum.blockscout.com',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				origin: 'https://eth-sepolia.blockscout.com',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 	},
@@ -4963,7 +4963,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://li.quest',
 						origin: 'https://li.quest',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -4971,7 +4971,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -4990,13 +4990,13 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://li.quest',
 						origin: 'https://li.quest',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://staging.li.quest',
 						origin: 'https://staging.li.quest',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -5004,7 +5004,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -5032,11 +5032,11 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		origins: [
 			{
 				origin: 'https://li.quest',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				origin: 'https://staging.li.quest',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 	},
@@ -5230,13 +5230,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://api.lens.xyz/graphql',
 						origin: 'https://api.lens.xyz',
-						corsEnabled: false,
-					},
-					{
-						endpointKind: SourceEndpointKind.HttpUrl,
-						locator: 'https://api.hey.xyz/graphql',
-						origin: 'https://api.hey.xyz',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.Graphql,
@@ -5244,7 +5238,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.PublicConfig,
@@ -5275,11 +5269,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		origins: [
 			{
 				origin: 'https://api.lens.xyz',
-				corsEnabled: false,
-			},
-			{
-				origin: 'https://api.hey.xyz',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 	},
@@ -6245,7 +6235,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://api.piped.private.coffee',
 						origin: 'https://api.piped.private.coffee',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -6253,7 +6243,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.GenericRead,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -6271,7 +6261,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		origins: [
 			{
 				origin: 'https://api.piped.private.coffee',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 	},
@@ -7516,13 +7506,13 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://api.gateway.ethswarm.org',
 						origin: 'https://api.gateway.ethswarm.org',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 					{
 						endpointKind: SourceEndpointKind.HttpUrl,
 						locator: 'https://gateway.ethswarm.org',
 						origin: 'https://gateway.ethswarm.org',
-						corsEnabled: false,
+						corsEnabled: true,
 					},
 				],
 				wireProtocol: WireProtocol.HttpRest,
@@ -7530,7 +7520,7 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 				operationGroups: [
 					SourceOperationGroup.ContentGatewayRead,
 				],
-				delivery: SourceDelivery.HttpProxy,
+				delivery: SourceDelivery.BrowserDirect,
 				credentials: [
 					{
 						scope: SourceCredentialScope.None,
@@ -7548,11 +7538,11 @@ export const sourceProviderDefinitions: readonly SourceProviderDefinition[] = [
 		origins: [
 			{
 				origin: 'https://api.gateway.ethswarm.org',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				origin: 'https://gateway.ethswarm.org',
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 	},

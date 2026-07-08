@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -191,7 +191,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarAccount, false>('$baseAccount')}
+				resource={selection.$baseAccount}
 			>
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
@@ -211,7 +211,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarAccount, false>('$counterAccount')}
+				resource={selection.$counterAccount}
 			>
 				{#snippet children(stellarAccount)}
 					{#if stellarAccount != null && stellarAccount[EntityMetaKey.Selector] != null}
@@ -231,7 +231,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarOffer, false>('$baseOffer')}
+				resource={selection.$baseOffer}
 			>
 				{#snippet children(stellarOffer)}
 					{#if stellarOffer != null && stellarOffer[EntityMetaKey.Selector] != null}
@@ -251,7 +251,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarOffer, false>('$counterOffer')}
+				resource={selection.$counterOffer}
 			>
 				{#snippet children(stellarOffer)}
 					{#if stellarOffer != null && stellarOffer[EntityMetaKey.Selector] != null}
@@ -271,7 +271,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarLiquidityPool, false>('$baseLiquidityPool')}
+				resource={selection.$baseLiquidityPool}
 			>
 				{#snippet children(stellarLiquidityPool)}
 					{#if stellarLiquidityPool != null && stellarLiquidityPool[EntityMetaKey.Selector] != null}
@@ -291,7 +291,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarLiquidityPool, false>('$counterLiquidityPool')}
+				resource={selection.$counterLiquidityPool}
 			>
 				{#snippet children(stellarLiquidityPool)}
 					{#if stellarLiquidityPool != null && stellarLiquidityPool[EntityMetaKey.Selector] != null}
@@ -311,7 +311,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarAsset, false>('$baseAsset')}
+				resource={selection.$baseAsset}
 			>
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
@@ -331,7 +331,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarAsset, false>('$counterAsset')}
+				resource={selection.$counterAsset}
 			>
 				{#snippet children(stellarAsset)}
 					{#if stellarAsset != null && stellarAsset[EntityMetaKey.Selector] != null}
@@ -491,7 +491,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarTransaction, false>('$transaction')}
+				resource={selection.$transaction}
 			>
 				{#snippet children(stellarTransaction)}
 					{#if stellarTransaction != null && stellarTransaction[EntityMetaKey.Selector] != null}
@@ -511,7 +511,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StellarOperation, false>('$operation')}
+				resource={selection.$operation}
 			>
 				{#snippet children(stellarOperation)}
 					{#if stellarOperation != null && stellarOperation[EntityMetaKey.Selector] != null}

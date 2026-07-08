@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -167,52 +167,52 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AptosNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AptosNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Aptos network observations.'
-				id='AptosNetwork_TimestampsView-$$timestamps'
+				id='AptosNetwork_TimestampsView-timestamps'
 			/>
 
 			<AptosBlocksView
-				selection={selection[EntityProxyField]<EntityType.AptosBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No Aptos blocks.'
-				id='AptosBlocksView-$$blocks'
+				id='AptosBlocksView-blocks'
 			/>
 
 			<AptosTransactionsView
-				selection={selection[EntityProxyField]<EntityType.AptosTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Aptos transactions.'
-				id='AptosTransactionsView-$$transactions'
+				id='AptosTransactionsView-transactions'
 			/>
 
 			<AptosAccountsView
-				selection={selection[EntityProxyField]<EntityType.AptosAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='accounts'
 				emptyText='No Aptos accounts.'
-				id='AptosAccountsView-$$accounts'
+				id='AptosAccountsView-accounts'
 			/>
 
 			<MoveModulesView
-				selection={selection[EntityProxyField]<EntityType.MoveModule>('$$modules')}
+				selection={selection.$$modules}
 				title='modules'
 				emptyText='No Aptos Move modules.'
-				id='MoveModulesView-$$modules'
+				id='MoveModulesView-modules'
 			/>
 
 			<AptosEventsView
-				selection={selection[EntityProxyField]<EntityType.AptosEvent>('$$events')}
+				selection={selection.$$events}
 				title='events'
 				emptyText='No Aptos events.'
-				id='AptosEventsView-$$events'
+				id='AptosEventsView-events'
 			/>
 
 			<AptosCoinBalance_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AptosCoinBalance_Timestamp>('$$coinBalanceTimestamps')}
+				selection={selection.$$coinBalanceTimestamps}
 				title='coin balance timestamps'
 				emptyText='No Aptos coin balance observations.'
-				id='AptosCoinBalance_TimestampsView-$$coinBalanceTimestamps'
+				id='AptosCoinBalance_TimestampsView-coin-balance-timestamps'
 			/>
 		{/if}
 	{/snippet}

@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -44,7 +43,7 @@
 					slug: params.networkSlug,
 				},
 				txId: decodeURIComponent(params.txId),
-			})[EntityProxyField]<EntityType.UtxoInput>('$$inputs')
+			}).$$inputs
 		}
 		id='inputs'
 	/>

@@ -473,7 +473,6 @@ export enum EntityType {
 	EvmError_Timestamp = 'EvmError_Timestamp',
 	EvmInternalTransfer = 'EvmInternalTransfer',
 	EvmLog = 'EvmLog',
-	EvmNetwork = 'EvmNetwork',
 	EvmNetwork_GasEstimate_Timestamp = 'EvmNetwork_GasEstimate_Timestamp',
 	EvmNetwork_GasFee_Block = 'EvmNetwork_GasFee_Block',
 	EvmNetwork_Timestamp = 'EvmNetwork_Timestamp',

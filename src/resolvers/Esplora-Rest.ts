@@ -122,7 +122,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (snapshot) => snapshot.hash,
 				$parent: (snapshot) => snapshot.$parent,
 				timestampMs: (snapshot) => snapshot.timestampMs,
@@ -132,8 +131,7 @@ export default {
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
 				weightUnits: (snapshot) => snapshot.weightUnits,
 				transactionCount: (snapshot) => snapshot.transactionCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.UtxoTransaction,
@@ -167,7 +165,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (snapshot) => snapshot.$block,
 				version: (snapshot) => snapshot.version,
 				lockTime: (snapshot) => snapshot.lockTime,
@@ -176,8 +173,7 @@ export default {
 				virtualSizeBytes: (snapshot) => snapshot.virtualSizeBytes,
 				feeSats: (snapshot) => snapshot.feeSats,
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
@@ -201,15 +197,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (snapshot) => snapshot.name,
 				ticker: (snapshot) => snapshot.ticker,
 				precision: (snapshot) => snapshot.precision,
 				entityDomain: (snapshot) => snapshot.entityDomain,
 				contractJson: (snapshot) => snapshot.contractJson,
 				hasBlindedIssuances: (snapshot) => snapshot.hasBlindedIssuances,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset,
@@ -225,10 +219,8 @@ export default {
 				],
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsAsset_Timestamp,
@@ -254,12 +246,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				issuedAmount: (snapshot) => snapshot.issuedAmount,
 				burnedAmount: (snapshot) => snapshot.burnedAmount,
 				reissuanceTokenCount: (snapshot) => snapshot.reissuanceTokenCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
@@ -281,12 +271,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$nativeAsset: (snapshot) => ({
 					[EntityMetaKey.Selector]: snapshot[EntityMetaKey.Selector],
 				}),
-			},
-		}),
+			}),
 
 		defineResolver(Source.Esplora_Rest, {
 			entityType: EntityType.ElementsNetwork,
@@ -307,11 +295,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$assets: (snapshot) => snapshot.map((asset) => ({
 					[EntityMetaKey.Selector]: asset[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 	],
 }

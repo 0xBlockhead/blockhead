@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -103,7 +103,7 @@
 			{#snippet Pending()}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.FilecoinMiner, false>('$miner', {
+						selection.$miner({
 							sources: [
 								Source.Lotus_JsonRpc,
 								Source.Filfox_Rest,
@@ -128,7 +128,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.FilecoinMiner, false>('$miner', {
+						selection.$miner({
 							sources: [
 								Source.Lotus_JsonRpc,
 								Source.Filfox_Rest,
@@ -156,7 +156,7 @@
 			{#snippet Pending()}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.FilecoinTipset, false>('$tipset', {
+						selection.$tipset({
 							sources: [
 								Source.Lotus_JsonRpc,
 								Source.Filfox_Rest,
@@ -183,7 +183,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.FilecoinTipset, false>('$tipset', {
+						selection.$tipset({
 							sources: [
 								Source.Lotus_JsonRpc,
 								Source.Filfox_Rest,
@@ -272,7 +272,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.FilecoinTipset, false>('$tipset', {
+					selection.$tipset({
 						sources: [
 							Source.Lotus_JsonRpc,
 							Source.Filfox_Rest,
@@ -299,7 +299,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.FilecoinMiner, false>('$miner', {
+					selection.$miner({
 						sources: [
 							Source.Lotus_JsonRpc,
 							Source.Filfox_Rest,
@@ -406,7 +406,7 @@
 		{#if detailsOpen}
 			<FilecoinMessagesView
 				selection={
-						selection[EntityProxyField]<EntityType.FilecoinMessage>('$$messages', {
+						selection.$$messages({
 							sources: [
 								Source.Lotus_JsonRpc,
 								Source.Filfox_Rest,
@@ -414,7 +414,7 @@
 						})
 					}
 				title='Messages'
-				id='FilecoinMessagesView-$$messages'
+				id='FilecoinMessagesView-messages'
 			/>
 		{/if}
 	{/snippet}

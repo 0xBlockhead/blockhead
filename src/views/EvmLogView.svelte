@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -91,7 +91,7 @@
 		<ResourceBoundary resource={evmLog}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$emitter')}
+					resource={selection.$emitter}
 				>
 					{#snippet children(evmContract)}
 						{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -120,7 +120,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$emitter')}
+					resource={selection.$emitter}
 				>
 					{#snippet children(evmContract)}
 						{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -216,7 +216,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.EvmBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(evmBlock)}
 						{#if evmBlock != null && evmBlock[EntityMetaKey.Selector] != null}
@@ -243,7 +243,7 @@
 			{/if}
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmContract, false>('$emitter')}
+				resource={selection.$emitter}
 			>
 				{#snippet children(evmContract)}
 					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
@@ -347,16 +347,16 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmTopicsView
-				selection={selection[EntityProxyField]<EntityType.EvmTopic>('$$topics')}
+				selection={selection.$$topics}
 				title='Topics'
 				href={resolve('/(explore)/(evm)/evm/(topics)/topics')}
-				id='EvmTopicsView-$$topics'
+				id='EvmTopicsView-topics'
 			/>
 
 			<EvmTokenTransfersView
-				selection={selection[EntityProxyField]<EntityType.EvmTokenTransfer>('$$tokenTransfers')}
+				selection={selection.$$tokenTransfers}
 				title='Token transfers'
-				id='EvmTokenTransfersView-$$tokenTransfers'
+				id='EvmTokenTransfersView-token-transfers'
 			/>
 		{/if}
 	{/snippet}

@@ -1,88 +1,76 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum BlockheadQuilibriumPendingTransactionSelector {
 	AccountStateTransactionAddress = 'AccountStateTransactionAddress',
 }
-export default {
+export const BlockheadQuilibriumPendingTransaction = entity({
 	entityType: EntityType.BlockheadQuilibriumPendingTransaction,
 	label: 'blockhead quilibrium pending transaction',
 	labelPlural: 'blockhead quilibrium pending transactions',
-	selectors: [
-		{
-			name: BlockheadQuilibriumPendingTransactionSelector.AccountStateTransactionAddress,
-			fields: [
-				'$accountState',
-				'transactionAddress',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$accountState',
-			label: 'account state',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadQuilibriumAccountState,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'transactionAddress',
-			label: 'transaction address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$account',
-			label: 'account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.QuilibriumAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$refundAccount',
-			label: 'refund account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.QuilibriumAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'coinAddress',
-			label: 'coin address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'amount',
-			label: 'amount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'deliveryType',
-			label: 'delivery type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'deliveryAddress',
-			label: 'delivery address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'observedAt',
-			label: 'observed AT',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$accountState: {
+		label: 'account state',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BlockheadQuilibriumAccountState,
+		cardinality: EntityFieldCardinality.One,
+	},
+	transactionAddress: {
+		label: 'transaction address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$account: {
+		label: 'account',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.QuilibriumAccount,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$refundAccount: {
+		label: 'refund account',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.QuilibriumAccount,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	coinAddress: {
+		label: 'coin address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	amount: {
+		label: 'amount',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	deliveryType: {
+		label: 'delivery type',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	deliveryAddress: {
+		label: 'delivery address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	observedAt: {
+		label: 'observed AT',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		AccountStateTransactionAddress: [
+			'$accountState',
+			'transactionAddress',
+		],
+	},
+})

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -311,7 +311,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.CashuMint, false>('$mint')}
+				resource={selection.$mint}
 			>
 				{#snippet children(cashuMint)}
 					{#if cashuMint != null && cashuMint[EntityMetaKey.Selector] != null}
@@ -492,10 +492,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCashuProofsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCashuProof>('$$proofs')}
+				selection={selection.$$proofs}
 				title='proofs'
 				emptyText='No proofs found.'
-				id='BlockheadCashuProofsView-$$proofs'
+				id='BlockheadCashuProofsView-proofs'
 			/>
 		{/if}
 	{/snippet}

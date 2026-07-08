@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -373,7 +373,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.McpServer, false>('$mcpServer')}
+				resource={selection.$mcpServer}
 			>
 				{#snippet children(mcpServer)}
 					{#if mcpServer != null && mcpServer[EntityMetaKey.Selector] != null}
@@ -397,10 +397,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AgentPaymentRequirement_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AgentPaymentRequirement_Timestamp>('$$paymentRequirements')}
+				selection={selection.$$paymentRequirements}
 				title='Payment requirements'
 				emptyText='No payment requirement observations.'
-				id='AgentPaymentRequirement_TimestampsView-$$paymentRequirements'
+				id='AgentPaymentRequirement_TimestampsView-payment-requirements'
 			/>
 		{/if}
 	{/snippet}

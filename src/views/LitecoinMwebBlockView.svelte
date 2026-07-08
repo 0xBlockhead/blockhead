@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -240,10 +240,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LitecoinMwebTransactionsView
-				selection={selection[EntityProxyField]<EntityType.LitecoinMwebTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Litecoin MWEB transactions.'
-				id='LitecoinMwebTransactionsView-$$transactions'
+				id='LitecoinMwebTransactionsView-transactions'
 			/>
 		{/if}
 	{/snippet}

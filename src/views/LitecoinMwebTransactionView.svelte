@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -220,24 +220,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LitecoinMwebOutputsView
-				selection={selection[EntityProxyField]<EntityType.LitecoinMwebOutput>('$$outputs')}
+				selection={selection.$$outputs}
 				title='outputs'
 				emptyText='No Litecoin MWEB outputs.'
-				id='LitecoinMwebOutputsView-$$outputs'
+				id='LitecoinMwebOutputsView-outputs'
 			/>
 
 			<LitecoinMwebPegInsView
-				selection={selection[EntityProxyField]<EntityType.LitecoinMwebPegIn>('$$pegIns')}
+				selection={selection.$$pegIns}
 				title='peg ins'
 				emptyText='No Litecoin MWEB peg ins.'
-				id='LitecoinMwebPegInsView-$$pegIns'
+				id='LitecoinMwebPegInsView-peg-ins'
 			/>
 
 			<LitecoinMwebPegOutsView
-				selection={selection[EntityProxyField]<EntityType.LitecoinMwebPegOut>('$$pegOuts')}
+				selection={selection.$$pegOuts}
 				title='peg outs'
 				emptyText='No Litecoin MWEB peg outs.'
-				id='LitecoinMwebPegOutsView-$$pegOuts'
+				id='LitecoinMwebPegOutsView-peg-outs'
 			/>
 		{/if}
 	{/snippet}

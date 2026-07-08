@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -220,26 +220,26 @@
 		{#if detailsOpen}
 			<FilecoinNetwork_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.FilecoinNetwork_Timestamp>('$$timestamps', {
+						selection.$$timestamps({
 							sources: [
 								Source.Lotus_JsonRpc,
 							],
 						})
 					}
 				title='Observations'
-				id='FilecoinNetwork_TimestampsView-$$timestamps'
+				id='FilecoinNetwork_TimestampsView-timestamps'
 			/>
 
 			<FilecoinTipsetsView
 				selection={
-						selection[EntityProxyField]<EntityType.FilecoinTipset>('$$tipsets', {
+						selection.$$tipsets({
 							sources: [
 								Source.Lotus_JsonRpc,
 							],
 						})
 					}
 				title='Tipsets'
-				id='FilecoinTipsetsView-$$tipsets'
+				id='FilecoinTipsetsView-tipsets'
 			/>
 		{/if}
 	{/snippet}

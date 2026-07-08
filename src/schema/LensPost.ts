@@ -1,122 +1,105 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum LensPostSelector {
 	Id = 'Id',
 }
-export default {
+export const LensPost = entity({
 	entityType: EntityType.LensPost,
 	label: 'Lens post',
 	labelPlural: 'Lens posts',
-	selectors: [
-		{
-			name: LensPostSelector.Id,
-			fields: [
-				'id',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'id',
-			label: 'ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$author',
-			label: 'Author',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.LensAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'text',
-			label: 'Text',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'timestamp',
-			label: 'Timestamp',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'isEdited',
-			label: 'Edited',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'isDeleted',
-			label: 'Deleted',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'contentUri',
-			label: 'Content URI',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'metadataHash',
-			label: 'Metadata hash',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$commentOn',
-			label: 'Comment on',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.LensPost,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$quoteOf',
-			label: 'Quote of',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.LensPost,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$repostOf',
-			label: 'Repost of',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.LensPost,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$root',
-			label: 'Root',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.LensPost,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$comments',
-			label: 'Comments',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.LensPost,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$timestamps',
-			label: 'Observations',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.LensPost_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	id: {
+		label: 'ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$author: {
+		label: 'Author',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.LensAccount,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	text: {
+		label: 'Text',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	timestamp: {
+		label: 'Timestamp',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	isEdited: {
+		label: 'Edited',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	isDeleted: {
+		label: 'Deleted',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	contentUri: {
+		label: 'Content URI',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	metadataHash: {
+		label: 'Metadata hash',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$commentOn: {
+		label: 'Comment on',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.LensPost,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$quoteOf: {
+		label: 'Quote of',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.LensPost,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$repostOf: {
+		label: 'Repost of',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.LensPost,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$root: {
+		label: 'Root',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.LensPost,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$comments: {
+		label: 'Comments',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.LensPost,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$timestamps: {
+		label: 'Observations',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.LensPost_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		Id: [
+			'id',
+		],
+	},
+})

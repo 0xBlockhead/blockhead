@@ -34,6 +34,14 @@ export type EntityDefinition<
 	readonly description?: string
 	readonly selectors: readonly EntitySelectorDefinition[]
 	readonly fields: readonly EntityFieldDefinition<_Source>[]
+	readonly facets?: readonly EntityFacetDefinition<_Source>[]
+}
+
+export type EntityFacetDefinition<_Source extends string = string> = {
+	readonly id: string
+	readonly condition?: EntityFacetCondition
+	readonly fields: readonly EntityFieldDefinition<_Source>[]
+	readonly facets?: readonly EntityFacetDefinition<_Source>[]
 }
 
 export type EntitySelectorDefinition = {
@@ -62,6 +70,40 @@ export type EntityFieldCondition<
 	readonly values: readonly _Value[]
 }
 
+export type EntityFacetPath = readonly string[]
+
+export type EntityFieldAddress<
+	_EntityType extends string = string,
+	_FieldName extends string = string,
+> = {
+	readonly entityType: _EntityType
+	readonly facetPath: EntityFacetPath
+	readonly fieldName: _FieldName
+}
+
+export enum ProjectionResolution {
+	Applicable = 'Applicable',
+	NotApplicable = 'NotApplicable',
+	Blocked = 'Blocked',
+	Unsupported = 'Unsupported',
+}
+
+export type ProjectionValue<_Value> =
+	| {
+			readonly resolution: ProjectionResolution.Applicable
+			readonly value: _Value
+		}
+	| {
+			readonly resolution: ProjectionResolution.NotApplicable
+		}
+	| {
+			readonly resolution: ProjectionResolution.Blocked
+			readonly dependencies: readonly EntityFieldAddress[]
+		}
+	| {
+			readonly resolution: ProjectionResolution.Unsupported
+		}
+
 export type EntityFieldConditionKey<_Condition extends EntityFieldCondition> = (
 	_Condition extends {
 		itemIndex: infer _ItemIndex extends number
@@ -87,6 +129,31 @@ export const entityFieldCardinalityIsMultiple = (
 	|| cardinality === EntityFieldCardinality.ZeroOrMany
 )
 
+export const entityFieldFacetPath = (
+	fieldDefinition: EntityFieldDefinition
+): EntityFacetPath => (
+	fieldDefinition.facetPath ?? []
+)
+
+export const entityFieldAddress = (
+	entityType: string,
+	fieldDefinition: EntityFieldDefinition
+): EntityFieldAddress => ({
+	entityType,
+	facetPath: entityFieldFacetPath(fieldDefinition),
+	fieldName: fieldDefinition.name,
+})
+
+export const entityFieldAddressKey = (
+	entityType: string,
+	facetPath: EntityFacetPath,
+	fieldName: string
+) => `${entityType}${facetPath.join('')}${fieldName}`
+
+export const entityFacetFieldName = (
+	fieldDefinition: EntityFieldDefinition
+) => fieldDefinition.name
+
 export const entityFieldPrimitiveValueIsValid = (
 	fieldDefinition: Extract<EntityFieldDefinition, {
 		readonly type: EntityFieldType.Primitive
@@ -103,11 +170,7 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 		description?: string
 		defaultSources?: readonly _Source[]
 		when?: EntityFieldCondition
-		facet?: {
-			readonly id: string
-			readonly predicateFields: readonly string[]
-			readonly predicate?: EntityFacetPredicate
-		}
+		facetPath?: EntityFacetPath
 		normalize?: EntityFieldValueNormalizer
 	}
 	& (
@@ -132,21 +195,235 @@ export type EntityFieldDefinition<_Source extends string = string> = (
 		)
 )
 
-export type EntityFacetPredicate =
+export type EntityFacetCondition =
 	| {
-		readonly field: string
-		readonly equals: string | number | boolean | null
+		readonly path: readonly (string | number)[]
+		readonly is: string | number | boolean | null
 	}
 	| {
-		readonly field: string
-		readonly contains: string | number | boolean | null
+		readonly path: readonly (string | number)[]
+		readonly isOneOf: readonly (string | number | boolean | null)[]
 	}
 	| {
-		readonly all: readonly EntityFacetPredicate[]
+		readonly path: readonly (string | number)[]
+		readonly includes: string | number | boolean | null
 	}
 	| {
-		readonly any: readonly EntityFacetPredicate[]
+		readonly all: readonly EntityFacetCondition[]
 	}
+
+type EntityFieldDefinitionInput<_Source extends string = string> = Omit<EntityFieldDefinition<_Source>, 'name'>
+
+type EntityFieldDefinitionInputByName<_Source extends string = string> = Record<string, EntityFieldDefinitionInput<_Source>>
+
+type AnyEntityFacetInput<_Source extends string = string> = {
+	readonly condition: EntityFacetCondition
+	readonly fields: EntityFieldDefinitionInputByName<_Source>
+	readonly facets?: Record<string, AnyEntityFacetInput<_Source>>
+}
+
+type EntityFacetInput<
+	_Source extends string = string,
+	_Condition extends EntityFacetCondition = EntityFacetCondition,
+	_Fields extends EntityFieldDefinitionInputByName<_Source> = EntityFieldDefinitionInputByName<_Source>,
+	_Facets extends Record<string, AnyEntityFacetInput<_Source>> = {},
+> = {
+	readonly condition: _Condition
+	readonly fields: _Fields
+	readonly facets?: _Facets
+}
+
+type EntityFacetConditionPathIsValid<
+	_Fields,
+	_Facets,
+	_Path,
+> = (
+	_Path extends readonly [infer _Segment extends string, ...infer _Rest extends readonly (string | number)[]] ?
+		_Segment extends keyof _Facets ?
+			EntityFacetConditionPathIsValid<
+				_Fields & (
+					_Facets[_Segment] extends { readonly fields: infer _FacetFields } ?
+						_FacetFields
+					:
+						{}
+				),
+				_Facets[_Segment] extends { readonly facets?: infer _NestedFacets } ?
+					NonNullable<_NestedFacets>
+				:
+					{},
+				_Rest
+			>
+		: _Segment extends keyof _Fields ?
+			_Rest extends readonly [] | readonly [number] ?
+				true
+			:
+				false
+		:
+			false
+	:
+		false
+)
+
+type EntityFacetConditionIsValid<
+	_Fields,
+	_Facets,
+	_Condition,
+> = (
+	_Condition extends { readonly all: infer _Children extends readonly EntityFacetCondition[] } ?
+		false extends EntityFacetConditionIsValid<_Fields, _Facets, _Children[number]> ?
+			false
+		:
+			true
+	: _Condition extends { readonly path: infer _Path extends readonly (string | number)[] } ?
+		EntityFacetConditionPathIsValid<_Fields, _Facets, _Path>
+	:
+		false
+)
+
+type EntityFacetInputIsValid<
+	_Fields,
+	_AllFacets,
+	_Facet,
+> = (
+	_Facet extends {
+		readonly condition: infer _Condition
+		readonly facets?: infer _NestedFacets
+	} ?
+		EntityFacetConditionIsValid<_Fields, _AllFacets, _Condition> extends true ?
+			false extends {
+				readonly [
+					_NestedFacetName in keyof NonNullable<_NestedFacets>
+				]: EntityFacetInputIsValid<_Fields, _AllFacets, NonNullable<_NestedFacets>[_NestedFacetName]>
+			}[keyof NonNullable<_NestedFacets>] ?
+				false
+			:
+				true
+		:
+			false
+	:
+		false
+)
+
+const entityDefinitionFields = <_Source extends string>(
+	fields: EntityFieldDefinitionInputByName<_Source>
+): EntityFieldDefinition<_Source>[] => Object.entries(fields).map(([name, fieldDefinition]) => ({
+	...fieldDefinition,
+	name,
+} as EntityFieldDefinition<_Source>))
+
+const entityFacetDefinition = <_Source extends string>(
+	id: string,
+	facetInput: AnyEntityFacetInput<_Source>
+): EntityFacetDefinition<_Source> => ({
+	id,
+	condition: facetInput.condition,
+	fields: entityDefinitionFields(facetInput.fields),
+	facets: facetInput.facets == null ?
+		undefined
+	:
+		Object.entries(facetInput.facets).map(([facetId, childFacet]) => entityFacetDefinition(facetId, childFacet)),
+})
+
+const entityFacetInput = <_Source extends string>(
+	condition: EntityFacetCondition,
+	fields: EntityFieldDefinitionInputByName<_Source>,
+	nested?: { readonly facets?: Record<string, AnyEntityFacetInput<_Source>> }
+): EntityFacetInput<_Source> => ({
+	condition,
+	fields,
+	facets: nested?.facets == null ?
+		undefined
+	:
+		Object.fromEntries(Object.entries(nested.facets).map(([facetId, childFacet]) => [
+			facetId,
+			entityFacetInput(childFacet.condition, childFacet.fields, childFacet),
+		])),
+})
+
+export const facet = <const _Condition extends EntityFacetCondition>(
+	condition: _Condition
+) => <const _Fields extends EntityFieldDefinitionInputByName>(
+	fields: _Fields
+) => Object.assign(
+		<const _Nested extends { readonly facets?: Record<string, AnyEntityFacetInput> }>(
+			nested: _Nested
+		): EntityFacetInput<
+			string,
+			_Condition,
+			_Fields,
+			NonNullable<_Nested['facets']>
+		> => entityFacetInput(condition, fields, nested) as EntityFacetInput<
+			string,
+			_Condition,
+			_Fields,
+			NonNullable<_Nested['facets']>
+		>,
+		{
+			condition,
+			fields,
+		}
+	) as (
+	& EntityFacetInput<
+		string,
+		_Condition,
+		_Fields
+	>
+	& (<const _Nested extends { readonly facets?: Record<string, AnyEntityFacetInput> }>(
+		nested: _Nested
+	) => EntityFacetInput<
+		string,
+		_Condition,
+		_Fields,
+		NonNullable<_Nested['facets']>
+	>)
+)
+
+
+export const entity = <
+	const _EntityType extends string,
+>(meta: {
+	readonly entityType: _EntityType
+	readonly label: string
+	readonly labelPlural: string
+	readonly description?: string
+}) => <const _Fields extends EntityFieldDefinitionInputByName>(
+	fields: _Fields
+) => <
+	const _Selectors extends Record<string, readonly string[]>,
+	const _Facets extends Record<string, AnyEntityFacetInput> = {},
+>(
+	selectorsAndFacets: {
+		readonly selectors: {
+			readonly [
+				_SelectorName in keyof _Selectors
+			]: _Selectors[_SelectorName][number] extends keyof _Fields & string ?
+				_Selectors[_SelectorName]
+			:
+				never
+		}
+		readonly facets?: {
+			readonly [
+				_FacetName in keyof _Facets
+			]: _FacetName extends keyof _Fields ?
+				never
+			: EntityFacetInputIsValid<_Fields, _Facets, _Facets[_FacetName]> extends true ?
+				_Facets[_FacetName]
+			:
+				never
+		}
+	}
+): EntityDefinition<_EntityType> => ({
+	...meta,
+	selectors: Object.entries(selectorsAndFacets.selectors).map(([name, selectorFields]) => ({
+		name,
+		fields: selectorFields,
+	})),
+	fields: entityDefinitionFields(fields),
+	facets: selectorsAndFacets.facets == null ?
+		undefined
+	:
+		Object.entries(selectorsAndFacets.facets).map(([facetId, facetInput]) => entityFacetDefinition(facetId, facetInput)),
+})
 
 export type EntityFieldDefinitions<_EntityDefinition extends EntityDefinition> = (
 	_EntityDefinition['fields'][number]
@@ -160,7 +437,29 @@ export function entityFieldDefinitions<
 export function entityFieldDefinitions(
 	entityDefinition: EntityDefinition
 ): readonly EntityFieldDefinition[] {
-	return entityDefinition.fields
+	const facetFields = (
+		facets: readonly EntityFacetDefinition[] | undefined,
+		parentPath: EntityFacetPath = []
+	): EntityFieldDefinition[] => (
+		facets ?? []
+	).flatMap((facetDefinition) => {
+		const facetPath = [
+			...parentPath,
+			facetDefinition.id,
+		]
+		return [
+			...facetDefinition.fields.map((fieldDefinition) => ({
+				...fieldDefinition,
+				facetPath,
+			})),
+			...facetFields(facetDefinition.facets, facetPath),
+		]
+	})
+
+	return [
+		...entityDefinition.fields,
+		...facetFields(entityDefinition.facets),
+	]
 }
 type EntitySelectorFieldValue<
 	_Schema extends Schema,
@@ -621,19 +920,16 @@ export type EntityFieldName<
 export type EntityFacetId<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = Extract<
-	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
-	{ facet: { id: string } }
->['facet']['id']
+> = NonNullable<EntityDefinitionForEntityType<_Schema, _EntityType>['facets']>[number]['id']
 
 export type EntityFacetFieldDefinition<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 	_FacetId extends EntityFacetId<_Schema, _EntityType>,
 > = Extract<
-	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
-	{ facet: { id: _FacetId } }
->
+	NonNullable<EntityDefinitionForEntityType<_Schema, _EntityType>['facets']>[number],
+	{ readonly id: _FacetId }
+>['fields'][number]
 
 export type EntityFacetFieldName<
 	_Schema extends Schema,
@@ -648,10 +944,7 @@ export type EntityFacetFieldName<
 export type EntityNonFacetFieldDefinition<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
-> = Exclude<
-	EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>,
-	{ facet: { id: string } }
->
+> = EntityFieldDefinitions<EntityDefinitionForEntityType<_Schema, _EntityType>>
 
 export type EntityNonFacetFieldName<
 	_Schema extends Schema,
@@ -1112,6 +1405,14 @@ export type Entity<
 	& Partial<EntityFieldValues<_Schema, _EntityType>>
 )
 
+export type EntityProjectionDefinition = {
+	readonly entityType: string
+	readonly facetPath: EntityFacetPath
+	readonly condition?: EntityFacetCondition
+	readonly fields: readonly EntityFieldDefinition[]
+	readonly facets?: readonly EntityFacetDefinition[]
+}
+
 export type EntityFieldDefinitionByEntityTypeAndName<_Schema extends Schema> = {
 	readonly [_EntityType in EntityType<_Schema>]: (
 		& {
@@ -1124,6 +1425,10 @@ export type EntityFieldDefinitionByEntityTypeAndName<_Schema extends Schema> = {
 		}
 		)
 	}
+
+export type EntityFieldDefinitionByEntityTypePathAndName<_Schema extends Schema> = {
+	readonly [_EntityType in EntityType<_Schema>]: Record<string, EntityFieldDefinition | undefined>
+}
 
 export type EntitySelectorDefinitionByEntityTypeAndName<_Schema extends Schema> = {
 	readonly [_EntityType in EntityType<_Schema>]: (
@@ -1143,23 +1448,87 @@ export type EntitySelectorDefinitionByEntityTypeAndName<_Schema extends Schema> 
 
 export const indexSchema = <const _Schema extends Schema>(
 	schema: _Schema
-) => ({
-	entityDefinitionByType: Object.fromEntries(schema.map((entityDefinition) => [
-		entityDefinition.entityType,
-		entityDefinition,
-	])) as EntityDefinitionByType<_Schema>,
-	entityFieldDefinitionByEntityTypeAndName: Object.fromEntries(schema.map((entityDefinition) => [
-		entityDefinition.entityType,
-		Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
-			fieldDefinition.name,
-			fieldDefinition,
-		])),
-	])) as EntityFieldDefinitionByEntityTypeAndName<_Schema>,
-	entitySelectorDefinitionByEntityTypeAndName: Object.fromEntries(schema.map((entityDefinition) => [
-		entityDefinition.entityType,
-		Object.fromEntries(entityDefinition.selectors.map((selectorDefinition) => [
-			selectorDefinition.name,
-			selectorDefinition,
-		])),
-	])) as EntitySelectorDefinitionByEntityTypeAndName<_Schema>,
-})
+) => {
+	const projectionDefinitionsForFacets = (
+		entityType: string,
+		facets: readonly EntityFacetDefinition[] | undefined,
+		parentPath: EntityFacetPath = []
+	): EntityProjectionDefinition[] => (
+		facets ?? []
+	).flatMap((facetDefinition) => {
+		const facetPath = [
+			...parentPath,
+			facetDefinition.id,
+		]
+		return [
+			{
+				entityType,
+				facetPath,
+				condition: facetDefinition.condition,
+				fields: facetDefinition.fields,
+				facets: facetDefinition.facets,
+			},
+			...projectionDefinitionsForFacets(
+				entityType,
+				facetDefinition.facets,
+				facetPath
+			),
+		]
+	})
+	const projectionDefinitions = schema.flatMap((entityDefinition) => (
+		[
+			{
+				entityType: entityDefinition.entityType,
+				facetPath: [],
+				fields: entityDefinition.fields,
+				facets: entityDefinition.facets,
+			},
+			...projectionDefinitionsForFacets(
+				entityDefinition.entityType,
+				entityDefinition.facets
+			),
+		]
+	))
+	return {
+		entityDefinitionByType: Object.fromEntries(schema.map((entityDefinition) => [
+			entityDefinition.entityType,
+			entityDefinition,
+		])) as EntityDefinitionByType<_Schema>,
+		projectionDefinitions,
+		projectionDefinitionByEntityTypeAndPath: Object.fromEntries(
+			projectionDefinitions.map((projectionDefinition) => [
+				entityFieldAddressKey(
+					projectionDefinition.entityType,
+					projectionDefinition.facetPath,
+					''
+				),
+				projectionDefinition,
+			])
+		) as Record<string, EntityProjectionDefinition | undefined>,
+		entityFieldDefinitionByEntityTypeAndName: Object.fromEntries(schema.map((entityDefinition) => [
+			entityDefinition.entityType,
+			Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
+				fieldDefinition.name,
+				fieldDefinition,
+			])),
+		])) as EntityFieldDefinitionByEntityTypeAndName<_Schema>,
+		entityFieldDefinitionByEntityTypePathAndName: Object.fromEntries(schema.map((entityDefinition) => [
+			entityDefinition.entityType,
+			Object.fromEntries(entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
+				entityFieldAddressKey(
+					entityDefinition.entityType,
+					entityFieldFacetPath(fieldDefinition),
+					fieldDefinition.name
+				),
+				fieldDefinition,
+			])),
+		])) as EntityFieldDefinitionByEntityTypePathAndName<_Schema>,
+		entitySelectorDefinitionByEntityTypeAndName: Object.fromEntries(schema.map((entityDefinition) => [
+			entityDefinition.entityType,
+			Object.fromEntries(entityDefinition.selectors.map((selectorDefinition) => [
+				selectorDefinition.name,
+				selectorDefinition,
+			])),
+		])) as EntitySelectorDefinitionByEntityTypeAndName<_Schema>,
+	}
+}

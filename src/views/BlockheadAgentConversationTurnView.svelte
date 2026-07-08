@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -126,7 +126,7 @@
 				<dt>Conversation</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.BlockheadAgentConversation, false>('$conversation')}
+						resource={selection.$conversation}
 					>
 						{#snippet children(blockheadAgentConversation)}
 							{#if blockheadAgentConversation[EntityMetaKey.Selector] != null}
@@ -367,10 +367,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadAgentProviderCallsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadAgentProviderCall>('$$providerCalls')}
+				selection={selection.$$providerCalls}
 				title='provider calls'
 				emptyText='No provider calls yet.'
-				id='BlockheadAgentProviderCallsView-$$providerCalls'
+				id='BlockheadAgentProviderCallsView-provider-calls'
 			/>
 		{/if}
 	{/snippet}

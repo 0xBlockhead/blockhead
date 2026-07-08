@@ -11,7 +11,7 @@ import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import type { ProposerPayloadDelivered } from '$/sources/MevRelay/Rest/types.ts'
 import { Source } from '$/sources/Source.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { MevRelay_ProposerPayloadDeliveredSelector } from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
 import { MevBuilderSelector } from '$/schema/MevBuilder.ts'
 import { MevBuilder_TimestampSelector } from '$/schema/MevBuilder_Timestamp.ts'
@@ -96,14 +96,12 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				builderPubkey: (snapshot) => snapshot.builderPubkey,
 				$builder: (snapshot) => snapshot.$builder,
 				value: (snapshot) => snapshot.value,
 				blockNumber: (snapshot) => snapshot.blockNumber,
 				$executionBlock: (snapshot) => snapshot.$executionBlock,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevRelay,
@@ -119,10 +117,8 @@ export default {
 				],
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevRelay_Timestamp,
@@ -166,7 +162,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				reachable: (snapshot) => snapshot.reachable,
 				deliveredPayloadSampleCount: (snapshot) => snapshot.deliveredPayloadSampleCount,
 				builderSampleCount: (snapshot) => snapshot.builderSampleCount,
@@ -174,8 +169,7 @@ export default {
 				windowEndSlot: (snapshot) => snapshot.windowEndSlot,
 				sampleLimit: (snapshot) => snapshot.sampleLimit,
 				error: (snapshot) => snapshot.error,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevBuilder,
@@ -191,10 +185,8 @@ export default {
 				],
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevBuilder_Timestamp,
@@ -239,15 +231,13 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				deliveredPayloadCount: (snapshot) => snapshot.deliveredPayloadCount,
 				deliveredValueWei: (snapshot) => snapshot.deliveredValueWei,
 				relayCount: (snapshot) => snapshot.relayCount,
 				windowStartSlot: (snapshot) => snapshot.windowStartSlot,
 				windowEndSlot: (snapshot) => snapshot.windowEndSlot,
 				sampleLimit: (snapshot) => snapshot.sampleLimit,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
 			entityType: EntityType.MevBuilder,
@@ -297,15 +287,13 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$deliveredPayloads: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
+				[NetworkSelector.Caip2]: async (entitySelector, context) => {
 					const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 					const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 					const chainId = Number(entitySelector.caip2.reference)
@@ -357,15 +345,15 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$mevProposerPayloadDelivered: (snapshot) => snapshot,
-			},
-		}),
+				Evm: {
+					$$mevProposerPayloadDelivered: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.MevRelay_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 					const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
@@ -407,9 +395,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$mevBuilders: (snapshot) => snapshot,
-			},
-		}),
+				Evm: {
+					$$mevBuilders: (snapshot) => snapshot,
+				},
+			}),
 	],
 }

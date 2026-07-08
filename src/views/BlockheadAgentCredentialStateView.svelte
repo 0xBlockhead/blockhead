@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -105,7 +105,7 @@
 		<ResourceBoundary resource={blockheadAgentCredentialState}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BlockheadAgentConnection, false>('$connection')}
+					resource={selection.$connection}
 				>
 					{#snippet children(blockheadAgentConnection)}
 						{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
@@ -125,7 +125,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BlockheadAgentConnection, false>('$connection')}
+					resource={selection.$connection}
 				>
 					{#snippet children(blockheadAgentConnection)}
 						{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
@@ -177,7 +177,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadAgentConnection, false>('$connection')}
+				resource={selection.$connection}
 			>
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
@@ -343,10 +343,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadAgentCredentialState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadAgentCredentialState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No credential observations.'
-				id='BlockheadAgentCredentialState_TimestampsView-$$timestamps'
+				id='BlockheadAgentCredentialState_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

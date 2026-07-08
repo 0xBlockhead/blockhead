@@ -58,6 +58,7 @@ const {
 )
 const {
 	resolverDefinitions: allSourceResolverDefinitions,
+	resolverParts: allSourceResolverParts,
 } = indexResolvers(
 	schema,
 	resolvers,
@@ -65,6 +66,26 @@ const {
 		sourceProvider.sources.map((sourceDefinition) => sourceDefinition.source)
 	)))
 )
+
+const resolverFieldNames = (
+	resolver: typeof allSourceResolverDefinitions[number] | undefined
+) => [
+	...resolverParts,
+	...allSourceResolverParts,
+]
+	.filter((resolverPart) => resolverPart.resolver === resolver)
+	.map((resolverPart) => resolverPart.fieldName)
+
+const resolverFieldSelector = (
+	resolver: typeof allSourceResolverDefinitions[number] | undefined,
+	fieldName: string
+) => [
+	...resolverParts,
+	...allSourceResolverParts,
+].find((resolverPart) => (
+	resolverPart.resolver === resolver
+	&& resolverPart.fieldName === fieldName
+))?.select
 
 const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
 	schema.map((entityDefinition) => [
@@ -147,7 +168,7 @@ const validFixtureResolver = {
 	resolve: {
 		[FixtureEntitySelector.Slug]: async () => ({}),
 	},
-	fields: {
+	projections: {
 		name: () => 'Ada',
 		segments: () => ['kind'],
 	},
@@ -195,7 +216,7 @@ describe('resolver registry live resolver architecture', () => {
 				'empty fields',
 				{
 					...validFixtureResolver,
-					fields: {},
+					projections: {},
 				},
 				/declares no fields/,
 			],
@@ -203,17 +224,17 @@ describe('resolver registry live resolver architecture', () => {
 				'unknown field',
 				{
 					...validFixtureResolver,
-					fields: {
+					projections: {
 						missingField: () => undefined,
 					},
 				},
-				/references unknown field missingField/,
+				/references unknown projection path missingField/,
 			],
 			[
 				'unknown parent selector',
 				{
 					...validFixtureResolver,
-					fields: {
+					projections: {
 						$$children: {
 							parentSelectors: ['missingSelector'],
 							select: () => [],
@@ -226,7 +247,7 @@ describe('resolver registry live resolver architecture', () => {
 				'count on scalar field',
 				{
 					...validFixtureResolver,
-					fields: {
+					projections: {
 						name: {
 							resolveCount: () => 1,
 						},
@@ -268,7 +289,7 @@ describe('resolver registry live resolver architecture', () => {
 				'async field selector',
 				{
 					...validFixtureResolver,
-					fields: {
+					projections: {
 						name: async () => 'Ada',
 					},
 				},
@@ -278,7 +299,7 @@ describe('resolver registry live resolver architecture', () => {
 				'async count selector',
 				{
 					...validFixtureResolver,
-					fields: {
+					projections: {
 						$$children: {
 							resolveCount: async () => 1,
 						},
@@ -309,11 +330,11 @@ describe('resolver registry live resolver architecture', () => {
 	it('requires concrete resolver declarations to name every supported field facet', () => {
 		expect(allSourceResolverDefinitions.length).toBeGreaterThan(0)
 		expect(allSourceResolverDefinitions.every((resolver) => (
-			Object.keys(resolver.fields).length > 0
+			Object.keys(resolver.projections).length > 0
 		))).toBe(true)
 		expect(Object.values(resolverRootLivePartsByEntityType).flat().every((part) => (
 			Object.keys(part.publisher.publishes).every((fieldName) => (
-				fieldName in part.resolver.fields
+				resolverFieldNames(part.resolver).includes(fieldName)
 			))
 		))).toBe(true)
 	})
@@ -334,7 +355,7 @@ describe('resolver registry live resolver architecture', () => {
 		expect(resolverParts.length).toBeGreaterThan(0)
 		expect(resolverParts.every((resolverPart) => (
 			resolverDefinitions[resolverPart.resolver.definitionIndex] === resolverPart.resolver
-			&& Object.entries(resolverPart.resolver.fields)[resolverPart.partIndex]?.[0] === resolverPart.fieldName
+			&& resolverParts.filter((candidate) => candidate.resolver === resolverPart.resolver)[resolverPart.partIndex] === resolverPart
 		))).toBe(true)
 		expect(
 			resolverParts.some((resolverPart, resolverPartIndex) => (
@@ -353,11 +374,12 @@ describe('resolver registry live resolver architecture', () => {
 	})
 
 	it('exposes Voltaire blockstream as EVM network timestamp live rows', () => {
-		const evmNetworkRootLiveParts = resolverRootLivePartsByEntityType[EntityType.EvmNetwork] ?? []
+		const evmNetworkRootLiveParts = resolverRootLivePartsByEntityType[EntityType.Network] ?? []
 
-		expect(fieldNamesWithLiveResolverByEntityType[EntityType.EvmNetwork]).toContain('$$timestamps')
+		expect(fieldNamesWithLiveResolverByEntityType[EntityType.Network]).toContain('$$timestamps')
 		expect(evmNetworkRootLiveParts.some((part) => (
-			part.publisher.publishes.$$timestamps === true
+			part.facetPath.join('.') === 'Evm'
+			&& part.publisher.publishes.$$timestamps === true
 		))).toBe(true)
 		expect(resolverParts.some((part) => (
 			part.entityType === EntityType.EvmNetwork_Timestamp
@@ -384,7 +406,7 @@ describe('resolver registry live resolver architecture', () => {
 		expect(Object.values(resolverLivePartsByEntityTypeAndFieldName).flat().every((resolverPart) => (
 			'partIndex' in resolverPart
 		))).toBe(true)
-		expect(fieldNamesWithLiveResolverByEntityType[EntityType.EvmNetwork]).toContain('$$timestamps')
+		expect(fieldNamesWithLiveResolverByEntityType[EntityType.Network]).toContain('$$timestamps')
 	})
 
 	it('indexes value, count, and discriminator resolver parts without resolver ids', () => {
@@ -397,7 +419,8 @@ describe('resolver registry live resolver architecture', () => {
 		).toBeGreaterThan(0)
 		expect(
 			resolverParts.filter((part) => (
-				part.entityType === EntityType.EvmNetwork
+				part.entityType === EntityType.Network
+				&& part.facetPath.join('.') === 'Evm'
 				&& part.fieldName === '$$blocks'
 				&& part.resolveCount != null
 			)).length
@@ -426,28 +449,24 @@ describe('resolver registry live resolver architecture', () => {
 				[_GlobalSelector.Scope]: async () => ({}),
 			},
 		})({
-			fields: {
 				$$networks: {
 					parentSelectors: [_GlobalSelector.Scope],
 					select: () => ([]),
 				},
-			},
-		})
+			})
 		const second = defineResolver(Source.Constants_Internal, {
 			entityType: EntityType._Global,
 			resolve: {
 				[_GlobalSelector.Scope]: async () => ({}),
 			},
 		})({
-			fields: {
 				$$networks: {
 					parentSelectors: [_GlobalSelector.Scope],
 					select: () => ([]),
 				},
-			},
-		})
+			})
 		const parts = [first, second].flatMap((resolver, definitionIndex) => (
-			Object.entries(resolver.fields).map(([fieldName, fieldSelector], partIndex) => ({
+			Object.entries(resolver.projections).map(([fieldName, fieldSelector], partIndex) => ({
 				...(typeof fieldSelector === 'function' ? { select: fieldSelector } : fieldSelector),
 				definitionIndex,
 				partIndex,
@@ -517,7 +536,7 @@ describe('resolver registry live resolver architecture', () => {
 					))
 				)))
 				const materializedFieldNames = new Set(entityResolvers.flatMap((resolver) => (
-					Object.keys(resolver.fields)
+					Object.keys(resolver.projections)
 				)))
 
 				return entityDefinition.selectors.flatMap((selector) => (
@@ -579,7 +598,7 @@ describe('resolver registry live resolver architecture', () => {
 							))
 						))
 						const resolverMaterializesField = resolversForSource.some((resolver) => (
-							fieldDefinition.name in resolver.fields
+							resolverFieldNames(resolver).includes(fieldDefinition.name)
 						))
 
 						return {
@@ -633,16 +652,16 @@ describe('resolver registry live resolver architecture', () => {
 			sourceBackedExamples: unresolvedSourceBackedEntityTypes.slice(0, 20),
 		}).toEqual({
 			all: {
-				count: 673,
-				sha256: 'da8aebcedf6b5daf3b197adb180adc27f6b9d9f8097e7c8c1ce29526dad9c590',
+				count: 674,
+				sha256: '8e6b03d3497e9784e153fe46b7807c1d2d85396f7b1df6ae13cc3b92feee6f05',
 			},
 			sourceBacked: {
 				count: 222,
 				sha256: '1cbdf9624759c52f9970487fd2138fa076e64a71a717b90d3f53c57092eb24c3',
 			},
 			noDeclaredSource: {
-				count: 451,
-				sha256: '558fd5a162f007389cbd546560c2c5dc1db729f218a310cb806de0bee213bd7e',
+				count: 452,
+				sha256: '63476257159ade5538899d84b7571e522f6ee87e5bdc44fa92002c04cda1300a',
 			},
 			sourceBackedExamples: [
 				'_GlobalActivityPubNetwork_Timestamp',
@@ -677,10 +696,10 @@ describe('resolver registry live resolver architecture', () => {
 			EvmBlockSelector.EvmNetworkBlockNumber,
 			EvmBlockSelector.EvmNetworkBlockHash,
 		]))
-		expect(Object.keys(allSourceResolverDefinitions.find((resolver) => (
+		expect(resolverFieldNames(allSourceResolverDefinitions.find((resolver) => (
 			resolver.source === Source.Voltaire_JsonRpc
 			&& resolver.entityType === EntityType.EvmTransaction
-		))?.fields ?? {})).toEqual(expect.arrayContaining([
+		)))).toEqual(expect.arrayContaining([
 			'$block',
 				'$from',
 				'$to',
@@ -708,20 +727,20 @@ describe('resolver registry live resolver architecture', () => {
 			'traceRoot',
 			'traceUnavailable',
 		]))
-		expect(Object.keys(allSourceResolverDefinitions.find((resolver) => (
+		expect(resolverFieldNames(allSourceResolverDefinitions.find((resolver) => (
 			resolver.source === Source.Voltaire_JsonRpc
 			&& resolver.entityType === EntityType.EvmTransaction
-		))?.fields ?? {})).not.toContain('$$internalTransfers')
-		expect(Object.keys(allSourceResolverDefinitions.find((resolver) => (
+		)))).not.toContain('$$internalTransfers')
+		expect(resolverFieldNames(allSourceResolverDefinitions.find((resolver) => (
 			resolver.source === Source.Voltaire_JsonRpc
 			&& resolver.entityType === EntityType.EvmBlob
-		))?.fields ?? {})).toEqual(expect.arrayContaining([
+		)))).toEqual(expect.arrayContaining([
 			'versionedHash',
 		]))
-		expect(Object.keys(allSourceResolverDefinitions.find((resolver) => (
+		expect(resolverFieldNames(allSourceResolverDefinitions.find((resolver) => (
 			resolver.source === Source.Voltaire_JsonRpc
 			&& resolver.entityType === EntityType.EvmLog
-		))?.fields ?? {})).toEqual(expect.arrayContaining([
+		)))).toEqual(expect.arrayContaining([
 			'$$topics',
 			'indexInTransaction',
 			'$transaction',
@@ -827,7 +846,7 @@ describe('resolver registry live resolver architecture', () => {
 		const blockResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Voltaire_JsonRpc
 			&& candidate.entityType === EntityType.EvmBlock
-			&& 'hash' in candidate.fields
+			&& 'hash' in candidate.projections
 		))
 		const resolveBlockByHash = blockResolver?.resolve[EvmBlockSelector.EvmNetworkBlockHash]
 		if (blockResolver == null || resolveBlockByHash == null)
@@ -836,19 +855,19 @@ describe('resolver registry live resolver architecture', () => {
 			$network,
 			hash: blockHash,
 		}, resolverContext)
-		expect(blockResolver.fields.hash(block, {
+		expect(resolverFieldSelector(blockResolver, 'hash')(block, {
 			$network,
 			hash: blockHash,
 		}, resolverContext)).toBe(blockHash)
-		expect(blockResolver.fields.blockNumber(block, {
+		expect(resolverFieldSelector(blockResolver, 'blockNumber')(block, {
 			$network,
 			hash: blockHash,
 		}, resolverContext)).toBe(100n)
-		expect(blockResolver.fields.blobGasUsed(block, {
+		expect(resolverFieldSelector(blockResolver, 'blobGasUsed')(block, {
 			$network,
 			hash: blockHash,
 		}, resolverContext)).toBe(2n)
-		expect(blockResolver.fields.$$transactions(block, {
+		expect(resolverFieldSelector(blockResolver, '$$transactions')(block, {
 			$network,
 			hash: blockHash,
 		}, resolverContext)).toEqual([{
@@ -861,8 +880,8 @@ describe('resolver registry live resolver architecture', () => {
 		const transactionResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Voltaire_JsonRpc
 			&& candidate.entityType === EntityType.EvmTransaction
-			&& 'r' in candidate.fields
-			&& '$$logs' in candidate.fields
+			&& 'r' in candidate.projections
+			&& '$$logs' in candidate.projections
 		))
 		const resolveTransaction = transactionResolver?.resolve[EvmTransactionSelector.EvmNetworkTxHash]
 		if (transactionResolver == null || resolveTransaction == null)
@@ -871,27 +890,27 @@ describe('resolver registry live resolver architecture', () => {
 			$network,
 			txHash,
 		}, resolverContext)
-		expect(transactionResolver.fields.r(transaction, {
+		expect(resolverFieldSelector(transactionResolver, 'r')(transaction, {
 			$network,
 			txHash,
 		}, resolverContext)).toBe(`0x${'aa'.repeat(32)}`)
-		expect(transactionResolver.fields.s(transaction, {
+		expect(resolverFieldSelector(transactionResolver, 's')(transaction, {
 			$network,
 			txHash,
 		}, resolverContext)).toBe(`0x${'bb'.repeat(32)}`)
-		expect(transactionResolver.fields.v(transaction, {
+		expect(resolverFieldSelector(transactionResolver, 'v')(transaction, {
 			$network,
 			txHash,
 		}, resolverContext)).toBe('0x1b')
-		expect(transactionResolver.fields.blobGasUsed(transaction, {
+		expect(resolverFieldSelector(transactionResolver, 'blobGasUsed')(transaction, {
 			$network,
 			txHash,
 		}, resolverContext)).toBe(2n)
-		expect(transactionResolver.fields.maxFeePerBlobGas(transaction, {
+		expect(resolverFieldSelector(transactionResolver, 'maxFeePerBlobGas')(transaction, {
 			$network,
 			txHash,
 		}, resolverContext)).toBe(16n)
-		expect(transactionResolver.fields.$$logs(transaction, {
+		expect(resolverFieldSelector(transactionResolver, '$$logs')(transaction, {
 			$network,
 			txHash,
 		}, resolverContext)).toEqual([{
@@ -907,13 +926,13 @@ describe('resolver registry live resolver architecture', () => {
 		const transactionLogsResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Voltaire_JsonRpc
 			&& candidate.entityType === EntityType.EvmTransaction
-			&& Object.keys(candidate.fields).length === 1
-			&& '$$logs' in candidate.fields
+			&& Object.keys(candidate.projections).length === 1
+			&& '$$logs' in candidate.projections
 		))
 		const resolveTransactionLogs = transactionLogsResolver?.resolve[EvmTransactionSelector.EvmNetworkTxHash]
 		if (transactionLogsResolver == null || resolveTransactionLogs == null)
 			throw new Error('Voltaire_JsonRpc: missing EvmTransaction.$$logs resolver')
-		expect(transactionLogsResolver.fields.$$logs(
+		expect(resolverFieldSelector(transactionLogsResolver, '$$logs')(
 			await resolveTransactionLogs({
 				$network,
 				txHash,
@@ -947,7 +966,7 @@ describe('resolver registry live resolver architecture', () => {
 			},
 			indexInTransaction: 3,
 		}, resolverContext)
-		expect(logResolver.fields.$$topics(log, {
+		expect(resolverFieldSelector(logResolver, '$$topics')(log, {
 			$transaction: {
 				$network,
 				txHash,
@@ -958,7 +977,7 @@ describe('resolver registry live resolver architecture', () => {
 				hex: topic,
 			},
 		}])
-		expect(logResolver.fields.$transaction(log, {
+		expect(resolverFieldSelector(logResolver, '$transaction')(log, {
 			$transaction: {
 				$network,
 				txHash,
@@ -970,7 +989,7 @@ describe('resolver registry live resolver architecture', () => {
 				txHash,
 			},
 		})
-		expect(logResolver.fields.$block(log, {
+		expect(resolverFieldSelector(logResolver, '$block')(log, {
 			$transaction: {
 				$network,
 				txHash,
@@ -982,14 +1001,14 @@ describe('resolver registry live resolver architecture', () => {
 				hash: blockHash,
 			},
 		})
-		expect(logResolver.fields.removed(log, {
+		expect(resolverFieldSelector(logResolver, 'removed')(log, {
 			$transaction: {
 				$network,
 				txHash,
 			},
 			indexInTransaction: 3,
 		}, resolverContext)).toBe(false)
-		expect(logResolver.fields.$emitter(log, {
+		expect(resolverFieldSelector(logResolver, '$emitter')(log, {
 			$transaction: {
 				$network,
 				txHash,
@@ -1005,7 +1024,7 @@ describe('resolver registry live resolver architecture', () => {
 		const blobResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Voltaire_JsonRpc
 			&& candidate.entityType === EntityType.EvmBlob
-			&& 'versionedHash' in candidate.fields
+			&& 'versionedHash' in candidate.projections
 		))
 		const resolveBlob = blobResolver?.resolve[EvmBlobSelector.TransactionIndexInTransaction]
 		if (blobResolver == null || resolveBlob == null)
@@ -1017,14 +1036,14 @@ describe('resolver registry live resolver architecture', () => {
 			},
 			indexInTransaction: 0,
 		}, resolverContext)
-		expect(blobResolver.fields.versionedHash(blob, {
+		expect(resolverFieldSelector(blobResolver, 'versionedHash')(blob, {
 			$transaction: {
 				$network,
 				txHash,
 			},
 			indexInTransaction: 0,
 		}, resolverContext)).toBe(versionedHash)
-		expect(blobResolver.fields.$transaction(blob, {
+		expect(resolverFieldSelector(blobResolver, '$transaction')(blob, {
 			$transaction: {
 				$network,
 				txHash,
@@ -1036,7 +1055,7 @@ describe('resolver registry live resolver architecture', () => {
 				txHash,
 			},
 		})
-		expect(blobResolver.fields.$block(blob, {
+		expect(resolverFieldSelector(blobResolver, '$block')(blob, {
 			$transaction: {
 				$network,
 				txHash,
@@ -1087,7 +1106,7 @@ describe('resolver registry live resolver architecture', () => {
 		const coingeckoTimestampResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Coingecko_Rest
 			&& candidate.entityType === EntityType.Coin_Timestamp
-			&& 'marketCapRank' in candidate.fields
+			&& 'marketCapRank' in candidate.projections
 		))
 		const resolveCoingeckoTimestamp = coingeckoTimestampResolver?.resolve[Coin_TimestampSelector.CoinTimestampMsSource]
 		if (coingeckoTimestampResolver == null || resolveCoingeckoTimestamp == null)
@@ -1097,7 +1116,7 @@ describe('resolver registry live resolver architecture', () => {
 			timestampMs: coingeckoTimestampMs,
 			source: Source.Coingecko_Rest,
 		}, resolverContext)
-		expect(coingeckoTimestampResolver.fields.marketCapRank(coingeckoTimestamp, {
+		expect(resolverFieldSelector(coingeckoTimestampResolver, 'marketCapRank')(coingeckoTimestamp, {
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: coingeckoTimestampMs,
 			source: Source.Coingecko_Rest,
@@ -1111,12 +1130,12 @@ describe('resolver registry live resolver architecture', () => {
 		const coingeckoCoinResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Coingecko_Rest
 			&& candidate.entityType === EntityType.Coin
-			&& '$$timestamps' in candidate.fields
+			&& '$$timestamps' in candidate.projections
 		))
 		const resolveCoingeckoCoin = coingeckoCoinResolver?.resolve[CoinSelector.CoinId]
 		if (coingeckoCoinResolver == null || resolveCoingeckoCoin == null)
 			throw new Error('Coingecko_Rest: missing Coin.$$timestamps resolver')
-		expect(coingeckoCoinResolver.fields.$$timestamps(
+		expect(resolverFieldSelector(coingeckoCoinResolver, '$$timestamps')(
 			await resolveCoingeckoCoin({ coinId: CoinId.ETH }, resolverContext),
 			{ coinId: CoinId.ETH },
 			resolverContext
@@ -1137,7 +1156,7 @@ describe('resolver registry live resolver architecture', () => {
 		const blockscoutTimestampResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Blockscout_Rest
 			&& candidate.entityType === EntityType.Coin_Timestamp
-			&& 'marketCap' in candidate.fields
+			&& 'marketCap' in candidate.projections
 		))
 		const resolveBlockscoutTimestamp = blockscoutTimestampResolver?.resolve[Coin_TimestampSelector.CoinTimestampMsSource]
 		if (blockscoutTimestampResolver == null || resolveBlockscoutTimestamp == null)
@@ -1147,7 +1166,7 @@ describe('resolver registry live resolver architecture', () => {
 			timestampMs: blockscoutTimestampMs,
 			source: Source.Blockscout_Rest,
 		}, resolverContext)
-		expect(blockscoutTimestampResolver.fields.marketCap(blockscoutTimestamp, {
+		expect(resolverFieldSelector(blockscoutTimestampResolver, 'marketCap')(blockscoutTimestamp, {
 			$coin: { coinId: CoinId.ETH },
 			timestampMs: blockscoutTimestampMs,
 			source: Source.Blockscout_Rest,
@@ -1161,12 +1180,12 @@ describe('resolver registry live resolver architecture', () => {
 		const blockscoutCoinResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Blockscout_Rest
 			&& candidate.entityType === EntityType.Coin
-			&& '$$timestamps' in candidate.fields
+			&& '$$timestamps' in candidate.projections
 		))
 		const resolveBlockscoutCoin = blockscoutCoinResolver?.resolve[CoinSelector.CoinId]
 		if (blockscoutCoinResolver == null || resolveBlockscoutCoin == null)
 			throw new Error('Blockscout_Rest: missing Coin.$$timestamps resolver')
-		expect(blockscoutCoinResolver.fields.$$timestamps(
+		expect(resolverFieldSelector(blockscoutCoinResolver, '$$timestamps')(
 			await resolveBlockscoutCoin({ coinId: CoinId.ETH }, resolverContext),
 			{ coinId: CoinId.ETH },
 			resolverContext
@@ -1387,7 +1406,7 @@ describe('resolver registry live resolver architecture', () => {
 				entityType: EntityType.Network,
 				selectorName: NetworkSelector.Slug,
 				entitySelector: bitcoinNetworkSlugSelector,
-				fieldName: '$$utxoBlocks',
+				fieldName: '$$blocks',
 				expectedSelectors: [{
 					$network: bitcoinNetworkSlugSelector,
 					height: 840_000n,
@@ -1399,7 +1418,7 @@ describe('resolver registry live resolver architecture', () => {
 				entityType: EntityType.Network,
 				selectorName: NetworkSelector.Slug,
 				entitySelector: bitcoinNetworkSlugSelector,
-				fieldName: '$$utxoTransactions',
+				fieldName: '$$transactions',
 				expectedSelectors: [{
 					$network: bitcoinNetworkSlugSelector,
 					txId: 'blockchair-network-transaction',
@@ -1459,7 +1478,7 @@ describe('resolver registry live resolver architecture', () => {
 				entityType: EntityType.Network,
 				selectorName: NetworkSelector.Slug,
 				entitySelector: bitcoinNetworkSlugSelector,
-				fieldName: '$$utxoBlocks',
+				fieldName: '$$blocks',
 				expectedSelectors: [{
 					$network: bitcoinNetworkSlugSelector,
 					height: 840_000n,
@@ -1471,7 +1490,7 @@ describe('resolver registry live resolver architecture', () => {
 				entityType: EntityType.Network,
 				selectorName: NetworkSelector.Slug,
 				entitySelector: bitcoinNetworkSlugSelector,
-				fieldName: '$$utxoTransactions',
+				fieldName: '$$transactions',
 				expectedSelectors: [{
 					$network: bitcoinNetworkSlugSelector,
 					txId: 'mempoolspace-network-transaction',
@@ -1639,10 +1658,10 @@ describe('resolver registry live resolver architecture', () => {
 			const resolver = allSourceResolverDefinitions.find((candidate) => (
 				candidate.source === source
 				&& candidate.entityType === entityType
-				&& fieldName in candidate.fields
+				&& resolverFieldNames(candidate).includes(fieldName)
 			))
 			const resolve = resolver?.resolve[selectorName]
-			const fieldSelector = resolver?.fields[fieldName]
+			const fieldSelector = resolverFieldSelector(resolver, fieldName)
 			if (resolver == null || resolve == null || typeof fieldSelector !== 'function')
 				throw new Error(`${source}:${entityType}.${fieldName}: missing resolver facet`)
 
@@ -1662,10 +1681,10 @@ describe('resolver registry live resolver architecture', () => {
 		const blockchairTransactionResolver = allSourceResolverDefinitions.find((candidate) => (
 			candidate.source === Source.Blockchair_Rest
 			&& candidate.entityType === EntityType.UtxoTransaction
-			&& '$block' in candidate.fields
+			&& resolverFieldNames(candidate).includes('$block')
 		))
 		const blockchairTransactionResolve = blockchairTransactionResolver?.resolve[UtxoTransactionSelector.NetworkTxId]
-		const blockchairBlockField = blockchairTransactionResolver?.fields.$block
+		const blockchairBlockField = resolverFieldSelector(blockchairTransactionResolver, '$block')
 		if (blockchairTransactionResolver == null || blockchairTransactionResolve == null || typeof blockchairBlockField !== 'function')
 			throw new Error('Blockchair_Rest: missing UtxoTransaction.$block facet')
 

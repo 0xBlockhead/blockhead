@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -221,7 +221,7 @@
 				<dt>object</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.GitObject, false>('$object')}
+						resource={selection.$object}
 					>
 						{#snippet children(gitObject)}
 							{#if gitObject[EntityMetaKey.Selector] != null}
@@ -472,10 +472,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<GitSignaturesView
-				selection={selection[EntityProxyField]<EntityType.GitSignature>('$$signatures')}
+				selection={selection.$$signatures}
 				title='signatures'
 				emptyText='No signatures.'
-				id='GitSignaturesView-$$signatures'
+				id='GitSignaturesView-signatures'
 			/>
 		{/if}
 	{/snippet}

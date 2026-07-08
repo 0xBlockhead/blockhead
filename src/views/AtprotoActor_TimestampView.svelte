@@ -10,6 +10,7 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// State
@@ -119,6 +120,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.Atproto_Xrpc,
+						],
 						fields: {
 							followersCount: true,
 						},
@@ -154,6 +158,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.Atproto_Xrpc,
+						],
 						fields: {
 							followsCount: true,
 						},
@@ -189,6 +196,9 @@
 			<ResourceBoundary
 				resource={
 					selection({
+						sources: [
+							Source.Atproto_Xrpc,
+						],
 						fields: {
 							postsCount: true,
 						},

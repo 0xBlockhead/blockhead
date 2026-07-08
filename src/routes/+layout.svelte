@@ -5,7 +5,6 @@
 	import { QueryClient } from '@tanstack/query-core'
 	import {
 		createBrowserWASQLitePersistence,
-		openBrowserWASQLiteOPFSDatabase,
 	} from '@tanstack/browser-db-sqlite-persistence'
 	import { env } from '$env/dynamic/public'
 
@@ -18,6 +17,7 @@
 		e2eSchemaVersion,
 		e2eVfsName,
 		installAppClientProbe,
+		openBlockheadBrowserDatabase,
 	} from '$/client/$e2eProbe.ts'
 	import {
 		BLOCKHEAD_PERSISTED_COLLECTION_SCHEMA_VERSION,
@@ -27,7 +27,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { sourceProviders } from '$/sources/index.ts'
 
-	const database = await openBrowserWASQLiteOPFSDatabase({
+	const database = await openBlockheadBrowserDatabase({
 		databaseName: e2eDatabaseName(BLOCKHEAD_WA_SQLITE_DATABASE_NAME),
 		vfsName: e2eVfsName(),
 	})

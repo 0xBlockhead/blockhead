@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -196,7 +196,7 @@
 				<dt>federation</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.FedimintFederation, false>('$federation')}
+						resource={selection.$federation}
 					>
 						{#snippet children(fedimintFederation)}
 							{#if fedimintFederation[EntityMetaKey.Selector] != null}
@@ -429,10 +429,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadFedimintClientState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadFedimintClientState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='BlockheadFedimintClientState_TimestampsView-$$timestamps'
+				id='BlockheadFedimintClientState_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

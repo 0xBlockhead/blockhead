@@ -5,7 +5,7 @@
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
-	import { EntityProxyField, type EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
@@ -185,7 +185,7 @@
 			selection={select(
 				EntityType._Global,
 				{ scope: '$$marketPrices' }
-			)[EntityProxyField]<EntityType.MarketPrice>('$$marketPrices')}
+			).$$marketPrices}
 			{id}
 			open={false}
 			title={label}
@@ -237,7 +237,7 @@
 			selection={select(
 				EntityType._Global,
 				{ scope: '$$marketTimeIntervalTimestamps' }
-			)[EntityProxyField]<EntityType.Market_TimeInterval_Timestamp>('$$marketTimeIntervalTimestamps')}
+			).$$marketTimeIntervalTimestamps}
 			{id}
 			open
 			title={label}
@@ -290,7 +290,7 @@
 			selection={select(
 				EntityType._Global,
 				{ scope: '$$markets' }
-			)[EntityProxyField]<EntityType.Market>('$$markets')}
+			).$$markets}
 			{id}
 			open={false}
 			title={label}
@@ -332,7 +332,7 @@
 			selection={select(
 				EntityType.Coin,
 				{ coinId: CoinId.ETH }
-			)[EntityProxyField]<EntityType.EvmCoinInstance>('$$coinInstances')}
+			).$$coinInstances}
 			{id}
 			open
 			title={label}

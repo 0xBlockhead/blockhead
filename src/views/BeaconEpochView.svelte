@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -378,7 +378,7 @@
 		{#if detailsOpen}
 			<BeaconSlotsView
 				selection={
-						selection[EntityProxyField]<EntityType.BeaconSlot>('$$beaconSlots', {
+						selection.$$beaconSlots({
 							sources: [
 								Source.Beacon_Rest,
 							],
@@ -386,7 +386,7 @@
 						})
 					}
 				title='Slots'
-				id='BeaconSlotsView-$$beaconSlots'
+				id='BeaconSlotsView-beacon-slots'
 			/>
 		{/if}
 	{/snippet}

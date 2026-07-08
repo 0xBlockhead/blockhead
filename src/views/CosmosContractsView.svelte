@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { resolve } from '$app/paths'
 	import type { SubscribeEntityReferenceResult } from '$/client/$client.svelte.ts'
 	import type { EntityProxyEntitiesResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -69,7 +68,6 @@
 				fields: {
 					address: true,
 					codeId: true,
-					$network: true,
 				},
 			})
 		}
@@ -114,16 +112,9 @@
 
 				{#snippet Item({ item: cosmosContract }: { item: SubscribeEntityReferenceResult<typeof schema, EntityType.CosmosContract> })}
 					{@const cosmosContractFields = { ...cosmosContract[EntityMetaKey.Selector], ...cosmosContract }}
-					{@const cosmosContractHrefFields = { ...cosmosContract, ...cosmosContract[EntityMetaKey.Selector] }}
 					<CosmosContractView
 						selection={select(EntityType.CosmosContract, cosmosContract[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={cosmosContractFields}
-						href={
-							(cosmosContractHrefFields.$network !== undefined && cosmosContractHrefFields.$network.caip2 !== undefined && cosmosContractHrefFields.$network.caip2.namespace !== undefined && cosmosContractHrefFields.$network !== undefined && cosmosContractHrefFields.$network.caip2 !== undefined && cosmosContractHrefFields.$network.caip2.reference !== undefined && cosmosContractHrefFields.address !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/cosmos/contract/[address]', {
-								caip2: `${String(cosmosContractHrefFields.$network.caip2.namespace ?? '')}:${String(cosmosContractHrefFields.$network.caip2.reference ?? '')}`,
-								address: String(cosmosContractHrefFields.address ?? ''),
-							}) : undefined)
-						}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

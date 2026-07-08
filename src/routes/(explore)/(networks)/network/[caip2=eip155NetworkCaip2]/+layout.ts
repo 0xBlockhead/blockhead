@@ -6,14 +6,14 @@ import { networkByCaip2 } from '$/constants/Network.ts'
 import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import NetworkSchema from '$/schema/Network.ts'
+import { Network as NetworkSchema } from '$/schema/Network.ts'
 import { type as arktype } from 'arktype'
 
-// Route surface eligibility: requiredFacets=['Evm']
+// Route surface eligibility: requiredProjections=[['Evm']]
 export const load: LayoutLoad = ({ params }) => {
-	const routeSurfaceNetwork = networkByCaip2[decodeURIComponent(params.caip2)]
+	const routeSurfaceNetwork = Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.caip2))?.value
 	if (routeSurfaceNetwork == null) error(404, 'Network route surface not found')
-	if (!(routeSurfaceNetwork.executionModels.includes('Evm'))) error(404, 'Network facet not available')
+	if (!((routeSurfaceNetwork.executionModels !== undefined && routeSurfaceNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')))) error(404, 'Network facet not available')
 
 	const networkSelector = parseEntitySelector(
 		schema,
@@ -26,6 +26,6 @@ export const load: LayoutLoad = ({ params }) => {
 
 	return {
 		selector: networkSelector,
-		title: routeSurfaceNetwork.name,
+		title: networkByCaip2[decodeURIComponent(params.caip2)].name,
 	}
 }

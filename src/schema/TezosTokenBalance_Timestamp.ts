@@ -1,108 +1,94 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum TezosTokenBalance_TimestampSelector {
 	AccountTokenLevelSource = 'AccountTokenLevelSource',
 }
-export default {
+export const TezosTokenBalance_Timestamp = entity({
 	entityType: EntityType.TezosTokenBalance_Timestamp,
 	label: 'tezos token balance timestamp',
 	labelPlural: 'tezos token balance observations',
-	selectors: [
-		{
-			name: TezosTokenBalance_TimestampSelector.AccountTokenLevelSource,
-			fields: [
-				'$account',
-				'$token',
-				'level',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$account',
-			label: 'account',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TezosAccount,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$token',
-			label: 'token',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TezosToken,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'level',
-			label: 'level',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'balance',
-			label: 'balance',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'tokenId',
-			label: 'Token ID',
-			description: 'The token identifier within its collection or contract.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'contractAddress',
-			label: 'contract address',
-			description: 'The contract address on its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'firstLevel',
-			label: 'first level',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'lastLevel',
-			label: 'last level',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'transferCount',
-			label: 'transfer count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$account: {
+		label: 'account',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.TezosAccount,
+		cardinality: EntityFieldCardinality.One,
+	},
+	$token: {
+		label: 'token',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.TezosToken,
+		cardinality: EntityFieldCardinality.One,
+	},
+	level: {
+		label: 'level',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	balance: {
+		label: 'balance',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	tokenId: {
+		label: 'Token ID',
+		description: 'The token identifier within its collection or contract.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	contractAddress: {
+		label: 'contract address',
+		description: 'The contract address on its network.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	firstLevel: {
+		label: 'first level',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	lastLevel: {
+		label: 'last level',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	transferCount: {
+		label: 'transfer count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		AccountTokenLevelSource: [
+			'$account',
+			'$token',
+			'level',
+			'source',
+		],
+	},
+})

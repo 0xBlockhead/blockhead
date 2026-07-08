@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -41,7 +40,7 @@
 		selection={
 			select(EntityType.AtprotoActor, {
 				did: decodeURIComponent(params.did),
-			})[EntityProxyField]<EntityType.AtprotoActor_Timestamp>('$$timestamps', {
+			}).$$timestamps({
 				sources: [
 					Source.Atproto_Xrpc,
 				],

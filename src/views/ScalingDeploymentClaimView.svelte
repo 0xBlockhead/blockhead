@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -304,7 +304,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmRollup, false>('$rollup')}
+				resource={selection.$rollup}
 			>
 				{#snippet children(evmRollup)}
 					{#if evmRollup != null && evmRollup[EntityMetaKey.Selector] != null}
@@ -334,18 +334,18 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ScalingDeploymentClaim_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.ScalingDeploymentClaim_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Timestamps'
 				emptyText='No scaling deployment claim observations yet.'
-				id='ScalingDeploymentClaim_TimestampsView-$$timestamps'
+				id='ScalingDeploymentClaim_TimestampsView-timestamps'
 			/>
 
 			<EvmContractsView
-				selection={selection[EntityProxyField]<EntityType.EvmContract>('$$settlementContracts')}
+				selection={selection.$$settlementContracts}
 				title='Settlement contracts'
 				href={resolve('/(explore)/contracts')}
 				emptyText='No settlement contracts yet.'
-				id='EvmContractsView-$$settlementContracts'
+				id='EvmContractsView-settlement-contracts'
 			/>
 		{/if}
 	{/snippet}

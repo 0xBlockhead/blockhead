@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -30,7 +29,7 @@
 		selection={
 			select(EntityType.LensNetwork, {
 				scope: 'LensNetwork',
-			})[EntityProxyField]<EntityType.LensPost>('$$lensPosts', {
+			}).$$lensPosts({
 				sources: [
 					Source.Lens_Graphql,
 				],

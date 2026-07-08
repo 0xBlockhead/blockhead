@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -139,7 +139,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Network, false>('$settlementNetwork')}
+				resource={selection.$settlementNetwork}
 			>
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}
@@ -182,45 +182,45 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LightningNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.LightningNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
 				emptyText='No observations yet.'
-				id='LightningNetwork_TimestampsView-$$timestamps'
+				id='LightningNetwork_TimestampsView-timestamps'
 			/>
 
 			<LightningNodesView
-				selection={selection[EntityProxyField]<EntityType.LightningNode>('$$nodes')}
+				selection={selection.$$nodes}
 				title='Nodes'
 				emptyText='No nodes yet.'
-				id='LightningNodesView-$$nodes'
+				id='LightningNodesView-nodes'
 			/>
 
 			<LightningChannelsView
-				selection={selection[EntityProxyField]<EntityType.LightningChannel>('$$channels')}
+				selection={selection.$$channels}
 				title='Channels'
 				emptyText='No channels yet.'
-				id='LightningChannelsView-$$channels'
+				id='LightningChannelsView-channels'
 			/>
 
 			<BlockheadLightningInvoicesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningInvoice>('$$invoices')}
+				selection={selection.$$invoices}
 				title='Invoices'
 				emptyText='No invoices yet.'
-				id='BlockheadLightningInvoicesView-$$invoices'
+				id='BlockheadLightningInvoicesView-invoices'
 			/>
 
 			<BlockheadLightningPaymentsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningPayment>('$$payments')}
+				selection={selection.$$payments}
 				title='Payments'
 				emptyText='No payments yet.'
-				id='BlockheadLightningPaymentsView-$$payments'
+				id='BlockheadLightningPaymentsView-payments'
 			/>
 
 			<BlockheadLightningNodeStatesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningNodeState>('$$localNodeStates')}
+				selection={selection.$$localNodeStates}
 				title='Local node states'
 				emptyText='No local node states.'
-				id='BlockheadLightningNodeStatesView-$$localNodeStates'
+				id='BlockheadLightningNodeStatesView-local-node-states'
 			/>
 		{/if}
 	{/snippet}

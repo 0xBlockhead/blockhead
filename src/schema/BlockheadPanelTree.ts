@@ -1,31 +1,27 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum BlockheadPanelTreeSelector {
 	Id = 'Id',
 }
-export default {
+export const BlockheadPanelTree = entity({
 	entityType: EntityType.BlockheadPanelTree,
 	label: 'dashboard',
 	labelPlural: 'dashboards',
-	selectors: [
-		{
-			name: BlockheadPanelTreeSelector.Id,
-			fields: [
-				'id',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'id',
-			label: 'ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	id: {
+		label: 'ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+})({
+	selectors: {
+		Id: [
+			'id',
+		],
+	},
+})

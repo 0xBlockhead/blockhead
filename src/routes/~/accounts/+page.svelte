@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
@@ -57,7 +56,7 @@
 		{#snippet SectionConnections()}
 			<BlockheadWalletConnectionsView
 				href={resolve('/~/accounts/connections')}
-				selection={select(EntityType._Global, { scope: '$$blockheadWalletConnections' })[EntityProxyField]<EntityType.BlockheadWalletConnection>('$$blockheadWalletConnections')({
+				selection={select(EntityType._Global, { scope: '$$blockheadWalletConnections' }).$$blockheadWalletConnections({
 					sources: [Source.Local_Internal],
 				})}
 				id='wallet-connections'
@@ -68,7 +67,7 @@
 		{#snippet SectionWatchedAccounts()}
 			<EvmAccountsView
 				href={resolve('/~/accounts/watched-accounts')}
-				selection={select(EntityType._Global, { scope: '$$actors' })[EntityProxyField]<EntityType.EvmAccount>('$$actors')({
+				selection={select(EntityType._Global, { scope: '$$actors' }).$$actors({
 					sources: [Source.Local_Internal],
 				})}
 				id='accounts'
@@ -79,7 +78,7 @@
 		{#snippet SectionBalances()}
 			<EvmNetworkActorCoinBalancesView
 				href={resolve('/~/accounts/balances')}
-				selection={select(EntityType._Global, { scope: '$$actorCoins' })[EntityProxyField]<EntityType.EvmNetworkActorCoinBalance>('$$actorCoins')({
+				selection={select(EntityType._Global, { scope: '$$actorCoins' }).$$actorCoins({
 					sources: [Source.Allium_Rest],
 				})}
 				id='balances'
@@ -97,7 +96,7 @@
 		{#snippet SectionTransactions()}
 			<BlockheadBridgeTransactionsView
 				href={resolve('/~/accounts/transactions')}
-				selection={select(EntityType._Global, { scope: '$$bridgeTransactions' })[EntityProxyField]<EntityType.BlockheadBridgeTransaction>('$$bridgeTransactions')({
+				selection={select(EntityType._Global, { scope: '$$bridgeTransactions' }).$$bridgeTransactions({
 					sources: [Source.Local_Internal],
 				})}
 				id='transactions'

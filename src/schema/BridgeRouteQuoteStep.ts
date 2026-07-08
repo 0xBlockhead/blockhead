@@ -1,151 +1,130 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum BridgeRouteQuoteStepSelector {
 	QuoteIndexInQuote = 'QuoteIndexInQuote',
 }
-export default {
+export const BridgeRouteQuoteStep = entity({
 	entityType: EntityType.BridgeRouteQuoteStep,
 	label: 'bridge route quote step',
 	labelPlural: 'bridge route quote steps',
-	selectors: [
-		{
-			name: BridgeRouteQuoteStepSelector.QuoteIndexInQuote,
-			fields: [
-				'$quote',
-				'indexInQuote',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$quote',
-			label: 'quote',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BridgeRouteQuote_Timestamp,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'indexInQuote',
-			label: 'index in quote',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'providerStepId',
-			label: 'provider step ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'stepType',
-			label: 'step type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'tool',
-			label: 'tool',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'toolName',
-			label: 'tool name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$fromNetwork',
-			label: 'from network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$toNetwork',
-			label: 'to network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$fromToken',
-			label: 'from token',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmCoinInstance,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$toToken',
-			label: 'to token',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmCoinInstance,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'fromAmount',
-			label: 'from amount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'toAmount',
-			label: 'to amount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'toAmountMin',
-			label: 'to amount min',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'estimatedGas',
-			label: 'estimated gas',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'railId',
-			label: 'rail ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'settlementModel',
-			label: 'settlement model',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'verificationModel',
-			label: 'verification model',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'assetOutcome',
-			label: 'asset outcome',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$quote: {
+		label: 'quote',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BridgeRouteQuote_Timestamp,
+		cardinality: EntityFieldCardinality.One,
+	},
+	indexInQuote: {
+		label: 'index in quote',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	providerStepId: {
+		label: 'provider step ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	stepType: {
+		label: 'step type',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	tool: {
+		label: 'tool',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	toolName: {
+		label: 'tool name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$fromNetwork: {
+		label: 'from network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$toNetwork: {
+		label: 'to network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$fromToken: {
+		label: 'from token',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EvmCoinInstance,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$toToken: {
+		label: 'to token',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EvmCoinInstance,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	fromAmount: {
+		label: 'from amount',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	toAmount: {
+		label: 'to amount',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	toAmountMin: {
+		label: 'to amount min',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	estimatedGas: {
+		label: 'estimated gas',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	railId: {
+		label: 'rail ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	settlementModel: {
+		label: 'settlement model',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	verificationModel: {
+		label: 'verification model',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	assetOutcome: {
+		label: 'asset outcome',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		QuoteIndexInQuote: [
+			'$quote',
+			'indexInQuote',
+		],
+	},
+})

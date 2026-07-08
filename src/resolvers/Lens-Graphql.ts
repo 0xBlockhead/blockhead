@@ -124,10 +124,8 @@ const lensGraphqlResolvers = {
 				},
 			},
 		})({
-			fields: {
 				$$lensPosts: (posts) => posts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
@@ -213,7 +211,6 @@ const lensGraphqlResolvers = {
 				},
 			},
 		})({
-			fields: {
 				address: (account) => account.address,
 				localName: (account) => account.localName,
 				legacyProfileId: (account) => account.legacyProfileId,
@@ -222,8 +219,7 @@ const lensGraphqlResolvers = {
 				createdAt: (account) => account.createdAt,
 				iconUrl: (account) => account.iconUrl,
 				$icon: (account) => account.$icon,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
@@ -301,7 +297,6 @@ const lensGraphqlResolvers = {
 				}
 			},
 		})({
-			fields: {
 				text: (post) => post.text,
 				timestamp: (post) => post.timestamp,
 				isEdited: (post) => post.isEdited,
@@ -311,8 +306,7 @@ const lensGraphqlResolvers = {
 				$repostOf: (post) => post.$repostOf,
 				$root: (post) => post.$root,
 				$author: (post) => post.$author,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount_Timestamp,
@@ -325,11 +319,9 @@ const lensGraphqlResolvers = {
 				}
 			},
 		})({
-			fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
 				followingCount: (timestamp) => timestamp.followingCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost_Timestamp,
@@ -343,15 +335,13 @@ const lensGraphqlResolvers = {
 				}
 			},
 		})({
-			fields: {
 				commentCount: (timestamp) => timestamp.commentCount,
 				repostCount: (timestamp) => timestamp.repostCount,
 				quoteCount: (timestamp) => timestamp.quoteCount,
 				bookmarkCount: (timestamp) => timestamp.bookmarkCount,
 				collectCount: (timestamp) => timestamp.collectCount,
 				reactionCount: (timestamp) => timestamp.reactionCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
@@ -372,10 +362,8 @@ const lensGraphqlResolvers = {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensPost,
@@ -402,10 +390,8 @@ const lensGraphqlResolvers = {
 				}
 			},
 		})({
-			fields: {
 				$$comments: (comments) => comments,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
@@ -475,10 +461,8 @@ const lensGraphqlResolvers = {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Lens_Graphql, {
 			entityType: EntityType.LensAccount,
@@ -505,10 +489,8 @@ const lensGraphqlResolvers = {
 				}
 			},
 		})({
-			fields: {
 				$$posts: (posts) => posts,
-			},
-		}),
+			}),
 	],
 }
 

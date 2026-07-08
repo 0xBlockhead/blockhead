@@ -48,13 +48,11 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		},
-			}),
+		}),
 
 		defineResolver(Source.DogecoinDips_Github, {
 			entityType: EntityType._Global,
@@ -62,9 +60,7 @@ export default {
 				[_GlobalSelector.Scope]: dogecoinDipProposalRows
 			}
 		})({
-				fields: {
 			$$proposals: (snapshot) => snapshot,
-		},
-			}),
+		}),
 	],
 }

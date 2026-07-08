@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -376,7 +376,7 @@
 		{#if detailsOpen}
 			<NostrNotesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrNote>('$$notes', {
+						selection.$$notes({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -386,12 +386,12 @@
 				title='Notes'
 				href={resolve('/(social)/(nostr)/nostr/notes')}
 				emptyText='No notes in this observed.'
-				id='NostrNotesView-$$notes'
+				id='NostrNotesView-notes'
 			/>
 
 			<NostrArticlesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrArticle>('$$articles', {
+						selection.$$articles({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -401,12 +401,12 @@
 				title='Articles'
 				href={resolve('/(social)/(nostr)/nostr/articles')}
 				emptyText='No articles in this observed.'
-				id='NostrArticlesView-$$articles'
+				id='NostrArticlesView-articles'
 			/>
 
 			<NostrRepostsView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrRepost>('$$reposts', {
+						selection.$$reposts({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -416,7 +416,7 @@
 				title='Reposts'
 				href={resolve('/(social)/(nostr)/nostr/reposts')}
 				emptyText='No reposts in this observed.'
-				id='NostrRepostsView-$$reposts'
+				id='NostrRepostsView-reposts'
 			/>
 		{/if}
 	{/snippet}

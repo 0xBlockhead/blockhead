@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -188,80 +188,80 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<TonNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.TonNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No TON network observations.'
-				id='TonNetwork_TimestampsView-$$timestamps'
+				id='TonNetwork_TimestampsView-timestamps'
 			/>
 
 			<TonWorkchainsView
-				selection={selection[EntityProxyField]<EntityType.TonWorkchain>('$$workchains')}
+				selection={selection.$$workchains}
 				title='workchains'
 				emptyText='No TON workchains.'
-				id='TonWorkchainsView-$$workchains'
+				id='TonWorkchainsView-workchains'
 			/>
 
 			<TonBlocksView
-				selection={selection[EntityProxyField]<EntityType.TonBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No TON blocks.'
-				id='TonBlocksView-$$blocks'
+				id='TonBlocksView-blocks'
 			/>
 
 			<TonTransactionsView
-				selection={selection[EntityProxyField]<EntityType.TonTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No TON transactions.'
-				id='TonTransactionsView-$$transactions'
+				id='TonTransactionsView-transactions'
 			/>
 
 			<TonAccountsView
-				selection={selection[EntityProxyField]<EntityType.TonAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='accounts'
 				emptyText='No TON accounts.'
-				id='TonAccountsView-$$accounts'
+				id='TonAccountsView-accounts'
 			/>
 
 			<TonContractsView
-				selection={selection[EntityProxyField]<EntityType.TonContract>('$$contracts')}
+				selection={selection.$$contracts}
 				title='contracts'
 				emptyText='No TON contracts.'
-				id='TonContractsView-$$contracts'
+				id='TonContractsView-contracts'
 			/>
 
 			<TonMessagesView
-				selection={selection[EntityProxyField]<EntityType.TonMessage>('$$messages')}
+				selection={selection.$$messages}
 				title='messages'
 				emptyText='No TON messages.'
-				id='TonMessagesView-$$messages'
+				id='TonMessagesView-messages'
 			/>
 
 			<TonTracesView
-				selection={selection[EntityProxyField]<EntityType.TonTrace>('$$traces')}
+				selection={selection.$$traces}
 				title='traces'
 				emptyText='No TON traces.'
-				id='TonTracesView-$$traces'
+				id='TonTracesView-traces'
 			/>
 
 			<TonJettonsView
-				selection={selection[EntityProxyField]<EntityType.TonJetton>('$$jettons')}
+				selection={selection.$$jettons}
 				title='jettons'
 				emptyText='No TON jettons.'
-				id='TonJettonsView-$$jettons'
+				id='TonJettonsView-jettons'
 			/>
 
 			<TonNftCollectionsView
-				selection={selection[EntityProxyField]<EntityType.TonNftCollection>('$$nftCollections')}
+				selection={selection.$$nftCollections}
 				title='NFT collections'
 				emptyText='No TON NFT collections.'
-				id='TonNftCollectionsView-$$nftCollections'
+				id='TonNftCollectionsView-nft-collections'
 			/>
 
 			<TonNftItemsView
-				selection={selection[EntityProxyField]<EntityType.TonNftItem>('$$nftItems')}
+				selection={selection.$$nftItems}
 				title='NFT items'
 				emptyText='No TON NFT items.'
-				id='TonNftItemsView-$$nftItems'
+				id='TonNftItemsView-nft-items'
 			/>
 		{/if}
 	{/snippet}

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -310,26 +310,26 @@
 		{#if detailsOpen}
 			<BittensorMetagraph_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.BittensorMetagraph_Timestamp>('$$metagraphTimestamps', {
+						selection.$$metagraphTimestamps({
 							sources: [
 								Source.Bittensor_JsonRpc,
 							],
 						})
 					}
 				title='Metagraph observations'
-				id='BittensorMetagraph_TimestampsView-$$metagraphTimestamps'
+				id='BittensorMetagraph_TimestampsView-metagraph-timestamps'
 			/>
 
 			<BittensorNeuronsView
 				selection={
-						selection[EntityProxyField]<EntityType.BittensorNeuron>('$$neurons', {
+						selection.$$neurons({
 							sources: [
 								Source.Bittensor_JsonRpc,
 							],
 						})
 					}
 				title='Neurons'
-				id='BittensorNeuronsView-$$neurons'
+				id='BittensorNeuronsView-neurons'
 			/>
 		{/if}
 	{/snippet}

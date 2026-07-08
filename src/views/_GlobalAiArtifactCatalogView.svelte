@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -180,24 +180,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AiArtifactsView
-				selection={selection[EntityProxyField]<EntityType.AiArtifact>('$$artifacts')}
+				selection={selection.$$artifacts}
 				title='artifacts'
 				emptyText='No AI artifacts.'
-				id='AiArtifactsView-$$artifacts'
+				id='AiArtifactsView-artifacts'
 			/>
 
 			<AiDocumentsView
-				selection={selection[EntityProxyField]<EntityType.AiDocument>('$$documents')}
+				selection={selection.$$documents}
 				title='documents'
 				emptyText='No AI documents.'
-				id='AiDocumentsView-$$documents'
+				id='AiDocumentsView-documents'
 			/>
 
 			<GlobalAiArtifactCatalog_TimestampsView
-				selection={selection[EntityProxyField]<EntityType._GlobalAiArtifactCatalog_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No AI artifact catalog observations.'
-				id='_GlobalAiArtifactCatalog_TimestampsView-$$timestamps'
+				id='_GlobalAiArtifactCatalog_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

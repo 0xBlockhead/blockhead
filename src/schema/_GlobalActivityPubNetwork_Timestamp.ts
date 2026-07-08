@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
@@ -8,120 +8,103 @@ import { type } from 'arktype'
 export enum _GlobalActivityPubNetwork_TimestampSelector {
 	HubTimestampMsSource = 'HubTimestampMsSource',
 }
-export default {
+export const _GlobalActivityPubNetwork_Timestamp = entity({
 	entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
 	label: 'global ActivityPub network timestamp',
 	labelPlural: 'global ActivityPub network observations',
-	selectors: [
-		{
-			name: _GlobalActivityPubNetwork_TimestampSelector.HubTimestampMsSource,
-			fields: [
-				'$hub',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$hub',
-			label: 'Hub',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType._GlobalActivityPubNetwork,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'instanceOrigin',
-			label: 'Instance origin',
-			type: EntityFieldType.Primitive,
-			primitiveType: (UrlString),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'instanceTitle',
-			label: 'Instance title',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'instanceDescription',
-			label: 'Instance description',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'instanceVersion',
-			label: 'Instance version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'activeUserCount',
-			label: 'Active users',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'observedActorCount',
-			label: 'Observed actors',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'observedNoteCount',
-			label: 'Observed notes',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'seededInstanceCount',
-			label: 'Seeded instances',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'knownPeerDomainCount',
-			label: 'Known peer domains',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'moderatedDomainCount',
-			label: 'Moderated domains',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'reachable',
-			label: 'Reachable',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$hub: {
+		label: 'Hub',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType._GlobalActivityPubNetwork,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	instanceOrigin: {
+		label: 'Instance origin',
+		type: EntityFieldType.Primitive,
+		primitiveType: (UrlString),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	instanceTitle: {
+		label: 'Instance title',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	instanceDescription: {
+		label: 'Instance description',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	instanceVersion: {
+		label: 'Instance version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	activeUserCount: {
+		label: 'Active users',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	observedActorCount: {
+		label: 'Observed actors',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	observedNoteCount: {
+		label: 'Observed notes',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	seededInstanceCount: {
+		label: 'Seeded instances',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	knownPeerDomainCount: {
+		label: 'Known peer domains',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	moderatedDomainCount: {
+		label: 'Moderated domains',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	reachable: {
+		label: 'Reachable',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		HubTimestampMsSource: [
+			'$hub',
+			'timestampMs',
+			'source',
+		],
+	},
+})

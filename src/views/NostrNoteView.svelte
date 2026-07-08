@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -275,7 +275,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.NostrProfile, false>('$author', {
+						selection.$author({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -409,7 +409,7 @@
 		{#if detailsOpen}
 			<NostrNotesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrNote>('$$replies', {
+						selection.$$replies({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -419,12 +419,12 @@
 				title='Replies'
 				href={resolve('/(social)/(nostr)/nostr/notes')}
 				emptyText='No replies in this observed.'
-				id='NostrNotesView-$$replies'
+				id='NostrNotesView-replies'
 			/>
 
 			<NostrReactionsView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrReaction>('$$reactions', {
+						selection.$$reactions({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -434,7 +434,7 @@
 				title='Reactions'
 				href={resolve('/(social)/(nostr)/nostr/reactions')}
 				emptyText='No reactions in this observed.'
-				id='NostrReactionsView-$$reactions'
+				id='NostrReactionsView-reactions'
 			/>
 		{/if}
 	{/snippet}

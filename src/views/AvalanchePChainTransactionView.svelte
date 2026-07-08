@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -110,7 +110,7 @@
 		<ResourceBoundary resource={avalanchePChainTransaction}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AvalanchePChainBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(avalanchePChainBlock)}
 						{#if avalanchePChainBlock != null && avalanchePChainBlock[EntityMetaKey.Selector] != null}
@@ -130,7 +130,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AvalanchePChainBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(avalanchePChainBlock)}
 						{#if avalanchePChainBlock != null && avalanchePChainBlock[EntityMetaKey.Selector] != null}
@@ -247,7 +247,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AvalanchePChainBlock, false>('$block')}
+				resource={selection.$block}
 			>
 				{#snippet children(avalanchePChainBlock)}
 					{#if avalanchePChainBlock != null && avalanchePChainBlock[EntityMetaKey.Selector] != null}
@@ -625,10 +625,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AvalanchePChainTransaction_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AvalanchePChainTransaction_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='AvalanchePChainTransaction_TimestampsView-$$timestamps'
+				id='AvalanchePChainTransaction_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

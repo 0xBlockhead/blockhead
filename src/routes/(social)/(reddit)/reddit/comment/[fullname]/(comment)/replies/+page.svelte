@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -41,7 +40,7 @@
 		selection={
 			select(EntityType.RedditComment, {
 				fullname: decodeURIComponent(params.fullname),
-			})[EntityProxyField]<EntityType.RedditComment>('$$replies', {
+			}).$$replies({
 				sources: [
 					Source.Constants_Internal,
 					Source.Reddit_PublicJson,

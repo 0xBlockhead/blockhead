@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -181,7 +181,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EigenLayerStrategy, false>('$strategy')}
+				resource={selection.$strategy}
 			>
 				{#snippet children(eigenLayerStrategy)}
 					{#if eigenLayerStrategy != null && eigenLayerStrategy[EntityMetaKey.Selector] != null}
@@ -201,7 +201,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EigenLayerOperator, false>('$operator')}
+				resource={selection.$operator}
 			>
 				{#snippet children(eigenLayerOperator)}
 					{#if eigenLayerOperator != null && eigenLayerOperator[EntityMetaKey.Selector] != null}
@@ -221,7 +221,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EigenLayerAvs, false>('$avs')}
+				resource={selection.$avs}
 			>
 				{#snippet children(eigenLayerAvs)}
 					{#if eigenLayerAvs != null && eigenLayerAvs[EntityMetaKey.Selector] != null}

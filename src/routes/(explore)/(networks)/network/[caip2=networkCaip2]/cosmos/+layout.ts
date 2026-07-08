@@ -6,14 +6,14 @@ import { networkByCaip2 } from '$/constants/Network.ts'
 import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import NetworkSchema from '$/schema/Network.ts'
+import { Network as NetworkSchema } from '$/schema/Network.ts'
 import { type as arktype } from 'arktype'
 
-// Route surface eligibility: requiredFacets=['Cosmos']
+// Route surface eligibility: requiredProjections=[['Cosmos']]
 export const load: LayoutLoad = ({ params }) => {
-	const routeSurfaceNetwork = networkByCaip2[decodeURIComponent(params.caip2)]
+	const routeSurfaceNetwork = Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.caip2))?.value
 	if (routeSurfaceNetwork == null) error(404, 'Network route surface not found')
-	if (!(routeSurfaceNetwork.executionModels.includes('CosmosSdk'))) error(404, 'Network facet not available')
+	if (!((routeSurfaceNetwork.executionModels !== undefined && routeSurfaceNetwork.executionModels.some((value: string | number | boolean | null) => value === 'CosmosSdk')))) error(404, 'Network facet not available')
 
 	const networkSelector = parseEntitySelector(
 		schema,

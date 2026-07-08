@@ -28,7 +28,7 @@ export const lifiBindings = [
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: lifiOrigin,
 				origin: lifiOrigin,
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
@@ -36,7 +36,7 @@ export const lifiBindings = [
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.HttpProxy,
+		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
 				scope: SourceCredentialScope.None,
@@ -55,13 +55,13 @@ export const lifiBindings = [
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: lifiOrigin,
 				origin: lifiOrigin,
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 			{
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: lifiStagingOrigin,
 				origin: lifiStagingOrigin,
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.HttpRest,
@@ -69,7 +69,7 @@ export const lifiBindings = [
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.HttpProxy,
+		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
 				scope: SourceCredentialScope.None,

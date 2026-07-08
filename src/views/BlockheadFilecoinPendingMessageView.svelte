@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -228,7 +228,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.FilecoinNetwork, false>('$network')}
+				resource={selection.$network}
 			>
 				{#snippet children(filecoinNetwork)}
 					{#if filecoinNetwork != null && filecoinNetwork[EntityMetaKey.Selector] != null}
@@ -248,7 +248,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.FilecoinMessage, false>('$message')}
+				resource={selection.$message}
 			>
 				{#snippet children(filecoinMessage)}
 					{#if filecoinMessage != null && filecoinMessage[EntityMetaKey.Selector] != null}
@@ -268,7 +268,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.FilecoinActor, false>('$from')}
+				resource={selection.$from}
 			>
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}
@@ -288,7 +288,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.FilecoinActor, false>('$to')}
+				resource={selection.$to}
 			>
 				{#snippet children(filecoinActor)}
 					{#if filecoinActor != null && filecoinActor[EntityMetaKey.Selector] != null}

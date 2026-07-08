@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -41,7 +40,7 @@
 		selection={
 			select(EntityType.RssFeed, {
 				feedUrl: decodeURIComponent(params.feedKey),
-			})[EntityProxyField]<EntityType.RssItem>('$$items', {
+			}).$$items({
 				sources: [
 					Source.Rss_Rest,
 					Source.Rss2Json_Rest,

@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -41,7 +40,7 @@
 		selection={
 			select(EntityType.EnsName, {
 				name: decodeURIComponent(params.ensName),
-			})[EntityProxyField]<EntityType.EnsRecord>('$$records', {
+			}).$$records({
 				sources: [
 					Source.TheGraph_Graphql,
 					Source.Voltaire_JsonRpc,

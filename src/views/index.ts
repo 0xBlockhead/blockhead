@@ -965,8 +965,6 @@ import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalances
 import EvmNetworkActorCoinBalanceView from '$/views/EvmNetworkActorCoinBalanceView.svelte'
 import EvmNetworkBridgesView from '$/views/EvmNetworkBridgesView.svelte'
 import EvmNetworkBridgeView from '$/views/EvmNetworkBridgeView.svelte'
-import EvmNetworksView from '$/views/EvmNetworksView.svelte'
-import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 import EvmNftsView from '$/views/EvmNftsView.svelte'
 import EvmNftView from '$/views/EvmNftView.svelte'
 import EvmProtocolsView from '$/views/EvmProtocolsView.svelte'
@@ -2952,8 +2950,6 @@ export const View = {
 	EvmInternalTransfers: EvmInternalTransfersView,
 	EvmLog: EvmLogView,
 	EvmLogs: EvmLogsView,
-	EvmNetwork: EvmNetworkView,
-	EvmNetworks: EvmNetworksView,
 	EvmNetwork_GasEstimate_Timestamp: EvmNetwork_GasEstimate_TimestampView,
 	EvmNetwork_GasEstimate_Timestamps: EvmNetwork_GasEstimate_TimestampsView,
 	EvmNetwork_GasFee_Block: EvmNetwork_GasFee_BlockView,
@@ -4485,7 +4481,6 @@ export const entityViewComponentByType = {
 	[EntityType.EvmError_Timestamp]: View.EvmError_Timestamp,
 	[EntityType.EvmInternalTransfer]: View.EvmInternalTransfer,
 	[EntityType.EvmLog]: View.EvmLog,
-	[EntityType.EvmNetwork]: View.EvmNetwork,
 	[EntityType.EvmNetwork_GasEstimate_Timestamp]: View.EvmNetwork_GasEstimate_Timestamp,
 	[EntityType.EvmNetwork_GasFee_Block]: View.EvmNetwork_GasFee_Block,
 	[EntityType.EvmNetwork_Timestamp]: View.EvmNetwork_Timestamp,

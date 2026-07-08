@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -263,101 +263,101 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<HederaNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.HederaNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Hedera network observations.'
-				id='HederaNetwork_TimestampsView-$$timestamps'
+				id='HederaNetwork_TimestampsView-timestamps'
 			/>
 
 			<HederaBlocksView
-				selection={selection[EntityProxyField]<EntityType.HederaBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No Hedera blocks.'
-				id='HederaBlocksView-$$blocks'
+				id='HederaBlocksView-blocks'
 			/>
 
 			<HederaTransactionsView
-				selection={selection[EntityProxyField]<EntityType.HederaTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Hedera transactions.'
-				id='HederaTransactionsView-$$transactions'
+				id='HederaTransactionsView-transactions'
 			/>
 
 			<HederaAccountsView
-				selection={selection[EntityProxyField]<EntityType.HederaAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='accounts'
 				emptyText='No Hedera accounts.'
-				id='HederaAccountsView-$$accounts'
+				id='HederaAccountsView-accounts'
 			/>
 
 			<HederaTokensView
-				selection={selection[EntityProxyField]<EntityType.HederaToken>('$$tokens')}
+				selection={selection.$$tokens}
 				title='tokens'
 				emptyText='No Hedera tokens.'
-				id='HederaTokensView-$$tokens'
+				id='HederaTokensView-tokens'
 			/>
 
 			<HederaNftsView
-				selection={selection[EntityProxyField]<EntityType.HederaNft>('$$nfts')}
+				selection={selection.$$nfts}
 				title='NFTs'
 				emptyText='No Hedera NFTs.'
-				id='HederaNftsView-$$nfts'
+				id='HederaNftsView-nfts'
 			/>
 
 			<HederaContractsView
-				selection={selection[EntityProxyField]<EntityType.HederaContract>('$$contracts')}
+				selection={selection.$$contracts}
 				title='contracts'
 				emptyText='No Hedera contracts.'
-				id='HederaContractsView-$$contracts'
+				id='HederaContractsView-contracts'
 			/>
 
 			<HederaTopicsView
-				selection={selection[EntityProxyField]<EntityType.HederaTopic>('$$topics')}
+				selection={selection.$$topics}
 				title='topics'
 				emptyText='No Hedera topics.'
-				id='HederaTopicsView-$$topics'
+				id='HederaTopicsView-topics'
 			/>
 
 			<HederaSchedulesView
-				selection={selection[EntityProxyField]<EntityType.HederaSchedule>('$$schedules')}
+				selection={selection.$$schedules}
 				title='schedules'
 				emptyText='No Hedera schedules.'
-				id='HederaSchedulesView-$$schedules'
+				id='HederaSchedulesView-schedules'
 			/>
 
 			<HederaNodesView
-				selection={selection[EntityProxyField]<EntityType.HederaNode>('$$nodes')}
+				selection={selection.$$nodes}
 				title='nodes'
 				emptyText='No Hedera nodes.'
-				id='HederaNodesView-$$nodes'
+				id='HederaNodesView-nodes'
 			/>
 
 			<HederaNetworkFee_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.HederaNetworkFee_Timestamp>('$$feeTimestamps')}
+				selection={selection.$$feeTimestamps}
 				title='fee timestamps'
 				emptyText='No Hedera fee observations.'
-				id='HederaNetworkFee_TimestampsView-$$feeTimestamps'
+				id='HederaNetworkFee_TimestampsView-fee-timestamps'
 			/>
 
 			<HederaNetworkExchangeRate_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.HederaNetworkExchangeRate_Timestamp>('$$exchangeRateTimestamps')}
+				selection={selection.$$exchangeRateTimestamps}
 				title='exchange rate timestamps'
 				emptyText='No Hedera exchange-rate observations.'
-				id='HederaNetworkExchangeRate_TimestampsView-$$exchangeRateTimestamps'
+				id='HederaNetworkExchangeRate_TimestampsView-exchange-rate-timestamps'
 			/>
 
 			<HederaNetworkStake_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.HederaNetworkStake_Timestamp>('$$stakeTimestamps')}
+				selection={selection.$$stakeTimestamps}
 				title='stake timestamps'
 				emptyText='No Hedera stake observations.'
-				id='HederaNetworkStake_TimestampsView-$$stakeTimestamps'
+				id='HederaNetworkStake_TimestampsView-stake-timestamps'
 			/>
 
 			<HederaNetworkSupply_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.HederaNetworkSupply_Timestamp>('$$supplyTimestamps')}
+				selection={selection.$$supplyTimestamps}
 				title='supply timestamps'
 				emptyText='No Hedera supply observations.'
-				id='HederaNetworkSupply_TimestampsView-$$supplyTimestamps'
+				id='HederaNetworkSupply_TimestampsView-supply-timestamps'
 			/>
 		{/if}
 	{/snippet}

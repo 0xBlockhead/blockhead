@@ -87,10 +87,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$markets: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Coin,
@@ -121,10 +119,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCoinAsBase: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Currency,
@@ -147,10 +143,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCurrencyAsQuote: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TradingView_Rest, {
 			entityType: EntityType.Currency,
@@ -167,10 +161,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCurrencyAsBase: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 	],
 }

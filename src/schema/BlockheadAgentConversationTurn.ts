@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,102 +15,85 @@ export enum BlockheadAgentConversationTurnSelector {
 	Id = 'Id',
 	ConversationTurnId = 'ConversationTurnId',
 }
-export default {
+export const BlockheadAgentConversationTurn = entity({
 	entityType: EntityType.BlockheadAgentConversationTurn,
 	label: 'agent conversation turn',
 	labelPlural: 'agent conversation turns',
-	selectors: [
-		{
-			name: BlockheadAgentConversationTurnSelector.Id,
-			fields: [
-				'id',
-			],
-		},
-		{
-			name: BlockheadAgentConversationTurnSelector.ConversationTurnId,
-			fields: [
-				'$conversation',
-				'id',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'id',
-			label: 'ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$conversation',
-			label: 'Conversation',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadAgentConversation,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'userPrompt',
-			label: 'User prompt',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'assistantText',
-			label: 'Assistant text',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'status',
-			label: 'Status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type.enumerated(...Object.values(BlockheadAgentConversationTurnStatus)),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'createdAt',
-			label: 'Created',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'providerId',
-			label: 'Provider',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'promptVersion',
-			label: 'Prompt version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'parentId',
-			label: 'Parent turn ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'error',
-			label: 'Error',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$providerCalls',
-			label: 'provider calls',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.BlockheadAgentProviderCall,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	id: {
+		label: 'ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$conversation: {
+		label: 'Conversation',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BlockheadAgentConversation,
+		cardinality: EntityFieldCardinality.One,
+	},
+	userPrompt: {
+		label: 'User prompt',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	assistantText: {
+		label: 'Assistant text',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	status: {
+		label: 'Status',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.enumerated(...Object.values(BlockheadAgentConversationTurnStatus)),
+		cardinality: EntityFieldCardinality.One,
+	},
+	createdAt: {
+		label: 'Created',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	providerId: {
+		label: 'Provider',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	promptVersion: {
+		label: 'Prompt version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	parentId: {
+		label: 'Parent turn ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	error: {
+		label: 'Error',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$providerCalls: {
+		label: 'provider calls',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.BlockheadAgentProviderCall,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		Id: [
+			'id',
+		],
+		ConversationTurnId: [
+			'$conversation',
+			'id',
+		],
+	},
+})

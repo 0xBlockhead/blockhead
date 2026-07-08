@@ -121,7 +121,7 @@
 						selection={select(EntityType.AssetInstance, assetInstance[EntityMetaKey.Selector], { sources: selection.sources })}
 						prefetched={assetInstanceFields}
 						href={
-							(assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined && assetInstanceHrefFields.$network.caip2.namespace !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined && assetInstanceHrefFields.$network.caip2.reference !== undefined && assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=networkCaip2]/asset/[kind]/[assetKey]', {
+							(assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined && assetInstanceHrefFields.$network.caip2.namespace !== undefined && assetInstanceHrefFields.$network !== undefined && assetInstanceHrefFields.$network.caip2 !== undefined && assetInstanceHrefFields.$network.caip2.reference !== undefined && assetInstanceHrefFields.kind !== undefined && assetInstanceHrefFields.assetKey !== undefined ? resolve('/(explore)/(networks)/network/[caip2=eip155NetworkCaip2]/(network)/asset/[kind]/[assetKey]', {
 								caip2: `${String(assetInstanceHrefFields.$network.caip2.namespace ?? '')}:${String(assetInstanceHrefFields.$network.caip2.reference ?? '')}`,
 								kind: String(assetInstanceHrefFields.kind ?? ''),
 								assetKey: String(assetInstanceHrefFields.assetKey ?? ''),

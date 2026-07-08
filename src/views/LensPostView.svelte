@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -105,7 +105,7 @@
 	{#snippet Content({ open: contentOpen })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.LensAccount, false>('$author')}
+				resource={selection.$author}
 			>
 				{#snippet children(lensAccount)}
 					{#if lensAccount != null && lensAccount[EntityMetaKey.Selector] != null}
@@ -326,7 +326,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.LensPost, false>('$commentOn')}
+				resource={selection.$commentOn}
 			>
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
@@ -348,7 +348,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.LensPost, false>('$quoteOf')}
+				resource={selection.$quoteOf}
 			>
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
@@ -370,7 +370,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.LensPost, false>('$repostOf')}
+				resource={selection.$repostOf}
 			>
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}
@@ -392,7 +392,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.LensPost, false>('$root')}
+				resource={selection.$root}
 			>
 				{#snippet children(lensPost)}
 					{#if lensPost != null && lensPost[EntityMetaKey.Selector] != null}

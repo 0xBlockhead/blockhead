@@ -15,7 +15,6 @@ import {
 } from '$/sources/SourceBinding.ts'
 
 const lensApiOrigin = 'https://api.lens.xyz' as const
-const lensHeyApiOrigin = 'https://api.hey.xyz' as const
 
 export const lensBindings = [
 	{
@@ -30,13 +29,7 @@ export const lensBindings = [
 				endpointKind: SourceEndpointKind.HttpUrl,
 				locator: `${lensApiOrigin}/graphql`,
 				origin: lensApiOrigin,
-				corsEnabled: false,
-			},
-			{
-				endpointKind: SourceEndpointKind.HttpUrl,
-				locator: `${lensHeyApiOrigin}/graphql`,
-				origin: lensHeyApiOrigin,
-				corsEnabled: false,
+				corsEnabled: true,
 			},
 		],
 		wireProtocol: WireProtocol.Graphql,
@@ -44,7 +37,7 @@ export const lensBindings = [
 		operationGroups: [
 			SourceOperationGroup.GenericRead,
 		],
-		delivery: SourceDelivery.HttpProxy,
+		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
 				scope: SourceCredentialScope.PublicConfig,

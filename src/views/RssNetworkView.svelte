@@ -283,7 +283,7 @@
 					{@const relationshipModel = prefetched.relationshipModel}
 					{#if relationshipModel !== undefined && relationshipModel !== null}
 						<div>
-							<dt>Relationship model</dt>
+							<dt>Connection model</dt>
 							<dd>
 								{String((relationshipModel) ?? '')}
 							</dd>
@@ -296,7 +296,7 @@
 					{@const relationshipModel = resolvedEntity.relationshipModel}
 					{#if relationshipModel !== undefined && relationshipModel !== null}
 						<div>
-							<dt>Relationship model</dt>
+							<dt>Connection model</dt>
 							<dd>
 								{String((relationshipModel) ?? '')}
 							</dd>

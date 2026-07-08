@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -184,52 +184,52 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AiModelProvidersView
-				selection={selection[EntityProxyField]<EntityType.AiModelProvider>('$$providers')}
+				selection={selection.$$providers}
 				title='providers'
 				emptyText='No AI model providers.'
-				id='AiModelProvidersView-$$providers'
+				id='AiModelProvidersView-providers'
 			/>
 
 			<AiProviderCatalogEntriesView
-				selection={selection[EntityProxyField]<EntityType.AiProviderCatalogEntry>('$$catalogEntries')}
+				selection={selection.$$catalogEntries}
 				title='catalog entries'
 				emptyText='No AI provider catalog entries.'
-				id='AiProviderCatalogEntriesView-$$catalogEntries'
+				id='AiProviderCatalogEntriesView-catalog-entries'
 			/>
 
 			<AiModelsView
-				selection={selection[EntityProxyField]<EntityType.AiModel>('$$models')}
+				selection={selection.$$models}
 				title='models'
 				emptyText='No AI models.'
-				id='AiModelsView-$$models'
+				id='AiModelsView-models'
 			/>
 
 			<AiDatasetsView
-				selection={selection[EntityProxyField]<EntityType.AiDataset>('$$datasets')}
+				selection={selection.$$datasets}
 				title='datasets'
 				emptyText='No AI datasets.'
-				id='AiDatasetsView-$$datasets'
+				id='AiDatasetsView-datasets'
 			/>
 
 			<AiBenchmarksView
-				selection={selection[EntityProxyField]<EntityType.AiBenchmark>('$$benchmarks')}
+				selection={selection.$$benchmarks}
 				title='benchmarks'
 				emptyText='No AI benchmarks.'
-				id='AiBenchmarksView-$$benchmarks'
+				id='AiBenchmarksView-benchmarks'
 			/>
 
 			<AiEvaluation_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AiEvaluation_Timestamp>('$$evaluations')}
+				selection={selection.$$evaluations}
 				title='evaluations'
 				emptyText='No AI evaluation observations.'
-				id='AiEvaluation_TimestampsView-$$evaluations'
+				id='AiEvaluation_TimestampsView-evaluations'
 			/>
 
 			<GlobalAiModelCatalog_TimestampsView
-				selection={selection[EntityProxyField]<EntityType._GlobalAiModelCatalog_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No AI model catalog observations.'
-				id='_GlobalAiModelCatalog_TimestampsView-$$timestamps'
+				id='_GlobalAiModelCatalog_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

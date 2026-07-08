@@ -240,10 +240,8 @@ export default {
 				),
 			},
 		})({
-			fields: {
 				$$instances: (instances) => instances,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstance,
@@ -265,14 +263,12 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				instanceOrigin: (instance) => instance.instanceOrigin,
 				source: (instance) => instance.source,
 				title: (instance) => instance.title,
 				description: (instance) => instance.description,
 				version: (instance) => instance.version,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstance,
@@ -296,10 +292,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$peers: (peers) => peers,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstance,
@@ -330,10 +324,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$moderatedDomains: (domains) => domains,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType._GlobalActivityPubNetwork,
@@ -358,10 +350,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$instancePeers: (peers) => peers,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType._GlobalActivityPubNetwork,
@@ -393,10 +383,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$instanceModeratedDomains: (domains) => domains,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstancePeer,
@@ -404,12 +392,10 @@ export default {
 				[ActivityPubInstancePeerSelector.InstanceOriginPeerDomainSource]: (selector) => selector,
 			},
 		})({
-			fields: {
 				instanceOrigin: (peer) => peer.instanceOrigin,
 				peerDomain: (peer) => peer.peerDomain,
 				source: (peer) => peer.source,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubInstanceModeratedDomain,
@@ -432,14 +418,12 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				instanceOrigin: (domain) => domain.instanceOrigin,
 				domain: (domain) => domain.domain,
 				source: (domain) => domain.source,
 				severity: (domain) => domain.severity,
 				comment: (domain) => domain.comment,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNetwork,
@@ -469,10 +453,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$activityPubNotes: (notes) => notes,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
@@ -511,7 +493,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				instanceOrigin: (actor) => actor.instanceOrigin,
 				localAccountId: (actor) => actor.localAccountId,
 				username: (actor) => actor.username,
@@ -526,8 +507,7 @@ export default {
 				bot: (actor) => actor.bot,
 				locked: (actor) => actor.locked,
 				createdAt: (actor) => actor.createdAt,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
@@ -552,7 +532,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				instanceOrigin: (note) => note.instanceOrigin,
 				localStatusId: (note) => note.localStatusId,
 				content: (note) => note.content,
@@ -568,8 +547,7 @@ export default {
 				$author: (note) => note.$author,
 				$inReplyTo: (note) => note.$inReplyTo,
 				$reblogOf: (note) => note.$reblogOf,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor_Timestamp,
@@ -595,12 +573,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				followersCount: (timestamp) => timestamp.followersCount,
 				followingCount: (timestamp) => timestamp.followingCount,
 				statusesCount: (timestamp) => timestamp.statusesCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote_Timestamp,
@@ -624,12 +600,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				favouriteCount: (timestamp) => timestamp.favouriteCount,
 				reblogCount: (timestamp) => timestamp.reblogCount,
 				replyCount: (timestamp) => timestamp.replyCount,
-			},
-		}),
+			}),
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
 			resolve: {
@@ -693,10 +667,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (actor) => actor,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubActor,
@@ -747,10 +719,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$notes: (actor) => actor,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
@@ -797,10 +767,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (note) => note,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Mastodon_Rest, {
 			entityType: EntityType.ActivityPubNote,
@@ -865,9 +833,7 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$thread: (note) => note,
-			},
-		}),
+			}),
 	],
 }

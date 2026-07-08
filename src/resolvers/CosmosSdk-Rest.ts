@@ -260,10 +260,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				cosmosRestEndpoints: (network) => network.cosmosRestEndpoints,
-			},
-		}),
+				Cosmos: {
+					restEndpoints: (network) => network.cosmosRestEndpoints,
+				},
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network_Timestamp,
@@ -324,7 +324,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$network: (timestamp) => timestamp.$network,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
@@ -343,8 +342,7 @@ export default {
 				bondedTokens: (timestamp) => timestamp.bondedTokens,
 				notBondedTokens: (timestamp) => timestamp.notBondedTokens,
 				governanceProposalCount: (timestamp) => timestamp.governanceProposalCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosBlock,
@@ -366,13 +364,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				proposerConsensusAddress: (block) => block.proposerConsensusAddress,
 				timestampMs: (block) => block.timestampMs,
 				transactionCount: (block) => block.transactionCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosTransaction,
@@ -403,15 +399,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (transaction) => transaction.$block,
 				code: (transaction) => transaction.code,
 				gasWanted: (transaction) => transaction.gasWanted,
 				gasUsed: (transaction) => transaction.gasUsed,
 				memo: (transaction) => transaction.memo,
 				$$messages: (transaction) => transaction.$$messages,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount,
@@ -432,10 +426,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (account) => account.$$timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosAccount_Timestamp,
@@ -460,14 +452,12 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$account: (account) => account.$account,
 				timestampMs: (account) => account.timestampMs,
 				source: (account) => account.source,
 				accountNumber: (account) => account.accountNumber,
 				sequence: (account) => account.sequence,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosValidator,
@@ -489,12 +479,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				consensusPubkey: (validator) => validator.consensusPubkey,
 				moniker: (validator) => validator.moniker,
 				$$timestamps: (validator) => validator.$$timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosValidator_Timestamp,
@@ -519,15 +507,13 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$validator: (validator) => validator.$validator,
 				timestampMs: (validator) => validator.timestampMs,
 				source: (validator) => validator.source,
 				jailed: (validator) => validator.jailed,
 				status: (validator) => validator.status,
 				tokens: (validator) => validator.tokens,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosMessage,
@@ -547,12 +533,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				typeUrl: (message) => message.typeUrl,
 				$signer: (message) => message.$signer,
 				$contract: (message) => message.$contract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosGovernanceProposal,
@@ -575,12 +559,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				title: (proposal) => proposal.title,
 				summary: (proposal) => proposal.summary,
 				$$timestamps: (proposal) => proposal.$$timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosGovernanceProposal_Timestamp,
@@ -605,13 +587,11 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$proposal: (proposal) => proposal.$proposal,
 				timestampMs: (proposal) => proposal.timestampMs,
 				source: (proposal) => proposal.source,
 				status: (proposal) => proposal.status,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosDenom,
@@ -631,12 +611,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				display: (denom) => denom.display,
 				base: (denom) => denom.base,
 				symbol: (denom) => denom.symbol,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosModule,
@@ -661,10 +639,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$authority: (module) => module.$authority,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.CosmosContract,
@@ -696,12 +672,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				codeId: (contract) => contract.codeId,
 				$creator: (contract) => contract.$creator,
 				$admin: (contract) => contract.$admin,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
@@ -732,10 +706,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
@@ -788,10 +760,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$cosmosBlocks: (blocks) => blocks,
-			},
-		}),
+				Cosmos: {
+					$$blocks: (blocks) => blocks,
+				},
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
@@ -814,10 +786,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$cosmosValidators: (validators) => validators,
-			},
-		}),
+				Cosmos: {
+					$$validators: (validators) => validators,
+				},
+			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
 			entityType: EntityType.Network,
@@ -840,10 +812,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$cosmosGovernanceProposals: (proposals) => proposals,
-			},
-		}),
+				Cosmos: {
+					$$governanceProposals: (proposals) => proposals,
+				},
+			}),
 
 
 		defineResolver(Source.CosmosSdk_Rest, {
@@ -862,9 +834,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$messages: (messages) => messages,
-			},
-		}),
+			}),
 	],
 }

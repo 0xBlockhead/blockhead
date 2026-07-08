@@ -135,11 +135,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				activationNetworkUpgrade: (snapshot) => snapshot.activationNetworkUpgrade,
 				noteProtocol: (snapshot) => snapshot.noteProtocol,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.Network,
@@ -158,10 +156,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$zcashShieldedPools: (pools) => pools,
-			},
-		}),
+				Zcash: {
+					$$shieldedPools: (pools) => pools,
+				},
+			}),
 
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
@@ -173,7 +171,7 @@ export default {
 						lockTime: transaction.locktime,
 						sizeBytes: transaction.size,
 						weightUnits: transaction.weight,
-						$$zcashShieldedActions: zcashShieldedActionRows(
+						$shieldedActions: zcashShieldedActionRows(
 							entitySelector,
 							transaction
 					),
@@ -181,14 +179,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				version: (snapshot) => snapshot.version,
 				lockTime: (snapshot) => snapshot.lockTime,
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
 				weightUnits: (snapshot) => snapshot.weightUnits,
-				$$zcashShieldedActions: (snapshot) => snapshot.$$zcashShieldedActions,
-			},
-		}),
+				$$zcashShieldedActions: (snapshot) => snapshot.$shieldedActions,
+			}),
 
 		defineResolver(Source.Zcashd_JsonRpc, {
 			entityType: EntityType.ZcashShieldedAction,
@@ -207,13 +203,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$pool: (snapshot) => snapshot.$pool,
 				actionKind: (snapshot) => snapshot.actionKind,
 				nullifier: (snapshot) => snapshot.nullifier,
 				noteCommitment: (snapshot) => snapshot.noteCommitment,
 				valueCommitment: (snapshot) => snapshot.valueCommitment,
-			},
-		}),
+			}),
 	],
 }

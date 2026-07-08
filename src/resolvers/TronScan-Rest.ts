@@ -353,7 +353,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				parentHash: (block) => block.parentHash,
@@ -362,8 +361,7 @@ export default {
 				txTrieRoot: (block) => block.txTrieRoot,
 				version: (block) => block.version,
 				transactionCount: (block) => block.transactionCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount,
@@ -401,12 +399,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (account) => account.name,
 				$contract: (account) => account.$contract,
 				$$timestamps: (account) => account.$$timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount_Timestamp,
@@ -430,7 +426,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				balanceSun: (account) => account.balanceSun,
 				createdTimestampMs: (account) => account.createdTimestampMs,
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
@@ -438,8 +433,7 @@ export default {
 				netLimit: (account) => account.netLimit,
 				energyLimit: (account) => account.energyLimit,
 				isContract: (account) => account.isContract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -458,7 +452,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (transaction) => transaction.$block,
 				blockHeight: (transaction) => transaction.blockHeight,
 				timestampMs: (transaction) => transaction.timestampMs,
@@ -471,8 +464,7 @@ export default {
 				$contract: (transaction) => transaction.$contract,
 				amountSun: (transaction) => transaction.amountSun,
 				assetName: (transaction) => transaction.assetName,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronContract,
@@ -489,15 +481,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$account: (contract) => contract.$account,
 				name: (contract) => contract.name,
 				$creator: (contract) => contract.$creator,
 				$creationTransaction: (contract) => contract.$creationTransaction,
 				$$timestamps: (contract) => contract.$$timestamps,
 				$$tokens: (contract) => contract.$$tokens,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronContract_Timestamp,
@@ -526,13 +516,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				compiler: (contract) => contract.compiler,
 				verifyStatus: (contract) => contract.verifyStatus,
 				isProxy: (contract) => contract.isProxy,
 				$implementation: (contract) => contract.$implementation,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTransactionReceipt,
@@ -551,11 +539,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				feeSun: (receipt) => receipt.feeSun,
 				result: (receipt) => receipt.result,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronToken,
@@ -580,14 +566,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				standard: (token) => token.standard,
 				$owner: (token) => token.$owner,
 				$contract: (token) => token.$contract,
 				createdTimestampMs: (token) => token.createdTimestampMs,
 				$$timestamps: (token) => token.$$timestamps ?? [],
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronToken_Timestamp,
@@ -618,14 +602,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (token) => token.name,
 				symbol: (token) => token.symbol,
 				decimals: (token) => token.decimals,
 				totalSupply: (token) => token.totalSupply,
 				holderCount: (token) => token.holderCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTokenTransfer,
@@ -650,7 +632,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$transaction: (transfer) => transfer.$transaction,
 				$token: (transfer) => transfer.$token,
 				standard: (transfer) => transfer.standard,
@@ -658,8 +639,7 @@ export default {
 				$to: (transfer) => transfer.$to,
 				amount: (transfer) => transfer.amount,
 				timestampMs: (transfer) => transfer.timestampMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccountTokenBalance_Timestamp,
@@ -680,14 +660,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				standard: (timestamp) => timestamp.standard,
 				balance: (timestamp) => timestamp.balance,
 				tokenId: (timestamp) => timestamp.tokenId,
 				tokenName: (timestamp) => timestamp.tokenName,
 				tokenSymbol: (timestamp) => timestamp.tokenSymbol,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronAccount,
@@ -733,10 +711,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$$tokenBalanceTimestamps: (timestamps) => timestamps,
-				},
-			}),
+				}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronContract,
@@ -753,10 +729,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$tokens: (tokens) => tokens,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronScan_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -781,9 +755,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$tokenTransfers: (tokenTransfers) => tokenTransfers,
-			},
-		}),
+			}),
 	],
 }

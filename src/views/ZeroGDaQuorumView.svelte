@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -150,7 +150,7 @@
 		<ResourceBoundary resource={zeroGDaQuorum}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.ZeroGConsensusNetwork, false>('$consensusNetwork')}
+					resource={selection.$consensusNetwork}
 				>
 					{#snippet children(zeroGConsensusNetwork)}
 						{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
@@ -170,7 +170,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.ZeroGConsensusNetwork, false>('$consensusNetwork')}
+					resource={selection.$consensusNetwork}
 				>
 					{#snippet children(zeroGConsensusNetwork)}
 						{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
@@ -252,7 +252,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.ZeroGConsensusNetwork, false>('$consensusNetwork')}
+				resource={selection.$consensusNetwork}
 			>
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}

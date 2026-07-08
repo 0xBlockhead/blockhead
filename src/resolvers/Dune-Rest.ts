@@ -34,10 +34,8 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			duneCreditsUsed: (snapshot) => snapshot.duneCreditsUsed,
 			duneCreditsIncluded: (snapshot) => snapshot.duneCreditsIncluded,
-		},
-			}),
+		}),
 	],
 }

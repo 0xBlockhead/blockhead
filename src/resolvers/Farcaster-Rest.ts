@@ -134,11 +134,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
 				$$verifiedAddresses: (user) => user.$$verifiedAddresses,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
@@ -212,7 +210,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (channel) => channel.name,
 				url: (channel) => channel.url,
 				description: (channel) => channel.description,
@@ -229,8 +226,7 @@ export default {
 				externalLinkTitle: (channel) => channel.externalLinkTitle,
 				externalLinkUrl: (channel) => channel.externalLinkUrl,
 				followedAt: (channel) => channel.followedAt,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel_Timestamp,
@@ -255,11 +251,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
 				memberCount: (timestamp) => timestamp.memberCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterCast,
@@ -304,7 +298,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				fid: (cast) => cast.fid,
 				hash: (cast) => cast.hash,
 				username: (cast) => cast.username,
@@ -314,8 +307,7 @@ export default {
 				text: (cast) => cast.text,
 				timestamp: (cast) => cast.timestamp,
 				threadHash: (cast) => cast.threadHash,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterFeed,
@@ -334,10 +326,8 @@ export default {
 				}),
 			},
 		})({
-			fields: {
 				label: (feed) => feed.label,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType.FarcasterChannel,
@@ -368,10 +358,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType._GlobalFarcasterNetwork,
@@ -387,10 +375,8 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$$observedFeeds: (feeds) => feeds,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Farcaster_Rest, {
 			entityType: EntityType._GlobalFarcasterNetwork,
@@ -407,9 +393,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedChannels: (channels) => channels,
-			},
-		}),
+			}),
 	],
 }

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -103,7 +103,7 @@
 			{#snippet Pending()}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.NearAccount, false>('$signer', {
+						selection.$signer({
 							sources: [
 								Source.NearRpc_JsonRpc,
 								Source.NearBlocks_Rest,
@@ -132,7 +132,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.NearAccount, false>('$signer', {
+						selection.$signer({
 							sources: [
 								Source.NearRpc_JsonRpc,
 								Source.NearBlocks_Rest,
@@ -164,7 +164,7 @@
 			{#snippet Pending()}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.NearAccount, false>('$receiver', {
+						selection.$receiver({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
@@ -190,7 +190,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.NearAccount, false>('$receiver', {
+						selection.$receiver({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
@@ -308,7 +308,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.NearAccount, false>('$signer', {
+					selection.$signer({
 						sources: [
 							Source.NearRpc_JsonRpc,
 							Source.NearBlocks_Rest,
@@ -335,7 +335,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.NearAccount, false>('$receiver', {
+					selection.$receiver({
 						sources: [
 							Source.NearRpc_JsonRpc,
 						],
@@ -403,26 +403,26 @@
 		{#if detailsOpen}
 			<NearActionsView
 				selection={
-						selection[EntityProxyField]<EntityType.NearAction>('$$actions', {
+						selection.$$actions({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
 				title='Actions'
-				id='NearActionsView-$$actions'
+				id='NearActionsView-actions'
 			/>
 
 			<NearExecutionOutcomesView
 				selection={
-						selection[EntityProxyField]<EntityType.NearExecutionOutcome>('$$executionOutcomes', {
+						selection.$$executionOutcomes({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
 				title='Execution outcomes'
-				id='NearExecutionOutcomesView-$$executionOutcomes'
+				id='NearExecutionOutcomesView-execution-outcomes'
 			/>
 		{/if}
 	{/snippet}

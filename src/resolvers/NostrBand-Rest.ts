@@ -583,7 +583,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				pubkey: (profile) => profile.pubkey,
 				displayName: (profile) => profile.displayName,
 				about: (profile) => profile.about,
@@ -594,8 +593,7 @@ export default {
 					metadataUpdatedAt: (profile) => profile.metadataUpdatedAt,
 					$icon: (profile) => profile.$icon,
 					$banner: (profile) => profile.$banner,
-				},
-			}),
+				}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
@@ -612,7 +610,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				eventId: (note) => note.eventId,
 				kind: (note) => note.kind,
 				pubkey: (note) => note.pubkey,
@@ -623,8 +620,7 @@ export default {
 				replyToEventId: (note) => note.replyToEventId,
 				rootEventId: (note) => note.rootEventId,
 				$replyToNote: (note) => note.$replyToNote,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRelay,
@@ -659,7 +655,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (relay) => relay.name,
 				description: (relay) => relay.description,
 				software: (relay) => relay.software,
@@ -667,8 +662,7 @@ export default {
 				supportedNipCount: (relay) => relay.supportedNipCount,
 				isPaid: (relay) => relay.isPaid,
 				limit: (relay) => relay.limit,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrRepost,
@@ -685,7 +679,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				eventId: (repost) => repost.eventId,
 				kind: (repost) => repost.kind,
 				pubkey: (repost) => repost.pubkey,
@@ -695,8 +688,7 @@ export default {
 				$author: (repost) => repost.$author,
 				$repostedNote: (repost) => repost.$repostedNote,
 				$repostedArticle: (repost) => repost.$repostedArticle,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrReaction,
@@ -713,7 +705,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				eventId: (reaction) => reaction.eventId,
 				kind: (reaction) => reaction.kind,
 				pubkey: (reaction) => reaction.pubkey,
@@ -723,8 +714,7 @@ export default {
 				$targetNote: (reaction) => reaction.$targetNote,
 				$targetArticle: (reaction) => reaction.$targetArticle,
 				content: (reaction) => reaction.content,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrArticle,
@@ -760,7 +750,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				pubkey: (article) => article.pubkey,
 				identifier: (article) => article.identifier,
 				kind: (article) => article.kind,
@@ -771,8 +760,7 @@ export default {
 				publishedAt: (article) => article.publishedAt,
 				tags: (article) => article.tags,
 				$author: (article) => article.$author,
-			},
-		}),
+			}),
 
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
@@ -798,10 +786,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$$observedProfiles: (profiles) => profiles,
-				},
-			}),
+				}),
 
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
@@ -825,10 +811,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$$observedNotes: (notes) => notes,
-				},
-			}),
+				}),
 
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
@@ -849,10 +833,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$$observedRelays: (relays) => relays,
-				},
-			}),
+				}),
 
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
@@ -876,10 +858,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$$observedReposts: (reposts) => reposts,
-				},
-			}),
+				}),
 
 			defineResolver(Source.NostrBand_Rest, {
 				entityType: EntityType._GlobalNostrNetwork,
@@ -894,10 +874,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$$observedArticles: (articles) => articles,
-				},
-			}),
+				}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -921,10 +899,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$notes: (notes) => notes,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -939,10 +915,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$articles: (articles) => articles,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -966,10 +940,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$reposts: (reposts) => reposts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -985,10 +957,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				website: (website) => website,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrProfile,
@@ -1007,10 +977,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$banner: (banner) => banner,
-				},
-			}),
+				}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
@@ -1034,10 +1002,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$replies: (replies) => replies,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
@@ -1061,10 +1027,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$reactions: (reactions) => reactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.NostrBand_Rest, {
 			entityType: EntityType.NostrNote,
@@ -1086,9 +1050,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$replyToNote: (replyToNote) => replyToNote,
-			},
-		}),
+			}),
 	],
 }

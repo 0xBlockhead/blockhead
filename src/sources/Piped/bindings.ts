@@ -33,7 +33,7 @@ export const pipedBindings = pipedApiOrigins.map((pipedApiOrigin) => ({
 	operationGroups: [
 		SourceOperationGroup.GenericRead,
 	],
-	delivery: SourceDelivery.HttpProxy,
+	delivery: SourceDelivery.BrowserDirect,
 	credentials: [
 		{
 			scope: SourceCredentialScope.None,

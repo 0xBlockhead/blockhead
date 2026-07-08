@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -300,24 +300,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<UtxoInputsView
-				selection={selection[EntityProxyField]<EntityType.UtxoInput>('$$inputs')}
+				selection={selection.$$inputs}
 				title='inputs'
 				emptyText='No UTXO inputs.'
-				id='UtxoInputsView-$$inputs'
+				id='UtxoInputsView-inputs'
 			/>
 
 			<UtxoOutputsView
-				selection={selection[EntityProxyField]<EntityType.UtxoOutput>('$$outputs')}
+				selection={selection.$$outputs}
 				title='outputs'
 				emptyText='No UTXO outputs.'
-				id='UtxoOutputsView-$$outputs'
+				id='UtxoOutputsView-outputs'
 			/>
 
 			<KaspaAcceptedTransactionsView
-				selection={selection[EntityProxyField]<EntityType.KaspaAcceptedTransaction>('$$acceptances')}
+				selection={selection.$$acceptances}
 				title='acceptances'
 				emptyText='No Kaspa acceptances.'
-				id='KaspaAcceptedTransactionsView-$$acceptances'
+				id='KaspaAcceptedTransactionsView-acceptances'
 			/>
 		{/if}
 	{/snippet}

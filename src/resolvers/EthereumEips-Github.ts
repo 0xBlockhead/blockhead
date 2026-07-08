@@ -156,13 +156,11 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			documentCategory: (snapshot) => snapshot.documentCategory,
 			documentTitle: (snapshot) => snapshot.documentTitle,
 			documentStatus: (snapshot) => snapshot.documentStatus,
 			documentBody: (snapshot) => snapshot.documentBody,
-		},
-			}),
+		}),
 
 		defineResolver(Source.EthereumEips_Github, {
 			entityType: EntityType._Global,
@@ -176,13 +174,11 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			$$proposals: {
 				select: (snapshot) => snapshot.rows,
 				resolveCount: (snapshot) => snapshot.totalCount,
 			},
-		},
-			}),
+		}),
 
 		defineResolver(Source.EthereumEips_Github, {
 			entityType: EntityType.SpecificationProposalKind,
@@ -204,12 +200,10 @@ export default {
 				}
 			}
 		})({
-			fields: {
 				$$proposals: {
 					select: (snapshot) => snapshot.rows,
 					resolveCount: (snapshot) => snapshot.totalCount,
 				},
-			},
-		}),
+			}),
 	],
 }

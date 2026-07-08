@@ -1,60 +1,52 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum EnsRecordSelector {
 	NameRecordKey = 'NameRecordKey',
 }
-export default {
+export const EnsRecord = entity({
 	entityType: EntityType.EnsRecord,
 	label: 'ENS record',
 	labelPlural: 'ENS records',
-	selectors: [
-		{
-			name: EnsRecordSelector.NameRecordKey,
-			fields: [
-				'$name',
-				'recordKey',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$name',
-			label: 'Name',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EnsName,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'recordKey',
-			label: 'Record key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'recordKind',
-			label: 'Record kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'coinType',
-			label: 'Coin type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$timestamps',
-			label: 'Observations',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EnsRecord_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$name: {
+		label: 'Name',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EnsName,
+		cardinality: EntityFieldCardinality.One,
+	},
+	recordKey: {
+		label: 'Record key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	recordKind: {
+		label: 'Record kind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	coinType: {
+		label: 'Coin type',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$timestamps: {
+		label: 'Observations',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.EnsRecord_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		NameRecordKey: [
+			'$name',
+			'recordKey',
+		],
+	},
+})

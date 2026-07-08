@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -495,17 +495,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AiDocumentsView
-				selection={selection[EntityProxyField]<EntityType.AiDocument>('$$documents')}
+				selection={selection.$$documents}
 				title='documents'
 				emptyText='No linked documents.'
-				id='AiDocumentsView-$$documents'
+				id='AiDocumentsView-documents'
 			/>
 
 			<AiArtifactAttestationsView
-				selection={selection[EntityProxyField]<EntityType.AiArtifactAttestation>('$$attestations')}
+				selection={selection.$$attestations}
 				title='attestations'
 				emptyText='No AI artifact attestations.'
-				id='AiArtifactAttestationsView-$$attestations'
+				id='AiArtifactAttestationsView-attestations'
 			/>
 		{/if}
 	{/snippet}

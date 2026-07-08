@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -117,7 +117,7 @@
 		{#if detailsOpen}
 			<YoutubeChannelsView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubeChannel>('$$observedChannels', {
+						selection.$$observedChannels({
 							sources: [
 								Source.Constants_Internal,
 								Source.Youtube_Rest,
@@ -126,12 +126,12 @@
 					}
 				title='Channels'
 				href={resolve('/(social)/(youtube)/youtube/channels')}
-				id='YoutubeChannelsView-$$observedChannels'
+				id='YoutubeChannelsView-observed-channels'
 			/>
 
 			<YoutubeVideosView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubeVideo>('$$observedVideos', {
+						selection.$$observedVideos({
 							sources: [
 								Source.Constants_Internal,
 								Source.Youtube_Rest,
@@ -140,12 +140,12 @@
 					}
 				title='Videos'
 				href={resolve('/(social)/(youtube)/youtube/videos')}
-				id='YoutubeVideosView-$$observedVideos'
+				id='YoutubeVideosView-observed-videos'
 			/>
 
 			<YoutubePlaylistsView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubePlaylist>('$$observedPlaylists', {
+						selection.$$observedPlaylists({
 							sources: [
 								Source.Constants_Internal,
 								Source.Youtube_Rest,
@@ -154,7 +154,7 @@
 					}
 				title='Playlists'
 				href={resolve('/(social)/(youtube)/youtube/playlists')}
-				id='YoutubePlaylistsView-$$observedPlaylists'
+				id='YoutubePlaylistsView-observed-playlists'
 			/>
 		{/if}
 	{/snippet}

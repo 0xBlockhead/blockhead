@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -93,7 +93,7 @@
 		<ResourceBoundary resource={mcpToolCall}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.McpTool, false>('$tool')}
+					resource={selection.$tool}
 				>
 					{#snippet children(mcpTool)}
 						{#if mcpTool != null && mcpTool[EntityMetaKey.Selector] != null}
@@ -111,7 +111,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.McpTool, false>('$tool')}
+					resource={selection.$tool}
 				>
 					{#snippet children(mcpTool)}
 						{#if mcpTool != null && mcpTool[EntityMetaKey.Selector] != null}
@@ -195,7 +195,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.McpTool, false>('$tool')}
+				resource={selection.$tool}
 			>
 				{#snippet children(mcpTool)}
 					{#if mcpTool != null && mcpTool[EntityMetaKey.Selector] != null}
@@ -431,10 +431,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<McpToolCall_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.McpToolCall_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No MCP tool call observations.'
-				id='McpToolCall_TimestampsView-$$timestamps'
+				id='McpToolCall_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

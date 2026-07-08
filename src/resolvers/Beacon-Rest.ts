@@ -17,7 +17,7 @@ import type {
 	BeaconFinalityCheckpoints,
 	BeaconForkScheduleEntry,
 } from '$/sources/Beacon/Rest/types.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { BeaconEpochSelector } from '$/schema/BeaconEpoch.ts'
 import { BeaconSlotSelector } from '$/schema/BeaconSlot.ts'
 import { BeaconValidatorSelector } from '$/schema/BeaconValidator.ts'
@@ -91,12 +91,10 @@ export default {
 				}),
 			},
 		})({
-			fields: {
 				startSlot: (epoch) => epoch.startSlot,
 				endSlot: (epoch) => epoch.endSlot,
 				slotCount: (epoch) => epoch.slotCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -106,7 +104,6 @@ export default {
 				}),
 			},
 		})({
-			fields: {
 				epoch: (slot) => slot.epoch,
 				$epoch: (slot, { $network }) => ({
 					[EntityMetaKey.Selector]: {
@@ -114,8 +111,7 @@ export default {
 						epoch: slot.epoch,
 					},
 				}),
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -138,7 +134,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				bodyRoot: (slot) => slot.bodyRoot,
 				canonical: (slot) => slot.canonical,
 				parentRoot: (slot) => slot.parentRoot,
@@ -146,8 +141,7 @@ export default {
 				root: (slot) => slot.root,
 				signature: (slot) => slot.signature,
 				stateRoot: (slot) => slot.stateRoot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconValidator,
@@ -173,14 +167,12 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				balanceGwei: (validator) => validator.balanceGwei,
 				effectiveBalanceGwei: (validator) => validator.effectiveBalanceGwei,
 				pubkey: (validator) => validator.pubkey,
 				slashed: (validator) => validator.slashed,
 				status: (validator) => validator.status,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconCommittee,
@@ -200,10 +192,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				validatorIndices: (committee) => committee.validatorIndices,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSyncCommittee,
@@ -221,10 +211,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				validatorIndices: (committee) => committee.validatorIndices,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconAttestation,
@@ -245,11 +233,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				committeeIndex: (attestation) => attestation.committeeIndex,
 				aggregationBits: (attestation) => attestation.aggregationBits,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconWithdrawal,
@@ -285,13 +271,11 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				validatorIndex: (withdrawal) => withdrawal.validatorIndex,
 				$validator: (withdrawal) => withdrawal.$validator,
 				$account: (withdrawal) => withdrawal.$account,
 				amountGwei: (withdrawal) => withdrawal.amountGwei,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlashing,
@@ -317,13 +301,11 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$network: (slashing) => slashing.$network,
 				slot: (slashing) => slashing.slot,
 				kind: (slashing) => slashing.kind,
 				indexInSlot: (slashing) => slashing.indexInSlot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumBeaconFinality_Timestamp,
@@ -347,15 +329,13 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				currentJustifiedCheckpointEpoch: (timestamp) => timestamp.currentJustifiedCheckpointEpoch,
 				currentJustifiedCheckpointRoot: (timestamp) => timestamp.currentJustifiedCheckpointRoot,
 				previousJustifiedCheckpointEpoch: (timestamp) => timestamp.previousJustifiedCheckpointEpoch,
 				previousJustifiedCheckpointRoot: (timestamp) => timestamp.previousJustifiedCheckpointRoot,
 				finalizedCheckpointEpoch: (timestamp) => timestamp.finalizedCheckpointEpoch,
 				finalizedCheckpointRoot: (timestamp) => timestamp.finalizedCheckpointRoot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconEpoch,
@@ -374,15 +354,13 @@ export default {
 				),
 			},
 		})({
-			fields: {
 				$$beaconSlots: (epoch) => epoch,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = await beaconRestBaseUrl(chainId)
@@ -411,15 +389,15 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$beaconEpochs: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconEpochs: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = await beaconRestBaseUrl(chainId)
@@ -448,15 +426,15 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$beaconSlots: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconSlots: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
 					const limit = resolverContextRowLimit(context)
 					const chainId = Number(caip2.reference)
@@ -479,10 +457,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$beaconValidators: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconValidators: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -506,10 +484,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$beaconCommittees: (slot) => slot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -533,10 +509,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$beaconAttestations: (slot) => slot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -560,10 +534,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$beaconWithdrawals: (slot) => slot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.BeaconSlot,
@@ -588,15 +560,13 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$beaconSlashings: (slot) => slot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = await beaconRestBaseUrl(chainId)
@@ -616,15 +586,15 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$beaconCommittees: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconCommittees: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = await beaconRestBaseUrl(chainId)
@@ -641,15 +611,15 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$beaconSyncCommittees: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconSyncCommittees: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = await beaconRestBaseUrl(chainId)
@@ -670,15 +640,15 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$beaconAttestations: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconAttestations: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = await beaconRestBaseUrl(chainId)
@@ -699,15 +669,15 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$beaconWithdrawals: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconWithdrawals: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }, context) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }, context) => {
 					const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 					const chainId = Number(caip2.reference)
 					const base = await beaconRestBaseUrl(chainId)
@@ -729,15 +699,15 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$beaconSlashings: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconSlashings: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => [
+				[NetworkSelector.Caip2]: async ({ caip2 }) => [
 					{
 						[EntityMetaKey.Selector]: {
 							$network: { caip2 },
@@ -747,10 +717,10 @@ export default {
 				],
 			},
 		})({
-			fields: {
-				$$beaconFinalityTimestamps: (network) => network,
-			},
-		}),
+				Evm: {
+					$$beaconFinalityTimestamps: (network) => network,
+				},
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumConsensusUpgrade,
@@ -763,10 +733,8 @@ export default {
 				),
 			},
 		})({
-			fields: {
 				previousForkVersion: (upgrade) => upgrade,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Beacon_Rest, {
 			entityType: EntityType.EthereumConsensusUpgrade,
@@ -779,9 +747,7 @@ export default {
 				),
 			},
 		})({
-			fields: {
 				currentForkVersion: (upgrade) => upgrade,
-			},
-		}),
+			}),
 	],
 }

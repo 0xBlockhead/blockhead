@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -167,7 +167,7 @@
 			</div>
 
 			<div>
-				<dt>Relationship model</dt>
+				<dt>Connection model</dt>
 				<dd>
 					<ResourceBoundary
 						resource={
@@ -294,27 +294,27 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmSelectorsView
-				selection={selection[EntityProxyField]<EntityType.EvmSelector>('$$evmSelectors')}
+				selection={selection.$$evmSelectors}
 				title='EVM selectors'
 				href={resolve('/(explore)/(evm)/evm/(selectors)/selectors')}
 				emptyText='No EVM selectors in this observed.'
-				id='EvmSelectorsView-$$evmSelectors'
+				id='EvmSelectorsView-evm-selectors'
 			/>
 
 			<EvmTopicsView
-				selection={selection[EntityProxyField]<EntityType.EvmTopic>('$$evmTopics')}
+				selection={selection.$$evmTopics}
 				title='EVM topics'
 				href={resolve('/(explore)/(evm)/evm/(topics)/topics')}
 				emptyText='No EVM topics in this observed.'
-				id='EvmTopicsView-$$evmTopics'
+				id='EvmTopicsView-evm-topics'
 			/>
 
 			<EvmErrorsView
-				selection={selection[EntityProxyField]<EntityType.EvmError>('$$evmErrors')}
+				selection={selection.$$evmErrors}
 				title='EVM errors'
 				href={resolve('/(explore)/(evm)/evm/(errors)/errors')}
 				emptyText='No EVM errors in this observed.'
-				id='EvmErrorsView-$$evmErrors'
+				id='EvmErrorsView-evm-errors'
 			/>
 		{/if}
 	{/snippet}

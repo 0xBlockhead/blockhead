@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -186,7 +186,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AlgorandAccount, false>('$account')}
+				resource={selection.$account}
 			>
 				{#snippet children(algorandAccount)}
 					{#if algorandAccount != null && algorandAccount[EntityMetaKey.Selector] != null}
@@ -206,7 +206,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AlgorandNetwork, false>('$network')}
+				resource={selection.$network}
 			>
 				{#snippet children(algorandNetwork)}
 					{#if algorandNetwork != null && algorandNetwork[EntityMetaKey.Selector] != null}

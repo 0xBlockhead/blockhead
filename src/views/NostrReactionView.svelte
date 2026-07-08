@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -278,7 +278,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.NostrProfile, false>('$author', {
+						selection.$author({
 							sources: [
 								Source.NostrBand_Rest,
 							],
@@ -306,7 +306,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.NostrNote, false>('$targetNote', {
+						selection.$targetNote({
 							sources: [
 								Source.NostrBand_Rest,
 							],
@@ -334,7 +334,7 @@
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.NostrArticle, false>('$targetArticle', {
+						selection.$targetArticle({
 							sources: [
 								Source.NostrBand_Rest,
 							],

@@ -63,10 +63,8 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					$network: (network) => network.$network,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork_Timestamp,
@@ -118,7 +116,6 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
 					finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
 					runtimeSpecName: (timestamp) => timestamp.runtimeSpecName,
@@ -131,8 +128,7 @@ export default {
 					subnetsInfoByteLength: (timestamp) => timestamp.subnetsInfoByteLength,
 					dynamicInfoByteLength: (timestamp) => timestamp.dynamicInfoByteLength,
 					metagraphsByteLength: (timestamp) => timestamp.metagraphsByteLength,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorBlock,
@@ -167,14 +163,12 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					hash: (block) => block.hash,
 					$parent: (block) => block.$parent,
 					stateRoot: (block) => block.stateRoot,
 					extrinsicsRoot: (block) => block.extrinsicsRoot,
 					extrinsicCount: (block) => block.extrinsicCount,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
@@ -214,13 +208,11 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					netuid: (subnet) => subnet.netuid,
 					subnetInfoByteLength: (subnet) => subnet.subnetInfoByteLength,
 					dynamicInfoByteLength: (subnet) => subnet.dynamicInfoByteLength,
 					hyperparamsByteLength: (subnet) => subnet.hyperparamsByteLength,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorMetagraph_Timestamp,
@@ -240,10 +232,8 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					metagraphByteLength: (timestamp) => timestamp.metagraphByteLength,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNeuron,
@@ -256,10 +246,8 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					uid: (neuron) => neuron.uid,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.Network,
@@ -278,10 +266,10 @@ export default {
 				}
 			}
 		})({
-				fields: {
-					$$bittensorTimestamps: (timestamps) => timestamps,
-				},
-			}),
+					Bittensor: {
+						$$timestamps: (timestamps) => timestamps,
+					},
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
@@ -300,10 +288,8 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					$$timestamps: (timestamps) => timestamps,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.Network,
@@ -338,10 +324,10 @@ export default {
 				}
 			}
 		})({
-				fields: {
-					$$bittensorBlocks: (blocks) => blocks,
-				},
-			}),
+					Bittensor: {
+						$$blocks: (blocks) => blocks,
+					},
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
@@ -376,10 +362,8 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					$$blocks: (blocks) => blocks,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.Network,
@@ -403,10 +387,10 @@ export default {
 				}
 			}
 		})({
-				fields: {
-					$$bittensorSubnets: (subnets) => subnets,
-				},
-			}),
+					Bittensor: {
+						$$subnets: (subnets) => subnets,
+					},
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorNetwork,
@@ -430,10 +414,8 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					$$subnets: (subnets) => subnets,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
@@ -452,10 +434,8 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					$$metagraphTimestamps: (timestamps) => timestamps,
-				},
-			}),
+				}),
 
 		defineResolver(Source.Bittensor_JsonRpc, {
 			entityType: EntityType.BittensorSubnet,
@@ -466,9 +446,7 @@ export default {
 				}
 			}
 		})({
-				fields: {
 					$$neurons: (neurons) => neurons,
-				},
-			}),
+				}),
 	],
 }

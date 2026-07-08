@@ -275,11 +275,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$network: (network) => network.$network,
 				rpcEndpoints: (network) => network.rpcEndpoints,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.Network,
@@ -287,15 +285,17 @@ export default {
 				[NetworkSelector.Slug]: async (network) => {
 					assertMoneroMainnet(network)
 					return {
-						moneroRpcEndpoints: [...await moneroMainnetRpcEndpointRows()],
+						Monero: {
+							rpcEndpoints: [...await moneroMainnetRpcEndpointRows()],
+						},
 					}
 				}
 			},
 		})({
-			fields: {
-				moneroRpcEndpoints: (network) => network.moneroRpcEndpoints,
-			},
-		}),
+				Monero: {
+					rpcEndpoints: (network) => network.moneroRpcEndpoints,
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroBlock,
@@ -380,15 +380,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				timestampMs: (block) => block.timestampMs,
 				difficulty: (block) => block.difficulty,
 				weightBytes: (block) => block.weightBytes,
 				$$transactions: (block) => block.$$transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroTransaction,
@@ -401,15 +399,13 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$block: (transaction) => transaction.$block,
 				version: (transaction) => transaction.version,
 				unlockTime: (transaction) => transaction.unlockTime,
 				feeAtomicUnits: (transaction) => transaction.feeAtomicUnits,
 				$$keyImages: (transaction) => transaction.$$keyImages ?? [],
 				$$stealthOutputs: (transaction) => transaction.$$stealthOutputs ?? [],
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroKeyImage,
@@ -427,10 +423,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$ring: (keyImage) => keyImage.$ring,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
@@ -457,10 +451,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$members: (ring) => ring.$$members,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRingMember,
@@ -477,10 +469,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				globalOutputIndex: (ringMember) => ringMember.globalOutputIndex,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroStealthOutput,
@@ -498,11 +488,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				publicKey: (output) => output.publicKey,
 				commitment: (output) => output.commitment,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
@@ -526,10 +514,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.Network,
@@ -553,10 +539,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$moneroTimestamps: (timestamps) => timestamps,
-			},
-		}),
+				Monero: {
+					$$timestamps: (timestamps) => timestamps,
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork_Timestamp,
@@ -569,9 +555,7 @@ export default {
 					}))
 				}
 			},
-		})({
-			fields: moneroNetworkTimestampFieldResolvers,
-		}),
+		})(moneroNetworkTimestampFieldResolvers),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroNetwork,
@@ -600,10 +584,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$blocks: (blocks) => blocks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.Network,
@@ -629,10 +611,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$moneroBlocks: (blocks) => blocks,
-			},
-		}),
+				Monero: {
+					$$blocks: (blocks) => blocks,
+				},
+			}),
 
 		defineResolver(Source.MoneroDaemonRpc_JsonRpc, {
 			entityType: EntityType.MoneroRing,
@@ -657,9 +639,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$members: (members) => members,
-			},
-		}),
+			}),
 	],
 }

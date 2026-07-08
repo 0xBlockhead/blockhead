@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -101,7 +101,7 @@
 			{#snippet Pending()}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.FilecoinActor, false>('$from', {
+						selection.$from({
 							sources: [
 								Source.Filfox_Rest,
 							],
@@ -122,7 +122,7 @@
 
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.FilecoinActor, false>('$to', {
+						selection.$to({
 							sources: [
 								Source.Filfox_Rest,
 							],
@@ -146,7 +146,7 @@
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.FilecoinActor, false>('$from', {
+						selection.$from({
 							sources: [
 								Source.Filfox_Rest,
 							],
@@ -167,7 +167,7 @@
 
 				<ResourceBoundary
 					resource={
-						selection[EntityProxyField]<EntityType.FilecoinActor, false>('$to', {
+						selection.$to({
 							sources: [
 								Source.Filfox_Rest,
 							],
@@ -276,7 +276,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.FilecoinActor, false>('$from', {
+					selection.$from({
 						sources: [
 							Source.Filfox_Rest,
 						],
@@ -302,7 +302,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.FilecoinActor, false>('$to', {
+					selection.$to({
 						sources: [
 							Source.Filfox_Rest,
 						],

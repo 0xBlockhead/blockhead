@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -445,52 +445,52 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BitTorrentFilesView
-				selection={selection[EntityProxyField]<EntityType.BitTorrentFile>('$$files')}
+				selection={selection.$$files}
 				title='files'
 				emptyText='No files found.'
-				id='BitTorrentFilesView-$$files'
+				id='BitTorrentFilesView-files'
 			/>
 
 			<BitTorrentFileTreeEntriesView
-				selection={selection[EntityProxyField]<EntityType.BitTorrentFileTreeEntry>('$$fileTreeEntries')}
+				selection={selection.$$fileTreeEntries}
 				title='file tree entries'
 				emptyText='No file tree entries found.'
-				id='BitTorrentFileTreeEntriesView-$$fileTreeEntries'
+				id='BitTorrentFileTreeEntriesView-file-tree-entries'
 			/>
 
 			<BitTorrentPiecesView
-				selection={selection[EntityProxyField]<EntityType.BitTorrentPiece>('$$pieces')}
+				selection={selection.$$pieces}
 				title='pieces'
 				emptyText='No pieces found.'
-				id='BitTorrentPiecesView-$$pieces'
+				id='BitTorrentPiecesView-pieces'
 			/>
 
 			<BitTorrentTrackersView
-				selection={selection[EntityProxyField]<EntityType.BitTorrentTracker>('$$trackers')}
+				selection={selection.$$trackers}
 				title='trackers'
 				emptyText='No trackers found.'
-				id='BitTorrentTrackersView-$$trackers'
+				id='BitTorrentTrackersView-trackers'
 			/>
 
 			<MagnetLinksView
-				selection={selection[EntityProxyField]<EntityType.MagnetLink>('$$magnets')}
+				selection={selection.$$magnets}
 				title='magnets'
 				emptyText='No magnets found.'
-				id='MagnetLinksView-$$magnets'
+				id='MagnetLinksView-magnets'
 			/>
 
 			<BitTorrentSwarmObservation_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BitTorrentSwarmObservation_Timestamp>('$$swarmTimestamps')}
+				selection={selection.$$swarmTimestamps}
 				title='swarm timestamps'
 				emptyText='No swarm observations yet.'
-				id='BitTorrentSwarmObservation_TimestampsView-$$swarmTimestamps'
+				id='BitTorrentSwarmObservation_TimestampsView-swarm-timestamps'
 			/>
 
 			<BlockheadBitTorrentTransfer_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadBitTorrentTransfer_Timestamp>('$$clientTransfers')}
+				selection={selection.$$clientTransfers}
 				title='client transfers'
 				emptyText='No client transfers yet.'
-				id='BlockheadBitTorrentTransfer_TimestampsView-$$clientTransfers'
+				id='BlockheadBitTorrentTransfer_TimestampsView-client-transfers'
 			/>
 		{/if}
 	{/snippet}

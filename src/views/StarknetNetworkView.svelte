@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -227,38 +227,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<StarknetNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.StarknetNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Starknet network observations.'
-				id='StarknetNetwork_TimestampsView-$$timestamps'
+				id='StarknetNetwork_TimestampsView-timestamps'
 			/>
 
 			<StarknetBlocksView
-				selection={selection[EntityProxyField]<EntityType.StarknetBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No Starknet blocks.'
-				id='StarknetBlocksView-$$blocks'
+				id='StarknetBlocksView-blocks'
 			/>
 
 			<StarknetTransactionsView
-				selection={selection[EntityProxyField]<EntityType.StarknetTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Starknet transactions.'
-				id='StarknetTransactionsView-$$transactions'
+				id='StarknetTransactionsView-transactions'
 			/>
 
 			<StarknetContractsView
-				selection={selection[EntityProxyField]<EntityType.StarknetContract>('$$contracts')}
+				selection={selection.$$contracts}
 				title='contracts'
 				emptyText='No Starknet contracts.'
-				id='StarknetContractsView-$$contracts'
+				id='StarknetContractsView-contracts'
 			/>
 
 			<StarknetClassesView
-				selection={selection[EntityProxyField]<EntityType.StarknetClass>('$$classes')}
+				selection={selection.$$classes}
 				title='classes'
 				emptyText='No Starknet classes.'
-				id='StarknetClassesView-$$classes'
+				id='StarknetClassesView-classes'
 			/>
 		{/if}
 	{/snippet}

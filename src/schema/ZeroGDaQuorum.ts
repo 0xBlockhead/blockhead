@@ -1,60 +1,52 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum ZeroGDaQuorumSelector {
 	NetworkQuorumId = 'NetworkQuorumId',
 }
-export default {
+export const ZeroGDaQuorum = entity({
 	entityType: EntityType.ZeroGDaQuorum,
 	label: 'zero g da quorum',
 	labelPlural: 'zero g da quorums',
-	selectors: [
-		{
-			name: ZeroGDaQuorumSelector.NetworkQuorumId,
-			fields: [
-				'$network',
-				'quorumId',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'quorumId',
-			label: 'quorum ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$consensusNetwork',
-			label: 'consensus network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ZeroGConsensusNetwork,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'selectionMethod',
-			label: 'selection method',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$daNodes',
-			label: 'DA nodes',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ZeroGDaNode,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$network: {
+		label: 'network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.One,
+	},
+	quorumId: {
+		label: 'quorum ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$consensusNetwork: {
+		label: 'consensus network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.ZeroGConsensusNetwork,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	selectionMethod: {
+		label: 'selection method',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$daNodes: {
+		label: 'DA nodes',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.ZeroGDaNode,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		NetworkQuorumId: [
+			'$network',
+			'quorumId',
+		],
+	},
+})

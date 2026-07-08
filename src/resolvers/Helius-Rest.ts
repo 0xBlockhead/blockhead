@@ -152,7 +152,6 @@ export default {
 				},
 			}
 		})({
-			fields: {
 				$block: (transaction) => transaction.$block,
 				$feePayer: (transaction) => transaction.$feePayer,
 				$$timestamps: (transaction) => transaction.$$timestamps.map((timestamp) => ({
@@ -161,8 +160,7 @@ export default {
 				$$instructions: (transaction) => transaction.$$instructions.map((instruction) => ({
 					[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction_Timestamp,
@@ -181,7 +179,6 @@ export default {
 				},
 			}
 		})({
-			fields: {
 				$transaction: (timestamp) => timestamp.$transaction,
 				slot: (timestamp) => timestamp.slot,
 				source: (timestamp) => timestamp.source,
@@ -189,8 +186,7 @@ export default {
 				feeLamports: (timestamp) => timestamp.feeLamports,
 				status: (timestamp) => timestamp.status,
 				err: (timestamp) => timestamp.err,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaInstruction,
@@ -209,15 +205,13 @@ export default {
 				},
 			}
 		})({
-			fields: {
 				instructionKind: (instruction) => instruction.instructionKind,
 				indexInTransaction: (instruction) => instruction.indexInTransaction,
 				$program: (instruction) => instruction.$program,
 				indexInInstruction: () => undefined,
 				data: (instruction) => instruction.data,
 				$$accounts: (instruction) => instruction.$$accounts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Helius_Rest, {
 			entityType: EntityType.SolanaTransaction,
@@ -233,11 +227,9 @@ export default {
 				),
 			}
 		})({
-			fields: {
 				$$instructions: (instructions) => instructions.map((instruction) => ({
 					[EntityMetaKey.Selector]: instruction[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 	],
 }

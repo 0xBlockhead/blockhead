@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -121,52 +121,52 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AlgorandRoundsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandRound>('$$rounds')}
+				selection={selection.$$rounds}
 				title='rounds'
 				emptyText='No Algorand rounds.'
-				id='AlgorandRoundsView-$$rounds'
+				id='AlgorandRoundsView-rounds'
 			/>
 
 			<AlgorandAccountsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='accounts'
 				emptyText='No Algorand accounts.'
-				id='AlgorandAccountsView-$$accounts'
+				id='AlgorandAccountsView-accounts'
 			/>
 
 			<AlgorandApplicationsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandApplication>('$$applications')}
+				selection={selection.$$applications}
 				title='applications'
 				emptyText='No Algorand applications.'
-				id='AlgorandApplicationsView-$$applications'
+				id='AlgorandApplicationsView-applications'
 			/>
 
 			<AlgorandAssetsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandAsset>('$$assets')}
+				selection={selection.$$assets}
 				title='assets'
 				emptyText='No Algorand assets.'
-				id='AlgorandAssetsView-$$assets'
+				id='AlgorandAssetsView-assets'
 			/>
 
 			<AlgorandTealProgramsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandTealProgram>('$$tealPrograms')}
+				selection={selection.$$tealPrograms}
 				title='TEAL programs'
 				emptyText='No Algorand TEAL programs.'
-				id='AlgorandTealProgramsView-$$tealPrograms'
+				id='AlgorandTealProgramsView-teal-programs'
 			/>
 
 			<AlgorandTransactionsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Algorand transactions.'
-				id='AlgorandTransactionsView-$$transactions'
+				id='AlgorandTransactionsView-transactions'
 			/>
 
 			<AlgorandNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Algorand network observations.'
-				id='AlgorandNetwork_TimestampsView-$$timestamps'
+				id='AlgorandNetwork_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

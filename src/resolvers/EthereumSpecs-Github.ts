@@ -24,9 +24,7 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				executionSpecsMainnetUpgradeMarkdown: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

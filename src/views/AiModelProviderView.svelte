@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -340,24 +340,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AiProviderCatalogEntriesView
-				selection={selection[EntityProxyField]<EntityType.AiProviderCatalogEntry>('$$catalogEntries')}
+				selection={selection.$$catalogEntries}
 				title='catalog entries'
 				emptyText='No AI provider catalog entries.'
-				id='AiProviderCatalogEntriesView-$$catalogEntries'
+				id='AiProviderCatalogEntriesView-catalog-entries'
 			/>
 
 			<AiProviderApiOperationsView
-				selection={selection[EntityProxyField]<EntityType.AiProviderApiOperation>('$$apiOperations')}
+				selection={selection.$$apiOperations}
 				title='API operations'
 				emptyText='No AI provider API operations.'
-				id='AiProviderApiOperationsView-$$apiOperations'
+				id='AiProviderApiOperationsView-api-operations'
 			/>
 
 			<AiModelsView
-				selection={selection[EntityProxyField]<EntityType.AiModel>('$$models')}
+				selection={selection.$$models}
 				title='models'
 				emptyText='No AI models.'
-				id='AiModelsView-$$models'
+				id='AiModelsView-models'
 			/>
 		{/if}
 	{/snippet}

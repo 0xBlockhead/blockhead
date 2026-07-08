@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -104,7 +104,7 @@
 		<ResourceBoundary resource={beaconSlot}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BeaconEpoch, false>('$epoch')}
+					resource={selection.$epoch}
 				>
 					{#snippet children(beaconEpoch)}
 						<span data-text="muted">
@@ -128,7 +128,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BeaconEpoch, false>('$epoch')}
+					resource={selection.$epoch}
 				>
 					{#snippet children(beaconEpoch)}
 						<span data-text="muted">
@@ -192,7 +192,7 @@
 				<dt>Epoch</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.BeaconEpoch, false>('$epoch')}
+						resource={selection.$epoch}
 					>
 						{#snippet children(beaconEpoch)}
 							{#if beaconEpoch[EntityMetaKey.Selector] != null}
@@ -441,27 +441,27 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BeaconCommitteesView
-				selection={selection[EntityProxyField]<EntityType.BeaconCommittee>('$$beaconCommittees')}
+				selection={selection.$$beaconCommittees}
 				title='Beacon committees'
-				id='BeaconCommitteesView-$$beaconCommittees'
+				id='BeaconCommitteesView-beacon-committees'
 			/>
 
 			<BeaconAttestationsView
-				selection={selection[EntityProxyField]<EntityType.BeaconAttestation>('$$beaconAttestations')}
+				selection={selection.$$beaconAttestations}
 				title='Beacon attestations'
-				id='BeaconAttestationsView-$$beaconAttestations'
+				id='BeaconAttestationsView-beacon-attestations'
 			/>
 
 			<BeaconWithdrawalsView
-				selection={selection[EntityProxyField]<EntityType.BeaconWithdrawal>('$$beaconWithdrawals')}
+				selection={selection.$$beaconWithdrawals}
 				title='Beacon withdrawals'
-				id='BeaconWithdrawalsView-$$beaconWithdrawals'
+				id='BeaconWithdrawalsView-beacon-withdrawals'
 			/>
 
 			<BeaconSlashingsView
-				selection={selection[EntityProxyField]<EntityType.BeaconSlashing>('$$beaconSlashings')}
+				selection={selection.$$beaconSlashings}
 				title='Beacon slashings'
-				id='BeaconSlashingsView-$$beaconSlashings'
+				id='BeaconSlashingsView-beacon-slashings'
 			/>
 		{/if}
 	{/snippet}

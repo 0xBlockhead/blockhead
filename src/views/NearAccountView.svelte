@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -313,7 +313,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.NearContract, false>('$contract', {
+					selection.$contract({
 						sources: [
 							Source.NearRpc_JsonRpc,
 						],
@@ -343,14 +343,14 @@
 		{#if detailsOpen}
 			<NearAccessKeysView
 				selection={
-						selection[EntityProxyField]<EntityType.NearAccessKey>('$$accessKeys', {
+						selection.$$accessKeys({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
 				title='Access keys'
-				id='NearAccessKeysView-$$accessKeys'
+				id='NearAccessKeysView-access-keys'
 			/>
 		{/if}
 	{/snippet}

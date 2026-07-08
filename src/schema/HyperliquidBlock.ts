@@ -1,63 +1,55 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum HyperliquidBlockSelector {
 	Height = 'Height',
 }
-export default {
+export const HyperliquidBlock = entity({
 	entityType: EntityType.HyperliquidBlock,
 	label: 'hyperliquid block',
 	labelPlural: 'hyperliquid blocks',
-	selectors: [
-		{
-			name: HyperliquidBlockSelector.Height,
-			fields: [
-				'$network',
-				'height',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'height',
-			label: 'Height',
-			description: 'The block or ledger height in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'hash',
-			label: 'Hash',
-			description: 'The hash that identifies this object in its protocol.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$transactions',
-			label: 'transactions',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.HyperliquidTransaction,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$network: {
+		label: 'network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.One,
+	},
+	height: {
+		label: 'Height',
+		description: 'The block or ledger height in its network.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	hash: {
+		label: 'Hash',
+		description: 'The hash that identifies this object in its protocol.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$transactions: {
+		label: 'transactions',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.HyperliquidTransaction,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		Height: [
+			'$network',
+			'height',
+		],
+	},
+})

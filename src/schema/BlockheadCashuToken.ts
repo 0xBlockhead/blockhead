@@ -1,116 +1,100 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum BlockheadCashuTokenSelector {
 	Id = 'Id',
 }
-export default {
+export const BlockheadCashuToken = entity({
 	entityType: EntityType.BlockheadCashuToken,
 	label: 'blockhead Cashu token',
 	labelPlural: 'blockhead Cashu tokens',
-	selectors: [
-		{
-			name: BlockheadCashuTokenSelector.Id,
-			fields: [
-				'id',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'id',
-			label: 'ID',
-			description: 'The identifier assigned by the source domain.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'tokenVersion',
-			label: 'token version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'encodedToken',
-			label: 'encoded token',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'unit',
-			label: 'unit',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'memo',
-			label: 'memo',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'mintUrl',
-			label: 'mint URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$mint',
-			label: 'mint',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CashuMint,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'proofCount',
-			label: 'proof count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'totalAmount',
-			label: 'total amount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'importedAt',
-			label: 'imported AT',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'redeemedAt',
-			label: 'redeemed AT',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'status',
-			label: 'status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$$proofs',
-			label: 'proofs',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.BlockheadCashuProof,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	id: {
+		label: 'ID',
+		description: 'The identifier assigned by the source domain.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	tokenVersion: {
+		label: 'token version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	encodedToken: {
+		label: 'encoded token',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	unit: {
+		label: 'unit',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	memo: {
+		label: 'memo',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	mintUrl: {
+		label: 'mint URL',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$mint: {
+		label: 'mint',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.CashuMint,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	proofCount: {
+		label: 'proof count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	totalAmount: {
+		label: 'total amount',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	importedAt: {
+		label: 'imported AT',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	redeemedAt: {
+		label: 'redeemed AT',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	status: {
+		label: 'status',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$$proofs: {
+		label: 'proofs',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.BlockheadCashuProof,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		Id: [
+			'id',
+		],
+	},
+})

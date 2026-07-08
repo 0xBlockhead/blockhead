@@ -1,88 +1,76 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum EvmProtocolSelector {
 	Scope = 'Scope',
 }
-export default {
+export const EvmProtocol = entity({
 	entityType: EntityType.EvmProtocol,
 	label: 'EVM protocol',
 	labelPlural: 'EVM protocols',
 	description: 'Catalog surface for EVM signature, topic, and error registries.',
-	selectors: [
-		{
-			name: EvmProtocolSelector.Scope,
-			fields: [
-				'scope',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'scope',
-			label: 'Scope',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'protocolName',
-			label: 'Protocol name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'homeUrl',
-			label: 'Home URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'docsUrl',
-			label: 'Docs URL',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'registryName',
-			label: 'Registry name name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'relationshipModel',
-			label: 'Relationship model',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$$evmTopics',
-			label: 'EVM topics',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmTopic,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$evmSelectors',
-			label: 'EVM selectors',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmSelector,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$evmErrors',
-			label: 'EVM errors',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmError,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	scope: {
+		label: 'Scope',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	protocolName: {
+		label: 'Protocol name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	homeUrl: {
+		label: 'Home URL',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	docsUrl: {
+		label: 'Docs URL',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	registryName: {
+		label: 'Registry name name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	relationshipModel: {
+		label: 'Connection model',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$$evmTopics: {
+		label: 'EVM topics',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.EvmTopic,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$evmSelectors: {
+		label: 'EVM selectors',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.EvmSelector,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$evmErrors: {
+		label: 'EVM errors',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.EvmError,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		Scope: [
+			'scope',
+		],
+	},
+})

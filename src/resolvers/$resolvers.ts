@@ -2,8 +2,8 @@ import type { QueryClient } from '@tanstack/query-core'
 import { extractSimpleComparisons, parseOrderByExpression } from '@tanstack/db'
 import type { LoadSubsetOptions } from '@tanstack/db'
 
-import { EntityFieldCardinality, EntityFieldType, EntityMetaKey, entityFieldConditionKey, entityFieldDefinitions } from '$/schema/$schema.ts'
-import type { EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValue, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityFieldType, EntityMetaKey, entityFieldAddressKey, entityFieldConditionKey, entityFieldDefinitions, entityFieldFacetPath } from '$/schema/$schema.ts'
+import type { EntityDefinition, EntityFacetDefinition, EntityFacetPath, EntityFieldDefinition, EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValue, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type ResolverValue =
@@ -444,6 +444,36 @@ export type FieldSelector<
 		never
 )
 
+type ResolverProjectionFieldSelector<
+	_Context extends ResolverContext = ResolverContext,
+> =
+	| ((
+		snapshot: ResolverValue,
+		entitySelector: EntitySelector<Schema, EntityType<Schema>>,
+		context: _Context
+	) => ResolverValue)
+	| {
+		readonly parentSelectors?: readonly string[]
+		readonly select?: (
+			snapshot: ResolverValue,
+			entitySelector: EntitySelector<Schema, EntityType<Schema>>,
+			context: _Context
+		) => ResolverValue
+		readonly resolveCount?: (
+			snapshot: ResolverValue,
+			entitySelector: EntitySelector<Schema, EntityType<Schema>>,
+			context: _Context
+		) => number
+		readonly resolveLive?: {
+			readonly start: (
+				context: ResolveLivePublisherContext<Schema, EntityType<Schema>> & {
+					readonly field: ResolveLiveFieldHandle<Schema, EntityType<Schema>, EntityFieldName<Schema, EntityType<Schema>>>
+				}
+			) => void | (() => void) | Promise<void | (() => void)>
+		}
+		readonly partial?: boolean
+	}
+
 type ResolverResolve<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -455,6 +485,18 @@ type ResolverResolve<
 		context: _Context
 	): _Snapshot | Promise<_Snapshot>
 }['resolve']
+
+export interface ResolverProjections<
+	_Schema extends Schema = Schema,
+	_EntityType extends EntityType<_Schema> = EntityType<_Schema>,
+	_Context extends ResolverContext = ResolverContext,
+	_Snapshot = ResolverValue,
+> {
+	readonly [name: string]:
+		| FieldSelector<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>, _Snapshot, _Context>
+		| ResolverProjections<_Schema, _EntityType, _Context, _Snapshot>
+		| undefined
+}
 
 export type SourceResolverDefinition<
 	_Schema extends Schema = Schema,
@@ -470,14 +512,7 @@ export type SourceResolverDefinition<
 		string,
 		ResolverResolve<_Schema, _EntityType, _Context, _Snapshot>
 	>>
-	readonly fields: Partial<Record<
-		string,
-		FieldSelector<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>, _Snapshot, _Context>
-	>> & Partial<{
-		readonly [
-			_FieldName in EntityFieldName<_Schema, _EntityType>
-		]: FieldSelector<_Schema, _EntityType, _FieldName, _Snapshot, _Context>
-	}>
+	readonly projections: ResolverProjections<_Schema, _EntityType, _Context, _Snapshot>
 	readonly resolveLive?: ResolveLivePublishers<_Schema, _EntityType>
 }
 
@@ -492,32 +527,7 @@ export type SourceResolverDefinitionCandidate<
 	readonly source: _Source
 	readonly entityType: _EntityType
 	readonly resolve: Partial<Record<string, ResolverResolve<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Context, _Snapshot>>>
-	readonly fields: Partial<Record<
-		string,
-		| FieldSelector<_Schema, Extract<_EntityType, EntityType<_Schema>>, EntityFieldName<_Schema, Extract<_EntityType, EntityType<_Schema>>>, _Snapshot, _Context>
-		| ((
-			snapshot: _Snapshot,
-			entitySelector: EntitySelector<_Schema, Extract<_EntityType, EntityType<_Schema>>>,
-			context: _Context
-		) => ResolverValue | Promise<ResolverValue>)
-		| {
-			readonly parentSelectors?: readonly string[]
-			readonly select?: (
-				snapshot: _Snapshot,
-				entitySelector: EntitySelector<_Schema, Extract<_EntityType, EntityType<_Schema>>>,
-				context: _Context
-			) => ResolverValue | Promise<ResolverValue>
-			readonly resolveCount?: ResolverCount<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Snapshot, _Context>
-			readonly resolveLive?: {
-				readonly start: (
-					context: ResolveLivePublisherContext<_Schema, Extract<_EntityType, EntityType<_Schema>>> & {
-						readonly field: ResolveLiveFieldHandle<_Schema, Extract<_EntityType, EntityType<_Schema>>, EntityFieldName<_Schema, Extract<_EntityType, EntityType<_Schema>>>>
-					}
-				) => void | (() => void) | Promise<void | (() => void)>
-			}
-			readonly partial?: boolean
-		}
-	>>
+	readonly projections: ResolverProjections<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Context, _Snapshot>
 	readonly resolveLive?: Partial<Record<
 		string,
 		{
@@ -536,13 +546,14 @@ export type ResolverPart<
 	readonly partIndex: number
 	readonly source: _Source
 	readonly entityType: EntityType<_Schema>
+	readonly facetPath: EntityFacetPath
 	readonly fieldName: string
 	readonly parentSelectors?: readonly string[]
 	readonly select?: (
 		snapshot: ResolverValue,
 		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
 		context: _Context
-	) => ResolverFieldValue<_Schema, EntityType<_Schema>, EntityFieldName<_Schema, EntityType<_Schema>>>
+	) => ResolverValue
 	readonly resolveCount?: (
 		snapshot: ResolverValue,
 		entitySelector: EntitySelector<_Schema, EntityType<_Schema>>,
@@ -566,6 +577,7 @@ export type ResolverRootLivePart<
 	readonly publisherName: string
 	readonly source: _Source
 	readonly entityType: EntityType<_Schema>
+	readonly facetPath: EntityFacetPath
 }
 
 export type ResolverIndexes<
@@ -580,7 +592,10 @@ export type ResolverIndexes<
 	readonly resolverLivePartsByEntityTypeAndFieldName: Partial<Record<string, readonly ResolverPart<_Schema, _Source, _Context>[]>>
 	readonly resolverRootLivePartsByEntityType: Partial<Record<string, readonly ResolverRootLivePart<_Schema, _Source, _Context>[]>>
 	readonly resolverDiscriminatorPartsByEntityTypeAndConditionKey: Partial<Record<string, Partial<Record<string, readonly ResolverPart<_Schema, _Source, _Context>[]>>>>
-	readonly resolverPartsKey: (entityType: string, fieldName: string) => string
+	readonly resolverPartsKey: {
+		(entityType: string, fieldName: string): string
+		(entityType: string, facetPath: EntityFacetPath, fieldName: string): string
+	}
 }
 
 export type SourceResolverModule<
@@ -597,6 +612,66 @@ export type SourceResolverModule<
 	}[EntityType<_Schema>][]
 }
 
+type ResolverProjectionPartCandidate = {
+	readonly facetPath: EntityFacetPath
+	readonly fieldName: string
+	readonly fieldDefinition: EntityFieldDefinition
+	readonly fieldSelector: ResolverProjectionFieldSelector
+}
+
+const resolverProjectionPartCandidates = (
+	resolver: {
+		readonly source: string
+		readonly entityType: string
+	},
+	entityDefinition: EntityDefinition,
+	projections: { readonly [name: string]: unknown },
+	facetPath: EntityFacetPath = [],
+	facets: readonly EntityFacetDefinition[] = entityDefinition.facets ?? []
+): ResolverProjectionPartCandidate[] => {
+	const projectionFields = entityFieldDefinitions(entityDefinition)
+		.filter((fieldDefinition) => entityFieldFacetPath(fieldDefinition).join('\u001e') === facetPath.join('\u001e'))
+	const fieldDefinitionByName = new Map(
+		projectionFields.map((fieldDefinition) => [
+			fieldDefinition.name,
+			fieldDefinition,
+		])
+	)
+	const facetById = new Map(facets.map((facet) => [
+		facet.id,
+		facet,
+	]))
+
+	return Object.entries(projections).flatMap(([name, fieldSelector]) => {
+		if (fieldSelector === undefined)
+			return []
+
+		const fieldDefinition = fieldDefinitionByName.get(name)
+		if (fieldDefinition !== undefined)
+			return [{
+				facetPath,
+				fieldName: name,
+				fieldDefinition,
+				fieldSelector: fieldSelector as ResolverProjectionFieldSelector,
+			}]
+
+		const facet = facetById.get(name)
+		if (facet === undefined)
+			throw new Error(`${resolver.source}:${resolver.entityType} references unknown projection path ${[...facetPath, name].join('.')}`)
+
+		return resolverProjectionPartCandidates(
+			resolver,
+			entityDefinition,
+			fieldSelector as { readonly [name: string]: unknown },
+			[
+				...facetPath,
+				name,
+			],
+			facet.facets ?? []
+		)
+	})
+}
+
 export const validateResolverDefinitions = <
 	_Schema extends Schema,
 	_Source extends string,
@@ -606,17 +681,10 @@ export const validateResolverDefinitions = <
 	schema: _Schema,
 	resolverDefinitions: readonly SourceResolverDefinitionCandidate<_Schema, _Source, _CandidateEntityType, _Context>[]
 ) => {
-	const fieldDefinitionByEntityTypeAndFieldName = Object.fromEntries(
-		schema.map((entityDefinition) => [
-			entityDefinition.entityType,
-			Object.fromEntries(
-				entityFieldDefinitions(entityDefinition).map((fieldDefinition) => [
-					fieldDefinition.name,
-					fieldDefinition,
-				])
-			),
-		])
-	)
+	const entityDefinitionByType = new Map(schema.map((entityDefinition) => [
+		entityDefinition.entityType,
+		entityDefinition,
+	]))
 	const entitySelectorNamesByEntityType = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
@@ -625,10 +693,17 @@ export const validateResolverDefinitions = <
 	)
 
 	for (const resolver of resolverDefinitions) {
-		if (!schema.some((entityDefinition) => entityDefinition.entityType === resolver.entityType))
+		const entityDefinition = entityDefinitionByType.get(resolver.entityType)
+		if (entityDefinition === undefined)
 			throw new Error(`${resolver.source}:${resolver.entityType} references unknown entity`)
 
-		if (Object.keys(resolver.fields).length === 0)
+		const resolverProjectionParts = resolverProjectionPartCandidates(
+			resolver,
+			entityDefinition,
+			resolver.projections
+		)
+
+		if (resolverProjectionParts.length === 0)
 			throw new Error(`${resolver.source}:${resolver.entityType} declares no fields`)
 
 		for (const selectorName of Object.keys(resolver.resolve)) {
@@ -636,15 +711,11 @@ export const validateResolverDefinitions = <
 				throw new Error(`${resolver.source}:${resolver.entityType} references unknown selector ${selectorName}`)
 		}
 
-		for (const fieldName of Object.keys(resolver.fields)) {
-			const fieldSelector = resolver.fields[fieldName]
-			if (!(fieldName in fieldDefinitionByEntityTypeAndFieldName[resolver.entityType]))
-				throw new Error(`${resolver.source}:${resolver.entityType} references unknown field ${fieldName}`)
-
-			const fieldDefinition = fieldDefinitionByEntityTypeAndFieldName[resolver.entityType][fieldName]
-
-			if (fieldSelector == null)
-				continue
+		for (const {
+			fieldName,
+			fieldDefinition,
+			fieldSelector,
+		} of resolverProjectionParts) {
 
 			if (
 				typeof fieldSelector === 'function'
@@ -680,21 +751,48 @@ export const validateResolverDefinitions = <
 			if (publisher == null)
 				continue
 
+			const liveFacetPathKeys = new Set<string>()
 			for (const liveFieldName of Object.keys(publisher.publishes)) {
-				if (!(liveFieldName in fieldDefinitionByEntityTypeAndFieldName[resolver.entityType]))
+				if (!entityFieldDefinitions(entityDefinition).some((fieldDefinition) => fieldDefinition.name === liveFieldName))
 					throw new Error(`${resolver.source}:${resolver.entityType} references unknown live field ${liveFieldName}`)
 
-				if (!(liveFieldName in resolver.fields))
+				const liveResolverProjectionParts = resolverProjectionParts.filter((resolverProjectionPart) => (
+					resolverProjectionPart.fieldName === liveFieldName
+				))
+				if (liveResolverProjectionParts.length === 0)
 					throw new Error(`${resolver.source}:${resolver.entityType} publishes undeclared live field ${liveFieldName}`)
+
+				for (const resolverProjectionPart of liveResolverProjectionParts)
+					liveFacetPathKeys.add(resolverProjectionPart.facetPath.join('\u001e'))
 			}
+
+			if (liveFacetPathKeys.size > 1)
+				throw new Error(`${resolver.source}:${resolver.entityType} publishes live fields across multiple projection paths`)
 		}
 	}
 }
 
-export const resolverPartsKey = (
+export function resolverPartsKey(
 	entityType: string,
 	fieldName: string
-) => `${entityType}${fieldName}`
+): string
+export function resolverPartsKey(
+	entityType: string,
+	facetPath: EntityFacetPath,
+	fieldName: string
+): string
+export function resolverPartsKey(
+	entityType: string,
+	facetPathOrFieldName: EntityFacetPath | string,
+	fieldName?: string
+) {
+	return (
+		typeof facetPathOrFieldName === 'string' ?
+			entityFieldAddressKey(entityType, [], facetPathOrFieldName)
+		:
+			entityFieldAddressKey(entityType, facetPathOrFieldName, fieldName ?? '')
+	)
+}
 
 export const indexResolvers = <
 	const _Schema extends Schema,
@@ -729,17 +827,26 @@ export const indexResolvers = <
 	const resolverParts: ResolverPart<_Schema, _Source, _Context>[] = []
 	for (const resolver of resolverDefinitions) {
 		let partIndex = 0
-		for (const fieldName of Object.keys(resolver.fields)) {
-			const fieldSelector = resolver.fields[fieldName]
-			if (fieldSelector == null)
-				continue
+		const entityDefinition = schema.find((candidate) => candidate.entityType === resolver.entityType)
+		if (entityDefinition == null)
+			continue
 
+		for (const {
+			facetPath,
+			fieldName,
+			fieldSelector,
+		} of resolverProjectionPartCandidates(
+			resolver,
+			entityDefinition,
+			resolver.projections
+		)) {
 			if (typeof fieldSelector === 'function') {
 				resolverParts.push({
 					resolver,
 					partIndex,
 					source: resolver.source,
 					entityType: resolver.entityType,
+					facetPath,
 					fieldName,
 					select: fieldSelector,
 				})
@@ -749,6 +856,7 @@ export const indexResolvers = <
 					partIndex,
 					source: resolver.source,
 					entityType: resolver.entityType,
+					facetPath,
 					fieldName,
 					parentSelectors: fieldSelector.parentSelectors,
 					select: fieldSelector.select,
@@ -764,6 +872,7 @@ export const indexResolvers = <
 		resolverParts.filter((resolverPart) => resolverPart.select != null),
 		(resolverPart) => resolverPartsKey(
 			resolverPart.entityType,
+			resolverPart.facetPath,
 			resolverPart.fieldName
 		)
 	)
@@ -771,6 +880,7 @@ export const indexResolvers = <
 		resolverParts.filter((resolverPart) => resolverPart.resolveCount != null),
 		(resolverPart) => resolverPartsKey(
 			resolverPart.entityType,
+			resolverPart.facetPath,
 			resolverPart.fieldName
 		)
 	)
@@ -778,19 +888,35 @@ export const indexResolvers = <
 		resolverParts.filter((resolverPart) => resolverPart.resolveLive != null),
 		(resolverPart) => resolverPartsKey(
 			resolverPart.entityType,
+			resolverPart.facetPath,
 			resolverPart.fieldName
 		)
 	)
 	const resolverRootLivePartsByEntityType = Object.groupBy(
-		resolverDefinitions.flatMap((resolver) => (
-			Object.entries(resolver.resolveLive ?? {}).map(([publisherName, publisher]) => ({
+		resolverDefinitions.flatMap((resolver) => {
+			const entityDefinition = schema.find((candidate) => candidate.entityType === resolver.entityType)
+			if (entityDefinition == null)
+				return []
+
+			const resolverProjectionParts = resolverProjectionPartCandidates(
+				resolver,
+				entityDefinition,
+				resolver.projections
+			)
+			return Object.entries(resolver.resolveLive ?? {}).map(([publisherName, publisher]) => ({
 				resolver,
 				publisher,
 				publisherName,
 				source: resolver.source,
 				entityType: resolver.entityType,
+				facetPath: (
+					resolverProjectionParts.find((resolverProjectionPart) => (
+						Object.hasOwn(publisher.publishes, resolverProjectionPart.fieldName)
+					))?.facetPath
+					?? []
+				),
 			}))
-		)),
+		}),
 		(part) => part.entityType
 	)
 	const fieldNamesWithLiveResolverByEntityType = Object.fromEntries(
@@ -831,7 +957,11 @@ export const indexResolvers = <
 								[[
 									entityFieldConditionKey(fieldDefinition.when),
 									resolverValuePartsByEntityTypeAndFieldName[
-										resolverPartsKey(entityDefinition.entityType, entityFieldConditionKey(fieldDefinition.when).replace(/\[\d+\]$/, ''))
+										resolverPartsKey(
+											entityDefinition.entityType,
+											[],
+											entityFieldConditionKey(fieldDefinition.when).replace(/\[\d+\]$/, '')
+										)
 									] ?? [],
 								]]
 						)

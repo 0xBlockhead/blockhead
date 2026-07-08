@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -109,7 +109,7 @@
 		<ResourceBoundary resource={polkadotEvent}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.PolkadotPallet, false>('$pallet')}
+					resource={selection.$pallet}
 				>
 					{#snippet children(polkadotPallet)}
 						{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
@@ -135,7 +135,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.PolkadotPallet, false>('$pallet')}
+					resource={selection.$pallet}
 				>
 					{#snippet children(polkadotPallet)}
 						{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
@@ -223,7 +223,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.PolkadotPallet, false>('$pallet')}
+				resource={selection.$pallet}
 			>
 				{#snippet children(polkadotPallet)}
 					{#if polkadotPallet != null && polkadotPallet[EntityMetaKey.Selector] != null}
@@ -249,7 +249,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.PolkadotExtrinsic, false>('$extrinsic')}
+				resource={selection.$extrinsic}
 			>
 				{#snippet children(polkadotExtrinsic)}
 					{#if polkadotExtrinsic != null && polkadotExtrinsic[EntityMetaKey.Selector] != null}

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -132,38 +132,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ArweaveNetworksView
-				selection={selection[EntityProxyField]<EntityType.ArweaveNetwork>('$$observedNetworks')}
+				selection={selection.$$observedNetworks}
 				title='Observed networks'
 				emptyText='No Arweave networks in this observed.'
-				id='ArweaveNetworksView-$$observedNetworks'
+				id='ArweaveNetworksView-observed-networks'
 			/>
 
 			<ArweaveBlocksView
-				selection={selection[EntityProxyField]<EntityType.ArweaveBlock>('$$observedBlocks')}
+				selection={selection.$$observedBlocks}
 				title='Observed blocks'
 				emptyText='No Arweave blocks in this observed.'
-				id='ArweaveBlocksView-$$observedBlocks'
+				id='ArweaveBlocksView-observed-blocks'
 			/>
 
 			<ArweaveTransactionsView
-				selection={selection[EntityProxyField]<EntityType.ArweaveTransaction>('$$observedTransactions')}
+				selection={selection.$$observedTransactions}
 				title='Observed transactions'
 				emptyText='No Arweave transactions in this observed.'
-				id='ArweaveTransactionsView-$$observedTransactions'
+				id='ArweaveTransactionsView-observed-transactions'
 			/>
 
 			<ArweaveResourcesView
-				selection={selection[EntityProxyField]<EntityType.ArweaveResource>('$$observedResources')}
+				selection={selection.$$observedResources}
 				title='Observed resources'
 				emptyText='No Arweave resources in this observed.'
-				id='ArweaveResourcesView-$$observedResources'
+				id='ArweaveResourcesView-observed-resources'
 			/>
 
 			<GlobalArweaveNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType._GlobalArweaveNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Timestamps'
 				emptyText='No Arweave hub observations yet.'
-				id='_GlobalArweaveNetwork_TimestampsView-$$timestamps'
+				id='_GlobalArweaveNetwork_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

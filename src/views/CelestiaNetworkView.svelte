@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -164,31 +164,31 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CelestiaNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.CelestiaNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='CelestiaNetwork_TimestampsView-$$timestamps'
+				id='CelestiaNetwork_TimestampsView-timestamps'
 			/>
 
 			<CelestiaBlocksView
-				selection={selection[EntityProxyField]<EntityType.CelestiaBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No blocks found.'
-				id='CelestiaBlocksView-$$blocks'
+				id='CelestiaBlocksView-blocks'
 			/>
 
 			<CelestiaNamespacesView
-				selection={selection[EntityProxyField]<EntityType.CelestiaNamespace>('$$namespaces')}
+				selection={selection.$$namespaces}
 				title='namespaces'
 				emptyText='No namespaces found.'
-				id='CelestiaNamespacesView-$$namespaces'
+				id='CelestiaNamespacesView-namespaces'
 			/>
 
 			<CelestiaBlobsView
-				selection={selection[EntityProxyField]<EntityType.CelestiaBlob>('$$blobs')}
+				selection={selection.$$blobs}
 				title='blobs'
 				emptyText='No blobs found.'
-				id='CelestiaBlobsView-$$blobs'
+				id='CelestiaBlobsView-blobs'
 			/>
 		{/if}
 	{/snippet}

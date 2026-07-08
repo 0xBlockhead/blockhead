@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -177,31 +177,31 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ArweaveNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.ArweaveNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Arweave network observations.'
-				id='ArweaveNetwork_TimestampsView-$$timestamps'
+				id='ArweaveNetwork_TimestampsView-timestamps'
 			/>
 
 			<ArweaveBlocksView
-				selection={selection[EntityProxyField]<EntityType.ArweaveBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No Arweave blocks.'
-				id='ArweaveBlocksView-$$blocks'
+				id='ArweaveBlocksView-blocks'
 			/>
 
 			<ArweaveTransactionsView
-				selection={selection[EntityProxyField]<EntityType.ArweaveTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Arweave transactions.'
-				id='ArweaveTransactionsView-$$transactions'
+				id='ArweaveTransactionsView-transactions'
 			/>
 
 			<ArweaveResourcesView
-				selection={selection[EntityProxyField]<EntityType.ArweaveResource>('$$resources')}
+				selection={selection.$$resources}
 				title='resources'
 				emptyText='No Arweave resources.'
-				id='ArweaveResourcesView-$$resources'
+				id='ArweaveResourcesView-resources'
 			/>
 		{/if}
 	{/snippet}

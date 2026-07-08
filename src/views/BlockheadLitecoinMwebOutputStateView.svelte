@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -160,7 +160,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -183,7 +183,7 @@
 				<dt>network</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+						resource={selection.$network}
 					>
 						{#snippet children(network)}
 							{#if network[EntityMetaKey.Selector] != null}
@@ -249,7 +249,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.LitecoinMwebOutput, false>('$publicOutput')}
+				resource={selection.$publicOutput}
 			>
 				{#snippet children(litecoinMwebOutput)}
 					{#if litecoinMwebOutput != null && litecoinMwebOutput[EntityMetaKey.Selector] != null}
@@ -415,10 +415,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLitecoinMwebOutputState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLitecoinMwebOutputState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Litecoin MWEB output observations.'
-				id='BlockheadLitecoinMwebOutputState_TimestampsView-$$timestamps'
+				id='BlockheadLitecoinMwebOutputState_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

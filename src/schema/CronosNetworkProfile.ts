@@ -1,94 +1,81 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum CronosNetworkProfileSelector {
 	Network = 'Network',
 }
-export default {
+export const CronosNetworkProfile = entity({
 	entityType: EntityType.CronosNetworkProfile,
 	label: 'cronos network profile',
 	labelPlural: 'cronos network profiles',
-	selectors: [
-		{
-			name: CronosNetworkProfileSelector.Network,
-			fields: [
-				'$network',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$evmNetwork',
-			label: 'EVM network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$cosmosNetwork',
-			label: 'Cosmos network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'chainKind',
-			label: 'chain kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'consensusKind',
-			label: 'consensus kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'bech32Prefix',
-			label: 'bech32 prefix',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'evmChainId',
-			label: 'EVM chain ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'cosmosChainId',
-			label: 'Cosmos chain ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$ibcChannels',
-			label: 'ibc channels',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.IbcChannel,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$timestamps',
-			label: 'timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Network_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$network: {
+		label: 'network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.One,
+	},
+	$evmNetwork: {
+		label: 'EVM network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$cosmosNetwork: {
+		label: 'Cosmos network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	chainKind: {
+		label: 'chain kind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	consensusKind: {
+		label: 'consensus kind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	bech32Prefix: {
+		label: 'bech32 prefix',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	evmChainId: {
+		label: 'EVM chain ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	cosmosChainId: {
+		label: 'Cosmos chain ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$ibcChannels: {
+		label: 'ibc channels',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.IbcChannel,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$timestamps: {
+		label: 'timestamps',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.Network_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		Network: [
+			'$network',
+		],
+	},
+})

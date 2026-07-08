@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -575,10 +575,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ArweaveTransactionsView
-				selection={selection[EntityProxyField]<EntityType.ArweaveTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No transactions found.'
-				id='ArweaveTransactionsView-$$transactions'
+				id='ArweaveTransactionsView-transactions'
 			/>
 		{/if}
 	{/snippet}

@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
@@ -56,7 +55,7 @@
 		{#snippet SectionNetworks()}
 			<NetworksView
 				href={resolve('/(explore)/networks')}
-				selection={select(EntityType._Global, { scope: '$$networks' })[EntityProxyField]<EntityType.Network>('$$networks')}
+				selection={select(EntityType._Global, { scope: '$$networks' }).$$networks}
 				id='networks'
 				open={true}
 			/>
@@ -64,7 +63,7 @@
 
 		{#snippet SectionUpgrades()}
 			<EthereumNetworkUpgradesView
-				selection={select(EntityType._Global, { scope: '$$networkUpgrades' })[EntityProxyField]<EntityType.EthereumNetworkUpgrade>('$$networkUpgrades')({
+				selection={select(EntityType._Global, { scope: '$$networkUpgrades' }).$$networkUpgrades({
 					sources: [Source.Constants_Internal],
 					limit: 512,
 				})}
@@ -85,7 +84,7 @@
 
 		{#snippet SectionProposals()}
 			<SpecificationRealmsView
-				selection={select(EntityType._Global, { scope: '$$specificationRealms' })[EntityProxyField]<EntityType.SpecificationRealm>('$$specificationRealms')({
+				selection={select(EntityType._Global, { scope: '$$specificationRealms' }).$$specificationRealms({
 					sources: [Source.Constants_Internal],
 				})}
 				id='proposal-realms'

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -157,7 +157,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadAgentProfile, false>('$profile')}
+				resource={selection.$profile}
 			>
 				{#snippet children(blockheadAgentProfile)}
 					{#if blockheadAgentProfile != null && blockheadAgentProfile[EntityMetaKey.Selector] != null}
@@ -177,7 +177,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadSource, false>('$source')}
+				resource={selection.$source}
 			>
 				{#snippet children(blockheadSource)}
 					{#if blockheadSource != null && blockheadSource[EntityMetaKey.Selector] != null}
@@ -357,10 +357,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadAgentConnection_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadAgentConnection_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No agent connection observations.'
-				id='BlockheadAgentConnection_TimestampsView-$$timestamps'
+				id='BlockheadAgentConnection_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

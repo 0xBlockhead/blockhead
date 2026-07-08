@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -265,7 +265,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AssetObject, false>('$object')}
+				resource={selection.$object}
 			>
 				{#snippet children(assetObject)}
 					{#if assetObject != null && assetObject[EntityMetaKey.Selector] != null}
@@ -285,7 +285,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.NftToken, false>('$token')}
+				resource={selection.$token}
 			>
 				{#snippet children(nftToken)}
 					{#if nftToken != null && nftToken[EntityMetaKey.Selector] != null}
@@ -305,7 +305,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Account, false>('$user')}
+				resource={selection.$user}
 			>
 				{#snippet children(account)}
 					{#if account != null && account[EntityMetaKey.Selector] != null}

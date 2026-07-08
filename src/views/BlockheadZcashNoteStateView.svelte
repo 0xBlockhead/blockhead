@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -162,7 +162,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -182,7 +182,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.ZcashShieldedAction, false>('$shieldedAction')}
+				resource={selection.$shieldedAction}
 			>
 				{#snippet children(zcashShieldedAction)}
 					{#if zcashShieldedAction != null && zcashShieldedAction[EntityMetaKey.Selector] != null}
@@ -524,10 +524,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadZcashNoteState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadZcashNoteState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Zcash note observations.'
-				id='BlockheadZcashNoteState_TimestampsView-$$timestamps'
+				id='BlockheadZcashNoteState_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

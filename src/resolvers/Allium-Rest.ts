@@ -86,15 +86,13 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				coinId: (coinInstance) => coinInstance.coinId,
 				name: (coinInstance) => coinInstance.name,
 				symbol: (coinInstance) => coinInstance.symbol,
 				decimals: (coinInstance) => coinInstance.decimals,
 				caip19: (coinInstance) => coinInstance.caip19,
 				$icon: (coinInstance) => coinInstance.$icon,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkActorCoinBalance,
@@ -183,7 +181,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$network: (balance) => ({
 					[EntityMetaKey.Selector]: balance.$network,
 				}),
@@ -203,8 +200,7 @@ export default {
 				$coinInstance: (balance) => balance.$coinInstance,
 				symbol: (balance) => balance.symbol,
 				decimals: (balance) => balance.decimals,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -264,10 +260,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$ownedCoins: (ownedCoins) => ownedCoins,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Allium_Rest, {
 			entityType: EntityType._Global,
@@ -336,9 +330,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$actorCoins: (actorCoins) => actorCoins,
-			},
-		}),
+			}),
 	],
 }

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -138,7 +138,7 @@
 						{@const relationshipModel = prefetched.relationshipModel}
 						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
-								<dt>Relationship model</dt>
+								<dt>Connection model</dt>
 								<dd>
 									{String((relationshipModel) ?? '')}
 								</dd>
@@ -151,7 +151,7 @@
 						{@const relationshipModel = resolvedEntity.relationshipModel}
 						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
-								<dt>Relationship model</dt>
+								<dt>Connection model</dt>
 								<dd>
 									{String((relationshipModel) ?? '')}
 								</dd>
@@ -303,7 +303,7 @@
 				{#snippet SectionAccounts({ id, label, open })}
 					<AtprotoActorsView
 						selection={
-							selection[EntityProxyField]<EntityType.AtprotoActor>('$$observedActors', {
+							selection.$$observedActors({
 								sources: [
 									Source.Constants_Internal,
 									Source.Atproto_Xrpc,
@@ -321,7 +321,7 @@
 				{#snippet SectionRecentPosts({ id, label, open })}
 					<AtprotoPostsView
 						selection={
-							selection[EntityProxyField]<EntityType.AtprotoPost>('$$observedPosts', {
+							selection.$$observedPosts({
 								sources: [
 									Source.Constants_Internal,
 									Source.Atproto_Xrpc,

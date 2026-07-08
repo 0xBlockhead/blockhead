@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -275,7 +275,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EnsName, false>('$primaryName')}
+				resource={selection.$primaryName}
 			>
 				{#snippet children(ensName)}
 					{#if ensName != null && ensName[EntityMetaKey.Selector] != null}
@@ -340,7 +340,7 @@
 
 				{#snippet SectionActorEns({ id, label, open })}
 					<EnsNamesView
-						selection={selection[EntityProxyField]<EntityType.EnsName>('$$ensNamesOwned')}
+						selection={selection.$$ensNamesOwned}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ENS names owned by this account yet.'
 						open={open}

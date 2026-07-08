@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -164,7 +164,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.A2aAgentService, false>('$service')}
+				resource={selection.$service}
 			>
 				{#snippet children(a2aAgentService)}
 					{#if a2aAgentService != null && a2aAgentService[EntityMetaKey.Selector] != null}
@@ -400,38 +400,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<A2aTaskEventsView
-				selection={selection[EntityProxyField]<EntityType.A2aTaskEvent>('$$events')}
+				selection={selection.$$events}
 				title='events'
 				emptyText='No A2A task events.'
-				id='A2aTaskEventsView-$$events'
+				id='A2aTaskEventsView-events'
 			/>
 
 			<A2aMessagesView
-				selection={selection[EntityProxyField]<EntityType.A2aMessage>('$$messages')}
+				selection={selection.$$messages}
 				title='messages'
 				emptyText='No A2A messages.'
-				id='A2aMessagesView-$$messages'
+				id='A2aMessagesView-messages'
 			/>
 
 			<A2aArtifactsView
-				selection={selection[EntityProxyField]<EntityType.A2aArtifact>('$$artifacts')}
+				selection={selection.$$artifacts}
 				title='artifacts'
 				emptyText='No A2A artifacts.'
-				id='A2aArtifactsView-$$artifacts'
+				id='A2aArtifactsView-artifacts'
 			/>
 
 			<A2aPushNotificationConfigsView
-				selection={selection[EntityProxyField]<EntityType.A2aPushNotificationConfig>('$$pushNotificationConfigs')}
+				selection={selection.$$pushNotificationConfigs}
 				title='push notification configs'
 				emptyText='No A2A push notification configs.'
-				id='A2aPushNotificationConfigsView-$$pushNotificationConfigs'
+				id='A2aPushNotificationConfigsView-push-notification-configs'
 			/>
 
 			<A2aTask_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.A2aTask_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No A2A task observations.'
-				id='A2aTask_TimestampsView-$$timestamps'
+				id='A2aTask_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

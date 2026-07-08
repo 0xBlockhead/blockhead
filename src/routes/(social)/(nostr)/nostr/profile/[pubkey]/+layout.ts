@@ -4,7 +4,7 @@ import type { LayoutLoad } from './$types'
 import { error } from '@sveltejs/kit'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import NostrProfileSchema from '$/schema/NostrProfile.ts'
+import { NostrProfile as NostrProfileSchema } from '$/schema/NostrProfile.ts'
 import { type as arktype } from 'arktype'
 
 export const load: LayoutLoad = ({ params }) => {

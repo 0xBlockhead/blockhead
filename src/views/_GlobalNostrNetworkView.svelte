@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -301,7 +301,7 @@
 						{@const relationshipModel = prefetched.relationshipModel}
 						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
-								<dt>Relationship model</dt>
+								<dt>Connection model</dt>
 								<dd>
 									<span data-text="long-text">{String((relationshipModel) ?? '')}</span>
 								</dd>
@@ -314,7 +314,7 @@
 						{@const relationshipModel = resolvedEntity.relationshipModel}
 						{#if relationshipModel !== undefined && relationshipModel !== null}
 							<div>
-								<dt>Relationship model</dt>
+								<dt>Connection model</dt>
 								<dd>
 									<span data-text="long-text">{String((relationshipModel) ?? '')}</span>
 								</dd>
@@ -330,7 +330,7 @@
 		{#if detailsOpen}
 			<NostrProfilesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrProfile>('$$observedProfiles', {
+						selection.$$observedProfiles({
 							sources: [
 								Source.NostrBand_Rest,
 							],
@@ -339,12 +339,12 @@
 				title='Profiles'
 				href={resolve('/(social)/(nostr)/nostr/profiles')}
 				emptyText='No Nostr profiles in this observed.'
-				id='NostrProfilesView-$$observedProfiles'
+				id='NostrProfilesView-observed-profiles'
 			/>
 
 			<NostrNotesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrNote>('$$observedNotes', {
+						selection.$$observedNotes({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -354,12 +354,12 @@
 				title='Notes'
 				href={resolve('/(social)/(nostr)/nostr/notes')}
 				emptyText='No Nostr notes in this observed.'
-				id='NostrNotesView-$$observedNotes'
+				id='NostrNotesView-observed-notes'
 			/>
 
 			<NostrRelaysView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrRelay>('$$observedRelays', {
+						selection.$$observedRelays({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -369,12 +369,12 @@
 				title='Relays'
 				href={resolve('/(social)/(nostr)/nostr/relays')}
 				emptyText='No Nostr relays in this observed.'
-				id='NostrRelaysView-$$observedRelays'
+				id='NostrRelaysView-observed-relays'
 			/>
 
 			<NostrArticlesView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrArticle>('$$observedArticles', {
+						selection.$$observedArticles({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -384,12 +384,12 @@
 				title='Articles'
 				href={resolve('/(social)/(nostr)/nostr/articles')}
 				emptyText='No Nostr articles in this observed.'
-				id='NostrArticlesView-$$observedArticles'
+				id='NostrArticlesView-observed-articles'
 			/>
 
 			<NostrRepostsView
 				selection={
-						selection[EntityProxyField]<EntityType.NostrRepost>('$$observedReposts', {
+						selection.$$observedReposts({
 							sources: [
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
@@ -399,22 +399,22 @@
 				title='Reposts'
 				href={resolve('/(social)/(nostr)/nostr/reposts')}
 				emptyText='No Nostr reposts in this observed.'
-				id='NostrRepostsView-$$observedReposts'
+				id='NostrRepostsView-observed-reposts'
 			/>
 
 			<NostrReactionsView
-				selection={selection[EntityProxyField]<EntityType.NostrReaction>('$$observedReactions')}
+				selection={selection.$$observedReactions}
 				title='Reactions'
 				href={resolve('/(social)/(nostr)/nostr/reactions')}
 				emptyText='No Nostr reactions in this observed.'
-				id='NostrReactionsView-$$observedReactions'
+				id='NostrReactionsView-observed-reactions'
 			/>
 
 			<GlobalNostrNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType._GlobalNostrNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
 				emptyText='No Nostr network observations.'
-				id='_GlobalNostrNetwork_TimestampsView-$$timestamps'
+				id='_GlobalNostrNetwork_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

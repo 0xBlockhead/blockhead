@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -185,59 +185,59 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SuiNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.SuiNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Sui network observations.'
-				id='SuiNetwork_TimestampsView-$$timestamps'
+				id='SuiNetwork_TimestampsView-timestamps'
 			/>
 
 			<SuiCheckpointsView
-				selection={selection[EntityProxyField]<EntityType.SuiCheckpoint>('$$checkpoints')}
+				selection={selection.$$checkpoints}
 				title='checkpoints'
 				emptyText='No Sui checkpoints.'
-				id='SuiCheckpointsView-$$checkpoints'
+				id='SuiCheckpointsView-checkpoints'
 			/>
 
 			<SuiTransactionsView
-				selection={selection[EntityProxyField]<EntityType.SuiTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Sui transactions.'
-				id='SuiTransactionsView-$$transactions'
+				id='SuiTransactionsView-transactions'
 			/>
 
 			<SuiAccountsView
-				selection={selection[EntityProxyField]<EntityType.SuiAccount>('$$accounts')}
+				selection={selection.$$accounts}
 				title='accounts'
 				emptyText='No Sui accounts.'
-				id='SuiAccountsView-$$accounts'
+				id='SuiAccountsView-accounts'
 			/>
 
 			<SuiObjectsView
-				selection={selection[EntityProxyField]<EntityType.SuiObject>('$$objects')}
+				selection={selection.$$objects}
 				title='objects'
 				emptyText='No Sui objects.'
-				id='SuiObjectsView-$$objects'
+				id='SuiObjectsView-objects'
 			/>
 
 			<SuiPackagesView
-				selection={selection[EntityProxyField]<EntityType.SuiPackage>('$$packages')}
+				selection={selection.$$packages}
 				title='packages'
 				emptyText='No Sui packages.'
-				id='SuiPackagesView-$$packages'
+				id='SuiPackagesView-packages'
 			/>
 
 			<SuiCoinTypesView
-				selection={selection[EntityProxyField]<EntityType.SuiCoinType>('$$coinTypes')}
+				selection={selection.$$coinTypes}
 				title='coin types'
 				emptyText='No Sui coin types.'
-				id='SuiCoinTypesView-$$coinTypes'
+				id='SuiCoinTypesView-coin-types'
 			/>
 
 			<SuiCoinBalance_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.SuiCoinBalance_Timestamp>('$$coinBalanceTimestamps')}
+				selection={selection.$$coinBalanceTimestamps}
 				title='coin balance timestamps'
 				emptyText='No Sui coin balance observations.'
-				id='SuiCoinBalance_TimestampsView-$$coinBalanceTimestamps'
+				id='SuiCoinBalance_TimestampsView-coin-balance-timestamps'
 			/>
 		{/if}
 	{/snippet}

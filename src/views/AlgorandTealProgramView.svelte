@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -239,24 +239,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AlgorandTealProgram_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandTealProgram_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Algorand TEAL program observations.'
-				id='AlgorandTealProgram_TimestampsView-$$timestamps'
+				id='AlgorandTealProgram_TimestampsView-timestamps'
 			/>
 
 			<AlgorandApplicationsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandApplication>('$$applications')}
+				selection={selection.$$applications}
 				title='applications'
 				emptyText='No Algorand applications.'
-				id='AlgorandApplicationsView-$$applications'
+				id='AlgorandApplicationsView-applications'
 			/>
 
 			<AlgorandTransactionsView
-				selection={selection[EntityProxyField]<EntityType.AlgorandTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Algorand transactions.'
-				id='AlgorandTransactionsView-$$transactions'
+				id='AlgorandTransactionsView-transactions'
 			/>
 		{/if}
 	{/snippet}

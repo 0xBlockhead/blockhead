@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -332,10 +332,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCodexStoredDataEntriesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCodexStoredData>('$$localCopies')}
+				selection={selection.$$localCopies}
 				title='local copies'
 				emptyText='No local copies.'
-				id='BlockheadCodexStoredDataEntriesView-$$localCopies'
+				id='BlockheadCodexStoredDataEntriesView-local-copies'
 			/>
 		{/if}
 	{/snippet}

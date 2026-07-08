@@ -69,11 +69,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$operator: (snapshot) => snapshot.$operator,
 				endpoint: (snapshot) => snapshot.endpoint,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataBlob,
@@ -86,10 +84,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGStorageNode_JsonRpc, {
 			entityType: EntityType.ZeroGDataChunk,
@@ -104,9 +100,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				chunkRoot: (snapshot) => snapshot.chunkRoot,
-			},
-		}),
+			}),
 	],
 }

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -366,7 +366,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.CctpDomainSupport, false>('$sourceDomain')}
+				resource={selection.$sourceDomain}
 			>
 				{#snippet children(cctpDomainSupport)}
 					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
@@ -386,7 +386,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.CctpDomainSupport, false>('$destinationDomain')}
+				resource={selection.$destinationDomain}
 			>
 				{#snippet children(cctpDomainSupport)}
 					{#if cctpDomainSupport != null && cctpDomainSupport[EntityMetaKey.Selector] != null}
@@ -906,10 +906,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CctpAttestation_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.CctpAttestation_Timestamp>('$$attestationTimestamps')}
+				selection={selection.$$attestationTimestamps}
 				title='Attestation timestamps'
 				emptyText='No CCTP attestation observations.'
-				id='CctpAttestation_TimestampsView-$$attestationTimestamps'
+				id='CctpAttestation_TimestampsView-attestation-timestamps'
 			/>
 		{/if}
 	{/snippet}

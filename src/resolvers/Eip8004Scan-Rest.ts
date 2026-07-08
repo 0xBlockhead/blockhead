@@ -69,7 +69,6 @@ export default {
 				},
 			}
 		})({
-			fields: {
 				standard: (snapshot) => snapshot.standard,
 				format: (snapshot) => snapshot.format,
 				tokenUri: (snapshot) => snapshot.tokenUri,
@@ -86,8 +85,7 @@ export default {
 				active: (snapshot) => snapshot.active,
 				supportedTrust: (snapshot) => snapshot.supportedTrust,
 				contactEndpoint: (snapshot) => snapshot.contactEndpoint,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Eip8004Scan_Rest, {
 			entityType: EntityType._Global,
@@ -114,9 +112,7 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$eip8004Services: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

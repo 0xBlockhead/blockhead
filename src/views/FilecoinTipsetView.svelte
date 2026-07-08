@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -226,7 +226,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.FilecoinTipset, false>('$parent', {
+					selection.$parent({
 						sources: [
 							Source.Lotus_JsonRpc,
 							Source.Filfox_Rest,
@@ -334,7 +334,7 @@
 		{#if detailsOpen}
 			<FilecoinBlocksView
 				selection={
-						selection[EntityProxyField]<EntityType.FilecoinBlock>('$$blocks', {
+						selection.$$blocks({
 							sources: [
 								Source.Lotus_JsonRpc,
 								Source.Filfox_Rest,
@@ -342,7 +342,7 @@
 						})
 					}
 				title='Blocks'
-				id='FilecoinBlocksView-$$blocks'
+				id='FilecoinBlocksView-blocks'
 			/>
 		{/if}
 	{/snippet}

@@ -1,77 +1,67 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum BlockheadZeroGStorageNodeState_TimestampSelector {
 	NodeStateTimestampMsSource = 'NodeStateTimestampMsSource',
 }
-export default {
+export const BlockheadZeroGStorageNodeState_Timestamp = entity({
 	entityType: EntityType.BlockheadZeroGStorageNodeState_Timestamp,
 	label: 'blockhead zero g storage node state timestamp',
 	labelPlural: 'blockhead zero g storage node state observations',
-	selectors: [
-		{
-			name: BlockheadZeroGStorageNodeState_TimestampSelector.NodeStateTimestampMsSource,
-			fields: [
-				'$nodeState',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$nodeState',
-			label: 'node state',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadZeroGStorageNodeState,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'syncedAt',
-			label: 'synced AT',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'localFileCount',
-			label: 'local file count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'localChunkCount',
-			label: 'local chunk count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'localProofCount',
-			label: 'local proof count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$nodeState: {
+		label: 'node state',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.BlockheadZeroGStorageNodeState,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	syncedAt: {
+		label: 'synced AT',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	localFileCount: {
+		label: 'local file count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	localChunkCount: {
+		label: 'local chunk count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	localProofCount: {
+		label: 'local proof count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		NodeStateTimestampMsSource: [
+			'$nodeState',
+			'timestampMs',
+			'source',
+		],
+	},
+})

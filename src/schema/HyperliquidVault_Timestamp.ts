@@ -1,149 +1,129 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum HyperliquidVault_TimestampSelector {
 	VaultTimestampMsSource = 'VaultTimestampMsSource',
 }
-export default {
+export const HyperliquidVault_Timestamp = entity({
 	entityType: EntityType.HyperliquidVault_Timestamp,
 	label: 'hyperliquid vault timestamp',
 	labelPlural: 'hyperliquid vault observations',
-	selectors: [
-		{
-			name: HyperliquidVault_TimestampSelector.VaultTimestampMsSource,
-			fields: [
-				'$vault',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$vault',
-			label: 'vault',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.HyperliquidVault,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'name',
-			label: 'Name',
-			description: 'The human-readable name of the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'description',
-			label: 'Description',
-			description: 'A human-readable description from the source domain.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'apr',
-			label: 'apr',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'leaderFraction',
-			label: 'leader fraction',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'leaderCommission',
-			label: 'leader commission',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'maxDistributable',
-			label: 'max distributable',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'maxWithdrawable',
-			label: 'max withdrawable',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'isClosed',
-			label: 'is closed',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'allowDeposits',
-			label: 'allow deposits',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'alwaysCloseOnWithdraw',
-			label: 'always close on withdraw',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'relationship',
-			label: 'relationship',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'portfolio',
-			label: 'portfolio',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'followerCount',
-			label: 'follower count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'followers',
-			label: 'followers',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$vault: {
+		label: 'vault',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.HyperliquidVault,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	name: {
+		label: 'Name',
+		description: 'The human-readable name of the subject.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	description: {
+		label: 'Description',
+		description: 'A human-readable description from the source domain.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	apr: {
+		label: 'apr',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	leaderFraction: {
+		label: 'leader fraction',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	leaderCommission: {
+		label: 'leader commission',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	maxDistributable: {
+		label: 'max distributable',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	maxWithdrawable: {
+		label: 'max withdrawable',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	isClosed: {
+		label: 'is closed',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	allowDeposits: {
+		label: 'allow deposits',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	alwaysCloseOnWithdraw: {
+		label: 'always close on withdraw',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	relationship: {
+		label: 'relationship',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	portfolio: {
+		label: 'portfolio',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	followerCount: {
+		label: 'follower count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	followers: {
+		label: 'followers',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		VaultTimestampMsSource: [
+			'$vault',
+			'timestampMs',
+			'source',
+		],
+	},
+})

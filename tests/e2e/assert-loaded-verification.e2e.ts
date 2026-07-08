@@ -89,19 +89,19 @@ test.describe('assertLoaded verification', () => {
 	test('YouTube list fields expose provider totals through count selectors', () => {
 		expect(YoutubeRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.YoutubeChannel
-			&& resolverHasCountSelector(resolver.fields, '$$videos')
+			&& resolverHasCountSelector(resolver.projections, '$$videos')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.YoutubePlaylist
-			&& resolverHasCountSelector(resolver.fields, '$$videos')
+			&& resolverHasCountSelector(resolver.projections, '$$videos')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.YoutubeVideo
-			&& resolverHasCountSelector(resolver.fields, '$$comments')
+			&& resolverHasCountSelector(resolver.projections, '$$comments')
 		))).toBe(true)
 		expect(YoutubeRest.resolvers.some((resolver) => (
 			resolver.entityType === EntityType.YoutubeComment
-			&& resolverHasCountSelector(resolver.fields, '$$replies')
+			&& resolverHasCountSelector(resolver.projections, '$$replies')
 		))).toBe(true)
 	})
 
@@ -112,7 +112,7 @@ test.describe('assertLoaded verification', () => {
 		]) {
 			expect(sourceResolvers.resolvers.some((resolver) => (
 				resolver.entityType === EntityType.RedditLink
-				&& resolverHasCountSelector(resolver.fields, '$$comments')
+				&& resolverHasCountSelector(resolver.projections, '$$comments')
 			))).toBe(true)
 		}
 	})

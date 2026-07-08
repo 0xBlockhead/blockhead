@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -362,10 +362,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<McpResourceContent_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.McpResourceContent_Timestamp>('$$contentTimestamps')}
+				selection={selection.$$contentTimestamps}
 				title='content timestamps'
 				emptyText='No MCP resource content observations.'
-				id='McpResourceContent_TimestampsView-$$contentTimestamps'
+				id='McpResourceContent_TimestampsView-content-timestamps'
 			/>
 		{/if}
 	{/snippet}

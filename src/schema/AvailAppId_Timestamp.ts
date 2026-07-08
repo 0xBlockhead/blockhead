@@ -1,71 +1,62 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum AvailAppId_TimestampSelector {
 	AppIdTimestampMsSource = 'AppIdTimestampMsSource',
 }
-export default {
+export const AvailAppId_Timestamp = entity({
 	entityType: EntityType.AvailAppId_Timestamp,
 	label: 'avail app ID timestamp',
 	labelPlural: 'avail app ID observations',
-	selectors: [
-		{
-			name: AvailAppId_TimestampSelector.AppIdTimestampMsSource,
-			fields: [
-				'$appId',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$appId',
-			label: 'app ID',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AvailAppId,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'blockNumber',
-			label: 'Block number',
-			description: 'The block height or number in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'dataSubmissionCount',
-			label: 'data submission count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'observedSubmissionCount',
-			label: 'observed submission count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$appId: {
+		label: 'app ID',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AvailAppId,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	blockNumber: {
+		label: 'Block number',
+		description: 'The block height or number in its network.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	dataSubmissionCount: {
+		label: 'data submission count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	observedSubmissionCount: {
+		label: 'observed submission count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		AppIdTimestampMsSource: [
+			'$appId',
+			'timestampMs',
+			'source',
+		],
+	},
+})

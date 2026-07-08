@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -255,7 +255,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.YoutubeChannel, false>('$author')}
+					resource={selection.$author}
 				>
 					{#snippet children(youtubeChannel)}
 						{#if youtubeChannel != null && youtubeChannel[EntityMetaKey.Selector] != null}
@@ -277,7 +277,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.YoutubeVideo, false>('$video')}
+					resource={selection.$video}
 				>
 					{#snippet children(youtubeVideo)}
 						{#if youtubeVideo != null && youtubeVideo[EntityMetaKey.Selector] != null}
@@ -304,7 +304,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.YoutubeComment, false>('$parentComment')}
+					resource={selection.$parentComment}
 				>
 					{#snippet children(youtubeComment)}
 						{#if youtubeComment != null && youtubeComment[EntityMetaKey.Selector] != null}
@@ -350,7 +350,7 @@
 		{#if detailsOpen}
 			<YoutubeCommentsView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubeComment>('$$replies', {
+						selection.$$replies({
 							sources: [
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
@@ -360,12 +360,12 @@
 					}
 				title='Replies'
 				emptyText='No replies yet.'
-				id='YoutubeCommentsView-$$replies'
+				id='YoutubeCommentsView-replies'
 			/>
 
 			<YoutubeComment_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubeComment_Timestamp>('$$timestamps', {
+						selection.$$timestamps({
 							sources: [
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
@@ -375,7 +375,7 @@
 					}
 				title='Metric snapshots'
 				emptyText='No metric snapshots for this comment yet.'
-				id='YoutubeComment_TimestampsView-$$timestamps'
+				id='YoutubeComment_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

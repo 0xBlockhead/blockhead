@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import CoinsView from '$/views/CoinsView.svelte'
@@ -53,7 +52,7 @@
 		{#snippet SectionCoins()}
 			<CoinsView
 				href={resolve('/(assets)/coins')}
-				selection={select(EntityType._Global, { scope: '$$coins' })[EntityProxyField]<EntityType.Coin>('$$coins')}
+				selection={select(EntityType._Global, { scope: '$$coins' }).$$coins}
 				id='coins'
 				open={true}
 			/>
@@ -62,7 +61,7 @@
 		{#snippet SectionCurrencies()}
 			<CurrenciesView
 				href={resolve('/(assets)/(currencies)/currencies')}
-				selection={select(EntityType._Global, { scope: '$$currencies' })[EntityProxyField]<EntityType.Currency>('$$currencies')}
+				selection={select(EntityType._Global, { scope: '$$currencies' }).$$currencies}
 				open={true}
 			/>
 		{/snippet}
@@ -70,7 +69,7 @@
 		{#snippet SectionPools()}
 			<LiquidityPoolsView
 				href={resolve('/(assets)/pools')}
-				selection={select(EntityType._Global, { scope: '$$liquidityPools' })[EntityProxyField]<EntityType.LiquidityPool>('$$liquidityPools')}
+				selection={select(EntityType._Global, { scope: '$$liquidityPools' }).$$liquidityPools}
 				id='pools'
 				open={false}
 			/>

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -147,7 +147,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.TronBlock, false>('$block', {
+					selection.$block({
 						sources: [
 							Source.TronGrid_Rest,
 							Source.TronFullNode_Rest,
@@ -421,7 +421,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.TronAccount, false>('$owner', {
+					selection.$owner({
 						sources: [
 							Source.TronGrid_Rest,
 							Source.TronFullNode_Rest,
@@ -450,7 +450,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.TronAccount, false>('$to', {
+					selection.$to({
 						sources: [
 							Source.TronGrid_Rest,
 							Source.TronFullNode_Rest,
@@ -479,7 +479,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.TronContract, false>('$contract', {
+					selection.$contract({
 						sources: [
 							Source.TronGrid_Rest,
 							Source.TronFullNode_Rest,
@@ -664,7 +664,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.TronTransactionReceipt, false>('$receipt', {
+					selection.$receipt({
 						sources: [
 							Source.TronGrid_Rest,
 							Source.TronFullNode_Rest,

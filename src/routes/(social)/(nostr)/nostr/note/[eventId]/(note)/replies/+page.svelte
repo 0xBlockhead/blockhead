@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -40,7 +39,7 @@
 		}
 		title='Note replies'
 		selection={
-			select(EntityType.NostrNote, data.selector)[EntityProxyField]<EntityType.NostrNote>('$$replies', {
+			select(EntityType.NostrNote, data.selector).$$replies({
 				sources: [
 					Source.Constants_Internal,
 					Source.NostrBand_Rest,

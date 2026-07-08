@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
@@ -45,7 +44,7 @@
 					caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
 				},
 				address: decodeURIComponent(params.address),
-			})[EntityProxyField]<EntityType.Erc4337AccountFactory_Timestamp>('$$timestamps')
+			}).$$timestamps
 		}
 		id='timestamps'
 	/>

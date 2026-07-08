@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -293,24 +293,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadZeroGStorageNodeState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadZeroGStorageNodeState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No 0G storage-node observations.'
-				id='BlockheadZeroGStorageNodeState_TimestampsView-$$timestamps'
+				id='BlockheadZeroGStorageNodeState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadZeroGStoredChunksView
-				selection={selection[EntityProxyField]<EntityType.BlockheadZeroGStoredChunk>('$$localChunks')}
+				selection={selection.$$localChunks}
 				title='local chunks'
 				emptyText='No local chunks.'
-				id='BlockheadZeroGStoredChunksView-$$localChunks'
+				id='BlockheadZeroGStoredChunksView-local-chunks'
 			/>
 
 			<BlockheadZeroGStorageProofsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadZeroGStorageProof>('$$localProofs')}
+				selection={selection.$$localProofs}
 				title='local proofs'
 				emptyText='No local proofs.'
-				id='BlockheadZeroGStorageProofsView-$$localProofs'
+				id='BlockheadZeroGStorageProofsView-local-proofs'
 			/>
 		{/if}
 	{/snippet}

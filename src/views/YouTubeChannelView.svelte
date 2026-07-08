@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -260,7 +260,7 @@
 		{#if detailsOpen}
 			<YoutubeVideosView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubeVideo>('$$videos', {
+						selection.$$videos({
 							sources: [
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
@@ -269,12 +269,12 @@
 					}
 				title='Videos'
 				href={resolve('/(social)/(youtube)/youtube/videos')}
-				id='YoutubeVideosView-$$videos'
+				id='YoutubeVideosView-videos'
 			/>
 
 			<YoutubePlaylistsView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubePlaylist>('$$playlists', {
+						selection.$$playlists({
 							sources: [
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
@@ -283,7 +283,7 @@
 					}
 				title='Playlists'
 				href={resolve('/(social)/(youtube)/youtube/playlists')}
-				id='YoutubePlaylistsView-$$playlists'
+				id='YoutubePlaylistsView-playlists'
 			/>
 		{/if}
 	{/snippet}

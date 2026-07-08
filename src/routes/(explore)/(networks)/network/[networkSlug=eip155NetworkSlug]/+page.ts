@@ -5,14 +5,14 @@ import { error } from '@sveltejs/kit'
 import { networkBySlug } from '$/constants/Network.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import NetworkSchema from '$/schema/Network.ts'
+import { Network as NetworkSchema } from '$/schema/Network.ts'
 import { type as arktype } from 'arktype'
 
-// Route surface eligibility: requiredFacets=['Evm']
+// Route surface eligibility: requiredProjections=[['Evm']]
 export const load: PageLoad = ({ params }) => {
-	const routeSurfaceNetwork = networkBySlug[params.networkSlug]
+	const routeSurfaceNetwork = Object.getOwnPropertyDescriptor(networkBySlug, params.networkSlug)?.value
 	if (routeSurfaceNetwork == null) error(404, 'Network route surface not found')
-	if (!(routeSurfaceNetwork.executionModels.includes('Evm'))) error(404, 'Network facet not available')
+	if (!((routeSurfaceNetwork.executionModels !== undefined && routeSurfaceNetwork.executionModels.some((value: string | number | boolean | null) => value === 'Evm')))) error(404, 'Network facet not available')
 
 	const networkSelector = parseEntitySelector(
 		schema,
@@ -25,6 +25,6 @@ export const load: PageLoad = ({ params }) => {
 
 	return {
 		selector: networkSelector,
-		title: routeSurfaceNetwork.name,
+		title: networkBySlug[params.networkSlug].name,
 	}
 }

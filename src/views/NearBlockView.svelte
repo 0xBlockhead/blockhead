@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -234,7 +234,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.NearBlock, false>('$parent', {
+					selection.$parent({
 						sources: [
 							Source.NearRpc_JsonRpc,
 							Source.NearBlocks_Rest,
@@ -344,14 +344,14 @@
 		{#if detailsOpen}
 			<NearChunksView
 				selection={
-						selection[EntityProxyField]<EntityType.NearChunk>('$$chunks', {
+						selection.$$chunks({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
 				title='Chunks'
-				id='NearChunksView-$$chunks'
+				id='NearChunksView-chunks'
 			/>
 		{/if}
 	{/snippet}

@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -8,133 +8,112 @@ export enum ArweaveBlockSelector {
 	NetworkHeight = 'NetworkHeight',
 	NetworkIndepHash = 'NetworkIndepHash',
 }
-export default {
+export const ArweaveBlock = entity({
 	entityType: EntityType.ArweaveBlock,
 	label: 'arweave block',
 	labelPlural: 'arweave blocks',
-	selectors: [
-		{
-			name: ArweaveBlockSelector.NetworkHeight,
-			fields: [
-				'$network',
-				'height',
-			],
-		},
-		{
-			name: ArweaveBlockSelector.NetworkIndepHash,
-			fields: [
-				'$network',
-				'indepHash',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ArweaveNetwork,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'height',
-			label: 'Height',
-			description: 'The block or ledger height in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'indepHash',
-			label: 'indep hash',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'previousBlock',
-			label: 'previous block',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'transactionRoot',
-			label: 'transaction root',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'walletList',
-			label: 'wallet list',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'rewardAddress',
-			label: 'reward address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'rewardPoolWinston',
-			label: 'reward pool winston',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'weaveSizeBytes',
-			label: 'weave size bytes',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'blockSizeBytes',
-			label: 'block size bytes',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'cumulativeDiff',
-			label: 'cumulative diff',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'hashListMerkle',
-			label: 'hash list merkle',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'transactionCount',
-			label: 'transaction count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$transactions',
-			label: 'transactions',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ArweaveTransaction,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$network: {
+		label: 'network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.ArweaveNetwork,
+		cardinality: EntityFieldCardinality.One,
+	},
+	height: {
+		label: 'Height',
+		description: 'The block or ledger height in its network.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	indepHash: {
+		label: 'indep hash',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	previousBlock: {
+		label: 'previous block',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	transactionRoot: {
+		label: 'transaction root',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	walletList: {
+		label: 'wallet list',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	rewardAddress: {
+		label: 'reward address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	rewardPoolWinston: {
+		label: 'reward pool winston',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	weaveSizeBytes: {
+		label: 'weave size bytes',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	blockSizeBytes: {
+		label: 'block size bytes',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	cumulativeDiff: {
+		label: 'cumulative diff',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	hashListMerkle: {
+		label: 'hash list merkle',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	transactionCount: {
+		label: 'transaction count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$transactions: {
+		label: 'transactions',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.ArweaveTransaction,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		NetworkHeight: [
+			'$network',
+			'height',
+		],
+		NetworkIndepHash: [
+			'$network',
+			'indepHash',
+		],
+	},
+})

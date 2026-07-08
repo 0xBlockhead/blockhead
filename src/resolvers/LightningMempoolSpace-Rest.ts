@@ -217,11 +217,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (snapshot) => snapshot.name,
 				$settlementNetwork: (snapshot) => snapshot.$settlementNetwork,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.Network,
@@ -229,7 +227,9 @@ export default {
 				[NetworkSelector.Slug]: async (network) => {
 					assertLightningNetwork(network)
 					return {
-						lightningName: 'Lightning Network',
+						Lightning: {
+							name: 'Lightning Network',
+						},
 						$lightningSettlementNetwork: {
 							[EntityMetaKey.Selector]: bitcoinMainnet,
 						},
@@ -237,11 +237,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				lightningName: (snapshot) => snapshot.lightningName,
-				$lightningSettlementNetwork: (snapshot) => snapshot.$lightningSettlementNetwork,
-			},
-		}),
+				Lightning: {
+					name: (snapshot) => snapshot.Lightning.name,
+					$settlementNetwork: (snapshot) => snapshot.$lightningSettlementNetwork,
+				},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork_Timestamp,
@@ -257,7 +257,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				nodeCount: (snapshot) => snapshot.nodeCount,
 				channelCount: (snapshot) => snapshot.channelCount,
 				totalCapacitySats: (snapshot) => snapshot.totalCapacitySats,
@@ -268,8 +267,7 @@ export default {
 				medianCapacitySats: (snapshot) => snapshot.medianCapacitySats,
 				averageFeeRatePpm: (snapshot) => snapshot.averageFeeRatePpm,
 				medianFeeRatePpm: (snapshot) => snapshot.medianFeeRatePpm,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode,
@@ -289,12 +287,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot.$$timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode_Timestamp,
@@ -312,7 +308,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				alias: (snapshot) => snapshot.alias,
 				color: (snapshot) => snapshot.color,
 				capacitySats: (snapshot) => snapshot.capacitySats,
@@ -322,8 +317,7 @@ export default {
 				countryCode: (snapshot) => snapshot.countryCode,
 				city: (snapshot) => snapshot.city,
 				networkAddresses: (snapshot) => snapshot.networkAddresses,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningChannel,
@@ -340,14 +334,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				shortChannelId: (snapshot) => snapshot.shortChannelId,
 				fundingTransactionId: (snapshot) => snapshot.fundingTransactionId,
 				fundingOutputIndex: (snapshot) => snapshot.fundingOutputIndex,
 				openedAtMs: (snapshot) => snapshot.openedAtMs,
 				$node1: (snapshot) => snapshot.$node1,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningChannel_Timestamp,
@@ -365,7 +357,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				status: (snapshot) => snapshot.status,
 				capacitySats: (snapshot) => snapshot.capacitySats,
 				feeRatePpm: (snapshot) => snapshot.feeRatePpm,
@@ -374,8 +365,7 @@ export default {
 				closingFeeSats: (snapshot) => snapshot.closingFeeSats,
 				closingReason: (snapshot) => snapshot.closingReason,
 				closedAtMs: (snapshot) => snapshot.closedAtMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -393,10 +383,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.Network,
@@ -423,10 +411,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$lightningTimestamps: (snapshot) => snapshot,
-			},
-		}),
+				Lightning: {
+					$$timestamps: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -442,10 +430,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$nodes: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.Network,
@@ -461,10 +447,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$lightningNodes: (snapshot) => snapshot,
-			},
-		}),
+				Lightning: {
+					$$nodes: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -498,10 +484,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$channels: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.Network,
@@ -524,10 +508,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$lightningChannels: (snapshot) => snapshot,
-			},
-		}),
+				Lightning: {
+					$$channels: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.LightningMempoolSpace_Rest, {
 			entityType: EntityType.LightningNode,
@@ -553,9 +537,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$channels: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

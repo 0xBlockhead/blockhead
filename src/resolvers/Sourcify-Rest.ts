@@ -120,7 +120,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				match: (verification) => verification.match,
 				creationMatch: (verification) => verification.creationMatch,
 				runtimeMatch: (verification) => verification.runtimeMatch,
@@ -128,8 +127,7 @@ export default {
 				matchId: (verification) => verification.matchId,
 				$compilation: (verification) => verification.$compilation,
 				$sourceBundle: (verification) => verification.$sourceBundle,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractCompilation,
@@ -170,7 +168,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				language: (compilation) => compilation.language,
 				compiler: (compilation) => compilation.compiler,
 				compilerVersion: (compilation) => compilation.compilerVersion,
@@ -178,8 +175,7 @@ export default {
 				fullyQualifiedName: (compilation) => compilation.fullyQualifiedName,
 				compilerSettingsJson: (compilation) => compilation.compilerSettingsJson,
 				storageLayoutJson: (compilation) => compilation.storageLayoutJson,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContractSourceBundle,
@@ -193,10 +189,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				files: (sourceBundle) => sourceBundle.files,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -213,10 +207,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				abi: (abi) => abi,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -231,10 +223,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$verification: (verification) => verification,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -253,10 +243,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$deployer: (deployer) => deployer,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -276,10 +264,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$creationTransaction: (creationTransaction) => creationTransaction,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Sourcify_Rest, {
 			entityType: EntityType.EvmContract,
@@ -299,9 +285,7 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$implementation: (implementation) => implementation,
-			},
-		}),
+			}),
 	],
 }

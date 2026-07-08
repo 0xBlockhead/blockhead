@@ -48,11 +48,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$network: (snapshot) => snapshot.$network,
 				rpcEndpoints: (snapshot) => snapshot.rpcEndpoints,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.Network,
@@ -60,15 +58,17 @@ export default {
 				[NetworkSelector.Slug]: async (network) => {
 					assertHyperliquidMainnet(network)
 					return {
-						hyperliquidRpcEndpoints: [...await hyperliquidMainnetRpcEndpoints()],
+						Hyperliquid: {
+							rpcEndpoints: [...await hyperliquidMainnetRpcEndpoints()],
+						},
 					}
 				}
 			},
 		})({
-			fields: {
-				hyperliquidRpcEndpoints: (snapshot) => snapshot.hyperliquidRpcEndpoints,
-			},
-		}),
+				Hyperliquid: {
+					rpcEndpoints: (snapshot) => snapshot.hyperliquidRpcEndpoints,
+				},
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidBlock,
@@ -113,12 +113,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (snapshot) => snapshot.hash,
 				timestampMs: (snapshot) => snapshot.timestampMs,
 				$$transactions: (snapshot) => snapshot.$$transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidTransaction,
@@ -156,12 +154,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (snapshot) => snapshot.$block,
 				$account: (snapshot) => snapshot.$account,
 				actionType: (snapshot) => snapshot.actionType,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidTransaction,
@@ -177,10 +173,8 @@ export default {
 				],
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidTransaction_Timestamp,
@@ -203,11 +197,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				status: (snapshot) => snapshot.status,
 				blockNumber: (snapshot) => snapshot.blockNumber,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -232,10 +224,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$blocks: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.Network,
@@ -260,10 +250,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$hyperliquidBlocks: (snapshot) => snapshot,
-			},
-		}),
+				Hyperliquid: {
+					$$blocks: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -323,10 +313,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$transactions: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_JsonRpc, {
 			entityType: EntityType.Network,
@@ -386,9 +374,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$hyperliquidTransactions: (snapshot) => snapshot,
-			},
-		}),
+				Hyperliquid: {
+					$$transactions: (snapshot) => snapshot,
+				},
+			}),
 	],
 }

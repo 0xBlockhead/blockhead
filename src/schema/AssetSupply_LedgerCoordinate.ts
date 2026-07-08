@@ -1,106 +1,92 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum AssetSupply_LedgerCoordinateSelector {
 	AssetInstanceSupplyScopeKeyLedgerCoordinateKindLedgerCoordinateValueSource = 'AssetInstanceSupplyScopeKeyLedgerCoordinateKindLedgerCoordinateValueSource',
 }
-export default {
+export const AssetSupply_LedgerCoordinate = entity({
 	entityType: EntityType.AssetSupply_LedgerCoordinate,
 	label: 'asset supply ledger coordinate',
 	labelPlural: 'asset supply ledger coordinates',
-	selectors: [
-		{
-			name: AssetSupply_LedgerCoordinateSelector.AssetInstanceSupplyScopeKeyLedgerCoordinateKindLedgerCoordinateValueSource,
-			fields: [
-				'$assetInstance',
-				'supplyScopeKey',
-				'ledgerCoordinateKind',
-				'ledgerCoordinateValue',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$assetInstance',
-			label: 'asset instance',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AssetInstance,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'supplyScopeKey',
-			label: 'supply scope key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$class',
-			label: 'class',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AssetClass,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'classKey',
-			label: 'class key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'ledgerCoordinateKind',
-			label: 'ledger coordinate kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'ledgerCoordinateValue',
-			label: 'ledger coordinate value',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'totalSupply',
-			label: 'total supply',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'maxSupply',
-			label: 'max supply',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'mintedSupply',
-			label: 'minted supply',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'burnedSupply',
-			label: 'burned supply',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$assetInstance: {
+		label: 'asset instance',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AssetInstance,
+		cardinality: EntityFieldCardinality.One,
+	},
+	supplyScopeKey: {
+		label: 'supply scope key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$class: {
+		label: 'class',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AssetClass,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	classKey: {
+		label: 'class key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	ledgerCoordinateKind: {
+		label: 'ledger coordinate kind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	ledgerCoordinateValue: {
+		label: 'ledger coordinate value',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	totalSupply: {
+		label: 'total supply',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	maxSupply: {
+		label: 'max supply',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	mintedSupply: {
+		label: 'minted supply',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	burnedSupply: {
+		label: 'burned supply',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		AssetInstanceSupplyScopeKeyLedgerCoordinateKindLedgerCoordinateValueSource: [
+			'$assetInstance',
+			'supplyScopeKey',
+			'ledgerCoordinateKind',
+			'ledgerCoordinateValue',
+			'source',
+		],
+	},
+})

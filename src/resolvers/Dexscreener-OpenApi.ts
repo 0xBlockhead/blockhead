@@ -67,11 +67,9 @@ export default {
 				}
 			}
 		})({
-			fields: {
 				$baseToken: (snapshot) => snapshot.$baseToken,
 				$quoteToken: (snapshot) => snapshot.$quoteToken,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
@@ -116,7 +114,6 @@ export default {
 				}
 			}
 		})({
-			fields: {
 				baseTokenSymbol: (snapshot) => snapshot.baseTokenSymbol,
 				quoteTokenSymbol: (snapshot) => snapshot.quoteTokenSymbol,
 				pairCreatedAtMs: (snapshot) => snapshot.pairCreatedAtMs,
@@ -133,8 +130,7 @@ export default {
 				marketCapUsd: (snapshot) => snapshot.marketCapUsd,
 				fdvUsd: (snapshot) => snapshot.fdvUsd,
 				transport: (snapshot) => snapshot.transport,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType._Global,
@@ -185,10 +181,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$liquidityPools: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool,
@@ -204,10 +198,8 @@ export default {
 				],
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Timestamp,
@@ -217,10 +209,8 @@ export default {
 				}),
 			},
 		})({
-			fields: {
 				$parentLiquidityPool: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Dexscreener_OpenApi, {
 			entityType: EntityType.LiquidityPool_Block,
@@ -230,9 +220,7 @@ export default {
 				}),
 			},
 		})({
-			fields: {
 				$parentLiquidityPool: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

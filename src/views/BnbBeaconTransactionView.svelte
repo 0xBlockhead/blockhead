@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -108,7 +108,7 @@
 		<ResourceBoundary resource={bnbBeaconTransaction}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BnbBeaconBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(bnbBeaconBlock)}
 						{#if bnbBeaconBlock != null && bnbBeaconBlock[EntityMetaKey.Selector] != null}
@@ -128,7 +128,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.BnbBeaconBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(bnbBeaconBlock)}
 						{#if bnbBeaconBlock != null && bnbBeaconBlock[EntityMetaKey.Selector] != null}
@@ -584,10 +584,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BnbBeaconTokenTransfersView
-				selection={selection[EntityProxyField]<EntityType.BnbBeaconTokenTransfer>('$$tokenEffects')}
+				selection={selection.$$tokenEffects}
 				title='token effects'
 				emptyText='No token effects found.'
-				id='BnbBeaconTokenTransfersView-$$tokenEffects'
+				id='BnbBeaconTokenTransfersView-token-effects'
 			/>
 		{/if}
 	{/snippet}

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -259,7 +259,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.PolkadotBlock, false>('$parent')}
+				resource={selection.$parent}
 			>
 				{#snippet children(polkadotBlock)}
 					{#if polkadotBlock != null && polkadotBlock[EntityMetaKey.Selector] != null}
@@ -320,17 +320,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PolkadotExtrinsicsView
-				selection={selection[EntityProxyField]<EntityType.PolkadotExtrinsic>('$$extrinsics')}
+				selection={selection.$$extrinsics}
 				title='Extrinsics'
 				emptyText='No Polkadot extrinsics.'
-				id='PolkadotExtrinsicsView-$$extrinsics'
+				id='PolkadotExtrinsicsView-extrinsics'
 			/>
 
 			<PolkadotEventsView
-				selection={selection[EntityProxyField]<EntityType.PolkadotEvent>('$$events')}
+				selection={selection.$$events}
 				title='Events'
 				emptyText='No Polkadot events.'
-				id='PolkadotEventsView-$$events'
+				id='PolkadotEventsView-events'
 			/>
 		{/if}
 	{/snippet}

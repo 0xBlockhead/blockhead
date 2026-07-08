@@ -53,11 +53,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$network: (snapshot) => snapshot.$network,
 				restEndpoints: (snapshot) => snapshot.restEndpoints,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.Network,
@@ -65,15 +63,17 @@ export default {
 				[NetworkSelector.Slug]: async (network) => {
 					assertHyperliquidMainnet(network)
 					return {
-						hyperliquidRestEndpoints: [...await hyperliquidMainnetRestEndpointRows()],
+						Hyperliquid: {
+							restEndpoints: [...await hyperliquidMainnetRestEndpointRows()],
+						},
 					}
 				}
 			},
 		})({
-			fields: {
-				hyperliquidRestEndpoints: (snapshot) => snapshot.hyperliquidRestEndpoints,
-			},
-		}),
+				Hyperliquid: {
+					restEndpoints: (snapshot) => snapshot.hyperliquidRestEndpoints,
+				},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidPerpMarket,
@@ -93,10 +93,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidPerpMarket_Timestamp,
@@ -117,11 +115,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				maxLeverage: (snapshot) => snapshot.maxLeverage,
 				onlyIsolated: (snapshot) => snapshot.onlyIsolated,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidSpotAsset,
@@ -141,10 +137,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidSpotAsset_Timestamp,
@@ -167,13 +161,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (snapshot) => snapshot.name,
 				szDecimals: (snapshot) => snapshot.szDecimals,
 				weiDecimals: (snapshot) => snapshot.weiDecimals,
 				tokenId: (snapshot) => snapshot.tokenId,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidAccount,
@@ -207,11 +199,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				accountRole: (snapshot) => snapshot.accountRole,
 				$masterAccount: (snapshot) => snapshot.$masterAccount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidValidator,
@@ -231,10 +221,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidValidator_Timestamp,
@@ -263,7 +251,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (snapshot) => snapshot.name,
 				signerAddress: (snapshot) => snapshot.signerAddress,
 				$signer: (snapshot) => snapshot.$signer,
@@ -272,8 +259,7 @@ export default {
 				stake: (snapshot) => snapshot.stake,
 				isActive: (snapshot) => snapshot.isActive,
 				isJailed: (snapshot) => snapshot.isJailed,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -316,10 +302,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.Network,
@@ -362,10 +346,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$hyperliquidTimestamps: (snapshot) => snapshot,
-			},
-		}),
+				Hyperliquid: {
+					$$timestamps: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -396,10 +380,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$validators: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.Network,
@@ -430,10 +412,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$hyperliquidValidators: (snapshot) => snapshot,
-			},
-		}),
+				Hyperliquid: {
+					$$validators: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -456,10 +438,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$perpMarkets: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.Network,
@@ -482,10 +462,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$hyperliquidPerpMarkets: (snapshot) => snapshot,
-			},
-		}),
+				Hyperliquid: {
+					$$perpMarkets: (snapshot) => snapshot,
+				},
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.HyperliquidNetwork,
@@ -510,10 +490,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$spotAssets: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Hyperliquid_Rest, {
 			entityType: EntityType.Network,
@@ -538,9 +516,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$hyperliquidSpotAssets: (snapshot) => snapshot,
-			},
-		}),
+				Hyperliquid: {
+					$$spotAssets: (snapshot) => snapshot,
+				},
+			}),
 	],
 }

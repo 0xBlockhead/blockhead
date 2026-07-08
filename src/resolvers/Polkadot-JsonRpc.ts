@@ -67,15 +67,17 @@ export default {
 				[NetworkSelector.Slug]: async (network) => {
 					assertPolkadotMainnet(network)
 					return {
-						polkadotRpcEndpoints: [...(await polkadotMainnetRpcEndpoints())],
+						Polkadot: {
+							rpcEndpoints: [...(await polkadotMainnetRpcEndpoints())],
+						},
 					}
 				}
 			},
 		})({
-			fields: {
-				polkadotRpcEndpoints: (network) => network.polkadotRpcEndpoints,
-			},
-		}),
+				Polkadot: {
+					rpcEndpoints: (network) => network.polkadotRpcEndpoints,
+				},
+			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network_Timestamp,
@@ -122,7 +124,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
 				finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
 				finalizedExtrinsicCount: (timestamp) => timestamp.finalizedExtrinsicCount,
@@ -133,8 +134,7 @@ export default {
 				peerCount: (timestamp) => timestamp.peerCount,
 				isSyncing: (timestamp) => timestamp.isSyncing,
 				shouldHavePeers: (timestamp) => timestamp.shouldHavePeers,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
@@ -172,14 +172,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				stateRoot: (block) => block.stateRoot,
 				extrinsicsRoot: (block) => block.extrinsicsRoot,
 				$$extrinsics: (block) => block.$$extrinsics,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network,
@@ -194,10 +192,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				polkadotRpcEndpoints: (rpcEndpoints) => rpcEndpoints,
-			},
-		}),
+				Polkadot: {
+					rpcEndpoints: (rpcEndpoints) => rpcEndpoints,
+				},
+			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network,
@@ -216,10 +214,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network,
@@ -253,10 +249,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$polkadotBlocks: (blocks) => blocks,
-			},
-		}),
+				Polkadot: {
+					$$blocks: (blocks) => blocks,
+				},
+			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
@@ -282,10 +278,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$parent: (parent) => parent,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.PolkadotBlock,
@@ -307,9 +301,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$extrinsics: (extrinsics) => extrinsics,
-			},
-		}),
+			}),
 	],
 }

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -117,7 +117,7 @@
 		{#if detailsOpen}
 			<RedditSubredditsView
 				selection={
-						selection[EntityProxyField]<EntityType.RedditSubreddit>('$$observedSubreddits', {
+						selection.$$observedSubreddits({
 							sources: [
 								Source.Constants_Internal,
 								Source.Reddit_PublicJson,
@@ -126,12 +126,12 @@
 					}
 				title='Subreddits'
 				href={resolve('/(social)/(reddit)/reddit/subreddits')}
-				id='RedditSubredditsView-$$observedSubreddits'
+				id='RedditSubredditsView-observed-subreddits'
 			/>
 
 			<RedditLinksView
 				selection={
-						selection[EntityProxyField]<EntityType.RedditLink>('$$observedLinks', {
+						selection.$$observedLinks({
 							sources: [
 								Source.Constants_Internal,
 								Source.Reddit_PublicJson,
@@ -140,14 +140,14 @@
 					}
 				title='Popular submissions'
 				href={resolve('/(social)/(reddit)/reddit/links')}
-				id='RedditLinksView-$$observedLinks'
+				id='RedditLinksView-observed-links'
 			/>
 
 			<GlobalRedditNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType._GlobalRedditNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
 				emptyText='No Reddit network observations.'
-				id='_GlobalRedditNetwork_TimestampsView-$$timestamps'
+				id='_GlobalRedditNetwork_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

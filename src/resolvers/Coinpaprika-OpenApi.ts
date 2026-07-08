@@ -141,13 +141,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (coin) => coin.name,
 				symbol: (coin) => coin.symbol,
 				decimals: (coin) => coin.decimals,
 				$logo: (coin) => coin.$logo,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_Timestamp,
@@ -193,12 +191,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				price: (timestamp) => timestamp.price,
 				transport: (timestamp) => timestamp.transport,
 				providerAssetId: (timestamp) => timestamp.providerAssetId,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -258,14 +254,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				open: (timestamp) => timestamp.open,
 				high: (timestamp) => timestamp.high,
 				low: (timestamp) => timestamp.low,
 				close: (timestamp) => timestamp.close,
 				quoteVolume: (timestamp) => timestamp.quoteVolume,
-			},
-		}),
+			}),
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
 			resolve: {
@@ -286,10 +280,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$coins: (globalScope) => globalScope,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
@@ -309,10 +301,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$markets: (globalScope) => globalScope,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType._Global,
@@ -358,10 +348,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketPrices: (globalScope) => globalScope,
-			},
-		}),
+			}),
 
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
@@ -394,10 +382,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCoinAsBase: (coin) => coin,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Coin,
@@ -422,10 +408,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCoinAsQuote: (coin) => coin,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Currency,
@@ -447,10 +431,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCurrencyAsQuote: (currency) => currency,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Currency,
@@ -467,10 +449,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCurrencyAsBase: (currency) => currency,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market,
@@ -527,10 +507,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketTimeIntervalTimestamps: (market) => market,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.MarketPrice,
@@ -571,10 +549,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$quotes: (marketPrice) => marketPrice,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.MarketPrice,
@@ -586,10 +562,8 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$parentMarket: (marketPrice) => marketPrice,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coinpaprika_OpenApi, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -601,9 +575,7 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$parentMarket: (timestamp) => timestamp,
-			},
-		}),
+			}),
 	],
 }

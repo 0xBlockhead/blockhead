@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -160,7 +160,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -183,7 +183,7 @@
 				<dt>network</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.MoneroNetwork, false>('$network')}
+						resource={selection.$network}
 					>
 						{#snippet children(moneroNetwork)}
 							{#if moneroNetwork[EntityMetaKey.Selector] != null}
@@ -200,7 +200,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.MoneroTransaction, false>('$transaction')}
+				resource={selection.$transaction}
 			>
 				{#snippet children(moneroTransaction)}
 					{#if moneroTransaction != null && moneroTransaction[EntityMetaKey.Selector] != null}
@@ -598,10 +598,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadMoneroTransferState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadMoneroTransferState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Monero transfer observations.'
-				id='BlockheadMoneroTransferState_TimestampsView-$$timestamps'
+				id='BlockheadMoneroTransferState_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

@@ -118,7 +118,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				id: (snapshot) => snapshot.id,
 				username: (snapshot) => snapshot.username,
 				name: (snapshot) => snapshot.name,
@@ -128,8 +127,7 @@ export default {
 				createdAt: (snapshot) => snapshot.createdAt,
 				websiteUrl: (snapshot) => snapshot.websiteUrl,
 				$icon: (snapshot) => snapshot.$icon,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,
@@ -178,15 +176,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				text: (snapshot) => snapshot.text,
 				createdAt: (snapshot) => snapshot.createdAt,
 				postUrl: (snapshot) => snapshot.postUrl,
 				$replyToPost: (snapshot) => snapshot.$replyToPost,
 				$quotedPost: (snapshot) => snapshot.$quotedPost,
 				$author: (snapshot) => snapshot.$author,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser_Timestamp,
@@ -203,12 +199,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				followerCount: (snapshot) => snapshot.followerCount,
 				followingCount: (snapshot) => snapshot.followingCount,
 				tweetCount: (snapshot) => snapshot.tweetCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost_Timestamp,
@@ -227,13 +221,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				likeCount: (snapshot) => snapshot.likeCount,
 				retweetCount: (snapshot) => snapshot.retweetCount,
 				replyCount: (snapshot) => snapshot.replyCount,
 				quoteCount: (snapshot) => snapshot.quoteCount,
-			},
-		}),
+			}),
 
 			defineResolver(Source.X_FxEmbed_Rest, {
 				entityType: EntityType.XNetwork,
@@ -255,10 +247,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$$xUsers: (snapshot) => snapshot,
-				},
-			}),
+				}),
 
 			defineResolver(Source.X_FxEmbed_Rest, {
 				entityType: EntityType.XNetwork,
@@ -280,10 +270,8 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$$xPosts: (snapshot) => snapshot,
-				},
-			}),
+				}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XPost,
@@ -308,10 +296,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
@@ -354,10 +340,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_FxEmbed_Rest, {
 			entityType: EntityType.XUser,
@@ -394,9 +378,7 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$posts: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

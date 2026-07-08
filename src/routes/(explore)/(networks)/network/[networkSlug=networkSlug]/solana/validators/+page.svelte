@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -40,8 +39,8 @@
 		selection={
 			select(EntityType.Network, {
 				slug: params.networkSlug,
-			})[EntityProxyField]<EntityType.SolanaValidator>('$$solanaValidators')
+			}).Solana.$$validators
 		}
-		id='solana-validators'
+		id='validators'
 	/>
 </Page>

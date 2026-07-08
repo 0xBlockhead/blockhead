@@ -26,10 +26,8 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			ohttpGatewayUrl: (snapshot) => snapshot.ohttpGatewayUrl,
 			ohttpKeyConfig: (snapshot) => snapshot.ohttpKeyConfig,
-		},
-			}),
+		}),
 	],
 }

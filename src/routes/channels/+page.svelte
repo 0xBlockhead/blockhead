@@ -2,7 +2,6 @@
 
 <script lang="ts">
 	// Types/constants
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -29,7 +28,7 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$blockheadStateChannels',
-			})[EntityProxyField]<EntityType.BlockheadStateChannel>('$$blockheadStateChannels')
+			}).$$blockheadStateChannels
 		}
 		id='blockhead-state-channels'
 	/>

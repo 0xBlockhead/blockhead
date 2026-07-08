@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/EntityType.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import BlockheadSourcesView from '$/views/BlockheadSourcesView.svelte'
@@ -55,7 +54,7 @@
 		{#snippet SectionSources()}
 			<BlockheadSourcesView
 				href={resolve('/~/manage/sources')}
-				selection={select(EntityType._Global, { scope: '$$blockheadSources' })[EntityProxyField]<EntityType.BlockheadSource>('$$blockheadSources')({
+				selection={select(EntityType._Global, { scope: '$$blockheadSources' }).$$blockheadSources({
 					sources: [Source.Local_Internal],
 				})}
 				id='sources'

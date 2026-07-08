@@ -1,95 +1,82 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum TezosInternalOperationSelector {
 	ParentOperationInternalIndex = 'ParentOperationInternalIndex',
 }
-export default {
+export const TezosInternalOperation = entity({
 	entityType: EntityType.TezosInternalOperation,
 	label: 'tezos internal operation',
 	labelPlural: 'tezos internal operations',
-	selectors: [
-		{
-			name: TezosInternalOperationSelector.ParentOperationInternalIndex,
-			fields: [
-				'$parentOperation',
-				'internalIndex',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$parentOperation',
-			label: 'parent operation',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TezosOperation,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'internalIndex',
-			label: 'internal index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'operationKind',
-			label: 'operation kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'sourceAddress',
-			label: 'source address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'destinationAddress',
-			label: 'destination address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'amountMutez',
-			label: 'amount mutez',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'nonce',
-			label: 'nonce',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'parameters',
-			label: 'parameters',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'resultStatus',
-			label: 'result status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'consumedGas',
-			label: 'consumed gas',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$parentOperation: {
+		label: 'parent operation',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.TezosOperation,
+		cardinality: EntityFieldCardinality.One,
+	},
+	internalIndex: {
+		label: 'internal index',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	operationKind: {
+		label: 'operation kind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	sourceAddress: {
+		label: 'source address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	destinationAddress: {
+		label: 'destination address',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	amountMutez: {
+		label: 'amount mutez',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	nonce: {
+		label: 'nonce',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	parameters: {
+		label: 'parameters',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	resultStatus: {
+		label: 'result status',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	consumedGas: {
+		label: 'consumed gas',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		ParentOperationInternalIndex: [
+			'$parentOperation',
+			'internalIndex',
+		],
+	},
+})

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -252,17 +252,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PolkadotAsset_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.PolkadotAsset_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Asset observations'
 				emptyText='No Polkadot asset observations.'
-				id='PolkadotAsset_TimestampsView-$$timestamps'
+				id='PolkadotAsset_TimestampsView-timestamps'
 			/>
 
 			<PolkadotAssetBalance_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.PolkadotAssetBalance_Timestamp>('$$balanceTimestamps')}
+				selection={selection.$$balanceTimestamps}
 				title='Balances'
 				emptyText='No Polkadot asset balance observations.'
-				id='PolkadotAssetBalance_TimestampsView-$$balanceTimestamps'
+				id='PolkadotAssetBalance_TimestampsView-balance-timestamps'
 			/>
 		{/if}
 	{/snippet}

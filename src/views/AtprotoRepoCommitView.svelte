@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -790,11 +790,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AtprotoPostsView
-				selection={selection[EntityProxyField]<EntityType.AtprotoPost>('$$posts')}
+				selection={selection.$$posts}
 				title='Posts'
 				href={resolve('/(social)/(atproto)/atproto/posts')}
 				emptyText='No posts in this commit.'
-				id='AtprotoPostsView-$$posts'
+				id='AtprotoPostsView-posts'
 			/>
 		{/if}
 	{/snippet}

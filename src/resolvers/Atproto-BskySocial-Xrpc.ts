@@ -110,7 +110,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				did: (actor) => actor.did,
 				displayName: (actor) => actor.displayName,
 				handle: (actor) => actor.handle,
@@ -118,8 +117,7 @@ export default {
 				$banner: (actor) => actor.$banner,
 				indexedAt: (actor) => actor.indexedAt,
 				description: (actor) => actor.description,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
@@ -132,7 +130,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				uri: (post) => post.uri,
 				$author: (post) => post.$author,
 				text: (post) => post.text,
@@ -142,8 +139,7 @@ export default {
 				selfLabelValues: (post) => post.selfLabelValues,
 				$parent: (post) => post.$parent,
 				$root: (post) => post.$root,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor_Timestamp,
@@ -159,12 +155,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				followersCount: (timestamp) => timestamp.followersCount,
 				followsCount: (timestamp) => timestamp.followsCount,
 				postsCount: (timestamp) => timestamp.postsCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost_Timestamp,
@@ -182,13 +176,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				likeCount: (timestamp) => timestamp.likeCount,
 				repostCount: (timestamp) => timestamp.repostCount,
 				replyCount: (timestamp) => timestamp.replyCount,
 				quoteCount: (timestamp) => timestamp.quoteCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType._GlobalAtprotoNetwork,
@@ -216,10 +208,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedActors: (actors) => actors,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType._GlobalAtprotoNetwork,
@@ -243,10 +233,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedPosts: (posts) => posts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor,
@@ -281,10 +269,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoActor,
@@ -329,10 +315,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$posts: (posts) => posts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
@@ -352,10 +336,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Atproto_BskySocial_Xrpc, {
 			entityType: EntityType.AtprotoPost,
@@ -412,9 +394,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$thread: (thread) => thread,
-			},
-		}),
+			}),
 	],
 }

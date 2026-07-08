@@ -7,8 +7,12 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityMetaKey,
+	entity,
+	facet,
+	entityFieldAddressKey,
 	entityFieldDefinitions,
 	entitySelectorsFromFields,
+	indexSchema,
 	validateEntitySelector,
 	type EntityDefinition,
 	type EntityFieldDefinition,
@@ -647,6 +651,71 @@ describe('entity selectors', () => {
 		)).toThrow(/Invalid conditional field index/)
 	})
 
+	it('indexes declared projections once by entity type and facet path', () => {
+		const indexes = indexSchema([
+			entity({
+				entityType: 'IndexedEntity',
+				label: 'Indexed entity',
+				labelPlural: 'Indexed entities',
+			})({
+				kind: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+			})({
+				selectors: {
+					Kind: ['kind'],
+				},
+				facets: {
+					Parent: facet({
+						path: ['kind'],
+						is: 'parent',
+					})({
+						parentKind: {
+							type: EntityFieldType.Primitive,
+							primitiveType: arktype('string'),
+							cardinality: EntityFieldCardinality.One,
+						},
+					})({
+						facets: {
+							Child: facet({
+								path: ['Parent', 'parentKind'],
+								is: 'child',
+							})({
+								childField: {
+									type: EntityFieldType.Primitive,
+									primitiveType: arktype('string'),
+									cardinality: EntityFieldCardinality.One,
+								},
+							}),
+						},
+					}),
+				},
+			}),
+			...schema,
+		])
+
+		expect(
+			indexes.projectionDefinitionByEntityTypeAndPath[
+				entityFieldAddressKey(EntityType.Network, ['Evm'], '')
+			]?.condition
+		).toEqual({
+			path: ['executionModels'],
+			includes: 'Evm',
+		})
+		expect(
+			indexes.projectionDefinitionByEntityTypeAndPath[
+				entityFieldAddressKey('IndexedEntity', ['Parent', 'Child'], '')
+			]?.fields.map((fieldDefinition) => fieldDefinition.name)
+		).toContain('childField')
+		expect(
+			indexes.entityFieldDefinitionByEntityTypePathAndName[EntityType.Network][
+				entityFieldAddressKey(EntityType.Network, ['Evm'], '$$blocks')
+			]?.name
+		).toBe('$$blocks')
+	})
+
 	it('keeps provisional network identifiers out of canonical CAIP-2 modeling', () => {
 		const provisionalNetworkNamespaces = new Set([
 			NetworkNamespace.Bittensor,
@@ -791,7 +860,7 @@ describe('entity selectors', () => {
 	})
 
 	it('keeps migrated EVM head and gas observations off stable network headers', () => {
-		const evmNetwork = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmNetwork)
+		const evmNetwork = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.Network)
 		const evmNetworkTimestamp = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmNetwork_Timestamp)
 		const evmNetworkGasFeeBlock = schema.find((entityDefinition) => entityDefinition.entityType === EntityType.EvmNetwork_GasFee_Block)
 

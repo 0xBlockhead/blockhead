@@ -3,10 +3,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
-	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,13 +38,9 @@
 		}
 		title='Observations'
 		selection={
-			select(EntityType.EvmNetwork, {
+			select(EntityType.Network, {
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-			})[EntityProxyField]<EntityType.EvmNetwork_Timestamp>('$$timestamps', {
-				sources: [
-					Source.Voltaire_JsonRpc,
-				],
-			})
+			}).Evm.$$timestamps
 		}
 		id='timestamps'
 	/>

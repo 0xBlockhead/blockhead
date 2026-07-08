@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -200,11 +200,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadRoomPeersView
-				selection={selection[EntityProxyField]<EntityType.BlockheadRoomPeer>('$$peers')}
+				selection={selection.$$peers}
 				title='Peers'
 				href={resolve('/~/multiplayer/contacts')}
 				emptyText='No peers yet.'
-				id='BlockheadRoomPeersView-$$peers'
+				id='BlockheadRoomPeersView-peers'
 			/>
 		{/if}
 	{/snippet}

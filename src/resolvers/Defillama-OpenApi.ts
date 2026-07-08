@@ -26,7 +26,7 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/Source.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 import { Market_TimestampSelector } from '$/schema/Market_Timestamp.ts'
 import { CoinSelector } from '$/schema/Coin.ts'
@@ -124,12 +124,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				price: (timestamp) => timestamp.price,
 				transport: (timestamp) => timestamp.transport,
 				providerAssetId: (timestamp) => timestamp.providerAssetId,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType._Global,
@@ -152,10 +150,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$markets: (markets) => markets,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Coin,
@@ -171,10 +167,8 @@ export default {
 					}
 				},
 		})({
-			fields: {
 				$$marketsWithCoinAsBase: (markets) => markets,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Coin,
@@ -197,10 +191,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCoinAsQuote: (markets) => markets,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Currency,
@@ -222,10 +214,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCurrencyAsQuote: (markets) => markets,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.Currency,
@@ -242,10 +232,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCurrencyAsBase: (markets) => markets,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.MarketPrice,
@@ -277,12 +265,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$quotes: (quotes) => quotes.map((quote) => ({
 					[EntityMetaKey.Selector]: quote[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
 			entityType: EntityType.MarketPrice,
@@ -294,15 +280,13 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$parentMarket: (market) => market,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Defillama_OpenApi, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { getChainSlugByChainId, getChainIconUrl } = await import('$/sources/Defillama/OpenApi/queries.ts')
 					const slug = getChainSlugByChainId[Number(caip2.reference)]
 					if (slug == null) throw new Error(`Defillama_OpenApi: no chain icon slug for chain ${caip2.reference}`)
@@ -312,9 +296,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$icon: (iconMedia) => iconMedia,
-			},
-		}),
+			}),
 	],
 }

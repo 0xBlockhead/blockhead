@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
@@ -39,9 +38,9 @@
 		}
 		title='Bridges'
 		selection={
-			select(EntityType.EvmNetwork, {
+			select(EntityType.Network, {
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-			})[EntityProxyField]<EntityType.EvmNetworkBridge>('$$bridges')
+			}).Evm.$$bridges
 		}
 		id='bridges'
 	/>

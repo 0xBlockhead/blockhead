@@ -10,16 +10,16 @@ import {
 } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 
 export default {
 	source: Source.Superchain_Github,
 
 	resolvers: [
 		defineResolver(Source.Superchain_Github, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await fetchNetworks()
@@ -48,17 +48,18 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			name: (snapshot) => snapshot.name,
 			namespace: () => NetworkNamespace.Evm,
 			environment: (snapshot) => snapshot.environment,
-		},
-			}),
+			Evm: {
+				$parent: (snapshot) => snapshot.$parent,
+			},
+		}),
 
 		defineResolver(Source.Superchain_Github, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await fetchNetworks()
@@ -106,16 +107,16 @@ export default {
 			}
 			}
 		})({
-				fields: {
-			$parent: (snapshot) => snapshot.$parent,
-			$mainnet: (snapshot) => snapshot.$mainnet,
-		},
+				Evm: {
+					$parent: (snapshot) => snapshot.$parent,
+					$mainnet: (snapshot) => snapshot.$mainnet
+				},
 			}),
 
 			defineResolver(Source.Superchain_Github, {
-				entityType: EntityType.EvmNetwork,
+				entityType: EntityType.Network,
 				resolve: {
-					[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+					[NetworkSelector.Caip2]: async ({ caip2 }) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 					const { fetchNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 					const networks = await fetchNetworks()
@@ -138,9 +139,9 @@ export default {
 				}
 				}
 		})({
-				fields: {
-				$$testnets: (snapshot) => snapshot,
-			},
+				Evm: {
+					$$testnets: (snapshot) => snapshot
+				},
 			}),
 	],
 }

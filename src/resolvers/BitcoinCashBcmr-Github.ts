@@ -49,12 +49,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				name: (snapshot) => snapshot.name,
 				description: (snapshot) => snapshot.description,
 				symbol: (snapshot) => snapshot.symbol,
 				decimals: (snapshot) => snapshot.decimals,
-			},
-		}),
+			}),
 	],
 }

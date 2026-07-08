@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -95,7 +95,7 @@
 				{/if}
 
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.CashuMint, false>('$mint')}
+					resource={selection.$mint}
 				>
 					{#snippet children(cashuMint)}
 						<CashuMintView
@@ -116,7 +116,7 @@
 				{/if}
 
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.CashuMint, false>('$mint')}
+					resource={selection.$mint}
 				>
 					{#snippet children(cashuMint)}
 						<CashuMintView
@@ -164,7 +164,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadWallet, false>('$wallet')}
+				resource={selection.$wallet}
 			>
 				{#snippet children(blockheadWallet)}
 					{#if blockheadWallet != null && blockheadWallet[EntityMetaKey.Selector] != null}
@@ -187,7 +187,7 @@
 				<dt>mint</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.CashuMint, false>('$mint')}
+						resource={selection.$mint}
 					>
 						{#snippet children(cashuMint)}
 							{#if cashuMint[EntityMetaKey.Selector] != null}
@@ -282,38 +282,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCashuWalletState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCashuWalletState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='BlockheadCashuWalletState_TimestampsView-$$timestamps'
+				id='BlockheadCashuWalletState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadCashuProofsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCashuProof>('$$proofs')}
+				selection={selection.$$proofs}
 				title='proofs'
 				emptyText='No proofs found.'
-				id='BlockheadCashuProofsView-$$proofs'
+				id='BlockheadCashuProofsView-proofs'
 			/>
 
 			<BlockheadCashuTokensView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCashuToken>('$$tokens')}
+				selection={selection.$$tokens}
 				title='tokens'
 				emptyText='No tokens found.'
-				id='BlockheadCashuTokensView-$$tokens'
+				id='BlockheadCashuTokensView-tokens'
 			/>
 
 			<BlockheadCashuMintQuotesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCashuMintQuote>('$$mintQuotes')}
+				selection={selection.$$mintQuotes}
 				title='mint quotes'
 				emptyText='No mint quotes found.'
-				id='BlockheadCashuMintQuotesView-$$mintQuotes'
+				id='BlockheadCashuMintQuotesView-mint-quotes'
 			/>
 
 			<BlockheadCashuMeltQuotesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCashuMeltQuote>('$$meltQuotes')}
+				selection={selection.$$meltQuotes}
 				title='melt quotes'
 				emptyText='No melt quotes found.'
-				id='BlockheadCashuMeltQuotesView-$$meltQuotes'
+				id='BlockheadCashuMeltQuotesView-melt-quotes'
 			/>
 		{/if}
 	{/snippet}

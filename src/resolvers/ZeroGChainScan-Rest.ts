@@ -57,12 +57,10 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			$$timestamps: (snapshot) => snapshot.$$timestamps.map((timestamp) => ({
 				[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 			})),
-		},
-			}),
+		}),
 
 		defineResolver(Source.ZeroGChainScan_Rest, {
 			entityType: EntityType.ZeroGConsensusNetwork_Timestamp,
@@ -82,12 +80,10 @@ export default {
 			},
 			}
 		})({
-				fields: {
 			$consensusNetwork: (timestamp) => timestamp.$consensusNetwork,
 			timestampMs: (timestamp) => timestamp.timestampMs,
 			source: (timestamp) => timestamp.source,
 			sharedStakingStatusSource: (timestamp) => timestamp.sharedStakingStatusSource,
-		},
-			}),
+		}),
 	],
 }

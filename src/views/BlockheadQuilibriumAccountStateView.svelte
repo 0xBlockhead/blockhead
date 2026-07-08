@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -240,7 +240,7 @@
 				<dt>account</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.QuilibriumAccount, false>('$account')}
+						resource={selection.$account}
 					>
 						{#snippet children(quilibriumAccount)}
 							{#if quilibriumAccount[EntityMetaKey.Selector] != null}
@@ -433,17 +433,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadQuilibriumAccountState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadQuilibriumAccountState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Quilibrium account observations.'
-				id='BlockheadQuilibriumAccountState_TimestampsView-$$timestamps'
+				id='BlockheadQuilibriumAccountState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadQuilibriumPendingTransactionsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadQuilibriumPendingTransaction>('$$pendingTransactions')}
+				selection={selection.$$pendingTransactions}
 				title='pending transactions'
 				emptyText='No pending transactions.'
-				id='BlockheadQuilibriumPendingTransactionsView-$$pendingTransactions'
+				id='BlockheadQuilibriumPendingTransactionsView-pending-transactions'
 			/>
 		{/if}
 	{/snippet}

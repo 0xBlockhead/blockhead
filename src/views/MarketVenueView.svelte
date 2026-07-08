@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -124,10 +124,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<MarketsView
-				selection={selection[EntityProxyField]<EntityType.Market>('$$markets')}
+				selection={selection.$$markets}
 				title='Markets'
 				href={resolve('/(assets)/markets')}
-				id='MarketsView-$$markets'
+				id='MarketsView-markets'
 			/>
 		{/if}
 	{/snippet}

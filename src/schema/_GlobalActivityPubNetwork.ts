@@ -1,74 +1,64 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum _GlobalActivityPubNetworkSelector {
 	Scope = 'Scope',
 }
-export default {
+export const _GlobalActivityPubNetwork = entity({
 	entityType: EntityType._GlobalActivityPubNetwork,
 	label: 'global ActivityPub network',
 	labelPlural: 'global ActivityPub networks',
-	selectors: [
-		{
-			name: _GlobalActivityPubNetworkSelector.Scope,
-			fields: [
-				'scope',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'scope',
-			label: 'Scope',
-			description: 'The fixed scope value that identifies this hub row.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type.unit('_GlobalActivityPubNetwork'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$$observedActors',
-			label: 'Observed actors',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActivityPubActor,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$observedNotes',
-			label: 'Observed notes',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActivityPubNote,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$instances',
-			label: 'Instances',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActivityPubInstance,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$instancePeers',
-			label: 'Instance peers',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActivityPubInstancePeer,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$instanceModeratedDomains',
-			label: 'Instance moderated domains',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActivityPubInstanceModeratedDomain,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$timestamps',
-			label: 'Timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	scope: {
+		label: 'Scope',
+		description: 'The fixed scope value that identifies this hub row.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.unit('_GlobalActivityPubNetwork'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$$observedActors: {
+		label: 'Observed actors',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.ActivityPubActor,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$observedNotes: {
+		label: 'Observed notes',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.ActivityPubNote,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$instances: {
+		label: 'Instances',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.ActivityPubInstance,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$instancePeers: {
+		label: 'Instance peers',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.ActivityPubInstancePeer,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$instanceModeratedDomains: {
+		label: 'Instance moderated domains',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.ActivityPubInstanceModeratedDomain,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$timestamps: {
+		label: 'Timestamps',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType._GlobalActivityPubNetwork_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		Scope: [
+			'scope',
+		],
+	},
+})

@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 
 
@@ -42,7 +41,7 @@
 				$network: {
 					slug: params.networkSlug,
 				},
-			})[EntityProxyField]<EntityType.LightningNode>('$$nodes')
+			}).$$nodes
 		}
 		id='nodes'
 	/>

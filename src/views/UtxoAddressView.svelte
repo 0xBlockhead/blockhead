@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -241,21 +241,21 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<UtxoAddress_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.UtxoAddress_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
-				id='UtxoAddress_TimestampsView-$$timestamps'
+				id='UtxoAddress_TimestampsView-timestamps'
 			/>
 
 			<UtxoOutputsView
-				selection={selection[EntityProxyField]<EntityType.UtxoOutput>('$$outputs')}
+				selection={selection.$$outputs}
 				title='Outputs'
-				id='UtxoOutputsView-$$outputs'
+				id='UtxoOutputsView-outputs'
 			/>
 
 			<UtxoTransactionsView
-				selection={selection[EntityProxyField]<EntityType.UtxoTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='Transactions'
-				id='UtxoTransactionsView-$$transactions'
+				id='UtxoTransactionsView-transactions'
 			/>
 		{/if}
 	{/snippet}

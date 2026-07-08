@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -42,7 +41,7 @@
 			select(EntityType.FarcasterFeed, {
 				variant: 'byUser',
 				fid: Number(params.userId),
-			})[EntityProxyField]<EntityType.FarcasterCast>('$$entries', {
+			}).$$entries({
 				sources: [
 					Source.Neynar_Rest,
 					Source.Farcaster_Rest,

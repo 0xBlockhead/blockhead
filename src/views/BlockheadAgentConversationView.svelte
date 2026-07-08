@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -273,7 +273,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadAgentProfile, false>('$profile')}
+				resource={selection.$profile}
 			>
 				{#snippet children(blockheadAgentProfile)}
 					{#if blockheadAgentProfile != null && blockheadAgentProfile[EntityMetaKey.Selector] != null}
@@ -315,10 +315,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadAgentConversationTurnsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadAgentConversationTurn>('$$turns')}
+				selection={selection.$$turns}
 				title='Turns'
 				emptyText='No turns yet.'
-				id='BlockheadAgentConversationTurnsView-$$turns'
+				id='BlockheadAgentConversationTurnsView-turns'
 			/>
 		{/if}
 	{/snippet}

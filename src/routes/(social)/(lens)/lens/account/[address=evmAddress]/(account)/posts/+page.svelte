@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -41,7 +40,7 @@
 		selection={
 			select(EntityType.LensAccount, {
 				address: decodeURIComponent(params.address),
-			})[EntityProxyField]<EntityType.LensPost>('$$posts', {
+			}).$$posts({
 				sources: [
 					Source.Lens_Graphql,
 				],

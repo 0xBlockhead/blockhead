@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -233,7 +233,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.MoneroBlock, false>('$parent', {
+					selection.$parent({
 						sources: [
 							Source.MoneroDaemonRpc_JsonRpc,
 							Source.ThreeXpl_Rest,
@@ -379,14 +379,14 @@
 		{#if detailsOpen}
 			<MoneroTransactionsView
 				selection={
-						selection[EntityProxyField]<EntityType.MoneroTransaction>('$$transactions', {
+						selection.$$transactions({
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
 						})
 					}
 				title='Transactions'
-				id='MoneroTransactionsView-$$transactions'
+				id='MoneroTransactionsView-transactions'
 			/>
 		{/if}
 	{/snippet}

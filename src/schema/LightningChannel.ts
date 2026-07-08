@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
@@ -15,82 +15,70 @@ export enum LightningChannelStatus {
 export enum LightningChannelSelector {
 	NetworkChannelId = 'NetworkChannelId',
 }
-export default {
+export const LightningChannel = entity({
 	entityType: EntityType.LightningChannel,
 	label: 'Lightning channel',
 	labelPlural: 'Lightning channels',
-	selectors: [
-		{
-			name: LightningChannelSelector.NetworkChannelId,
-			fields: [
-				'$network',
-				'channelId',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$network',
-			label: 'Network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'channelId',
-			label: 'Channel ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'shortChannelId',
-			label: 'Short channel ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$node1',
-			label: 'Peer node',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.LightningNode,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'fundingTransactionId',
-			label: 'Funding transaction ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'fundingOutputIndex',
-			label: 'Funding output index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'openedAtMs',
-			label: 'Opened',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$timestamps',
-			label: 'Observations',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.LightningChannel_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: '$$localStates',
-			label: 'Local states',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.BlockheadLightningChannelState,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$network: {
+		label: 'Network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.One,
+	},
+	channelId: {
+		label: 'Channel ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	shortChannelId: {
+		label: 'Short channel ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$node1: {
+		label: 'Peer node',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.LightningNode,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	fundingTransactionId: {
+		label: 'Funding transaction ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	fundingOutputIndex: {
+		label: 'Funding output index',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	openedAtMs: {
+		label: 'Opened',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$timestamps: {
+		label: 'Observations',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.LightningChannel_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+	},
+	$$localStates: {
+		label: 'Local states',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.BlockheadLightningChannelState,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		NetworkChannelId: [
+			'$network',
+			'channelId',
+		],
+	},
+})

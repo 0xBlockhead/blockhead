@@ -100,13 +100,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$parent: (snapshot) => snapshot.$parent,
 				parentWeight: (snapshot) => snapshot.parentWeight,
 				timestampMs: (snapshot) => snapshot.timestampMs,
 				$$blocks: (snapshot) => snapshot.$$blocks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinBlock,
@@ -146,12 +144,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$tipset: (snapshot) => snapshot.$tipset,
 				$miner: (snapshot) => snapshot.$miner,
 				winCount: (snapshot) => snapshot.winCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinMessage,
@@ -188,15 +184,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$from: (snapshot) => snapshot.$from,
 				$to: (snapshot) => snapshot.$to,
 				method: (snapshot) => snapshot.method,
 				nonce: (snapshot) => snapshot.nonce,
 				valueAttoFil: (snapshot) => snapshot.valueAttoFil,
 				gasLimit: (snapshot) => snapshot.gasLimit,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinActor,
@@ -214,10 +208,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				balanceAttoFil: (snapshot) => snapshot.balanceAttoFil,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinMiner,
@@ -255,13 +247,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$owner: (snapshot) => snapshot.$owner,
 				$worker: (snapshot) => snapshot.$worker,
 				peerId: (snapshot) => snapshot.peerId,
 				qualityAdjustedPower: (snapshot) => snapshot.qualityAdjustedPower,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Filfox_Rest, {
 			entityType: EntityType.FilecoinBlock,
@@ -296,9 +286,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$messages: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -200,7 +200,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadCashuWalletState, false>('$walletState')}
+				resource={selection.$walletState}
 			>
 				{#snippet children(blockheadCashuWalletState)}
 					{#if blockheadCashuWalletState != null && blockheadCashuWalletState[EntityMetaKey.Selector] != null}
@@ -296,10 +296,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCashuMintQuote_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadCashuMintQuote_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='BlockheadCashuMintQuote_TimestampsView-$$timestamps'
+				id='BlockheadCashuMintQuote_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

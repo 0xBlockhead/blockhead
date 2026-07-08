@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -102,7 +102,7 @@
 		<ResourceBoundary resource={utxoInput}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.UtxoOutput, false>('$spentOutput')}
+					resource={selection.$spentOutput}
 				>
 					{#snippet children(utxoOutput)}
 						{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
@@ -129,7 +129,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.UtxoOutput, false>('$spentOutput')}
+					resource={selection.$spentOutput}
 				>
 					{#snippet children(utxoOutput)}
 						{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}
@@ -188,7 +188,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.UtxoOutput, false>('$spentOutput')}
+				resource={selection.$spentOutput}
 			>
 				{#snippet children(utxoOutput)}
 					{#if utxoOutput != null && utxoOutput[EntityMetaKey.Selector] != null}

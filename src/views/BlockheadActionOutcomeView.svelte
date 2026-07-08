@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -135,7 +135,7 @@
 				<dt>session action</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.BlockheadSessionAction, false>('$sessionAction')}
+						resource={selection.$sessionAction}
 					>
 						{#snippet children(blockheadSessionAction)}
 							{#if blockheadSessionAction[EntityMetaKey.Selector] != null}
@@ -212,7 +212,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadWalletRequest, false>('$walletRequest')}
+				resource={selection.$walletRequest}
 			>
 				{#snippet children(blockheadWalletRequest)}
 					{#if blockheadWalletRequest != null && blockheadWalletRequest[EntityMetaKey.Selector] != null}
@@ -232,7 +232,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadIntentOrder, false>('$intentOrder')}
+				resource={selection.$intentOrder}
 			>
 				{#snippet children(blockheadIntentOrder)}
 					{#if blockheadIntentOrder != null && blockheadIntentOrder[EntityMetaKey.Selector] != null}
@@ -252,7 +252,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadSessionSimulation, false>('$simulation')}
+				resource={selection.$simulation}
 			>
 				{#snippet children(blockheadSessionSimulation)}
 					{#if blockheadSessionSimulation != null && blockheadSessionSimulation[EntityMetaKey.Selector] != null}
@@ -448,10 +448,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadActionOutcome_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadActionOutcome_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No outcome observations.'
-				id='BlockheadActionOutcome_TimestampsView-$$timestamps'
+				id='BlockheadActionOutcome_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

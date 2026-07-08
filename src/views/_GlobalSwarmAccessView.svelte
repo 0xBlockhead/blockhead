@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -128,17 +128,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SwarmResourcesView
-				selection={selection[EntityProxyField]<EntityType.SwarmResource>('$$observedResources')}
+				selection={selection.$$observedResources}
 				title='Observed resources'
 				emptyText='No Swarm resources yet.'
-				id='SwarmResourcesView-$$observedResources'
+				id='SwarmResourcesView-observed-resources'
 			/>
 
 			<GlobalSwarmAccess_TimestampsView
-				selection={selection[EntityProxyField]<EntityType._GlobalSwarmAccess_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
 				emptyText='No Swarm access observations yet.'
-				id='_GlobalSwarmAccess_TimestampsView-$$timestamps'
+				id='_GlobalSwarmAccess_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

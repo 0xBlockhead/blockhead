@@ -51,7 +51,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				name: (relay) => relay.name,
 				description: (relay) => relay.description,
 				software: (relay) => relay.software,
@@ -59,7 +58,6 @@ export default {
 				supportedNipCount: (relay) => relay.supportedNipCount,
 				isPaid: (relay) => relay.isPaid,
 				limit: (relay) => relay.limit,
-			},
-		}),
+			}),
 	],
 }

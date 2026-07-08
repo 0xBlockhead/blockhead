@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -258,17 +258,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLightningChannelState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningChannelState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No state observations.'
-				id='BlockheadLightningChannelState_TimestampsView-$$timestamps'
+				id='BlockheadLightningChannelState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadLightningHtlcsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningHtlc>('$$htlcs')}
+				selection={selection.$$htlcs}
 				title='htlcs'
 				emptyText='No pending HTLCs.'
-				id='BlockheadLightningHtlcsView-$$htlcs'
+				id='BlockheadLightningHtlcsView-htlcs'
 			/>
 		{/if}
 	{/snippet}

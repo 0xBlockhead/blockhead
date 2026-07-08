@@ -142,7 +142,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				blockNumber: (block) => block.blockNumber,
 				$parent: (block) => block.$parent,
 				timestamp: (block) => block.timestamp,
@@ -153,8 +152,7 @@ export default {
 			blobGasUsed: (block) => block.blobGasUsed,
 				excessBlobGas: (block) => block.excessBlobGas,
 				transactionCount: (block) => block.transactionCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmNetworkAccount,
@@ -178,10 +176,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (account) => account.$$timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmNetworkAccount_Timestamp,
@@ -199,10 +195,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				isContract: (account) => account.isContract,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
@@ -291,7 +285,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 			$block: (transaction) => transaction.$block,
 			$from: (transaction) => transaction.$from,
 			$to: (transaction) => transaction.$to,
@@ -315,8 +308,7 @@ export default {
 			maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
 			blobGasUsed: (transaction) => transaction.blobGasUsed,
 				maxFeePerBlobGas: (transaction) => transaction.maxFeePerBlobGas,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGChain_JsonRpc, {
 			entityType: EntityType.EvmBlock,
@@ -345,9 +337,7 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			$$transactions: (transactions) => transactions,
-		},
-			}),
+		}),
 	],
 }

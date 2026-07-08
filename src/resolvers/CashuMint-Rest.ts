@@ -33,7 +33,6 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			name: (snapshot) => snapshot.name,
 			pubkey: (snapshot) => snapshot.pubkey,
 			version: (snapshot) => snapshot.version,
@@ -42,8 +41,7 @@ export default {
 			iconUrl: (snapshot) => snapshot.iconUrl,
 			tosUrl: (snapshot) => snapshot.tosUrl,
 			timeMs: (snapshot) => snapshot.timeMs,
-		},
-			}),
+		}),
 
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuKeyset,
@@ -76,13 +74,11 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			unit: (snapshot) => snapshot.unit,
 			active: (snapshot) => snapshot.active,
 			inputFeePpk: (snapshot) => snapshot.inputFeePpk,
 			keysByAmountJson: (snapshot) => snapshot.keysByAmountJson,
-		},
-			}),
+		}),
 
 		defineResolver(Source.CashuMint_Rest, {
 			entityType: EntityType.CashuMint,
@@ -105,9 +101,7 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			$$keysets: (snapshot) => snapshot,
-		},
-			}),
+		}),
 	],
 }

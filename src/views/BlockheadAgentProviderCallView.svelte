@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -155,7 +155,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadAgentConnection, false>('$connection')}
+				resource={selection.$connection}
 			>
 				{#snippet children(blockheadAgentConnection)}
 					{#if blockheadAgentConnection != null && blockheadAgentConnection[EntityMetaKey.Selector] != null}
@@ -175,7 +175,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AiModelProvider, false>('$provider')}
+				resource={selection.$provider}
 			>
 				{#snippet children(aiModelProvider)}
 					{#if aiModelProvider != null && aiModelProvider[EntityMetaKey.Selector] != null}
@@ -195,7 +195,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AiModel, false>('$model')}
+				resource={selection.$model}
 			>
 				{#snippet children(aiModel)}
 					{#if aiModel != null && aiModel[EntityMetaKey.Selector] != null}
@@ -215,7 +215,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AiProviderApiOperation, false>('$operation')}
+				resource={selection.$operation}
 			>
 				{#snippet children(aiProviderApiOperation)}
 					{#if aiProviderApiOperation != null && aiProviderApiOperation[EntityMetaKey.Selector] != null}

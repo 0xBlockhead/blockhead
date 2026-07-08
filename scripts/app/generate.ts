@@ -19,7 +19,7 @@ import {
 	_RouteFileKind,
 	_ExpressionDecode,
 	_ViewItemKind,
-	type _AppFacetPredicate,
+	type _AppFacetCondition,
 	type _Expression,
 	type _FieldReference,
 	type _Import,
@@ -36,6 +36,7 @@ import {
 
 type Entity = App['schema']['entities'][number]
 type EntityField = Entity['fields'][number]
+type EntityFacet = NonNullable<Entity['facets']>[number]
 type EntitySelector = Entity['selectors'][number]
 type ValueTypeType = App['schema']['valueTypes'][number]['type']
 type SingularView = NonNullable<Entity['views']['singular']>
@@ -51,30 +52,56 @@ type NamedRelationshipListView = {
 }
 type RouteFile = NonNullable<App['routes']['tree'][number]['files']>[number]
 type RouteSurfaceNetwork = typeof networks[number]
+type ImportName = string | {
+	name: string
+	alias: string
+}
+
+const projectionPathKey = (
+	entityType: string,
+	path: readonly string[]
+) => `${entityType}${path.join('')}`
+
+const facetByEntityTypeAndPath = new Map<string, EntityFacet>()
+const facetsByEntityType = new Map<string, EntityFacet[]>()
+for (const entity of app.schema.entities) {
+	const facets = (entity.facets ?? []).map((facet) => ({
+		facet,
+		path: [facet.id],
+	}))
+	for (const {
+		facet,
+		path,
+	} of facets) {
+		facetByEntityTypeAndPath.set(projectionPathKey(entity.entityType, path), facet)
+		facetsByEntityType.set(entity.entityType, [
+			...(facetsByEntityType.get(entity.entityType) ?? []),
+			facet,
+		])
+		for (const childFacet of facet.facets ?? [])
+			facets.push({
+				facet: childFacet,
+				path: [
+					...path,
+					childFacet.id,
+				],
+			})
+	}
+}
+
 type ImportSpec = {
 	from: string
 	defaultName?: string
-	names?: string[]
-	typeNames?: string[]
+	names?: ImportName[]
+	typeNames?: ImportName[]
 }
 
 const entityLabel = (entity: Entity) => entity.labels.singular
 const entityLabelPlural = (entity: Entity) => entity.labels.plural
 const entitySingularView = (entity: Entity) => entity.views.singular
 const entityPluralView = (entity: Entity) => entity.views.plural
-const isFacetFieldReference = (field: unknown): field is Extract<FieldReference, { facet: string }> => (
-	typeof field === 'object'
-	&& field != null
-	&& Object.hasOwn(field, 'facet')
-	&& Object.hasOwn(field, 'field')
-)
-const facetFieldRuntimeName = (facetId: string, fieldName: string) => (
-	fieldName.startsWith('$$') ?
-		`$$${camel(facetId)}${pascal(fieldName.slice(2))}`
-	: fieldName.startsWith('$') ?
-		`$${camel(facetId)}${pascal(fieldName.slice(1))}`
-	:
-		`${camel(facetId)}${pascal(fieldName)}`
+const isProjectionFieldReference = (field: FieldReference): field is Extract<FieldReference, readonly string[]> => (
+	Array.isArray(field)
 )
 type TsFileAst = {
 	imports?: ImportSpec[]
@@ -113,7 +140,7 @@ type RelationshipSection = {
 	group?: string
 	label?: string
 	titleField?: string
-	field: string
+	field: FieldReference
 	component?: string
 	href?: string
 	emptyText?: string
@@ -198,6 +225,20 @@ const generatedHeader = '// Generated from APP.ts. Do not edit by hand.'
 const generatedSvelteHeader = '<!-- Generated from APP.ts. Do not edit by hand. -->'
 
 const unique = <_Value>(values: readonly _Value[]) => [...new Set(values)]
+
+const importNameKey = (importName: ImportName) => (
+	typeof importName === 'string' ?
+		importName
+	:
+		`${importName.name} as ${importName.alias}`
+)
+
+const uniqueImportNames = (importNames: readonly ImportName[]) => [
+	...new Map(importNames.map((importName) => [
+		importNameKey(importName),
+		importName,
+	])).values(),
+].sort((left, right) => importNameKey(left).localeCompare(importNameKey(right)))
 
 const q = (value: string) => JSON.stringify(value).replaceAll('"', "'")
 
@@ -359,6 +400,30 @@ const javascriptReservedWords = new Set([
 	'yield',
 ])
 
+const svelteKitResourceFieldNames = [
+	'catch',
+	'current',
+	'error',
+	'finally',
+	'loading',
+	'ready',
+	'then',
+] as const
+
+const entityProxyMetadataFieldNames = [
+	'entity',
+	'entitySelector',
+	'entityType',
+	'facetPath',
+	'sources',
+	'value',
+] as const
+
+const entityProxyResourceFieldNames = new Set([
+	...svelteKitResourceFieldNames,
+	...entityProxyMetadataFieldNames,
+])
+
 const localIdentifier = (name: string) => {
 	const identifier = camel(name)
 	return javascriptReservedWords.has(identifier) ? `${identifier}Value` : identifier
@@ -408,8 +473,8 @@ const generatedImportSpecFrom = (spec: Pick<
 	const schemaMatch = spec.from.match(/^\$\/schema\/([^/]+)\.ts$/)
 	if (schemaMatch?.[1] != null && [
 		spec.defaultName,
-		...(spec.names ?? []),
-		...(spec.typeNames ?? []),
+		...(spec.names ?? []).map(importNameKey),
+		...(spec.typeNames ?? []).map(importNameKey),
 	].some((name) => name?.startsWith(`_${schemaMatch[1]}`)))
 		return schemaModulePath(`_${schemaMatch[1]}`)
 
@@ -425,6 +490,8 @@ const pluralComponentIdentifier = (entity: Entity) => componentIdentifier(plural
 const selectorMemberName = (selector: EntitySelector) => selector.name
 
 const propertyAccess = (property: string) => /^[A-Za-z_$][\w$]*$/.test(property) ? `.${property}` : `[${q(property)}]`
+
+const objectPropertyKey = (property: string) => /^[A-Za-z_$][\w$]*$/.test(property) ? property : q(property)
 
 const optionalPropertyAccess = (property: string) => /^[A-Za-z_$][\w$]*$/.test(property) ? `?.${property}` : `?.[${q(property)}]`
 
@@ -459,12 +526,45 @@ const routeParamStringExpression = (expression: string, decode?: _ExpressionDeco
 		`String(${expression} ?? '')`
 )
 
-const fieldResourceExpression = (base: string, field: string, entityType: string, query?: string, multiple = true) => {
-	const typeParameters = multiple ? `EntityType.${entityType}` : `EntityType.${entityType}, false`
-	if (query == null || query === '{}')
-		return `${base}[EntityProxyField]<${typeParameters}>(${q(field)})`
+const fieldNameForReference = (field: FieldReference) => (
+	isProjectionFieldReference(field) ?
+		field.at(-1) ?? ''
+	:
+		field
+)
 
-	return `${base}[EntityProxyField]<${typeParameters}>(${q(field)}, ${query})`
+const fieldReferenceKey = (field: FieldReference) => (
+	isProjectionFieldReference(field) ?
+		field.join('.')
+	:
+		field
+)
+
+const fieldResourceBaseExpression = (base: string, field: FieldReference) => (
+	isProjectionFieldReference(field) ?
+		field.slice(0, -1).reduce((expression, facetId) => `${expression}${propertyAccess(facetId)}`, base)
+	:
+		base
+)
+
+const fieldResourceExpression = (base: string, field: FieldReference, _entityType: string, query?: string, _multiple = true) => {
+	const fieldName = fieldNameForReference(field)
+	const fieldBase = fieldResourceBaseExpression(base, field)
+	if (!entityProxyResourceFieldNames.has(fieldName))
+		return fieldProxyResourceExpression(base, field, query)
+
+	if (query == null || query === '{}')
+		return `${fieldBase}[EntityProxyField](${q(fieldName)})`
+
+	return `${fieldBase}[EntityProxyField](${q(fieldName)}, ${query})`
+}
+
+const fieldProxyResourceExpression = (base: string, field: FieldReference, query?: string) => {
+	const expression = `${fieldResourceBaseExpression(base, field)}${propertyAccess(fieldNameForReference(field))}`
+	if (query == null || query === '{}')
+		return expression
+
+	return `${expression}(${query})`
 }
 
 const routeId = (routePath: string) => `/${routePath}`.replaceAll('//', '/')
@@ -549,8 +649,16 @@ const routeFileName = (kind: RouteFile['kind']) => {
 const renderImport = (spec: ImportSpec) => {
 	const typeOnlyImport = spec.defaultName == null && (spec.names ?? []).length === 0
 	const namedImports = [
-		...(spec.names ?? []).map((name) => ({ name, isTypeOnly: false })),
-		...(spec.typeNames ?? []).map((name) => ({ name, isTypeOnly: !typeOnlyImport })),
+		...(spec.names ?? []).map((importName) => ({
+			name: typeof importName === 'string' ? importName : importName.name,
+			alias: typeof importName === 'string' ? undefined : importName.alias,
+			isTypeOnly: false,
+		})),
+		...(spec.typeNames ?? []).map((importName) => ({
+			name: typeof importName === 'string' ? importName : importName.name,
+			alias: typeof importName === 'string' ? undefined : importName.alias,
+			isTypeOnly: !typeOnlyImport,
+		})),
 	]
 	const importClause = ts.factory.createImportClause(
 		typeOnlyImport,
@@ -561,8 +669,8 @@ const renderImport = (spec: ImportSpec) => {
 			ts.factory.createNamedImports(
 				namedImports.map((name) => ts.factory.createImportSpecifier(
 					name.isTypeOnly,
-					undefined,
-					ts.factory.createIdentifier(name.name)
+					name.alias == null ? undefined : ts.factory.createIdentifier(name.name),
+					ts.factory.createIdentifier(name.alias ?? name.name)
 				))
 			)
 	)
@@ -591,22 +699,22 @@ const mergeImports = (imports: readonly ImportSpec[]) => {
 			merged.set(from, {
 				...spec,
 				from,
-				names: unique(spec.names ?? []).sort(),
-				typeNames: unique(spec.typeNames ?? []).sort(),
+				names: uniqueImportNames(spec.names ?? []),
+				typeNames: uniqueImportNames(spec.typeNames ?? []),
 			})
 			continue
 		}
 
 		if (spec.defaultName != null)
 			existing.defaultName = spec.defaultName
-		existing.names = unique([
+		existing.names = uniqueImportNames([
 			...(existing.names ?? []),
 			...(spec.names ?? []),
-		]).sort()
-		existing.typeNames = unique([
+		])
+		existing.typeNames = uniqueImportNames([
 			...(existing.typeNames ?? []),
 			...(spec.typeNames ?? []),
-		]).sort()
+		])
 	}
 
 	return [...merged.values()].sort((left, right) => left.from.localeCompare(right.from))
@@ -820,35 +928,110 @@ const renderLiteral = (value: string | number | boolean | null) => {
 	return String(value)
 }
 
-const renderFacetPredicate = (predicate: _AppFacetPredicate): string => (
-	'all' in predicate ?
+const renderFacetCondition = (condition: _AppFacetCondition): string => (
+	'all' in condition ?
 		renderObject([
-			['all', renderArray(predicate.all.map(renderFacetPredicate))],
+			['all', renderArray(condition.all.map(renderFacetCondition))],
 		])
-	: 'any' in predicate ?
+	: 'is' in condition ?
 		renderObject([
-			['any', renderArray(predicate.any.map(renderFacetPredicate))],
+			['path', renderArray(condition.path.map((part) => typeof part === 'string' ? q(part) : String(part)))],
+			['is', renderLiteral(condition.is)],
 		])
-	: 'equals' in predicate ?
+	: 'isOneOf' in condition ?
 		renderObject([
-			['field', q(predicate.field)],
-			['equals', renderLiteral(predicate.equals)],
+			['path', renderArray(condition.path.map((part) => typeof part === 'string' ? q(part) : String(part)))],
+			['isOneOf', renderArray(condition.isOneOf.map(renderLiteral))],
 		])
 	:
 		renderObject([
-			['field', q(predicate.field)],
-			['contains', renderLiteral(predicate.contains)],
+			['path', renderArray(condition.path.map((part) => typeof part === 'string' ? q(part) : String(part)))],
+			['includes', renderLiteral(condition.includes)],
 		])
 )
 
-const facetPredicateFields = (predicate: _AppFacetPredicate): readonly string[] => (
-	'all' in predicate ?
-		unique(predicate.all.flatMap((child) => facetPredicateFields(child)))
-	: 'any' in predicate ?
-		unique(predicate.any.flatMap((child) => facetPredicateFields(child)))
-	:
-		[predicate.field]
+const facetConditionField = (condition: _AppFacetCondition) => {
+	if ('all' in condition)
+		return facetConditionField(condition.all[0])
+
+	const field = [...condition.path].reverse().find((part) => typeof part === 'string')
+	if (typeof field !== 'string')
+		throw new Error(`Facet condition path must include a field: ${JSON.stringify(condition.path)}`)
+
+	return field
+}
+
+const fieldIsManyPrimitive = (field: EntityField) => (
+	field.type === EntityFieldType.Primitive
+	&& (
+		field.cardinality === EntityFieldCardinality.Many
+		|| field.cardinality === EntityFieldCardinality.ZeroOrMany
+		|| field.primitiveType != null && 'array' in field.primitiveType
+	)
 )
+
+const facetConditionErrors = (
+	entity: Entity,
+	condition: _AppFacetCondition
+): readonly string[] => {
+	if ('all' in condition)
+		return condition.all.flatMap((child) => facetConditionErrors(entity, child))
+
+	let fields = entity.fields
+	let facetPath: string[] = []
+	let field: EntityField | undefined
+	let indexed = false
+	for (const [
+		index,
+		segment,
+	] of condition.path.entries()) {
+		if (typeof segment === 'number') {
+			if (field == null)
+				return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} indexes before a field`]
+			if (index !== condition.path.length - 1)
+				return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} has segments after an indexed item`]
+			if (!fieldIsManyPrimitive(field))
+				return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} indexes non-many primitive field ${field.name}`]
+
+			indexed = true
+			continue
+		}
+
+		const facet = facetByEntityTypeAndPath.get(projectionPathKey(entity.entityType, [
+			...facetPath,
+			segment,
+		]))
+		if (facet != null && index < condition.path.length - 1) {
+			facetPath = [
+				...facetPath,
+				segment,
+			]
+			fields = [
+				...fields,
+				...(facet.fields ?? []),
+			]
+			field = undefined
+			continue
+		}
+
+		field = fields.find((item) => item.name === segment)
+		if (field == null)
+			return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} references missing field ${segment}`]
+		if (index < condition.path.length - 1 && typeof condition.path[index + 1] !== 'number')
+			return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} has field ${segment} before non-index path segment`]
+	}
+
+	if (field == null)
+		return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} has no target field`]
+	if (field.type !== EntityFieldType.Primitive)
+		return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} targets non-primitive field ${field.name}`]
+	if ('includes' in condition && (indexed || !fieldIsManyPrimitive(field)))
+		return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} uses includes on a non-many primitive field`]
+	if (!('includes' in condition) && !indexed && fieldIsManyPrimitive(field))
+		return [`${entity.entityType} facet condition path ${JSON.stringify(condition.path)} uses scalar comparison on a many primitive field`]
+
+	return []
+}
 
 const renderStringEnum = (name: string, members: readonly string[]) => [
 	`export enum ${name} {`,
@@ -882,18 +1065,18 @@ const renderObject = (entries: readonly [string, string | undefined][]) => {
 }
 
 const renderQueryFields = (
-	fields: readonly string[],
-	openFields: readonly string[] | undefined,
+	fields: readonly FieldReference[],
+	openFields: readonly FieldReference[] | undefined,
 	openExpression: string | undefined
 ) => {
-	const fieldEntries = fields.map((field) => [field, 'true'] as const)
+	const fieldEntries = fields.map((field) => [objectPropertyKey(fieldNameForReference(field)), 'true'] as const)
 	if (openExpression == null || openFields == null || openFields.length === 0)
 		return fieldEntries.length === 0 ? undefined : renderObject(fieldEntries)
 
 	return [
 		'{',
 		...fieldEntries.map(([field, value]) => indent(`${field}: ${value},`)),
-		indent(`...(${openExpression} && ${renderObject(openFields.map((field) => [field, 'true']))}),`),
+		indent(`...(${openExpression} && ${renderObject(openFields.map((field) => [objectPropertyKey(fieldNameForReference(field)), 'true']))}),`),
 		'}',
 	].join('\n')
 }
@@ -1052,20 +1235,20 @@ const fieldQuery = (
 
 const fieldQueryForName = (
 	entity: Entity,
-	field: string | undefined,
+	field: FieldReference | undefined,
 	query: _ViewQuery | undefined
 ) => {
-	const fieldDefinition = field == null ? undefined : fieldDefinitionByName(entity, field)
+	const fieldDefinition = field == null ? undefined : fieldDefinitionByName(entity, resolveFieldReference(entity, field))
 	return fieldDefinition == null ? query : fieldQuery(fieldDefinition, query)
 }
 
-const conditionFields = (
+const viewConditionFields = (
 	conditions: readonly { field: string }[] | undefined
 ) => unique((conditions ?? []).map((condition) => condition.field))
 
 const conditionExpression = (
 	conditions: readonly {
-		field: string
+		field: FieldReference
 		equals?: _Literal
 		notEquals?: _Literal
 		contains?: _Literal
@@ -1076,7 +1259,7 @@ const conditionExpression = (
 ) => conditions
 	.map((condition) => {
 		const fieldDefinition = entity == null ? undefined : fieldDefinitionByName(entity, condition.field)
-		const valueExpression = fieldExpression(entityExpression, condition.field)
+		const valueExpression = fieldExpression(entityExpression, fieldNameForReference(condition.field))
 		const conditionValueExpression = (
 			fieldDefinition != null
 			&& (
@@ -1099,7 +1282,7 @@ const conditionExpression = (
 const renderConditionedEntityLines = (
 	entity: Entity,
 	conditions: readonly {
-		field: string
+		field: FieldReference
 		equals?: _Literal
 		notEquals?: _Literal
 		contains?: _Literal
@@ -1112,7 +1295,7 @@ const renderConditionedEntityLines = (
 
 	return [
 		`${'\t'.repeat(level)}<ResourceBoundary`,
-		renderSvelteAttribute(level + 1, 'resource', `selection(${renderQuery(undefined, conditionFields(conditions))})`),
+		renderSvelteAttribute(level + 1, 'resource', `selection(${renderQuery(undefined, viewConditionFields(conditions))})`),
 		`${'\t'.repeat(level)}>`,
 		`${'\t'.repeat(level + 1)}{#snippet children(entity)}`,
 		`${'\t'.repeat(level + 2)}{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
@@ -1511,10 +1694,11 @@ const routeEntries = (
 		:
 			{
 				...surface,
-				requiredFacets: unique([
-					...(parent.requiredFacets ?? []),
-					...(surface.requiredFacets ?? []),
-				]),
+				requiredProjections: unique([
+					...(parent.requiredProjections ?? []),
+					...(surface.requiredProjections ?? []),
+				].map((projectionPath) => projectionPath.join('\0')))
+					.map((projectionPathKey) => projectionPathKey.split('\0')),
 			}
 	)
 	const nodeSurface = mergeRouteSurface(
@@ -1542,16 +1726,31 @@ const routeEntries = (
 	]
 })
 
-const routeHrefConditionFromFacetPredicate = (
-	predicate: _AppFacetPredicate
+const viewConditionFromFacetCondition = (
+	condition: _AppFacetCondition
 ): EntityHref['conditions'] => {
-	if ('field' in predicate)
-		return [predicate]
+	if ('all' in condition)
+		return condition.all.flatMap(viewConditionFromFacetCondition)
+	const field = facetConditionField(condition)
+	if ('is' in condition)
+		return [
+			{
+				field,
+				equals: condition.is,
+			},
+		]
+	if ('includes' in condition)
+		return [
+			{
+				field,
+				contains: condition.includes,
+			},
+		]
 
-	throw new Error('Entity href facet predicates must be simple field predicates')
+	throw new Error(`Facet condition cannot be represented as a simple view condition: ${JSON.stringify(condition)}`)
 }
 
-const routeSurfacePredicateValues = (
+const routeSurfaceConditionValues = (
 	network: RouteSurfaceNetwork,
 	field: string
 ) => (
@@ -1565,18 +1764,18 @@ const routeSurfacePredicateValues = (
 		undefined
 )
 
-const routeSurfacePredicateApplies = (
-	predicate: _AppFacetPredicate,
+const routeSurfaceConditionApplies = (
+	condition: _AppFacetCondition,
 	network: RouteSurfaceNetwork
 ): boolean => (
-	'all' in predicate ?
-		predicate.all.every((child) => routeSurfacePredicateApplies(child, network))
-	: 'any' in predicate ?
-		predicate.any.some((child) => routeSurfacePredicateApplies(child, network))
-	: 'equals' in predicate ?
-		routeSurfacePredicateValues(network, predicate.field)?.some((value) => value === predicate.equals) === true
-	: 'contains' in predicate ?
-		routeSurfacePredicateValues(network, predicate.field)?.some((value) => value === predicate.contains) === true
+	'all' in condition ?
+		condition.all.every((child) => routeSurfaceConditionApplies(child, network))
+	: 'is' in condition ?
+		routeSurfaceConditionValues(network, facetConditionField(condition))?.some((value) => value === condition.is) === true
+	: 'isOneOf' in condition ?
+		routeSurfaceConditionValues(network, facetConditionField(condition))?.some((value) => condition.isOneOf.includes(value)) === true
+	: 'includes' in condition ?
+		routeSurfaceConditionValues(network, facetConditionField(condition))?.some((value) => value === condition.includes) === true
 	:
 		false
 )
@@ -1584,7 +1783,7 @@ const routeSurfacePredicateApplies = (
 const routeHrefFromLoad = (
 	entry: RouteEntry,
 	routeFile: RouteFile,
-	entityFacetById: ReadonlyMap<string, {
+	entityFacetByPath: ReadonlyMap<string, {
 		entityType: string
 		facet: NonNullable<App['schema']['entities'][number]['facets']>[number]
 	}>
@@ -1597,14 +1796,14 @@ const routeHrefFromLoad = (
 		href,
 		selector: routeFile.load.selector,
 		conditions: [
-			...(routeFile.surface?.requiredFacets ?? []).flatMap((facetId) => {
-				const facetEntry = entityFacetById.get(facetId)
+			...routeSurfaceRequiredProjectionPaths(routeFile.surface ?? {}).flatMap((projectionPath) => {
+				const facetEntry = entityFacetByPath.get(projectionPath.join('\0'))
 				if (facetEntry == null)
-					throw new Error(`${entry.routePath} route href references missing facet ${facetId}`)
+					throw new Error(`${entry.routePath} route href references missing projection [${projectionPath.map(q).join(', ')}]`)
 				if (routeFile.load?.entity !== facetEntry.entityType)
 					return []
 
-				return routeHrefConditionFromFacetPredicate(facetEntry.facet.predicate)
+				return viewConditionFromFacetCondition(facetEntry.facet.condition)
 			}),
 			...(routeFile.load.href.conditions ?? []),
 		],
@@ -1671,44 +1870,63 @@ const routeSurfaceMetadataEntries = (metadata: RouteFixtureMetadata) => renderOb
 	['routeKind', metadata.routeKind == null ? undefined : q(metadata.routeKind)],
 	['fixture', metadata.fixture == null ? undefined : renderObject(Object.entries(metadata.fixture).map(([key, value]) => [key, q(value)]))],
 	['variants', metadata.variants == null ? undefined : renderArray(metadata.variants.map((variant) => renderObject(Object.entries(variant).map(([key, value]) => [key, q(value)]))))],
-	['requiredFacets', metadata.requiredFacets == null ? undefined : renderArray(metadata.requiredFacets.map(q))],
-	['requiredFacetPredicates', metadata.requiredFacetPredicates == null ? undefined : renderArray(metadata.requiredFacetPredicates.map(renderFacetPredicate))],
+	['requiredProjections', metadata.requiredProjections == null ? undefined : renderArray(metadata.requiredProjections.map((projectionPath) => renderArray(projectionPath.map(q))))],
+	['requiredProjectionConditions', metadata.requiredProjectionConditions == null ? undefined : renderArray(metadata.requiredProjectionConditions.map(renderFacetCondition))],
 	['boundaryLiveOptional', metadata.boundaryLiveOptional == null ? undefined : 'true'],
 ])
 
+const routeSurfaceRequiredProjectionPaths = (
+	surface: Pick<RouteFixtureMetadata, 'requiredProjections'>
+) => (
+	surface.requiredProjections ?? []
+)
+
+const projectionFacetForPath = (
+	entity: Entity,
+	projectionPath: readonly string[]
+) => {
+	const facet = facetByEntityTypeAndPath.get(projectionPathKey(entity.entityType, projectionPath))
+	if (facet == null)
+		throw new Error(`${entity.entityType} references missing projection ${projectionPath.join('.')}`)
+
+	return facet
+}
+
 const resolveFieldReference = (entity: Entity, field: FieldReference) => {
-	if (!isFacetFieldReference(field))
+	if (!isProjectionFieldReference(field))
 		return field
 
-	const facet = entity.facets?.find((facet) => facet.id === field.facet)
-	if (facet == null)
-		throw new Error(`${entity.entityType} references missing facet ${field.facet}`)
-	if (!facet.fields?.some((facetField) => facetField.name === field.field))
-		throw new Error(`${entity.entityType} facet ${field.facet} references missing field ${field.field}`)
+	const fieldName = field.at(-1)
+	const projectionPath = field.slice(0, -1)
+	if (fieldName == null || projectionPath.length === 0)
+		throw new Error(`${entity.entityType} projection field reference must include a projection path and field: ${field.join('.')}`)
 
-	return facetFieldRuntimeName(field.facet, field.field)
+	const facet = projectionFacetForPath(entity, projectionPath)
+	if (!facet.fields?.some((facetField) => facetField.name === fieldName))
+		throw new Error(`${entity.entityType} projection ${projectionPath.join('.')} references missing field ${fieldName}`)
+
+	return fieldName
 }
 
 const facetFieldReferenceConditions = (
 	entity: Entity,
 	field: unknown
 ) => {
-	if (!isFacetFieldReference(field as FieldReference))
+	if (!Array.isArray(field))
 		return []
 
-	const facet = entity.facets?.find((item) => item.id === (field as Extract<FieldReference, { facet: string }>).facet)
-	if (facet == null)
-		throw new Error(`${entity.entityType} references missing facet ${(field as Extract<FieldReference, { facet: string }>).facet}`)
-	if (!('field' in facet.predicate))
-		throw new Error(`${entity.entityType} facet ${facet.id} view conditions must use a simple field predicate`)
+	const projectionPath = field.slice(0, -1)
 
-	return [facet.predicate]
+	return projectionPath.map((_, index) => {
+		const facet = projectionFacetForPath(entity, projectionPath.slice(0, index + 1))
+		return viewConditionFromFacetCondition(facet.condition)
+	}).flat()
 }
 
 const resolveFieldReferences = (entity: Entity, value: unknown, key?: string): unknown => {
 	if (Array.isArray(value)) {
 		if (key === 'fields' || key === 'openFields')
-			return value.map((item) => resolveFieldReference(entity, item as FieldReference))
+			return value
 
 		return value.map((item) => resolveFieldReferences(entity, item))
 	}
@@ -1716,10 +1934,10 @@ const resolveFieldReferences = (entity: Entity, value: unknown, key?: string): u
 	if (value == null || typeof value !== 'object')
 		return value
 
-	if (isFacetFieldReference(value as FieldReference))
+	if (Array.isArray(value) && value.every((item) => typeof item === 'string'))
 		return resolveFieldReference(entity, value as FieldReference)
 
-	if ('field' in value && isFacetFieldReference((value as { field?: unknown }).field as FieldReference)) {
+	if ('field' in value && Array.isArray((value as { field?: unknown }).field)) {
 		const conditions = facetFieldReferenceConditions(entity, (value as { field?: unknown }).field)
 		return Object.fromEntries(Object.entries({
 			...value,
@@ -1734,7 +1952,7 @@ const resolveFieldReferences = (entity: Entity, value: unknown, key?: string): u
 		}).map(([entryKey, entryValue]) => [
 			entryKey,
 			entryKey === 'field' || entryKey === 'titleField' ?
-				resolveFieldReference(entity, entryValue as FieldReference)
+				entryValue
 			:
 				resolveFieldReferences(entity, entryValue, entryKey),
 		]))
@@ -1743,7 +1961,7 @@ const resolveFieldReferences = (entity: Entity, value: unknown, key?: string): u
 	return Object.fromEntries(Object.entries(value).map(([entryKey, entryValue]) => [
 		entryKey,
 		entryKey === 'field' || entryKey === 'titleField' ?
-			resolveFieldReference(entity, entryValue as FieldReference)
+			entryValue
 		:
 			resolveFieldReferences(entity, entryValue, entryKey),
 	]))
@@ -1798,8 +2016,6 @@ const singularViewWithFacetConditions = (
 ) => {
 	if (facet.singularView == null)
 		return undefined
-	if (!('field' in facet.predicate))
-		throw new Error(`${facet.id} facet singular view conditions must use a simple field predicate`)
 
 	return {
 		...facet.singularView,
@@ -1807,7 +2023,7 @@ const singularViewWithFacetConditions = (
 			...carousel,
 			conditions: [
 				...(carousel.conditions ?? []),
-				facet.predicate,
+				...viewConditionFromFacetCondition(facet.condition),
 			],
 		})),
 	} satisfies Partial<SingularView>
@@ -1832,25 +2048,24 @@ const resolveRouteFieldReferences = (
 			if (sourceEntity == null)
 				throw new Error(`${routeFile.collection.source.entity} collection source references missing entity`)
 
-			return {
-				...routeFile,
-				collection: {
-					...routeFile.collection,
-					source: {
-						...routeFile.collection.source,
-						field: resolveFieldReference(sourceEntity, routeFile.collection.source.field),
+				return {
+					...routeFile,
+					collection: {
+						...routeFile.collection,
+						source: {
+							...routeFile.collection.source,
+							field: routeFile.collection.source.field,
+						},
 					},
-				},
-			}
+				}
 		}),
 		children: routeNode.children == null ? undefined : resolveRouteFieldReferences(entities, routeNode.children),
 	}))
 }
 
 const normalizeApp = (app: App): App => {
-	const hasSourceFacets = app.sources.sources.some((source) => source.facets != null && source.facets.length > 0)
 	const hasEntityFacets = app.schema.entities.some((entity) => entity.facets != null && entity.facets.length > 0)
-	if (!hasSourceFacets && !hasEntityFacets)
+	if (!hasEntityFacets)
 		return app
 
 	return {
@@ -1863,34 +2078,27 @@ const normalizeApp = (app: App): App => {
 
 				const facets = entity.facets.map((facet) => ({
 					...facet,
-					predicateFields: facetPredicateFields(facet.predicate),
 				}))
-				const facetFieldByName = new Map(facets.flatMap((facet) => (
-					(facet.fields ?? []).map((field) => [
-						facetFieldRuntimeName(facet.id, field.name),
-						{
-							...field,
-							name: facetFieldRuntimeName(facet.id, field.name),
-							facet: {
-								id: facet.id,
-								predicateFields: facet.predicateFields,
-								predicate: facet.predicate,
-							},
-						},
-					])
-					)))
-					const mergedFieldNames = new Set(entity.fields.map((field) => field.name))
 				const singularView = facets.reduce(
 					(view, facet) => {
 						const facetSingularView = singularViewWithFacetConditions(facet)
-						if (facetSingularView == null)
-							return view
+							if (facetSingularView == null)
+								return view
 
-						return mergeSingularViews(
-							view,
-							resolveFieldReferences(entity, facetSingularView) as Partial<SingularView>
-						)
-					},
+							const normalizedFacetSingularView = {
+								...facetSingularView,
+								carousels: (
+									resolveFieldReferences(entity, {
+										carousels: facetSingularView.carousels,
+									}) as Pick<SingularView, 'carousels'>
+								).carousels,
+							}
+
+							return mergeSingularViews(
+								view,
+								normalizedFacetSingularView
+							)
+						},
 					resolveFieldReferences(entity, entity.views.singular) as SingularView | undefined
 				)
 
@@ -1901,36 +2109,12 @@ const normalizeApp = (app: App): App => {
 							...(resolveFieldReferences(entity, entity.views) as Entity['views']),
 							singular: singularView,
 						},
-						fields: [
-						...entity.fields.map((field) => facetFieldByName.get(field.name) ?? field),
-						...[...facetFieldByName.values()].filter((field) => !mergedFieldNames.has(field.name)),
-					],
 				}
 			}),
 		},
 		routes: {
 			...app.routes,
 			tree: resolveRouteFieldReferences(app.schema.entities, app.routes.tree),
-		},
-		sources: {
-			...app.sources,
-			sources: app.sources.sources.map((source) => (
-				source.facets == null || source.facets.length === 0 ?
-					source
-				:
-					{
-						...source,
-						binding: undefined,
-						bindings: [
-							...sourceBindings(source),
-							...source.facets.flatMap((facet) => [
-								...(facet.binding == null ? [] : [facet.binding]),
-								...(facet.bindings ?? []),
-							]),
-						],
-						facets: undefined,
-					}
-			)),
 		},
 	}
 }
@@ -1978,15 +2162,37 @@ const validateAndIndex = (
 		'$$faucetUrls',
 		'$$nativeAssets',
 	])
-	const entityFacetById = new Map(activeEntities.flatMap((entity) => (
-		(entity.facets ?? []).map((facet) => [
-			facet.id,
+	const entityFacetByPath = new Map(activeEntities.flatMap((entity) => {
+		const entries = (
+			facets: NonNullable<App['schema']['entities'][number]['facets']> | undefined,
+			parentPath: readonly string[] = []
+		): [
+			string,
 			{
-				entityType: entity.entityType,
-				facet,
+				entityType: string
+				facet: NonNullable<App['schema']['entities'][number]['facets']>[number]
 			},
-		])
-	)))
+		][] => (
+			facets ?? []
+		).flatMap((facet) => {
+			const projectionPath = [
+				...parentPath,
+				facet.id,
+			]
+			return [
+				[
+					projectionPath.join('\0'),
+					{
+						entityType: entity.entityType,
+						facet,
+					},
+				],
+				...entries(facet.facets, projectionPath),
+			]
+		})
+
+		return entries(entity.facets)
+	}))
 
 	if (Object.hasOwn(app.schema, 'externalEntityTypes'))
 		errors.push('APP schema must not use externalEntityTypes; migrate rows into schema.entities')
@@ -2024,7 +2230,7 @@ const validateAndIndex = (
 					errors.push(`${entity.entityType}.${selector.name} references missing field ${field}`)
 			}
 		}
-		for (const field of entity.fields) {
+		for (const field of entityFields(entity)) {
 			if (field.valueType != null && !valueTypeById.has(field.valueType))
 				errors.push(`${entity.entityType}.${field.name} references missing value type ${field.valueType}`)
 			if (field.entityType != null && !allEntityTypes.has(field.entityType))
@@ -2034,25 +2240,12 @@ const validateAndIndex = (
 					errors.push(`${entity.entityType}.${field.name} references missing source ${source}`)
 			}
 		}
-		for (const facet of entity.facets ?? []) {
-			for (const field of facet.predicateFields) {
-				if (!fieldNames.has(field))
-					errors.push(`${entity.entityType} facet ${facet.id} predicateFields references missing field ${field}`)
-			}
-			const actualPredicateFields = facetPredicateFields(facet.predicate)
-			for (const field of actualPredicateFields) {
-				if (!fieldNames.has(field))
-					errors.push(`${entity.entityType} facet ${facet.id} predicate references missing field ${field}`)
-				if (!facet.predicateFields.includes(field))
-					errors.push(`${entity.entityType} facet ${facet.id} predicateFields omits predicate field ${field}`)
-			}
-			for (const field of facet.predicateFields) {
-				if (!actualPredicateFields.includes(field))
-					errors.push(`${entity.entityType} facet ${facet.id} predicateFields includes non-predicate field ${field}`)
-			}
+		for (const facet of facetsByEntityType.get(entity.entityType) ?? []) {
+			errors.push(...facetConditionErrors(entity, facet.condition))
 		}
+		const addressableFieldNames = new Set(entityFields(entity).map((field) => field.name))
 		for (const list of entitySingularView(entity)?.lists ?? []) {
-			if (list.field != null && !fieldNames.has(list.field))
+			if (list.field != null && !addressableFieldNames.has(resolveFieldReference(entity, list.field)))
 				errors.push(`${entity.entityType} list references missing field ${list.field}`)
 		}
 		if (entityPluralView(entity)?.rowHref != null) {
@@ -2146,14 +2339,15 @@ const validateAndIndex = (
 				continue
 			}
 
-			if (!sourceEntity.fields.some((field) => field.name === routeFile.collection?.source.field))
-				errors.push(`${entry.routePath} collection source references missing field ${routeFile.collection.source.entity}.${routeFile.collection.source.field}`)
-			if (
-				entry.routePath.startsWith('(explore)/(networks)/network/')
-				&& routeFile.collection.source.entity !== EntityType.Network
-				&& networkBaseResourceFields.has(routeFile.collection.source.field)
-			)
-				errors.push(`${entry.routePath} collection source must read ${routeFile.collection.source.field} from Network, not ${routeFile.collection.source.entity}`)
+				const collectionSourceField = resolveFieldReference(sourceEntity, routeFile.collection.source.field)
+				if (!entityFields(sourceEntity).some((field) => field.name === collectionSourceField))
+					errors.push(`${entry.routePath} collection source references missing field ${routeFile.collection.source.entity}.${routeFile.collection.source.field}`)
+				if (
+					entry.routePath.startsWith('(explore)/(networks)/network/')
+					&& routeFile.collection.source.entity !== EntityType.Network
+					&& networkBaseResourceFields.has(collectionSourceField)
+				)
+					errors.push(`${entry.routePath} collection source must read ${collectionSourceField} from Network, not ${routeFile.collection.source.entity}`)
 		}
 	}
 
@@ -2189,14 +2383,15 @@ const validateAndIndex = (
 				const routeParams = new Set(routeParamNames(href))
 				if (routeFile.surface.id == null)
 					errors.push(`${entry.routePath} route surface is missing id`)
-					const requiredFacetPredicates = (routeFile.surface.requiredFacets ?? []).map((facetId) => {
-						const facetEntry = entityFacetById.get(facetId)
-						if (facetEntry == null) {
-							errors.push(`${entry.routePath} route surface ${routeFile.surface?.id} references missing facet ${facetId}`)
-							return undefined
-						}
-						return facetEntry.facet.predicate
-					}).filter((predicate) => predicate != null)
+				const requiredProjections = routeSurfaceRequiredProjectionPaths(routeFile.surface)
+				const requiredProjectionConditions = requiredProjections.map((projectionPath) => {
+					const facetEntry = entityFacetByPath.get(projectionPath.join('\0'))
+					if (facetEntry == null) {
+						errors.push(`${entry.routePath} route surface ${routeFile.surface?.id} references missing projection [${projectionPath.map(q).join(', ')}]`)
+						return undefined
+					}
+					return facetEntry.facet.condition
+				}).filter((condition) => condition != null)
 					for (const param of [
 						...Object.keys(routeFile.surface.fixture ?? {}),
 						...(routeFile.surface.variants ?? []).flatMap((variant) => Object.keys(variant)),
@@ -2216,18 +2411,19 @@ const validateAndIndex = (
 							:
 								undefined
 						)
-						if (routeSurfaceNetwork == null && requiredFacetPredicates.length > 0 && (routeSurfaceFixture.networkSlug != null || routeSurfaceFixture.caip2 != null))
+						if (routeSurfaceNetwork == null && requiredProjectionConditions.length > 0 && (routeSurfaceFixture.networkSlug != null || routeSurfaceFixture.caip2 != null))
 							errors.push(`${entry.routePath} route surface ${routeFile.surface.id} fixture does not resolve to a known Network row`)
 						if (
 							routeSurfaceNetwork != null
-							&& requiredFacetPredicates.some((predicate) => !routeSurfacePredicateApplies(predicate, routeSurfaceNetwork))
+							&& requiredProjectionConditions.some((condition) => !routeSurfaceConditionApplies(condition, routeSurfaceNetwork))
 						)
-							errors.push(`${entry.routePath} route surface ${routeFile.surface.id} fixture ${routeSurfaceNetwork.slug} does not satisfy required facet predicates`)
+							errors.push(`${entry.routePath} route surface ${routeFile.surface.id} fixture ${routeSurfaceNetwork.slug} does not satisfy required projection conditions`)
 					}
 
 					routeFixtureMetadataByRouteId.set(href, {
 						...routeFile.surface,
-						requiredFacetPredicates,
+						requiredProjections,
+						requiredProjectionConditions,
 					})
 				}
 
@@ -2255,7 +2451,7 @@ const validateAndIndex = (
 					collectionHrefBySourceField.set(key, collectionHref)
 			}
 
-				const entityHref = routeHrefFromLoad(entry, routeFile, entityFacetById)
+				const entityHref = routeHrefFromLoad(entry, routeFile, entityFacetByPath)
 			if (
 				routeFile.load != null
 				&& entityHref != null
@@ -2351,11 +2547,11 @@ const renderE2eRouteFixtureMetadataFile = (indexes: AppIndexes) => tsFile(
 	'tests/e2e/_generatedRouteFixtureMetadata.ts',
 	{
 		body: [
-			'export type E2eRouteFacetPredicate =',
-			'\t| { readonly field: string, readonly equals: string | number | boolean | null }',
-			'\t| { readonly field: string, readonly contains: string | number | boolean | null }',
-			'\t| { readonly all: readonly E2eRouteFacetPredicate[] }',
-			'\t| { readonly any: readonly E2eRouteFacetPredicate[] }',
+			'export type E2eRouteProjectionCondition =',
+			'\t| { readonly path: readonly (string | number)[], readonly is: string | number | boolean | null }',
+			'\t| { readonly path: readonly (string | number)[], readonly isOneOf: readonly (string | number | boolean | null)[] }',
+			'\t| { readonly path: readonly (string | number)[], readonly includes: string | number | boolean | null }',
+			'\t| { readonly all: readonly E2eRouteProjectionCondition[] }',
 			'',
 			'export type E2eRouteFixtureMetadata = {',
 			'\tid?: string',
@@ -2363,8 +2559,8 @@ const renderE2eRouteFixtureMetadataFile = (indexes: AppIndexes) => tsFile(
 			'\trouteKind?: string',
 			'\tfixture?: Readonly<Partial<Record<string, string>>>',
 			'\tvariants?: readonly Readonly<Partial<Record<string, string>>>[]',
-			'\trequiredFacets?: readonly string[]',
-			'\trequiredFacetPredicates?: readonly E2eRouteFacetPredicate[]',
+			'\trequiredProjections?: readonly (readonly string[])[]',
+			'\trequiredProjectionConditions?: readonly E2eRouteProjectionCondition[]',
 			'\tboundaryLiveOptional?: true',
 			'}',
 			'',
@@ -2421,9 +2617,19 @@ const valueTypeTypeIsStructured = (valueTypeType: ValueTypeType | undefined): bo
 )
 
 const renderEntitySchemaFile = (entity: Entity, indexes: AppIndexes) => {
-	const defaultSources = entity.fields.some((field) => field.defaultSources != null)
+	const facetFields = (facets: Entity['facets']): EntityField[] => (
+		facets ?? []
+	).flatMap((facet) => [
+		...(facet.fields ?? []),
+		...facetFields(facet.facets),
+	])
+	const fields = [
+		...entity.fields,
+		...facetFields(entity.facets),
+	]
+	const defaultSources = fields.some((field) => field.defaultSources != null)
 	const localEnumNames = new Set((entity.enums ?? []).map((appEnum) => appEnum.name))
-	const valueTypeImports = entity.fields.flatMap((field) => (
+	const valueTypeImports = fields.flatMap((field) => (
 		field.valueType == null ?
 			[]
 		:
@@ -2441,14 +2647,15 @@ const renderEntitySchemaFile = (entity: Entity, indexes: AppIndexes) => {
 			from: 'arktype',
 			names: ['type'],
 		},
-		{
-			from: '$/schema/$schema.ts',
-			names: [
-				'EntityFieldCardinality',
-				'EntityFieldType',
-			],
-			typeNames: ['EntityDefinition'],
-		},
+			{
+				from: '$/schema/$schema.ts',
+				names: [
+					'EntityFieldCardinality',
+					'EntityFieldType',
+					'entity',
+					'facet',
+				],
+			},
 		{
 			from: '$/schema/EntityType.ts',
 			names: ['EntityType'],
@@ -2468,25 +2675,28 @@ const renderEntitySchemaFile = (entity: Entity, indexes: AppIndexes) => {
 	const body = [
 		...(entity.enums ?? []).map(renderAppEnum),
 		selectorEnumSource,
-		'export default {',
-		indent(`entityType: ${enumAccess('EntityType', entity.entityType)},`),
-		indent(`label: ${q(entityLabel(entity))},`),
-		indent(`labelPlural: ${q(entityLabelPlural(entity))},`),
-		...(entity.description == null ? [] : [indent(`description: ${q(entity.description)},`)]),
-		indent('selectors: ['),
-		...entity.selectors.flatMap((selector) => [
-			indent('{', 2),
-			indent(`name: ${selectorEnum}.${selectorMemberName(selector)},`, 3),
-			indent('fields: [', 3),
-			...selector.fields.map((fieldName) => indent(`${q(fieldName)},`, 4)),
-			indent('],', 3),
-			indent('},', 2),
-		]),
-		indent('],'),
-		indent('fields: ['),
-		...entity.fields.flatMap((fieldDefinition) => renderSchemaField(fieldDefinition, indexes).map((line) => indent(line, 2))),
-		indent('],'),
-		`} as const satisfies EntityDefinition`,
+		`export const ${entity.entityType} = entity({`,
+			indent(`entityType: ${enumAccess('EntityType', entity.entityType)},`),
+			indent(`label: ${q(entityLabel(entity))},`),
+			indent(`labelPlural: ${q(entityLabelPlural(entity))},`),
+			...(entity.description == null ? [] : [indent(`description: ${q(entity.description)},`)]),
+			`})({`,
+			...entity.fields.flatMap((fieldDefinition) => renderSchemaFieldEntry(fieldDefinition, indexes).map((line) => indent(line))),
+			`})({`,
+			indent('selectors: {'),
+			...entity.selectors.flatMap((selector) => [
+				indent(`${objectPropertyKey(selectorMemberName(selector))}: [`, 2),
+				...selector.fields.map((fieldName) => indent(`${q(fieldName)},`, 3)),
+				indent('],', 2),
+			]),
+			indent('},'),
+			...(entity.facets == null || entity.facets.length === 0 ? [] : [
+				'',
+				indent('facets: {'),
+				...entity.facets.flatMap((facetDefinition) => renderSchemaFacetEntry(facetDefinition, indexes).map((line) => indent(line, 2))),
+				indent('},'),
+			]),
+		`})`,
 	]
 
 	return tsFile(
@@ -2498,10 +2708,10 @@ const renderEntitySchemaFile = (entity: Entity, indexes: AppIndexes) => {
 	)
 }
 
-const renderSchemaField = (fieldDefinition: EntityField, indexes: AppIndexes) => {
+const renderSchemaField = (fieldDefinition: EntityField, indexes: AppIndexes, options: { includeName?: boolean } = {}) => {
 	const valueType = fieldDefinition.valueType == null ? undefined : indexes.valueTypeById.get(fieldDefinition.valueType)
 	const entries: [string, string | undefined][] = [
-		['name', q(fieldDefinition.name)],
+		['name', options.includeName === false ? undefined : q(fieldDefinition.name)],
 		['label', fieldDefinition.label == null ? undefined : q(fieldDefinition.label)],
 		['labelPlural', fieldDefinition.labelPlural == null ? undefined : q(fieldDefinition.labelPlural)],
 		['description', fieldDefinition.description == null ? undefined : q(fieldDefinition.description)],
@@ -2533,17 +2743,6 @@ const renderSchemaField = (fieldDefinition: EntityField, indexes: AppIndexes) =>
 					['itemIndex', fieldDefinition.when.itemIndex == null ? undefined : String(fieldDefinition.when.itemIndex)],
 				]),
 		],
-		[
-			'facet',
-			fieldDefinition.facet == null ?
-				undefined
-			:
-				renderObject([
-					['id', q(fieldDefinition.facet.id)],
-					['predicateFields', renderArray(fieldDefinition.facet.predicateFields.map(q))],
-					['predicate', fieldDefinition.facet.predicate == null ? undefined : renderFacetPredicate(fieldDefinition.facet.predicate)],
-				]),
-		],
 		['normalize', fieldDefinition.normalize],
 	]
 
@@ -2551,8 +2750,95 @@ const renderSchemaField = (fieldDefinition: EntityField, indexes: AppIndexes) =>
 		'{',
 		...renderObject(entries).split('\n').slice(1, -1),
 		'},',
+		]
+	}
+
+const renderSchemaFieldEntry = (fieldDefinition: EntityField, indexes: AppIndexes) => [
+	`${objectPropertyKey(fieldDefinition.name)}: {`,
+	...renderObject([
+		['label', fieldDefinition.label == null ? undefined : q(fieldDefinition.label)],
+		['labelPlural', fieldDefinition.labelPlural == null ? undefined : q(fieldDefinition.labelPlural)],
+		['description', fieldDefinition.description == null ? undefined : q(fieldDefinition.description)],
+		['type', enumAccess('EntityFieldType', fieldDefinition.type)],
+		[
+			'primitiveType',
+			fieldDefinition.type === EntityFieldType.Primitive ?
+				renderValueTypeType((fieldDefinition.valueType == null ? undefined : indexes.valueTypeById.get(fieldDefinition.valueType))?.type ?? fieldDefinition.primitiveType)
+			:
+				undefined,
+		],
+		[
+			'entityType',
+			fieldDefinition.entityType == null ?
+				undefined
+			:
+				enumAccess('EntityType', fieldDefinition.entityType),
+		],
+		['cardinality', enumAccess('EntityFieldCardinality', fieldDefinition.cardinality)],
+		['defaultSources', renderSourceArray(fieldDefinition.defaultSources)],
+		[
+			'when',
+			fieldDefinition.when == null ?
+				undefined
+			:
+				renderObject([
+					['fieldName', q(fieldDefinition.when.fieldName)],
+					['values', renderArray(fieldDefinition.when.values.map(renderLiteral))],
+					['itemIndex', fieldDefinition.when.itemIndex == null ? undefined : String(fieldDefinition.when.itemIndex)],
+				]),
+		],
+		['normalize', fieldDefinition.normalize],
+	]).split('\n').slice(1, -1),
+	'},',
+]
+
+const renderSchemaFacet = (
+	facetDefinition: NonNullable<Entity['facets']>[number],
+	indexes: AppIndexes
+) => [
+	'{',
+	...renderObject([
+		['id', q(facetDefinition.id)],
+		['condition', renderFacetCondition(facetDefinition.condition)],
+		[
+			'fields',
+			[
+				'[',
+				...(facetDefinition.fields ?? []).flatMap((fieldDefinition) => renderSchemaField(fieldDefinition, indexes).map((line) => indent(line))),
+				']',
+			].join('\n'),
+		],
+		[
+			'facets',
+			facetDefinition.facets == null ?
+				undefined
+			:
+				[
+					'[',
+					...facetDefinition.facets.flatMap((facet) => renderSchemaFacet(facet, indexes).map((line) => indent(line))),
+					']',
+				].join('\n'),
+		],
+	]).split('\n').slice(1, -1),
+		'},',
 	]
-}
+
+const renderSchemaFacetEntry = (
+	facetDefinition: NonNullable<Entity['facets']>[number],
+	indexes: AppIndexes
+) => [
+	`${objectPropertyKey(facetDefinition.id)}: facet(${renderFacetCondition(facetDefinition.condition)})({`,
+	...(facetDefinition.fields ?? []).flatMap((fieldDefinition) => renderSchemaFieldEntry(fieldDefinition, indexes).map((line) => indent(line))),
+	...(facetDefinition.facets == null ? [
+		'}),',
+	] : [
+		'})({',
+		indent('facets: {'),
+		...facetDefinition.facets.flatMap((facet) => renderSchemaFacetEntry(facet, indexes).map((line) => indent(line, 2))),
+		indent('},'),
+		'}),',
+	]),
+]
 
 const renderSchemaIndexFile = (indexes: AppIndexes) => {
 	const entityTypes = indexes.activeEntities.map((entity) => entity.entityType)
@@ -2591,7 +2877,12 @@ const renderSchemaIndexFile = (indexes: AppIndexes) => {
 				},
 				...entityTypes.map((entityType) => ({
 					from: schemaModulePath(entityType),
-					defaultName: `${entityType}Schema`,
+					names: [
+						{
+							name: entityType,
+							alias: `${entityType}Schema`,
+						},
+					],
 				})),
 			],
 			body,
@@ -3222,7 +3513,7 @@ const viewItems = (viewEntries: _ViewItem[] | _ViewItem | undefined): _ViewItem[
 		[viewEntries]
 )
 
-const itemFieldName = (viewEntry: _ViewItem) => {
+const itemFieldReferences = (viewEntry: _ViewItem): FieldReference[] => {
 	if (typeof viewEntry === 'string')
 		return [viewEntry]
 	if ('fields' in viewEntry && viewEntry.fields != null)
@@ -3233,7 +3524,23 @@ const itemFieldName = (viewEntry: _ViewItem) => {
 	return []
 }
 
-const fieldDefinitionByName = (entity: Entity, fieldName: string) => entity.fields.find((fieldDefinition) => fieldDefinition.name === fieldName)
+const itemFieldName = (viewEntry: _ViewItem) => itemFieldReferences(viewEntry).map(fieldNameForReference)
+
+const entityFields = (entity: Entity) => [
+	...entity.fields,
+	...(() => {
+		const facets = [...(entity.facets ?? [])]
+		const fields: EntityField[] = []
+		for (const facet of facets) {
+			fields.push(...(facet.fields ?? []))
+			facets.push(...(facet.facets ?? []))
+		}
+
+		return fields
+	})(),
+]
+
+const fieldDefinitionByName = (entity: Entity, field: FieldReference) => entityFields(entity).find((fieldDefinition) => fieldDefinition.name === resolveFieldReference(entity, field))
 
 const fieldValueType = (indexes: AppIndexes, fieldDefinition: EntityField) => (
 	fieldDefinition.valueType == null ? undefined : indexes.valueTypeById.get(fieldDefinition.valueType)
@@ -3289,7 +3596,8 @@ const renderDisplayExpression = (entity: Entity, indexes: AppIndexes, fieldName:
 }
 
 const viewItemFormat = (entity: Entity, indexes: AppIndexes, viewEntry: _ViewItem) => {
-	const fieldName = itemFieldName(viewEntry)[0]
+	const fieldReference = itemFieldReferences(viewEntry)[0]
+	const fieldName = fieldReference == null ? undefined : fieldNameForReference(fieldReference)
 	if (fieldName == null)
 		return undefined
 	if (typeof viewEntry === 'object' && 'format' in viewEntry && viewEntry.format != null)
@@ -3670,8 +3978,15 @@ const defaultContentDlGroups = (entity: Entity, indexes: AppIndexes) => {
 
 const contentDlGroups = (entity: Entity, indexes: AppIndexes) => {
 	const summaryFields = summaryVisualFieldNames(entity)
+	const carouselFieldKeys = new Set(
+		(entitySingularView(entity)?.carousels ?? [])
+			.flatMap((carousel) => carousel.sections)
+			.map((section) => fieldReferenceKey(section.field))
+	)
 	const modeledDlGroups = entitySingularView(entity)?.content?.dl ?? []
-	const effectiveDlGroups = modeledDlGroups.filter((viewEntries) => viewEntries.length > 0)
+	const effectiveDlGroups = modeledDlGroups
+		.map((viewEntries) => viewEntries.filter((viewEntry) => itemFieldReferences(viewEntry).every((field) => !carouselFieldKeys.has(fieldReferenceKey(field)))))
+		.filter((viewEntries) => viewEntries.length > 0)
 	const openFieldNames = new Set(effectiveDlGroups.flatMap((viewEntries) => viewEntries.flatMap((viewEntry) => itemFieldName(viewEntry))))
 	const serialFieldName = summarySerial(entity)?.field
 	const closedItems = viewItems(entitySingularView(entity)?.closed)
@@ -3701,9 +4016,14 @@ const contentDlGroups = (entity: Entity, indexes: AppIndexes) => {
 const contentBlocks = (entity: Entity) => entitySingularView(entity)?.content?.blocks ?? []
 
 const declaredRelationshipViewSections = (entity: Entity) => {
+	const carouselFieldKeys = new Set(
+		(entitySingularView(entity)?.carousels ?? [])
+			.flatMap((carousel) => carousel.sections)
+			.map((section) => fieldReferenceKey(section.field))
+	)
 	const configuredSections: RelationshipSection[] = [
 		...(entitySingularView(entity)?.lists ?? []).flatMap((list) => (
-			list.field == null ?
+			list.field == null || carouselFieldKeys.has(fieldReferenceKey(list.field)) ?
 				[]
 			:
 				[{
@@ -4184,12 +4504,13 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 				`${'\t'.repeat(4)}{${q(displayLabel(viewEntry.text))}}`,
 			]
 
-		const fieldName = itemFieldName(viewEntry)[0]
+		const fieldReference = itemFieldReferences(viewEntry)[0]
+		const fieldName = fieldReference == null ? undefined : fieldNameForReference(fieldReference)
 		if (fieldName == null)
 			return []
 
 		const fieldValueName = `${localIdentifier(fieldName)}${viewEntryIndex}`
-		const fieldDefinition = fieldDefinitionByName(entity, fieldName)
+		const fieldDefinition = fieldDefinitionByName(entity, fieldReference)
 		if (fieldDefinition?.type === EntityFieldType.EntityReference && fieldDefinition.entityType != null) {
 			const targetEntity = indexes.entityByType.get(fieldDefinition.entityType)
 			if (targetEntity != null) {
@@ -4213,7 +4534,7 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 
 				return [
 					`${'\t'.repeat(4)}<ResourceBoundary`,
-					renderSvelteAttribute(5, 'resource', fieldResourceExpression('selection', fieldName, fieldDefinition.entityType, renderQuery(fieldQuery(fieldDefinition, undefined)), false)),
+					renderSvelteAttribute(5, 'resource', fieldProxyResourceExpression('selection', fieldName, renderQuery(fieldQuery(fieldDefinition, undefined)))),
 					`${'\t'.repeat(4)}>`,
 					`${'\t'.repeat(5)}{#snippet children(${targetEntityName})}`,
 					...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
@@ -4588,7 +4909,8 @@ const renderSummaryAfterItem = (
 			`${'\t'.repeat(level)}<span data-text="muted">${svelteText(viewEntry.value ?? viewEntry.label)}</span>`,
 		]
 
-	const fieldName = itemFieldName(viewEntry)[0]
+	const fieldReference = itemFieldReferences(viewEntry)[0]
+	const fieldName = fieldReference == null ? undefined : fieldNameForReference(fieldReference)
 	if (fieldName == null)
 		return []
 
@@ -4623,7 +4945,7 @@ const renderSummaryAfterItem = (
 
 			return [
 				`${'\t'.repeat(level)}<ResourceBoundary`,
-				renderSvelteAttribute(level + 1, 'resource', fieldResourceExpression('selection', fieldName, fieldDefinition.entityType, renderQuery(fieldQuery(fieldDefinition, undefined)), false)),
+				renderSvelteAttribute(level + 1, 'resource', fieldProxyResourceExpression('selection', fieldName, renderQuery(fieldQuery(fieldDefinition, undefined)))),
 				`${'\t'.repeat(level)}>`,
 				`${'\t'.repeat(level + 1)}{#snippet children(${targetEntityName})}`,
 				...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
@@ -4756,11 +5078,12 @@ const renderEntityReferenceDlItem = (
 	indexes: AppIndexes,
 	viewEntry: _ViewItem,
 	fieldDefinition: EntityField,
-	fieldName: string,
+	fieldReference: FieldReference,
 	label: string,
 	openExpression: string,
 	level: number
 ) => {
+	const fieldName = fieldNameForReference(fieldReference)
 	if (fieldDefinition.entityType == null)
 		throw new Error(`${entity.entityType}.${fieldName} EntityReference field is missing entityType`)
 
@@ -4812,11 +5135,11 @@ const renderEntityReferenceDlItem = (
 		`${'\t'.repeat(level + 2)}/>`,
 	]
 
-	if (fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne)
-		return wrapWhen(viewEntry, openExpression, [
-			`${'\t'.repeat(level)}<ResourceBoundary`,
-			renderSvelteAttribute(level + 1, 'resource', fieldResourceExpression('selection', fieldName, fieldDefinition.entityType, query, false)),
-			`${'\t'.repeat(level)}>`,
+		if (fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne)
+			return wrapWhen(viewEntry, openExpression, [
+				`${'\t'.repeat(level)}<ResourceBoundary`,
+				renderSvelteAttribute(level + 1, 'resource', fieldProxyResourceExpression('selection', fieldReference, query)),
+				`${'\t'.repeat(level)}>`,
 			`${'\t'.repeat(level + 1)}{#snippet children(${targetEntityName})}`,
 			`${'\t'.repeat(level + 2)}{#if ${targetEntityName} != null && ${targetEntityName}[EntityMetaKey.Selector] != null}`,
 			`${'\t'.repeat(level + 3)}<div>`,
@@ -4833,10 +5156,10 @@ const renderEntityReferenceDlItem = (
 	return wrapWhen(viewEntry, openExpression, [
 		`${'\t'.repeat(level)}<div>`,
 		`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
-		`${'\t'.repeat(level + 1)}<dd>`,
-		`${'\t'.repeat(level + 2)}<ResourceBoundary`,
-		renderSvelteAttribute(level + 3, 'resource', fieldResourceExpression('selection', fieldName, fieldDefinition.entityType, query, false)),
-		`${'\t'.repeat(level + 2)}>`,
+			`${'\t'.repeat(level + 1)}<dd>`,
+			`${'\t'.repeat(level + 2)}<ResourceBoundary`,
+			renderSvelteAttribute(level + 3, 'resource', fieldProxyResourceExpression('selection', fieldReference, query)),
+			`${'\t'.repeat(level + 2)}>`,
 		`${'\t'.repeat(level + 3)}{#snippet children(${targetEntityName})}`,
 		`${'\t'.repeat(level + 4)}{#if ${targetEntityName}[EntityMetaKey.Selector] != null}`,
 		...entityViewLines.map((line) => indent(line, 3)),
@@ -4870,7 +5193,8 @@ const renderContentItem = (
 	if (typeof viewEntry === 'object' && 'kind' in viewEntry && viewEntry.kind === _ViewItemKind.Block)
 		return wrapWhen(viewEntry, openExpression, renderRawBlock(viewEntry, level))
 
-	const fieldName = itemFieldName(viewEntry)[0]
+	const fieldReference = itemFieldReferences(viewEntry)[0]
+	const fieldName = fieldReference == null ? undefined : fieldNameForReference(fieldReference)
 	if (fieldName == null)
 		return []
 	const fieldDefinition = fieldDefinitionByName(entity, fieldName)
@@ -4881,17 +5205,22 @@ const renderContentItem = (
 	const label = typeof viewEntry === 'object' && 'label' in viewEntry && viewEntry.label != null ? viewEntry.label : labelForField(fieldDefinition)
 
 	if (fieldDefinition.type === EntityFieldType.EntityReference)
-		return renderEntityReferenceDlItem(entity, indexes, viewEntry, fieldDefinition, fieldName, label, openExpression, level)
+		return renderEntityReferenceDlItem(entity, indexes, viewEntry, fieldDefinition, fieldReference, label, openExpression, level)
 
 	const valueExpression = resolvedFieldExpression(fieldName)
 	const pendingValueExpression = pendingFieldExpression(entity, fieldName)
 	const fieldValueName = localIdentifier(fieldName)
 	const query = renderQuery(fieldQuery(fieldDefinition, undefined), [fieldName])
+	const projectionFieldResource = isProjectionFieldReference(fieldReference) ? fieldProxyResourceExpression('selection', fieldReference, query) : undefined
+	const valueContextExpression = projectionFieldResource == null ?
+		`({ value: ${fieldValueName}, ...${resolvedEntityExpression} })`
+	:
+		`({ value: ${fieldValueName} })`
 	const valueMarkup = [
 		`${'\t'.repeat(level)}<div>`,
 		`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
 		`${'\t'.repeat(level + 1)}<dd>`,
-		...renderValueMarkup(entity, indexes, viewEntry, fieldName, fieldValueName, `({ value: ${fieldValueName}, ...${resolvedEntityExpression} })`, level + 2),
+		...renderValueMarkup(entity, indexes, viewEntry, fieldName, fieldValueName, valueContextExpression, level + 2),
 		`${'\t'.repeat(level + 1)}</dd>`,
 		`${'\t'.repeat(level)}</div>`,
 	]
@@ -4907,7 +5236,7 @@ const renderContentItem = (
 	if (fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne)
 		return wrapWhen(viewEntry, openExpression, [
 			`${'\t'.repeat(level)}<ResourceBoundary`,
-			renderSvelteAttribute(level + 1, 'resource', `selection(${query})`),
+			renderSvelteAttribute(level + 1, 'resource', projectionFieldResource ?? `selection(${query})`),
 			`${'\t'.repeat(level)}>`,
 			`${'\t'.repeat(level + 1)}{#snippet Pending()}`,
 			`${'\t'.repeat(level + 2)}{@const ${fieldValueName} = ${pendingValueExpression}}`,
@@ -4915,9 +5244,11 @@ const renderContentItem = (
 			...pendingValueMarkup.map((line) => indent(line, 3)),
 			`${'\t'.repeat(level + 2)}{/if}`,
 			`${'\t'.repeat(level + 1)}{/snippet}`,
-			`${'\t'.repeat(level + 1)}{#snippet children(entity)}`,
-			`${'\t'.repeat(level + 2)}{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
-			`${'\t'.repeat(level + 2)}{@const ${fieldValueName} = ${valueExpression}}`,
+			`${'\t'.repeat(level + 1)}{#snippet children(${projectionFieldResource == null ? 'entity' : fieldValueName})}`,
+			...(projectionFieldResource == null ? [
+				`${'\t'.repeat(level + 2)}{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
+				`${'\t'.repeat(level + 2)}{@const ${fieldValueName} = ${valueExpression}}`,
+			] : []),
 			`${'\t'.repeat(level + 2)}{#if ${fieldValueName} !== undefined && ${fieldValueName} !== null}`,
 			...valueMarkup.map((line) => indent(line, 3)),
 			`${'\t'.repeat(level + 2)}{/if}`,
@@ -4925,23 +5256,25 @@ const renderContentItem = (
 			`${'\t'.repeat(level)}</ResourceBoundary>`,
 		])
 
-	return wrapWhen(viewEntry, openExpression, [
-		`${'\t'.repeat(level)}<div>`,
-		`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
-		`${'\t'.repeat(level + 1)}<dd>`,
-		`${'\t'.repeat(level + 2)}<ResourceBoundary`,
-		renderSvelteAttribute(level + 3, 'resource', `selection(${query})`),
-		`${'\t'.repeat(level + 2)}>`,
+		return wrapWhen(viewEntry, openExpression, [
+			`${'\t'.repeat(level)}<div>`,
+			`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
+			`${'\t'.repeat(level + 1)}<dd>`,
+			`${'\t'.repeat(level + 2)}<ResourceBoundary`,
+			renderSvelteAttribute(level + 3, 'resource', projectionFieldResource ?? `selection(${query})`),
+			`${'\t'.repeat(level + 2)}>`,
 		`${'\t'.repeat(level + 3)}{#snippet Pending()}`,
 		`${'\t'.repeat(level + 4)}{@const ${fieldValueName} = ${pendingValueExpression}}`,
 		`${'\t'.repeat(level + 4)}{#if ${fieldValueName} !== undefined && ${fieldValueName} !== null}`,
 		...renderValueMarkup(entity, indexes, viewEntry, fieldName, fieldValueName, `({ value: ${fieldValueName}, ...${pendingEntityExpression} })`, level + 5),
-		`${'\t'.repeat(level + 4)}{/if}`,
-		`${'\t'.repeat(level + 3)}{/snippet}`,
-		`${'\t'.repeat(level + 3)}{#snippet children(entity)}`,
-		`${'\t'.repeat(level + 4)}{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
-		`${'\t'.repeat(level + 4)}{@const ${fieldValueName} = ${valueExpression}}`,
-		`${'\t'.repeat(level + 4)}{#if ${fieldValueName} !== undefined && ${fieldValueName} !== null}`,
+			`${'\t'.repeat(level + 4)}{/if}`,
+			`${'\t'.repeat(level + 3)}{/snippet}`,
+			`${'\t'.repeat(level + 3)}{#snippet children(${projectionFieldResource == null ? 'entity' : fieldValueName})}`,
+			...(projectionFieldResource == null ? [
+				`${'\t'.repeat(level + 4)}{@const ${resolvedEntityExpression} = ${resolvedEntitySurfaceExpression}}`,
+				`${'\t'.repeat(level + 4)}{@const ${fieldValueName} = ${valueExpression}}`,
+			] : []),
+			`${'\t'.repeat(level + 4)}{#if ${fieldValueName} !== undefined && ${fieldValueName} !== null}`,
 		...renderValueMarkup(entity, indexes, viewEntry, fieldName, fieldValueName, `({ value: ${fieldValueName}, ...${resolvedEntityExpression} })`, level + 5),
 		`${'\t'.repeat(level + 4)}{/if}`,
 		`${'\t'.repeat(level + 3)}{/snippet}`,
@@ -5033,6 +5366,10 @@ const renderLatestContentItem = (
 		true
 	)
 	const latestLabel = latest.label ?? latest.field
+	const latestConditions = [
+		...facetFieldReferenceConditions(entity, latest.field),
+		...(latest.conditions ?? latest.when ?? []),
+	]
 
 	const latestBodyLines = [
 		`${'\t'.repeat(level + 4)}{#if ${latestEntityName} != null}`,
@@ -5052,7 +5389,7 @@ const renderLatestContentItem = (
 		`${'\t'.repeat(level + 1)}<dt>${latestLabel}</dt>`,
 		`${'\t'.repeat(level + 1)}<dd>`,
 		`${'\t'.repeat(level + 2)}<ResourceBoundary`,
-		renderSvelteAttribute(level + 3, 'resource', fieldResourceExpression('selection', latest.field, fieldEntityType, query)),
+			renderSvelteAttribute(level + 3, 'resource', fieldProxyResourceExpression('selection', latest.field, query)),
 		`${'\t'.repeat(level + 2)}>`,
 		`${'\t'.repeat(level + 3)}{#snippet children(${latestEntitiesName})}`,
 		`${'\t'.repeat(level + 4)}{@const ${latestEntityName} = ${latestEntitiesName}.values[0]}`,
@@ -5063,7 +5400,7 @@ const renderLatestContentItem = (
 		`${'\t'.repeat(level)}</div>`,
 	]
 
-	return renderConditionedEntityLines(entity, latest.when, level, lines)
+	return renderConditionedEntityLines(entity, latestConditions, level, lines)
 }
 
 const renderRelationshipSections = (
@@ -5117,6 +5454,10 @@ const renderRelationshipSection = (entity: Entity, indexes: AppIndexes, section:
 	const fieldDefinition = fieldDefinitionByName(entity, section.field)
 	if (fieldDefinition == null)
 		throw new Error(`${entity.entityType}.${section.field} relationship section references an unknown field`)
+	const sectionConditions = [
+		...facetFieldReferenceConditions(entity, section.field),
+		...(section.conditions ?? []),
+	]
 
 	const component = declaredRelationshipSectionComponent(section, indexes)
 	if (component == null)
@@ -5128,14 +5469,14 @@ const renderRelationshipSection = (entity: Entity, indexes: AppIndexes, section:
 	if (fieldDefinition.type === EntityFieldType.EntityReference && component != null)
 		return renderConditionedEntityLines(
 			entity,
-			section.conditions,
+			sectionConditions,
 			4,
 			renderEntityReferenceSection(entity, indexes, section, fieldDefinition, component)
 		)
 	if (fieldDefinition.type === EntityFieldType.EntitiesReference && component != null)
 		return renderConditionedEntityLines(
 			entity,
-			section.conditions,
+			sectionConditions,
 			4,
 			renderEntitiesReferenceSection(entity, indexes, section, fieldDefinition, component)
 		)
@@ -5173,8 +5514,8 @@ const detailTabConditionExpression = (
 		undefined
 	:
 		tab.conditions.map((condition) => [
-			condition.equals == null ? undefined : `${fieldExpression('selection.entitySelector', condition.field)} === ${renderLiteral(condition.equals)}`,
-			condition.notEquals == null ? undefined : `${fieldExpression('selection.entitySelector', condition.field)} !== ${renderLiteral(condition.notEquals)}`,
+			condition.equals == null ? undefined : `${fieldExpression('selection.entitySelector', fieldNameForReference(condition.field))} === ${renderLiteral(condition.equals)}`,
+			condition.notEquals == null ? undefined : `${fieldExpression('selection.entitySelector', fieldNameForReference(condition.field))} !== ${renderLiteral(condition.notEquals)}`,
 		].filter(Boolean).join(' && ')).join(' && ')
 )
 
@@ -5275,10 +5616,12 @@ const renderDetailsTabs = (entity: Entity, indexes: AppIndexes, entityName: stri
 }
 
 const carouselSectionId = (section: EntityCarouselSection) => (
-	section.id ?? section.field?.replace(/^\$\$?/, '').replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`) ?? 'section'
+	section.id ?? (section.field == null ? undefined : routeCollectionIdForFieldReference(section.field)) ?? 'section'
 )
 
 const routeCollectionId = (field: string) => field.replace(/^\$\$?/, '').replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
+
+const routeCollectionIdForFieldReference = (field: FieldReference) => routeCollectionId(fieldNameForReference(field))
 
 const carouselSectionComponent = (entity: Entity, indexes: AppIndexes, section: EntityCarouselSection) => {
 	if (section.field == null)
@@ -5463,17 +5806,19 @@ const renderEntityPageSelection = (
 				&& fieldDefinition.type !== EntityFieldType.EntitiesReference
 			)
 		})
+	const fieldDefaultSources = pageSelectionFieldDefaultSources(entity, fields)
 
-	if (fields.length === 0 && !sourceSelectorField && viewSourceSelection == null)
+	if (fields.length === 0 && !sourceSelectorField && viewSourceSelection == null && fieldDefaultSources == null)
 		return `select(EntityType.${entityType}, ${selectorExpression})`
 
 	const selectorSourceExpression = selectorExpression.includes('\n') ?
 		`(${selectorExpression}).source`
 	:
 		`${selectorExpression}.source`
-	const viewSourceLines = Array.isArray(viewSourceSelection) ? [
+	const selectionSources = viewSourceSelection ?? fieldDefaultSources
+	const viewSourceLines = Array.isArray(selectionSources) ? [
 		'\tsources: [',
-		...viewSourceSelection.map((source) => `\t\t${enumAccess('Source', source)},`),
+		...selectionSources.map((source) => `\t\t${enumAccess('Source', source)},`),
 		'\t],',
 	] : []
 
@@ -5489,6 +5834,24 @@ const renderEntityPageSelection = (
 		]),
 		'})',
 	].join('\n')
+}
+
+const pageSelectionFieldDefaultSources = (
+	entity: Entity,
+	fields: readonly string[]
+) => {
+	const sourceSets = fields
+		.map((field) => fieldDefinitionByName(entity, field)?.defaultSources)
+		.filter((sources) => sources != null)
+	if (sourceSets.length !== fields.length)
+		return undefined
+	const [firstSources] = sourceSets
+	if (firstSources == null)
+		return undefined
+	return sourceSets.every((sources) => sources.length === firstSources.length && sources.every((source, index) => source === firstSources[index])) ?
+		firstSources
+	:
+		undefined
 }
 
 const hasCollectionHref = (entity: Entity, indexes: AppIndexes, field: string, targetEntity: string) => (
@@ -5586,6 +5949,10 @@ const renderCarouselSection = (
 	const query = renderQuery(fieldQuery(fieldDefinition, section.selection), [])
 	const sectionId = carouselSectionId(section)
 	const snippetName = `Section${pascal(sectionId)}`
+	const sectionConditions = [
+		...facetFieldReferenceConditions(entity, section.field),
+		...(section.conditions ?? []),
+	]
 	const targetEntity = fieldDefinition.entityType
 	const targetEntityName = camel(targetEntity)
 	const itemLayout = `EntityLayout.${section.layout ?? 'Summary'}`
@@ -5607,11 +5974,9 @@ const renderCarouselSection = (
 			])
 		)
 
-	return [
-		`\t\t\t\t{#snippet ${snippetName}({ id, label, open })}`,
-		...(fieldDefinition.type === EntityFieldType.EntityReference ? [
+	const sectionBodyLines = fieldDefinition.type === EntityFieldType.EntityReference ? [
 			'\t\t\t\t\t<ResourceBoundary',
-			renderSvelteAttribute(6, 'resource', fieldResourceExpression('selection', section.field, targetEntity, query, false)),
+			renderSvelteAttribute(6, 'resource', fieldProxyResourceExpression('selection', section.field, query)),
 			'\t\t\t\t\t>',
 			`\t\t\t\t\t\t{#snippet children(${targetEntityName})}`,
 			...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
@@ -5660,7 +6025,7 @@ const renderCarouselSection = (
 			'\t\t\t\t\t</ResourceBoundary>',
 		] : [
 			`\t\t\t\t\t<${componentIdentifier(component)}`,
-			renderSvelteAttribute(6, 'selection', fieldResourceExpression('selection', section.field, targetEntity, query)),
+			renderSvelteAttribute(6, 'selection', fieldProxyResourceExpression('selection', section.field, query)),
 			...(hrefExpression == null ? [] : [renderSvelteAttribute(6, 'href', hrefExpression)]),
 			'\t\t\t\t\t\tCollapsibleProps={{ canToggle: false }}',
 			...(section.emptyText == null ? [] : [`\t\t\t\t\t\temptyText=${q(section.emptyText)}`]),
@@ -5668,7 +6033,11 @@ const renderCarouselSection = (
 			'\t\t\t\t\t\ttitle={label}',
 			'\t\t\t\t\t\tid={`${id}-list`}',
 			'\t\t\t\t\t/>',
-		]),
+		]
+
+	return [
+		`\t\t\t\t{#snippet ${snippetName}({ id, label, open })}`,
+		...renderConditionedEntityLines(entity, sectionConditions, 5, sectionBodyLines),
 		'\t\t\t\t{/snippet}',
 		'',
 	]
@@ -5681,18 +6050,22 @@ const renderPrimitiveCarouselSection = (
 ) => {
 	const sectionId = carouselSectionId(section)
 	const snippetName = `Section${pascal(sectionId)}`
-	const query = renderQuery(fieldQueryForName(entity, section.field, section.selection), [section.field ?? ''])
-	const fieldDefinition = fieldDefinitionByName(entity, section.field ?? '')
-	const primitiveValuesName = camel(section.field ?? 'values')
-	const primitiveValueName = camel((fieldDefinition?.label ?? section.field ?? 'value').replace(/s$/, ''))
+	const fieldName = section.field == null ? undefined : fieldNameForReference(section.field)
+	const query = renderQuery(fieldQueryForName(entity, section.field, section.selection), [fieldName ?? ''])
+	const fieldDefinition = fieldName == null ? undefined : fieldDefinitionByName(entity, section.field ?? '')
+	const primitiveValuesName = camel(fieldName ?? 'values')
+	const primitiveValueName = camel((fieldDefinition?.label ?? fieldName ?? 'value').replace(/s$/, ''))
 	const primitiveValueIndexName = `${primitiveValueName}Index`
-	return [
-		`\t\t\t\t{#snippet ${snippetName}({ id, label, open })}`,
+	const sectionConditions = [
+		...facetFieldReferenceConditions(entity, section.field),
+		...(section.conditions ?? []),
+	]
+	const sectionBodyLines = [
 		'\t\t\t\t\t<ResourceBoundary',
 		renderSvelteAttribute(6, 'resource', `selection(${query})`),
 		'\t\t\t\t\t>',
 		'\t\t\t\t\t\t{#snippet children(entity)}',
-		`\t\t\t\t\t\t\t{@const ${primitiveValuesName} = ${fieldExpression('entity', section.field ?? '')}}`,
+		`\t\t\t\t\t\t\t{@const ${primitiveValuesName} = ${fieldExpression('entity', fieldName ?? '')}}`,
 		`\t\t\t\t\t\t\t{#if ${primitiveValuesName}.length > 0}`,
 		'\t\t\t\t\t\t\t\t<ul data-column="gap-2">',
 		`\t\t\t\t\t\t\t\t\t{#each ${primitiveValuesName} as ${primitiveValueName}, ${primitiveValueIndexName} (${primitiveValueIndexName})}`,
@@ -5721,6 +6094,11 @@ const renderPrimitiveCarouselSection = (
 			]),
 		'\t\t\t\t\t\t{/snippet}',
 		'\t\t\t\t\t</ResourceBoundary>',
+	]
+
+	return [
+		`\t\t\t\t{#snippet ${snippetName}({ id, label, open })}`,
+		...renderConditionedEntityLines(entity, sectionConditions, 5, sectionBodyLines),
 		'\t\t\t\t{/snippet}',
 		'',
 	]
@@ -5798,7 +6176,7 @@ const renderEntityReferenceSection = (
 		'\t\t\t\t<section data-column="gap-2">',
 		`\t\t\t\t\t<h3>${section.label ?? labelForField(fieldDefinition)}</h3>`,
 		'\t\t\t\t\t<ResourceBoundary',
-		renderSvelteAttribute(6, 'resource', fieldResourceExpression('selection', section.field, targetEntity, query, false)),
+		renderSvelteAttribute(6, 'resource', fieldProxyResourceExpression('selection', section.field, query)),
 		'\t\t\t\t\t>',
 		`\t\t\t\t\t\t{#snippet children(${targetEntityName})}`,
 		...(fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne ? [
@@ -5844,10 +6222,10 @@ const renderEntitiesReferenceSection = (
 	const titleExpression = section.titleField == null ?
 		undefined
 	:
-		`String(${fieldExpression('entity', section.titleField)} ?? ${q(titleLabel)})`
+		`String(${fieldExpression('entity', fieldNameForReference(section.titleField))} ?? ${q(titleLabel)})`
 	const sectionLines = () => [
 		`\t\t\t\t<${componentIdentifier(component)}`,
-		renderSvelteAttribute(5, 'selection', fieldResourceExpression('selection', section.field, targetEntity, query)),
+		renderSvelteAttribute(5, 'selection', fieldProxyResourceExpression('selection', section.field, query)),
 		titleExpression == null ? `\t\t\t\t\ttitle=${q(titleLabel)}` : renderSvelteAttribute(5, 'title', titleExpression),
 		...(section.href != null ? [
 			section.href.includes('(') ?
@@ -5863,7 +6241,7 @@ const renderEntitiesReferenceSection = (
 		section.idExpression == null ?
 			(
 				section.id == null ?
-					`\t\t\t\t\tid=${q(`${component}-${section.field}`)}`
+					`\t\t\t\t\tid=${q(`${component}-${routeCollectionIdForFieldReference(section.field)}`)}`
 				:
 					`\t\t\t\t\tid=${q(section.id)}`
 			)
@@ -6475,8 +6853,8 @@ const routeSurfaceRequiresPageModule = (routePath: string, indexes: AppIndexes) 
 	routeSurfaceNetworkParamName(routePath, indexes) != null
 )
 
-const routeSurfaceFacetsKey = (surface: NonNullable<RouteFile['surface']>) => (
-	(surface.requiredFacets ?? []).join('\0')
+const routeSurfaceProjectionsKey = (surface: NonNullable<RouteFile['surface']>) => (
+	(surface.requiredProjections ?? []).map((projectionPath) => projectionPath.join('\0')).join('\u001f')
 )
 
 const routeSurfaceOwnedByAncestor = (routePath: string, routeFile: RouteFile, indexes: AppIndexes) => {
@@ -6484,7 +6862,7 @@ const routeSurfaceOwnedByAncestor = (routePath: string, routeFile: RouteFile, in
 		return false
 
 	const href = routePathPublicId(routePath)
-	const surfaceFacetsKey = routeSurfaceFacetsKey(routeFile.surface)
+	const surfaceProjectionsKey = routeSurfaceProjectionsKey(routeFile.surface)
 	return indexes.routeEntries.some((entry) => {
 		const entryHref = publicRouteId(entry.routePath)
 		return (
@@ -6494,33 +6872,37 @@ const routeSurfaceOwnedByAncestor = (routePath: string, routeFile: RouteFile, in
 				file.kind === _RouteFileKind.PageModule
 				&& file.surface != null
 				&& file.surfaceInherited !== true
-				&& routeSurfaceFacetsKey(file.surface) === surfaceFacetsKey
+				&& routeSurfaceProjectionsKey(file.surface) === surfaceProjectionsKey
 			))
 		)
 	})
 }
 
-const routeSurfacePredicateExpression = (predicate: _AppFacetPredicate, entityExpression: string): string => (
-	'all' in predicate ?
-		`(${predicate.all.map((child) => routeSurfacePredicateExpression(child, entityExpression)).join(' && ')})`
-	: 'any' in predicate ?
-		`(${predicate.any.map((child) => routeSurfacePredicateExpression(child, entityExpression)).join(' || ')})`
-	: 'equals' in predicate ?
-		`${fieldExpression(entityExpression, predicate.field)} === ${renderLiteral(predicate.equals)}`
-	:
-		`${fieldExpression(entityExpression, predicate.field)}.includes(${renderLiteral(predicate.contains)})`
-)
+const routeSurfaceConditionExpression = (condition: _AppFacetCondition, entityExpression: string): string => {
+	if ('all' in condition)
+		return `(${condition.all.map((child) => routeSurfaceConditionExpression(child, entityExpression)).join(' && ')})`
+
+	const field = fieldExpression(entityExpression, facetConditionField(condition))
+	return (
+		'is' in condition ?
+			`${field} === ${renderLiteral(condition.is)}`
+		: 'isOneOf' in condition ?
+			`${renderArray(condition.isOneOf.map(renderLiteral))}.includes(${field})`
+		:
+			`(${field} !== undefined && ${field}.some((value: string | number | boolean | null) => value === ${renderLiteral(condition.includes)}))`
+	)
+}
 
 const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: AppIndexes) => {
 	const routeSurfaceMetadata = routeFile.surface == null ? undefined : indexes.routeFixtureMetadataByRouteId.get(routePathPublicId(routePath))
 	const routeSurfaceParamNames = routeParamNames(routePathPublicId(routePath))
 	const routeSurfaceNetworkParam = routeSurfaceNetworkParamName(routePath, indexes)
 	if (
-		routeSurfaceMetadata?.requiredFacetPredicates != null
-		&& routeSurfaceMetadata.requiredFacetPredicates.length > 0
+		routeSurfaceMetadata?.requiredProjectionConditions != null
+		&& routeSurfaceMetadata.requiredProjectionConditions.length > 0
 		&& routeSurfaceNetworkParam == null
 	)
-		throw new Error(`${routePath} route surface requires facets but has no networkSlug or caip2 route param`)
+		throw new Error(`${routePath} route surface requires projections but has no networkSlug or caip2 route param`)
 
 	if (routeFile.load == null && routeSurfaceNetworkParam == null)
 		throw new Error(`${routePath} page module has no load data or route surface network context`)
@@ -6572,7 +6954,7 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 	const loadEntity = routeFile.load?.entity ?? (routeSurfaceNetworkParam == null ? undefined : EntityType.Network)
 	const entitySchemaName = loadEntity == null ? undefined : `${loadEntity}Schema`
 	const selectorName = loadEntity == null ? undefined : `${camel(loadEntity)}Selector`
-	const routeSurfaceNetworkExpression = (
+	const routeSurfaceNetworkLookupExpression = (
 		routeSurfaceNetworkParam === 'networkSlug' ?
 			'networkBySlug[params.networkSlug]'
 		: routeSurfaceNetworkParam === 'caip2' ?
@@ -6580,21 +6962,29 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 		:
 			undefined
 	)
+	const routeSurfaceNetworkExpression = (
+		routeSurfaceNetworkParam === 'networkSlug' ?
+			'Object.getOwnPropertyDescriptor(networkBySlug, params.networkSlug)?.value'
+		: routeSurfaceNetworkParam === 'caip2' ?
+			'Object.getOwnPropertyDescriptor(networkByCaip2, decodeURIComponent(params.caip2))?.value'
+		:
+			undefined
+	)
 	const routeSurfaceGuardExpression = (
 		routeSurfaceNetworkExpression == null
-		|| routeSurfaceMetadata?.requiredFacetPredicates == null
-		|| routeSurfaceMetadata.requiredFacetPredicates.length === 0 ?
+		|| routeSurfaceMetadata?.requiredProjectionConditions == null
+		|| routeSurfaceMetadata.requiredProjectionConditions.length === 0 ?
 			undefined
-		:
-			routeSurfaceMetadata.requiredFacetPredicates
-			.map((predicate) => routeSurfacePredicateExpression(predicate, 'routeSurfaceNetwork'))
+	:
+			routeSurfaceMetadata.requiredProjectionConditions
+			.map((condition) => routeSurfaceConditionExpression(condition, 'routeSurfaceNetwork'))
 			.join(' && ')
 	)
 	const guardedFieldsExpression = (
-		fieldsExpression == null || routeSurfaceNetworkExpression == null ?
+		fieldsExpression == null || routeSurfaceNetworkLookupExpression == null ?
 			fieldsExpression
 		:
-			fieldsExpression.replaceAll(routeSurfaceNetworkExpression, 'routeSurfaceNetwork')
+			fieldsExpression.replaceAll(routeSurfaceNetworkLookupExpression, 'routeSurfaceNetwork')
 	)
 	if (loadEntity == null || guardedFieldsExpression == null || selectorName == null || entitySchemaName == null)
 		throw new Error(`${routePath} page module has no selector parsing responsibility`)
@@ -6662,7 +7052,10 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 				},
 				{
 					from: schemaModulePath(loadEntity),
-					defaultName: entitySchemaName,
+					names: [{
+						name: loadEntity,
+						alias: entitySchemaName,
+					}],
 				},
 				{
 					from: '$/schema/index.ts',
@@ -6675,7 +7068,7 @@ const renderPageModuleFile = (routePath: string, routeFile: RouteFile, indexes: 
 			],
 			body: [
 				...(routeFile.surface == null ? [] : [
-					`// Route surface eligibility: requiredFacets=[${(routeFile.surface.requiredFacets ?? []).map((facet) => q(facet)).join(', ')}]`,
+					`// Route surface eligibility: requiredProjections=[${(routeFile.surface.requiredProjections ?? []).map((projectionPath) => `[${projectionPath.map(q).join(', ')}]`).join(', ')}]`,
 				]),
 				`export const load: ${loadType} = ({ params }) => {`,
 				...(routeSurfaceNetworkExpression == null ? [] : [
@@ -6743,6 +7136,18 @@ const renderPageFile = (
 	const collectionQuery = routeFile.collection == null ? undefined : renderQuery(routeFile.collection.query, [])
 	const viewEntityDefinition = viewEntity == null ? undefined : indexes.entityByType.get(viewEntity)
 	const viewSelectionQuery = renderQuery(viewEntityDefinition == null ? undefined : entitySingularView(viewEntityDefinition)?.query, [])
+	const viewSelectionFields = viewEntityDefinition == null ?
+		[]
+	:
+		viewResolvedFieldNames(viewEntityDefinition, indexes)
+			.filter((fieldName) => {
+				const fieldDefinition = fieldDefinitionByName(viewEntityDefinition, fieldName)
+				return (
+					fieldDefinition != null
+					&& fieldDefinition.type !== EntityFieldType.EntitiesReference
+				)
+			})
+	const viewSelectionFieldDefaultSources = viewEntityDefinition == null ? undefined : pageSelectionFieldDefaultSources(viewEntityDefinition, viewSelectionFields)
 	const collectionHref = routeFile.collection == null ?
 		undefined
 	:
@@ -6767,6 +7172,19 @@ const renderPageFile = (
 		routeFile.collection.source.field,
 		routeFile.collection.query
 	), [])
+	const collectionSelectionExpression = routeFile.collection == null || collectionSourceEntityDefinition == null ?
+		''
+	:
+		fieldResourceExpression(
+			`select(EntityType.${routeFile.collection.source.entity}, ${renderExpression(routeFile.collection.source.selector, {
+				pageSelector: 'data.selector',
+				fields: 'data.selector',
+				params: 'params',
+			})})`,
+			routeFile.collection.source.field,
+			routeFile.collection.entity,
+			collectionSelectionQuery
+		)
 
 	return svelteFile(
 		routePath,
@@ -6774,14 +7192,14 @@ const renderPageFile = (
 			script: [
 				'// Types/constants',
 				...(hasPageProps ? ['import type { PageProps } from \'./$types.ts\''] : []),
-				...(routeFile.collection == null ? [] : [
-					'import { EntityProxyField } from \'$/client/$proxy.svelte.ts\'',
-				]),
+					...(collectionSelectionExpression.includes('EntityProxyField') ? [
+						'import { EntityProxyField } from \'$/client/$proxy.svelte.ts\'',
+					] : []),
 				'import { EntityType } from \'$/schema/EntityType.ts\'',
 				...collectionExpressionImports.map(renderImport),
 				...(inlineSelectorExpression == null ? [] : routeLoadSelectorImports(routeFile).map(renderImport)),
 				...renderImportObject(routeFile.view?.imports).map(renderImport),
-				...(collectionQuery?.includes('Source.') || collectionSelectionQuery.includes('Source.') || viewSelectionQuery?.includes('Source.') ? [
+				...(collectionQuery?.includes('Source.') || collectionSelectionQuery.includes('Source.') || viewSelectionQuery?.includes('Source.') || viewSelectionFieldDefaultSources != null ? [
 					'import { Source } from \'$/sources/Source.ts\'',
 				] : []),
 				'',
@@ -6817,7 +7235,7 @@ const renderPageFile = (
 				...(routeFile.collection == null ?
 					renderEntityPageMarkup(routeFile, component, selectorExpression, routeId(appRoutePath), indexes)
 				:
-					renderCollectionPageMarkup(routeFile, collectionComponent, routeId(appRoutePath), indexes)
+						renderCollectionPageMarkup(routeFile, collectionComponent, routeId(appRoutePath), indexes, collectionSelectionExpression)
 				),
 				'</Page>',
 			],
@@ -6847,15 +7265,10 @@ const renderEntityPageMarkup = (routeFile: RouteFile, component: string | undefi
 	]
 }
 
-const renderCollectionPageMarkup = (routeFile: RouteFile, collectionComponent: string | undefined, href: string, indexes: AppIndexes) => {
+const renderCollectionPageMarkup = (routeFile: RouteFile, collectionComponent: string | undefined, href: string, indexes: AppIndexes, collectionSelectionExpression: string) => {
 	if (routeFile.collection == null || collectionComponent == null)
 		return []
 
-	const selector = renderExpression(routeFile.collection.source.selector, {
-		pageSelector: 'data.selector',
-		fields: 'data.selector',
-		params: 'params',
-	})
 	const source = routeFile.collection.source
 	const sourceEntity = indexes.entityByType.get(source.entity)
 	if (sourceEntity == null)
@@ -6864,14 +7277,13 @@ const renderCollectionPageMarkup = (routeFile: RouteFile, collectionComponent: s
 	const collectionEntity = indexes.entityByType.get(routeFile.collection.entity)
 	if (collectionEntity == null)
 		throw new Error(`${routeFile.collection.entity} collection references missing entity`)
-	const query = renderQuery(fieldQueryForName(sourceEntity, source.field, routeFile.collection.query), [])
 
 	return [
 		`\t<${collectionComponent}`,
 		renderSvelteAttribute(2, 'href', renderRouteResolveExpression(href, routeParamNames(href).map((param) => [param, `params.${param}`]))),
 		`\t\ttitle=${q(routeFile.text?.title ?? collectionEntity.labelPlural)}`,
-		renderSvelteAttribute(2, 'selection', fieldResourceExpression(`select(EntityType.${source.entity}, ${selector})`, source.field, routeFile.collection.entity, query)),
-		`\t\tid=${q(routeCollectionId(source.field))}`,
+		renderSvelteAttribute(2, 'selection', collectionSelectionExpression),
+		`\t\tid=${q(routeCollectionIdForFieldReference(source.field))}`,
 		'\t/>',
 	]
 }

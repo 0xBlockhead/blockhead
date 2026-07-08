@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -43,7 +42,7 @@
 			select(EntityType.ActivityPubNote, {
 				instanceOrigin: decodeURIComponent(params.instanceOrigin),
 				localStatusId: decodeURIComponent(params.localStatusId),
-			})[EntityProxyField]<EntityType.ActivityPubNote>('$$thread', {
+			}).$$thread({
 				sources: [
 					Source.Mastodon_Rest,
 				],

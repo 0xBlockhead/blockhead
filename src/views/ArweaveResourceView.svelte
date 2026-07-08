@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -201,7 +201,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.ArweaveTransaction, false>('$transaction')}
+				resource={selection.$transaction}
 			>
 				{#snippet children(arweaveTransaction)}
 					{#if arweaveTransaction != null && arweaveTransaction[EntityMetaKey.Selector] != null}
@@ -225,10 +225,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ArweaveResource_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.ArweaveResource_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='ArweaveResource_TimestampsView-$$timestamps'
+				id='ArweaveResource_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

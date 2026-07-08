@@ -1,76 +1,66 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum McpResourceTemplateSelector {
 	ServerUriTemplate = 'ServerUriTemplate',
 }
-export default {
+export const McpResourceTemplate = entity({
 	entityType: EntityType.McpResourceTemplate,
 	label: 'mcp resource template',
 	labelPlural: 'mcp resource templates',
-	selectors: [
-		{
-			name: McpResourceTemplateSelector.ServerUriTemplate,
-			fields: [
-				'$server',
-				'uriTemplate',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$server',
-			label: 'server',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.McpServer,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'uriTemplate',
-			label: 'URI template',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'name',
-			label: 'Name',
-			description: 'The human-readable name of the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'title',
-			label: 'title',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'description',
-			label: 'Description',
-			description: 'A human-readable description from the source domain.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'mimeType',
-			label: 'mime type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'annotations',
-			label: 'annotations',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$server: {
+		label: 'server',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.McpServer,
+		cardinality: EntityFieldCardinality.One,
+	},
+	uriTemplate: {
+		label: 'URI template',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	name: {
+		label: 'Name',
+		description: 'The human-readable name of the subject.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	title: {
+		label: 'title',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	description: {
+		label: 'Description',
+		description: 'A human-readable description from the source domain.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	mimeType: {
+		label: 'mime type',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	annotations: {
+		label: 'annotations',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		ServerUriTemplate: [
+			'$server',
+			'uriTemplate',
+		],
+	},
+})

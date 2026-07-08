@@ -50,7 +50,7 @@ type ResolverFields<
 		ResolverSnapshot<_Resolve>,
 		SourceResolverContext<_Source>
 	>
-}>
+}> & Partial<Record<string, ResolverFields<_Source, _EntityType, _Resolve>>>
 
 export const defineResolver = <
 	const _Source extends Source,
@@ -63,9 +63,7 @@ export const defineResolver = <
 	resolve: _Resolve
 	resolveLive?: ResolveLivePublishers<typeof schema, _EntityType>
 }
-) => <const _Fields extends ResolverFields<_Source, _EntityType, _Resolve>>(facets: {
-	fields: _Fields
-}) => ({
+) => <const _Fields extends ResolverFields<_Source, _EntityType, _Resolve>>(projections: _Fields) => ({
 	...resolver,
-	...facets,
+	projections,
 })

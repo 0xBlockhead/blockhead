@@ -37,7 +37,6 @@ const appGeneratedRoutes: AppGeneratedRouteCheck[] = [
 		path: '/venue/Binance/market/coin/ETH/currency/USD/Spot',
 		expectEntityRows: false,
 	},
-	{ label: 'evm-networks list', path: '/evm-networks', expectEntityRows: false, skipSettle: true },
 	{ label: 'networks list', path: '/networks', expectEntityRows: false },
 	{ label: 'network detail', path: '/network/ethereum', expectEntityRows: false },
 	{ label: 'reddit hub', path: '/reddit', expectEntityRows: false, skipSettle: true },

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -104,7 +104,7 @@
 		<ResourceBoundary resource={lightningChannel}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.LightningNode, false>('$node1')}
+					resource={selection.$node1}
 				>
 					{#snippet children(lightningNode)}
 						{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
@@ -128,7 +128,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.LightningNode, false>('$node1')}
+					resource={selection.$node1}
 				>
 					{#snippet children(lightningNode)}
 						{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
@@ -251,7 +251,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.LightningNode, false>('$node1')}
+				resource={selection.$node1}
 			>
 				{#snippet children(lightningNode)}
 					{#if lightningNode != null && lightningNode[EntityMetaKey.Selector] != null}
@@ -386,17 +386,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LightningChannel_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.LightningChannel_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
 				emptyText='No observations yet.'
-				id='LightningChannel_TimestampsView-$$timestamps'
+				id='LightningChannel_TimestampsView-timestamps'
 			/>
 
 			<BlockheadLightningChannelStatesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadLightningChannelState>('$$localStates')}
+				selection={selection.$$localStates}
 				title='Local states'
 				emptyText='No local channel states.'
-				id='BlockheadLightningChannelStatesView-$$localStates'
+				id='BlockheadLightningChannelStatesView-local-states'
 			/>
 		{/if}
 	{/snippet}

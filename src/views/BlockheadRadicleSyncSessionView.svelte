@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -161,7 +161,7 @@
 				<dt>local node</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.BlockheadRadicleNodeState, false>('$localNode')}
+						resource={selection.$localNode}
 					>
 						{#snippet children(blockheadRadicleNodeState)}
 							{#if blockheadRadicleNodeState[EntityMetaKey.Selector] != null}
@@ -208,7 +208,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.RadicleRepository, false>('$repository')}
+				resource={selection.$repository}
 			>
 				{#snippet children(radicleRepository)}
 					{#if radicleRepository != null && radicleRepository[EntityMetaKey.Selector] != null}

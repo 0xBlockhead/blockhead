@@ -187,15 +187,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				stateRoot: (block) => block.stateRoot,
 				extrinsicsRoot: (block) => block.extrinsicsRoot,
 				$$extrinsics: (block) => block.$$extrinsics,
 				$$events: (block) => block.$$events,
-			},
-		}),
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
@@ -236,14 +234,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (extrinsic) => extrinsic.hash,
 				$signer: (extrinsic) => extrinsic.$signer,
 				$pallet: (extrinsic) => extrinsic.$pallet,
 				callName: (extrinsic) => extrinsic.callName,
 				success: (extrinsic) => extrinsic.success,
-			},
-		}),
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotEvent,
@@ -295,12 +291,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$extrinsic: (event) => event.$extrinsic,
 				$pallet: (event) => event.$pallet,
 				eventName: (event) => event.eventName,
-			},
-		}),
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotAccount,
@@ -327,12 +321,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (account) => account.$$timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotAccount_Timestamp,
@@ -353,14 +345,12 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$account: (timestamp) => timestamp.$account,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
 				nonce: (timestamp) => timestamp.nonce,
 				freeBalancePlancks: (timestamp) => timestamp.freeBalancePlancks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotPallet,
@@ -377,10 +367,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				index: (pallet) => pallet.index,
-			},
-		}),
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.Network,
@@ -407,12 +395,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$polkadotValidators: (validators) => validators.map((validator) => ({
-					[EntityMetaKey.Selector]: validator[EntityMetaKey.Selector],
-				})),
-			},
-		}),
+				Polkadot: {
+					$$validators: (validators) => validators.map((validator) => ({
+						[EntityMetaKey.Selector]: validator[EntityMetaKey.Selector],
+					})),
+				},
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
@@ -435,10 +423,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$parent: (parent) => parent,
-			},
-		}),
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
@@ -484,10 +470,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$extrinsics: (extrinsics) => extrinsics,
-			},
-		}),
+			}),
 
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.PolkadotBlock,
@@ -547,9 +531,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$events: (events) => events,
-			},
-		}),
+			}),
 	],
 }

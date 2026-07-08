@@ -4,13 +4,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { MarketAssetKind, MarketKind, marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType, marketKindByMarketKind } from '$/constants/Market.ts'
+	import { MarketAssetKind, marketAssetRouteLabelByKind, marketCoinInstanceRouteLabelByType, MarketKind, marketKindByMarketKind } from '$/constants/Market.ts'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { Source } from '$/sources/Source.ts'
 	import CoinView from '$/views/CoinView.svelte'
@@ -142,7 +142,7 @@
 						<dt>Latest derivative observation</dt>
 						<dd>
 							<ResourceBoundary
-								resource={selection[EntityProxyField]<EntityType.Market_Derivative_Timestamp>('$$derivativeTimestamps')({
+								resource={selection.$$derivativeTimestamps({
 									sources: [
 										Source.Coingecko_OpenApi,
 									],
@@ -268,7 +268,7 @@
 					{#if selection.entitySelector.marketKind === 'Spot'}
 						<MarketPricesView
 							selection={
-								selection[EntityProxyField]<EntityType.MarketPrice>('$$marketPrices', {
+								selection.$$marketPrices({
 									sources: [
 										Source.Constants_Internal,
 										Source.Coingecko_Rest,
@@ -292,7 +292,7 @@
 					{#if selection.entitySelector.marketKind === 'Spot'}
 						<Market_TimeInterval_TimestampsView
 							selection={
-								selection[EntityProxyField]<EntityType.Market_TimeInterval_Timestamp>('$$marketTimeIntervalTimestamps', {
+								selection.$$marketTimeIntervalTimestamps({
 									sources: [
 										Source.Coingecko_Rest,
 										Source.Coingecko_OpenApi,
@@ -312,7 +312,7 @@
 					{#if selection.entitySelector.marketKind !== 'Spot'}
 						<Market_Derivative_TimestampsView
 							selection={
-								selection[EntityProxyField]<EntityType.Market_Derivative_Timestamp>('$$derivativeTimestamps', {
+								selection.$$derivativeTimestamps({
 									sources: [
 										Source.Coingecko_OpenApi,
 									],

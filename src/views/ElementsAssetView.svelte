@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -385,20 +385,20 @@
 		{#if detailsOpen}
 			<ElementsAsset_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.ElementsAsset_Timestamp>('$$timestamps', {
+						selection.$$timestamps({
 							sources: [
 								Source.Esplora_Rest,
 							],
 						})
 					}
 				title='Observations'
-				id='ElementsAsset_TimestampsView-$$timestamps'
+				id='ElementsAsset_TimestampsView-timestamps'
 			/>
 
 			<ElementsIssuancesView
-				selection={selection[EntityProxyField]<EntityType.ElementsIssuance>('$$issuances')}
+				selection={selection.$$issuances}
 				title='Issuances'
-				id='ElementsIssuancesView-$$issuances'
+				id='ElementsIssuancesView-issuances'
 			/>
 		{/if}
 	{/snippet}

@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -108,7 +108,7 @@
 		<ResourceBoundary resource={starknetTransaction}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.StarknetBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(starknetBlock)}
 						{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
@@ -128,7 +128,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.StarknetBlock, false>('$block')}
+					resource={selection.$block}
 				>
 					{#snippet children(starknetBlock)}
 						{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
@@ -215,7 +215,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.StarknetBlock, false>('$block')}
+				resource={selection.$block}
 			>
 				{#snippet children(starknetBlock)}
 					{#if starknetBlock != null && starknetBlock[EntityMetaKey.Selector] != null}
@@ -441,17 +441,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<StarknetEventsView
-				selection={selection[EntityProxyField]<EntityType.StarknetEvent>('$$events')}
+				selection={selection.$$events}
 				title='events'
 				emptyText='No Starknet events.'
-				id='StarknetEventsView-$$events'
+				id='StarknetEventsView-events'
 			/>
 
 			<StarknetTransaction_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.StarknetTransaction_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Starknet transaction observations.'
-				id='StarknetTransaction_TimestampsView-$$timestamps'
+				id='StarknetTransaction_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

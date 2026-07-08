@@ -1,38 +1,33 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum EvmContractSourceBundleSelector {
 	EvmContract = 'EvmContract',
 }
-export default {
+export const EvmContractSourceBundle = entity({
 	entityType: EntityType.EvmContractSourceBundle,
 	label: 'EVM contract source bundle',
 	labelPlural: 'EVM contract source bundles',
-	selectors: [
-		{
-			name: EvmContractSourceBundleSelector.EvmContract,
-			fields: [
-				'$contract',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$contract',
-			label: 'Contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'files',
-			label: 'Files',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.One,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$contract: {
+		label: 'Contract',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EvmContract,
+		cardinality: EntityFieldCardinality.One,
+	},
+	files: {
+		label: 'Files',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.One,
+	},
+})({
+	selectors: {
+		EvmContract: [
+			'$contract',
+		],
+	},
+})

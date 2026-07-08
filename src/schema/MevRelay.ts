@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { Source } from '$/sources/Source.ts'
@@ -9,51 +9,44 @@ import { type } from 'arktype'
 export enum MevRelaySelector {
 	EvmNetworkHost = 'EvmNetworkHost',
 }
-export default {
+export const MevRelay = entity({
 	entityType: EntityType.MevRelay,
 	label: 'MEV relay',
 	labelPlural: 'MEV relays',
-	selectors: [
-		{
-			name: MevRelaySelector.EvmNetworkHost,
-			fields: [
-				'$network',
-				'host',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$network',
-			label: 'Network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmNetwork,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'host',
-			label: 'Host',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'url',
-			label: 'URL',
-			description: 'The URL for the source-domain resource.',
-			type: EntityFieldType.Primitive,
-			primitiveType: (UrlString),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$$timestamps',
-			label: 'Timestamps',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MevRelay_Timestamp,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.MevRelay_Rest,
-			],
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$network: {
+		label: 'Network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.One,
+	},
+	host: {
+		label: 'Host',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	url: {
+		label: 'URL',
+		description: 'The URL for the source-domain resource.',
+		type: EntityFieldType.Primitive,
+		primitiveType: (UrlString),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$$timestamps: {
+		label: 'Timestamps',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.MevRelay_Timestamp,
+		cardinality: EntityFieldCardinality.Many,
+		defaultSources: [
+			Source.MevRelay_Rest,
+		],
+	},
+})({
+	selectors: {
+		EvmNetworkHost: [
+			'$network',
+			'host',
+		],
+	},
+})

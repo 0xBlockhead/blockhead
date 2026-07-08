@@ -102,7 +102,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				namespace: (snapshot) => snapshot.namespace,
 				target: (snapshot) => snapshot.target,
 				contentPath: (snapshot) => snapshot.contentPath,
@@ -123,7 +122,6 @@ export default {
 				cidMultihashDigestHex: (snapshot) => snapshot.cidMultihashDigestHex,
 				isCidSubdomainSafe: (snapshot) => snapshot.isCidSubdomainSafe,
 				$media: (snapshot) => snapshot.$media,
-			},
-		}),
+			}),
 	],
 }

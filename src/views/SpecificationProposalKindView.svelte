@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -174,7 +174,7 @@
 				<dt>Specification realm</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.SpecificationRealm, false>('$specificationRealm')}
+						resource={selection.$specificationRealm}
 					>
 						{#snippet children(specificationRealm)}
 							{#if specificationRealm[EntityMetaKey.Selector] != null}
@@ -212,7 +212,7 @@
 					{@const resolvedEntity = { ...pendingEntity, ...entity }}
 					<SpecificationProposalsView
 						selection={
-								selection[EntityProxyField]<EntityType.SpecificationProposal>('$$proposals', {
+								selection.$$proposals({
 									sources: [
 										Source.BitcoinBips_Github,
 										Source.BitcoinCashChips_Gitlab,
@@ -236,7 +236,7 @@
 						emptyText='No proposals for this kind.'
 						filterRealm={selection.entitySelector.realm}
 						filterCategory={selection.entitySelector.category}
-						id='SpecificationProposalsView-$$proposals'
+						id='SpecificationProposalsView-proposals'
 					/>
 				{/snippet}
 			</ResourceBoundary>

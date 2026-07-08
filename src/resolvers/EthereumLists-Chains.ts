@@ -24,10 +24,10 @@ import type {
 	EthereumListsChainPairing,
 } from '$/sources/EthereumLists/Rest/types.ts'
 import { EvmNetworkBridgeSelector } from '$/schema/EvmNetworkBridge.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { _GlobalSelector } from '$/schema/_Global.ts'
 
-type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.EvmNetwork, EvmNetworkSelector.Caip2>
+type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
 
 const evmNetworkIdFromChainId = (chainId: number): EvmNetworkId => ({
 	caip2: {
@@ -329,18 +329,16 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$fromNetwork: (bridge) => bridge.$fromNetwork,
 				$toNetwork: (bridge) => bridge.$toNetwork,
 				url: (bridge) => bridge.url,
 				relationshipType: (bridge) => bridge.relationshipType,
-			},
-		}),
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chains = await fetchChainsJson()
 					const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
@@ -402,22 +400,21 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				iconUrl: (network) => network.iconUrl,
 				$icon: (network) => network.$icon,
-				registryStatus: (network) => network.registryStatus,
-				executionEndpoints: (network) => network.executionEndpoints,
-				$$rpcUrls: (network) => network.$$rpcUrls,
 				name: (network) => network.name,
-				$nativeCoin: (network) => network.$nativeCoin,
-				$nativeCoinInstance: (network) => network.$nativeCoinInstance,
-				peeringId: (network) => network.peeringId,
-				shortName: (network) => network.shortName,
-				slip44: (network) => network.slip44,
 				environment: (network) => network.environment,
-				$parent: (network) => network.$parent,
-			},
-		}),
+				Evm: {
+					registryStatus: (network) => network.registryStatus,
+					$$rpcUrls: (network) => network.$$rpcUrls,
+					$nativeCoin: (network) => network.$nativeCoin,
+					$nativeCoinInstance: (network) => network.$nativeCoinInstance,
+					peeringId: (network) => network.peeringId,
+					shortName: (network) => network.shortName,
+					slip44: (network) => network.slip44,
+					$parent: (network) => network.$parent
+				},
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
 			entityType: EntityType._Global,
@@ -429,15 +426,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$evmNetworks: (networks) => networks,
-			},
-		}),
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chain = (await fetchChainsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))
 					const parentMatch = chain?.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
@@ -462,15 +457,15 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$bridges: (bridges) => bridges,
-			},
-		}),
+				Evm: {
+					$$bridges: (bridges) => bridges
+				},
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chains = await fetchChainsJson()
 					const chainId = Number(caip2.reference)
@@ -487,15 +482,15 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$childLayers: (childLayers) => childLayers,
-			},
-		}),
+				Evm: {
+					$$childLayers: (childLayers) => childLayers
+				},
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chains = await fetchChainsJson()
 					const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
@@ -522,15 +517,15 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$testnets: (testnets) => testnets,
-			},
-		}),
+				Evm: {
+					$$testnets: (testnets) => testnets
+				},
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chains = await fetchChainsJson()
 					const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
@@ -565,15 +560,15 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$mainnet: (mainnet) => mainnet,
-			},
-		}),
+				Evm: {
+					$mainnet: (mainnet) => mainnet
+				},
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chains = await fetchChainsJson()
 					const chain = chains.find((listedChain) => listedChain.chainId === Number(caip2.reference))
@@ -601,15 +596,15 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$siblingShardNetworks: (siblingShardNetworks) => siblingShardNetworks,
-			},
-		}),
+				Evm: {
+					$$siblingShardNetworks: (siblingShardNetworks) => siblingShardNetworks
+				},
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chain = (await fetchChainsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))
 					if (chain == null) throw new Error('EthereumLists_Rest: network not in chains.json for block explorer URLs')
@@ -622,15 +617,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$blockExplorerUrls: (blockExplorerUrls) => blockExplorerUrls,
-			},
-		}),
+			}),
 
 		defineResolver(Source.EthereumLists_Rest, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
 					const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 					const chain = (await fetchChainsJson()).find((listedChain) => listedChain.chainId === Number(caip2.reference))
 					if (chain == null) throw new Error('EthereumLists_Rest: network not in chains.json for faucet URLs')
@@ -640,9 +633,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$faucetUrls: (faucetUrls) => faucetUrls,
-			},
-		}),
+			}),
 	],
 }

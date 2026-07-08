@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -151,7 +151,7 @@
 		<ResourceBoundary resource={zeroGDaNode}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.ZeroGDaQuorum, false>('$quorum')}
+					resource={selection.$quorum}
 				>
 					{#snippet children(zeroGDaQuorum)}
 						{#if zeroGDaQuorum != null && zeroGDaQuorum[EntityMetaKey.Selector] != null}
@@ -171,7 +171,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.ZeroGDaQuorum, false>('$quorum')}
+					resource={selection.$quorum}
 				>
 					{#snippet children(zeroGDaQuorum)}
 						{#if zeroGDaQuorum != null && zeroGDaQuorum[EntityMetaKey.Selector] != null}
@@ -253,7 +253,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.ZeroGDaQuorum, false>('$quorum')}
+				resource={selection.$quorum}
 			>
 				{#snippet children(zeroGDaQuorum)}
 					{#if zeroGDaQuorum != null && zeroGDaQuorum[EntityMetaKey.Selector] != null}
@@ -273,7 +273,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.EvmAccount, false>('$operator')}
+				resource={selection.$operator}
 			>
 				{#snippet children(evmAccount)}
 					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}

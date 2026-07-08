@@ -188,7 +188,7 @@
 			</div>
 
 			<div>
-				<dt>relationshipModel</dt>
+				<dt>Connection model</dt>
 				<dd>
 					<ResourceBoundary
 						resource={

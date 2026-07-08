@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -291,38 +291,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadRadicleNodeState_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadRadicleNodeState_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Radicle node-state observations.'
-				id='BlockheadRadicleNodeState_TimestampsView-$$timestamps'
+				id='BlockheadRadicleNodeState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadRadiclePeersView
-				selection={selection[EntityProxyField]<EntityType.BlockheadRadiclePeer>('$$peers')}
+				selection={selection.$$peers}
 				title='peers'
 				emptyText='No peers.'
-				id='BlockheadRadiclePeersView-$$peers'
+				id='BlockheadRadiclePeersView-peers'
 			/>
 
 			<BlockheadRadicleNodeInventory_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadRadicleNodeInventory_Timestamp>('$$inventoryTimestamps')}
+				selection={selection.$$inventoryTimestamps}
 				title='inventory timestamps'
 				emptyText='No inventory observations.'
-				id='BlockheadRadicleNodeInventory_TimestampsView-$$inventoryTimestamps'
+				id='BlockheadRadicleNodeInventory_TimestampsView-inventory-timestamps'
 			/>
 
 			<BlockheadRadicleSeedObservation_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadRadicleSeedObservation_Timestamp>('$$seedObservations')}
+				selection={selection.$$seedObservations}
 				title='seed observations'
 				emptyText='No seed observations.'
-				id='BlockheadRadicleSeedObservation_TimestampsView-$$seedObservations'
+				id='BlockheadRadicleSeedObservation_TimestampsView-seed-observations'
 			/>
 
 			<BlockheadRadicleSyncSessionsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadRadicleSyncSession>('$$syncSessions')}
+				selection={selection.$$syncSessions}
 				title='sync sessions'
 				emptyText='No sync sessions.'
-				id='BlockheadRadicleSyncSessionsView-$$syncSessions'
+				id='BlockheadRadicleSyncSessionsView-sync-sessions'
 			/>
 		{/if}
 	{/snippet}

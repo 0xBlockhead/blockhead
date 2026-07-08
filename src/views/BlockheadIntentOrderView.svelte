@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -220,7 +220,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadIntentQuote, false>('$quote')}
+				resource={selection.$quote}
 			>
 				{#snippet children(blockheadIntentQuote)}
 					{#if blockheadIntentQuote != null && blockheadIntentQuote[EntityMetaKey.Selector] != null}
@@ -240,7 +240,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadSessionAction, false>('$sessionAction')}
+				resource={selection.$sessionAction}
 			>
 				{#snippet children(blockheadSessionAction)}
 					{#if blockheadSessionAction != null && blockheadSessionAction[EntityMetaKey.Selector] != null}
@@ -396,10 +396,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadIntentOrder_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadIntentOrder_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No order observations.'
-				id='BlockheadIntentOrder_TimestampsView-$$timestamps'
+				id='BlockheadIntentOrder_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

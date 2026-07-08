@@ -314,11 +314,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (network) => network.name,
 				$settlementNetwork: (network) => network.$settlementNetwork,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
@@ -360,12 +358,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (node) => node.$$timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode_Timestamp,
@@ -394,7 +390,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$node: (timestamp) => timestamp.$node,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
@@ -402,8 +397,7 @@ export default {
 				color: (timestamp) => timestamp.color,
 				channelCount: (timestamp) => timestamp.channelCount,
 				networkAddresses: (timestamp) => timestamp.networkAddresses,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel,
@@ -417,15 +411,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$node1: (channel) => channel.$node1,
 				fundingTransactionId: (channel) => channel.fundingTransactionId,
 				fundingOutputIndex: (channel) => channel.fundingOutputIndex,
 				$$timestamps: (channel) => channel.$$timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningChannel_Timestamp,
@@ -440,14 +432,12 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$channel: (timestamp) => timestamp.$channel,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
 				status: (timestamp) => timestamp.status,
 				capacitySats: (timestamp) => timestamp.capacitySats,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningInvoice,
@@ -466,7 +456,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				paymentRequest: (invoice) => invoice.paymentRequest,
 				memo: (invoice) => invoice.memo,
 				valueMsat: (invoice) => invoice.valueMsat,
@@ -477,8 +466,7 @@ export default {
 				$$timestamps: (invoice) => invoice.$$timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningInvoice_Timestamp,
@@ -498,7 +486,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$invoice: (timestamp) => timestamp.$invoice,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
@@ -506,8 +493,7 @@ export default {
 				amountPaidMsat: (timestamp) => timestamp.amountPaidMsat,
 				settledAtMs: (timestamp) => timestamp.settledAtMs,
 				settleIndex: (timestamp) => timestamp.settleIndex,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningPayment,
@@ -526,7 +512,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				paymentRequest: (payment) => payment.paymentRequest,
 				valueMsat: (payment) => payment.valueMsat,
 				createdAtMs: (payment) => payment.createdAtMs,
@@ -534,8 +519,7 @@ export default {
 				$$timestamps: (payment) => payment.$$timestamps.map((timestamp) => ({
 					[EntityMetaKey.Selector]: timestamp[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.BlockheadLightningPayment_Timestamp,
@@ -555,7 +539,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$payment: (timestamp) => timestamp.$payment,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
@@ -563,8 +546,7 @@ export default {
 				feeMsat: (timestamp) => timestamp.feeMsat,
 				failureReason: (timestamp) => timestamp.failureReason,
 				preimage: (timestamp) => timestamp.preimage,
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -589,12 +571,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$nodes: (nodes) => nodes.map((node) => ({
 					[EntityMetaKey.Selector]: node[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -608,12 +588,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$channels: (channels) => channels.map((channel) => ({
 					[EntityMetaKey.Selector]: channel[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -635,12 +613,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$invoices: (invoices) => invoices.map((invoice) => ({
 					[EntityMetaKey.Selector]: invoice[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNetwork,
@@ -657,12 +633,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$payments: (payments) => payments.map((payment) => ({
 					[EntityMetaKey.Selector]: payment[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 		defineResolver(Source.LightningLnd_Rest, {
 			entityType: EntityType.LightningNode,
@@ -680,12 +654,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$channels: (channels) => channels.map((channel) => ({
 					[EntityMetaKey.Selector]: channel[EntityMetaKey.Selector],
 				})),
-			},
-		}),
+			}),
 
 	],
 }

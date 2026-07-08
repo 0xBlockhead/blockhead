@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -138,7 +138,7 @@
 				<dt>session</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.BlockheadSession, false>('$session')}
+						resource={selection.$session}
 					>
 						{#snippet children(blockheadSession)}
 							{#if blockheadSession[EntityMetaKey.Selector] != null}
@@ -342,7 +342,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BlockheadIntentInvocation, false>('$originInvocation')}
+				resource={selection.$originInvocation}
 			>
 				{#snippet children(blockheadIntentInvocation)}
 					{#if blockheadIntentInvocation != null && blockheadIntentInvocation[EntityMetaKey.Selector] != null}
@@ -366,38 +366,38 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadActionReadinessChecksView
-				selection={selection[EntityProxyField]<EntityType.BlockheadActionReadinessCheck>('$$readinessChecks')}
+				selection={selection.$$readinessChecks}
 				title='readiness checks'
 				emptyText='No readiness checks.'
-				id='BlockheadActionReadinessChecksView-$$readinessChecks'
+				id='BlockheadActionReadinessChecksView-readiness-checks'
 			/>
 
 			<BlockheadIntentQuotesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadIntentQuote>('$$quotes')}
+				selection={selection.$$quotes}
 				title='quotes'
 				emptyText='No quotes.'
-				id='BlockheadIntentQuotesView-$$quotes'
+				id='BlockheadIntentQuotesView-quotes'
 			/>
 
 			<BlockheadIntentOrdersView
-				selection={selection[EntityProxyField]<EntityType.BlockheadIntentOrder>('$$orders')}
+				selection={selection.$$orders}
 				title='orders'
 				emptyText='No orders.'
-				id='BlockheadIntentOrdersView-$$orders'
+				id='BlockheadIntentOrdersView-orders'
 			/>
 
 			<BlockheadWalletRequestsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadWalletRequest>('$$walletRequests')}
+				selection={selection.$$walletRequests}
 				title='wallet requests'
 				emptyText='No wallet requests.'
-				id='BlockheadWalletRequestsView-$$walletRequests'
+				id='BlockheadWalletRequestsView-wallet-requests'
 			/>
 
 			<BlockheadActionOutcomesView
-				selection={selection[EntityProxyField]<EntityType.BlockheadActionOutcome>('$$outcomes')}
+				selection={selection.$$outcomes}
 				title='outcomes'
 				emptyText='No outcomes.'
-				id='BlockheadActionOutcomesView-$$outcomes'
+				id='BlockheadActionOutcomesView-outcomes'
 			/>
 		{/if}
 	{/snippet}

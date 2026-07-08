@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -188,38 +188,38 @@
 		{#if detailsOpen}
 			<BittensorNetwork_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.BittensorNetwork_Timestamp>('$$timestamps', {
+						selection.$$timestamps({
 							sources: [
 								Source.Bittensor_JsonRpc,
 							],
 						})
 					}
 				title='Runtime observations'
-				id='BittensorNetwork_TimestampsView-$$timestamps'
+				id='BittensorNetwork_TimestampsView-timestamps'
 			/>
 
 			<BittensorBlocksView
 				selection={
-						selection[EntityProxyField]<EntityType.BittensorBlock>('$$blocks', {
+						selection.$$blocks({
 							sources: [
 								Source.Bittensor_JsonRpc,
 							],
 						})
 					}
 				title='Blocks'
-				id='BittensorBlocksView-$$blocks'
+				id='BittensorBlocksView-blocks'
 			/>
 
 			<BittensorSubnetsView
 				selection={
-						selection[EntityProxyField]<EntityType.BittensorSubnet>('$$subnets', {
+						selection.$$subnets({
 							sources: [
 								Source.Bittensor_JsonRpc,
 							],
 						})
 					}
 				title='Subnets'
-				id='BittensorSubnetsView-$$subnets'
+				id='BittensorSubnetsView-subnets'
 			/>
 		{/if}
 	{/snippet}

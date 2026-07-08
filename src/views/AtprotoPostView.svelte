@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -164,7 +164,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AtprotoActor, false>('$author')}
+					resource={selection.$author}
 				>
 					{#snippet children(atprotoActor)}
 						{#if atprotoActor != null && atprotoActor[EntityMetaKey.Selector] != null}
@@ -191,7 +191,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AtprotoPost, false>('$parent')}
+					resource={selection.$parent}
 				>
 					{#snippet children(atprotoPost)}
 						{#if atprotoPost != null && atprotoPost[EntityMetaKey.Selector] != null}
@@ -218,7 +218,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AtprotoPost, false>('$root')}
+					resource={selection.$root}
 				>
 					{#snippet children(atprotoPost)}
 						{#if atprotoPost != null && atprotoPost[EntityMetaKey.Selector] != null}
@@ -415,7 +415,7 @@
 		{#if detailsOpen}
 			<AtprotoPostsView
 				selection={
-						selection[EntityProxyField]<EntityType.AtprotoPost>('$$thread', {
+						selection.$$thread({
 							sources: [
 								Source.Atproto_Xrpc,
 							],
@@ -423,19 +423,19 @@
 					}
 				title='Thread posts'
 				href={resolve('/(social)/(atproto)/atproto/posts')}
-				id='AtprotoPostsView-$$thread'
+				id='AtprotoPostsView-thread'
 			/>
 
 			<AtprotoPost_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.AtprotoPost_Timestamp>('$$timestamps', {
+						selection.$$timestamps({
 							sources: [
 								Source.Atproto_Xrpc,
 							],
 						})
 					}
 				title='Metric observations'
-				id='AtprotoPost_TimestampsView-$$timestamps'
+				id='AtprotoPost_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

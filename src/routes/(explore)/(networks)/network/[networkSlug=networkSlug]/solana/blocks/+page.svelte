@@ -3,8 +3,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { Source } from '$/sources/Source.ts'
 
 
 	// Context
@@ -40,8 +40,13 @@
 		selection={
 			select(EntityType.Network, {
 				slug: params.networkSlug,
-			})[EntityProxyField]<EntityType.SolanaBlock>('$$solanaBlocks')
+			}).Solana.$$blocks({
+				sources: [
+					Source.Voltaire_JsonRpc,
+					Source.Blockscout_Rest,
+				],
+			})
 		}
-		id='solana-blocks'
+		id='blocks'
 	/>
 </Page>

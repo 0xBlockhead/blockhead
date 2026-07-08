@@ -144,10 +144,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$network: (network) => network.$network,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
@@ -170,10 +168,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$bigMaps: (bigMaps) => bigMaps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
@@ -207,10 +203,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$bigMapTimestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
@@ -263,10 +257,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$bigMapKeyTimestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosNetwork,
@@ -311,10 +303,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$bigMapKeys: (keys) => keys,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosContract,
@@ -335,11 +325,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$network: (contract) => contract.$network,
 				address: (contract) => contract.address,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosContract,
@@ -363,10 +351,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$bigMaps: (bigMaps) => bigMaps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosOperationGroup,
@@ -389,11 +375,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$network: (operationGroup) => operationGroup.$network,
 				operationHash: (operationGroup) => operationGroup.operationHash,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosOperationGroup,
@@ -418,10 +402,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$operations: (operations) => operations,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosOperation,
@@ -447,12 +429,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$operationGroup: (operation) => operation.$operationGroup,
 				contentIndex: (operation) => operation.contentIndex,
 				operationKind: (operation) => operation.operationKind,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosOperation,
@@ -491,10 +471,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$bigMapDiffs: (diffs) => diffs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMap,
@@ -512,14 +490,12 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$contract: (bigMap) => bigMap.$contract,
 				bigMapId: (bigMap) => bigMap.bigMapId,
 				path: (bigMap) => bigMap.path,
 				keyType: (bigMap) => bigMap.keyType,
 				valueType: (bigMap) => bigMap.valueType,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMap,
@@ -543,10 +519,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$keys: (keys) => keys,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMap,
@@ -571,10 +545,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMapKey,
@@ -600,10 +572,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMap_Timestamp,
@@ -645,7 +615,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$bigMap: (timestamp) => timestamp.$bigMap,
 				level: (timestamp) => timestamp.level,
 				source: (timestamp) => timestamp.source,
@@ -653,8 +622,7 @@ export default {
 				active: (timestamp) => timestamp.active,
 				keyCount: (timestamp) => timestamp.keyCount,
 				updateCount: (timestamp) => timestamp.updateCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMapDiff,
@@ -695,7 +663,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$operation: (diff) => diff.$operation,
 				bigMapId: (diff) => diff.bigMapId,
 				keyHash: (diff) => diff.keyHash,
@@ -703,8 +670,7 @@ export default {
 				key: (diff) => diff.key,
 				value: (diff) => diff.value,
 				$bigMap: (diff) => diff.$bigMap,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMapKey,
@@ -721,11 +687,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$bigMap: (key) => key.$bigMap,
 				keyHash: (key) => key.keyHash,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Tzkt_Rest, {
 			entityType: EntityType.TezosBigMapKey_Timestamp,
@@ -775,7 +739,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$bigMapKey: (timestamp) => timestamp.$bigMapKey,
 				level: (timestamp) => timestamp.level,
 				source: (timestamp) => timestamp.source,
@@ -786,7 +749,6 @@ export default {
 				lastLevel: (timestamp) => timestamp.lastLevel,
 				updateCount: (timestamp) => timestamp.updateCount,
 				active: (timestamp) => timestamp.active,
-			},
-		}),
+			}),
 	],
 }

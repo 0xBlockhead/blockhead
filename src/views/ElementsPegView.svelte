@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -213,7 +213,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.UtxoTransaction, false>('$bitcoinTransaction')}
+				resource={selection.$bitcoinTransaction}
 			>
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null && utxoTransaction[EntityMetaKey.Selector] != null}
@@ -239,7 +239,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.UtxoTransaction, false>('$elementsTransaction')}
+				resource={selection.$elementsTransaction}
 			>
 				{#snippet children(utxoTransaction)}
 					{#if utxoTransaction != null && utxoTransaction[EntityMetaKey.Selector] != null}
@@ -341,9 +341,9 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ElementsPeg_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.ElementsPeg_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='Observations'
-				id='ElementsPeg_TimestampsView-$$timestamps'
+				id='ElementsPeg_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

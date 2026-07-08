@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { caip2SelectorValueFromString } from '$/lib/caip2.ts'
 
@@ -41,8 +40,8 @@
 		selection={
 			select(EntityType.Network, {
 				caip2: caip2SelectorValueFromString(decodeURIComponent(params.caip2)),
-			})[EntityProxyField]<EntityType.CosmosValidator>('$$cosmosValidators')
+			}).Cosmos.$$validators
 		}
-		id='cosmos-validators'
+		id='validators'
 	/>
 </Page>

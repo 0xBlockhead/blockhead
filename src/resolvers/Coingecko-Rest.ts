@@ -143,13 +143,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				symbol: (coin) => coin.symbol,
 				name: (coin) => coin.name,
 				decimals: (coin) => coin.decimals,
 				$logo: (coin) => coin.$logo,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin_Timestamp,
@@ -181,13 +179,11 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				marketCapRank: (coinTimestamp) => coinTimestamp.marketCapRank,
 				marketCapUsd: (coinTimestamp) => coinTimestamp.marketCapUsd,
 				transport: (coinTimestamp) => coinTimestamp.transport,
 				providerAssetId: (coinTimestamp) => coinTimestamp.providerAssetId,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
@@ -250,7 +246,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				coinId: (coinInstance) => coinInstance.coinId,
 				name: (coinInstance) => coinInstance.name,
 				symbol: (coinInstance) => coinInstance.symbol,
@@ -258,8 +253,7 @@ export default {
 				caip19: (coinInstance) => coinInstance.caip19,
 				iconUrl: (coinInstance) => coinInstance.iconUrl,
 				$icon: (coinInstance) => coinInstance.$icon,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_Timestamp,
@@ -309,13 +303,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				price: (timestamp) => timestamp.price,
 				transport: (timestamp) => timestamp.transport,
 				providerAssetId: (timestamp) => timestamp.providerAssetId,
 				caip19: (timestamp) => timestamp.caip19,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -360,13 +352,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				open: (timestamp) => timestamp.open,
 				high: (timestamp) => timestamp.high,
 				low: (timestamp) => timestamp.low,
 				close: (timestamp) => timestamp.close,
-			},
-		}),
+			}),
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
 			resolve: {
@@ -407,10 +397,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$coins: (globalScope) => globalScope,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
@@ -449,10 +437,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (coinTimestamps) => coinTimestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
@@ -470,10 +456,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$markets: (globalScope) => globalScope,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
@@ -510,10 +494,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketPrices: (globalScope) => globalScope,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType._Global,
@@ -562,10 +544,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketTimeIntervalTimestamps: (globalScope) => globalScope,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
@@ -584,10 +564,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$coinInstances: (coin) => coin,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
@@ -612,10 +590,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				representation: (coinInstance) => coinInstance,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.EvmCoinInstance,
@@ -642,10 +618,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$canonicalInstance: (coinInstance) => coinInstance,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
@@ -661,10 +635,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCoinAsBase: (coin) => coin,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Coin,
@@ -685,10 +657,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCoinAsQuote: (coin) => coin,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Currency,
@@ -710,10 +680,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCurrencyAsQuote: (currency) => currency,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Currency,
@@ -730,10 +698,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketsWithCurrencyAsBase: (currency) => currency,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market,
@@ -750,10 +716,8 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$baseCoin: (market) => market,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market,
@@ -776,10 +740,8 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$$marketPrices: (market) => market,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market,
@@ -822,10 +784,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$marketTimeIntervalTimestamps: (market) => market,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -857,10 +817,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$quotes: (marketPrice) => marketPrice,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.MarketPrice,
@@ -872,10 +830,8 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$parentMarket: (marketPrice) => marketPrice,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Coingecko_Rest, {
 			entityType: EntityType.Market_TimeInterval_Timestamp,
@@ -887,9 +843,7 @@ export default {
 				)
 			},
 		})({
-			fields: {
 				$parentMarket: (timestamp) => timestamp,
-			},
-		}),
+			}),
 	],
 }

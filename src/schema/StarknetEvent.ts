@@ -1,60 +1,52 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum StarknetEventSelector {
 	TransactionEventIndex = 'TransactionEventIndex',
 }
-export default {
+export const StarknetEvent = entity({
 	entityType: EntityType.StarknetEvent,
 	label: 'starknet event',
 	labelPlural: 'starknet events',
-	selectors: [
-		{
-			name: StarknetEventSelector.TransactionEventIndex,
-			fields: [
-				'$transaction',
-				'eventIndex',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$transaction',
-			label: 'transaction',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.StarknetTransaction,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'eventIndex',
-			label: 'event index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$fromContract',
-			label: 'from contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.StarknetContract,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'keys',
-			label: 'keys',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: 'data',
-			label: 'data',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$transaction: {
+		label: 'transaction',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.StarknetTransaction,
+		cardinality: EntityFieldCardinality.One,
+	},
+	eventIndex: {
+		label: 'event index',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$fromContract: {
+		label: 'from contract',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.StarknetContract,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	keys: {
+		label: 'keys',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.Many,
+	},
+	data: {
+		label: 'data',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		TransactionEventIndex: [
+			'$transaction',
+			'eventIndex',
+		],
+	},
+})

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -197,7 +197,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.FilecoinActor, false>('$owner', {
+					selection.$owner({
 						sources: [
 							Source.Lotus_JsonRpc,
 							Source.Filfox_Rest,
@@ -224,7 +224,7 @@
 
 			<ResourceBoundary
 				resource={
-					selection[EntityProxyField]<EntityType.FilecoinActor, false>('$worker', {
+					selection.$worker({
 						sources: [
 							Source.Lotus_JsonRpc,
 							Source.Filfox_Rest,
@@ -333,14 +333,14 @@
 		{#if detailsOpen}
 			<FilecoinSectorsView
 				selection={
-						selection[EntityProxyField]<EntityType.FilecoinSector>('$$sectors', {
+						selection.$$sectors({
 							sources: [
 								Source.Lotus_JsonRpc,
 							],
 						})
 					}
 				title='Sectors'
-				id='FilecoinSectorsView-$$sectors'
+				id='FilecoinSectorsView-sectors'
 			/>
 		{/if}
 	{/snippet}

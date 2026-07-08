@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { UrlString } from '$/schema/UrlString.ts'
 import { type } from 'arktype'
@@ -11,132 +11,107 @@ export enum AiDatasetSelector {
 	SourceDatasetNameDatasetDigest = 'SourceDatasetNameDatasetDigest',
 	Artifact = 'Artifact',
 }
-export default {
+export const AiDataset = entity({
 	entityType: EntityType.AiDataset,
 	label: 'AI dataset',
 	labelPlural: 'AI datasets',
-	selectors: [
-		{
-			name: AiDatasetSelector.DatasetUri,
-			fields: [
-				'datasetUri',
-			],
-		},
-		{
-			name: AiDatasetSelector.HuggingFaceDatasetIdRevision,
-			fields: [
-				'huggingFaceDatasetId',
-				'revision',
-			],
-		},
-		{
-			name: AiDatasetSelector.SourceDatasetNameDatasetDigest,
-			fields: [
-				'source',
-				'datasetName',
-				'datasetDigest',
-			],
-		},
-		{
-			name: AiDatasetSelector.Artifact,
-			fields: [
-				'$artifact',
-			],
-		},
-	],
-	fields: [
-		{
-			name: 'datasetUri',
-			label: 'dataset URI',
-			type: EntityFieldType.Primitive,
-			primitiveType: (UrlString),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'huggingFaceDatasetId',
-			label: 'hugging face dataset ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'revision',
-			label: 'revision',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'datasetName',
-			label: 'dataset name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'datasetDigest',
-			label: 'dataset digest',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$artifact',
-			label: 'artifact',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.AiArtifact,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'label',
-			label: 'Label',
-			description: 'A human-readable name for the subject.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'license',
-			label: 'license',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'modality',
-			label: 'modality',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'version',
-			label: 'version',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'isLiveDataset',
-			label: 'is live dataset',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$$documents',
-			label: 'documents',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.AiDocument,
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	datasetUri: {
+		label: 'dataset URI',
+		type: EntityFieldType.Primitive,
+		primitiveType: (UrlString),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	huggingFaceDatasetId: {
+		label: 'hugging face dataset ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	revision: {
+		label: 'revision',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	datasetName: {
+		label: 'dataset name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	datasetDigest: {
+		label: 'dataset digest',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$artifact: {
+		label: 'artifact',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.AiArtifact,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	label: {
+		label: 'Label',
+		description: 'A human-readable name for the subject.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	license: {
+		label: 'license',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	modality: {
+		label: 'modality',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	version: {
+		label: 'version',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	isLiveDataset: {
+		label: 'is live dataset',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('boolean'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$$documents: {
+		label: 'documents',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.AiDocument,
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		DatasetUri: [
+			'datasetUri',
+		],
+		HuggingFaceDatasetIdRevision: [
+			'huggingFaceDatasetId',
+			'revision',
+		],
+		SourceDatasetNameDatasetDigest: [
+			'source',
+			'datasetName',
+			'datasetDigest',
+		],
+		Artifact: [
+			'$artifact',
+		],
+	},
+})

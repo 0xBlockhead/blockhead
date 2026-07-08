@@ -102,12 +102,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				name: (snapshot) => snapshot.name,
 				environment: (snapshot) => snapshot.environment,
 				$icon: (snapshot) => snapshot.$icon,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.AssetInstance,
@@ -124,12 +122,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (snapshot) => snapshot.name,
 				symbol: (snapshot) => snapshot.symbol,
 				decimals: (snapshot) => snapshot.decimals,
-			},
-		}),
+			}),
 
 		defineResolver(Source.CosmosChainRegistry_Github, {
 			entityType: EntityType.Network,
@@ -156,9 +152,7 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$nativeAssets: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

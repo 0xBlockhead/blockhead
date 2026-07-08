@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -223,7 +223,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.YoutubeChannel, false>('$author')}
+					resource={selection.$author}
 				>
 					{#snippet children(youtubeChannel)}
 						{#if youtubeChannel != null && youtubeChannel[EntityMetaKey.Selector] != null}
@@ -249,7 +249,7 @@
 		{#if detailsOpen}
 			<YoutubeCommentsView
 				selection={
-						selection[EntityProxyField]<EntityType.YoutubeComment>('$$comments', {
+						selection.$$comments({
 							sources: [
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
@@ -257,7 +257,7 @@
 						})
 					}
 				title='Comments'
-				id='YoutubeCommentsView-$$comments'
+				id='YoutubeCommentsView-comments'
 			/>
 		{/if}
 	{/snippet}

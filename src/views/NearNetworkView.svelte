@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -167,38 +167,38 @@
 		{#if detailsOpen}
 			<NearNetwork_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.NearNetwork_Timestamp>('$$timestamps', {
+						selection.$$timestamps({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
 				title='Observations'
-				id='NearNetwork_TimestampsView-$$timestamps'
+				id='NearNetwork_TimestampsView-timestamps'
 			/>
 
 			<NearBlocksView
 				selection={
-						selection[EntityProxyField]<EntityType.NearBlock>('$$blocks', {
+						selection.$$blocks({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
 				title='Blocks'
-				id='NearBlocksView-$$blocks'
+				id='NearBlocksView-blocks'
 			/>
 
 			<NearValidatorsView
 				selection={
-						selection[EntityProxyField]<EntityType.NearValidator>('$$validators', {
+						selection.$$validators({
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
 						})
 					}
 				title='Validators'
-				id='NearValidatorsView-$$validators'
+				id='NearValidatorsView-validators'
 			/>
 		{/if}
 	{/snippet}

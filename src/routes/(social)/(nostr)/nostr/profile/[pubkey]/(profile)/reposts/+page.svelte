@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -40,7 +39,7 @@
 		}
 		title='Profile reposts'
 		selection={
-			select(EntityType.NostrProfile, data.selector)[EntityProxyField]<EntityType.NostrRepost>('$$reposts', {
+			select(EntityType.NostrProfile, data.selector).$$reposts({
 				sources: [
 					Source.Constants_Internal,
 					Source.NostrBand_Rest,

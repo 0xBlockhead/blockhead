@@ -61,13 +61,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (snapshot) => snapshot.hash,
 				$parent: (snapshot) => snapshot.$parent,
 				stateRoot: (snapshot) => snapshot.stateRoot,
 				extrinsicsRoot: (snapshot) => snapshot.extrinsicsRoot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Subscan_Rest, {
 			entityType: EntityType.PolkadotExtrinsic,
@@ -104,13 +102,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (snapshot) => snapshot.hash,
 				$signer: (snapshot) => snapshot.$signer,
 				$pallet: (snapshot) => snapshot.$pallet,
 				callName: (snapshot) => snapshot.callName,
 				success: (snapshot) => snapshot.success,
-			},
-		}),
+			}),
 	],
 }

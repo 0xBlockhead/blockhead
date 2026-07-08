@@ -35,7 +35,7 @@ import type {
 	VoltaireTxRpc,
 } from '$/sources/Voltaire/JsonRpc/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
-import { EvmNetworkSelector } from '$/schema/EvmNetwork.ts'
+import { NetworkSelector } from '$/schema/Network.ts'
 import { EvmBlockSelector } from '$/schema/EvmBlock.ts'
 import { EvmBlobSelector } from '$/schema/EvmBlob.ts'
 import { EvmNetwork_GasFee_BlockSelector } from '$/schema/EvmNetwork_GasFee_Block.ts'
@@ -48,7 +48,8 @@ import { EvmLogSelector } from '$/schema/EvmLog.ts'
 import { EvmAccountSelector } from '$/schema/EvmAccount.ts'
 import { EvmContractSelector } from '$/schema/EvmContract.ts'
 
-type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.EvmNetwork, EvmNetworkSelector.Caip2>
+type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
+type NetworkCaip2Id = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
 
 type EvmTraceTree = {
 	index: number
@@ -100,7 +101,7 @@ const evmTraceTreeFromVoltaireCallTrace = (
 	}),
 })
 
-const chainIdFromEvmNetworkId = (network: EvmNetworkId) => Number(network.caip2.reference)
+const chainIdFromEvmNetworkId = (network: EvmNetworkId | NetworkCaip2Id) => Number(network.caip2.reference)
 
 const evmContractRuntimeCodeFromGetCodeHex = (
 	codeHex: `0x${string}`
@@ -479,7 +480,7 @@ const priorityRewardAt50thFromFeeHistoryAt = (
 )
 
 const networkGasFeeBlockRefsFromFeeHistory = (
-	networkEntitySelector: EntitySelector<typeof schema, EntityType.EvmNetwork>,
+	networkEntitySelector: EntitySelector<typeof schema, EntityType.Network>,
 	feeHistory: {
 		oldestBlock: string
 		gasUsedRatio: readonly (number | string)[]
@@ -698,7 +699,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				blockNumber: (entity) => entity.blockNumber,
 				hash: (entity) => entity.hash,
 				parentHash: (entity) => entity.parentHash,
@@ -712,8 +712,7 @@ export default {
 				$parent: (entity) => entity.$parent,
 				$miner: (entity) => entity.$miner,
 				$$transactions: (entity) => entity.$$transactions,
-			},
-		}),
+			}),
 
 				defineResolver(Source.Voltaire_JsonRpc, {
 					entityType: EntityType.EvmBlob,
@@ -767,7 +766,6 @@ export default {
 						}
 					},
 				})({
-				fields: {
 					indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
 					versionedHash: (entity) => entity.versionedHash,
 						$transaction: (entity) => ({
@@ -776,8 +774,7 @@ export default {
 						$block: (entity) => ({
 							[EntityMetaKey.Selector]: entity.$block[EntityMetaKey.Selector],
 						}),
-					},
-				}),
+					}),
 
 			defineResolver(Source.Voltaire_JsonRpc, {
 				entityType: EntityType.EvmBlob,
@@ -819,12 +816,10 @@ export default {
 					}
 				},
 			})({
-				fields: {
 					$block: (entity) => ({
 						[EntityMetaKey.Selector]: entity.$block[EntityMetaKey.Selector],
 					}),
-				},
-			}),
+				}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork_GasFee_Block,
@@ -894,7 +889,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				baseFeePerGas: (gasFeeBlock) => gasFeeBlock.baseFeePerGas,
 				legacyGasPrice: (gasFeeBlock) => gasFeeBlock.legacyGasPrice,
 				maxPriorityFeePerGas: (gasFeeBlock) => gasFeeBlock.maxPriorityFeePerGas,
@@ -902,8 +896,7 @@ export default {
 				priorityFeeRewardAt50thPercentile: (gasFeeBlock) => gasFeeBlock.priorityFeeRewardAt50thPercentile,
 				baseFeePerBlobGas: (gasFeeBlock) => gasFeeBlock.baseFeePerBlobGas,
 				blobGasUsedRatio: (gasFeeBlock) => gasFeeBlock.blobGasUsedRatio,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmNetwork_Txpool_Timestamp,
@@ -933,11 +926,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				pendingCount: (txpool) => txpool.pendingCount,
 				queuedCount: (txpool) => txpool.queuedCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EnsName,
@@ -954,11 +945,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (entity) => entity.name,
 				normalizedName: (entity) => entity.normalizedName,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmActorCoinAllowance,
@@ -977,7 +966,6 @@ export default {
 				})
 			},
 		})({
-			fields: {
 				$actor: (allowance) => ({
 					[EntityMetaKey.Selector]: allowance.$actor,
 				}),
@@ -989,8 +977,7 @@ export default {
 					[EntityMetaKey.Selector]: allowance.$spender,
 				}),
 				interopAddress: (allowance) => allowance.interopAddress,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
@@ -1297,7 +1284,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$block: (entity) => entity.$block,
 				$from: (entity) => entity.$from,
 				$to: (entity) => entity.$to,
@@ -1326,8 +1312,7 @@ export default {
 				})),
 				traceRoot: (entity) => entity.traceRoot,
 				traceUnavailable: (entity) => entity.traceUnavailable,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmLog,
@@ -1351,7 +1336,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$topics: (entity) => entity.$$topics,
 				indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
 				$transaction: (entity) => (
@@ -1380,25 +1364,11 @@ export default {
 							[EntityMetaKey.Selector]: entity.$emitter[EntityMetaKey.Selector],
 						}
 				),
-			},
-		}),
+			}),
 		defineResolver(Source.Voltaire_JsonRpc, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async ({ caip2 }) => {
-					const { executionEndpointsByChainId } = await import('$/sources/Voltaire/JsonRpc/executionEndpoints.ts')
-					return executionEndpointsByChainId[Number(caip2.reference)] ?? []
-				},
-			},
-		})({
-			fields: {
-				executionEndpoints: (executionEndpoints) => executionEndpoints,
-			},
-		}),
-		defineResolver(Source.Voltaire_JsonRpc, {
-			entityType: EntityType.EvmNetwork,
-			resolve: {
-				[EvmNetworkSelector.Caip2]: async () => ({}),
+				[NetworkSelector.Caip2]: async () => ({}),
 			},
 			resolveLive: {
 				blockStream: {
@@ -1594,16 +1564,16 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				'$$timestamps': {},
-				'$$blocks': {},
-				'$$transactions': {},
-				'$$contracts': {},
-				'$$blobs': {},
-				'$$beaconEpochs': {},
-				'$$beaconSlots': {},
-			},
-		}),
+				Evm: {
+					'$$timestamps': {},
+					'$$blocks': {},
+					'$$transactions': {},
+					'$$contracts': {},
+					'$$blobs': {},
+					'$$beaconEpochs': {},
+					'$$beaconSlots': {},
+				},
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmAccount,
@@ -1629,15 +1599,13 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					$primaryName: (entity) => entity,
-				},
-			}),
+				}),
 
 			defineResolver(Source.Voltaire_JsonRpc, {
-				entityType: EntityType.EvmNetwork,
+				entityType: EntityType.Network,
 				resolve: {
-					[EvmNetworkSelector.Caip2]: async (entitySelector) => {
+					[NetworkSelector.Caip2]: async (entitySelector) => {
 						const { getChainHeadNumberForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
 						const jsonRpcTransports = (await voltaireJsonRpcTransportsWithOriginsByChainId())[chainIdFromEvmNetworkId(entitySelector)] ?? []
 						if (jsonRpcTransports.length === 0) throw new Error(`Voltaire_JsonRpc: no JSON-RPC URL for Network.$$timestamps on chain ${String(chainIdFromEvmNetworkId(entitySelector))}`)
@@ -1660,10 +1628,10 @@ export default {
 					}
 				},
 			})({
-				fields: {
-					$$timestamps: (entity) => entity,
-				},
-			}),
+					Evm: {
+						$$timestamps: (entity) => entity,
+					},
+				}),
 
 			defineResolver(Source.Voltaire_JsonRpc, {
 				entityType: EntityType.EvmNetwork_Timestamp,
@@ -1688,15 +1656,13 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				blockHeight: (entity) => entity.blockHeight,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
+				[NetworkSelector.Caip2]: async (entitySelector, context) => {
 					const { getFeeHistory } = await import('$/sources/Evm/JsonRpc/queries.ts')
 					const blockCount = Math.min(
 						32,
@@ -1723,15 +1689,15 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$gasFeeBlocks: (entity) => entity,
-			},
-		}),
+				Evm: {
+					$$gasFeeBlocks: (entity) => entity,
+				},
+			}),
 
 			defineResolver(Source.Voltaire_JsonRpc, {
-				entityType: EntityType.EvmNetwork,
+				entityType: EntityType.Network,
 				resolve: {
-					[EvmNetworkSelector.Caip2]: async (entitySelector) => {
+					[NetworkSelector.Caip2]: async (entitySelector) => {
 						const { getTxpoolStatus } = await import('$/sources/Evm/JsonRpc/queries.ts')
 						const jsonRpcTransports = (await voltaireJsonRpcTransportsWithOriginsByChainId())[chainIdFromEvmNetworkId(entitySelector)] ?? []
 						for (const jsonRpcTransport of jsonRpcTransports) {
@@ -1759,15 +1725,15 @@ export default {
 					}
 				},
 			})({
-				fields: {
-				$$txpoolTimestamps: (entity) => entity,
-			},
-		}),
+				Evm: {
+					$$txpoolTimestamps: (entity) => entity,
+				},
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
+				[NetworkSelector.Caip2]: async (entitySelector, context) => {
 					const subsetRowLimit = resolverContextRowLimit(context)
 					const {
 						getRecentBlockWiresForRpcUrl,
@@ -1805,15 +1771,15 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$blocks: (entity) => entity,
-			},
-		}),
+				Evm: {
+					$$blocks: (entity) => entity,
+				},
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector) => {
+				[NetworkSelector.Caip2]: async (entitySelector) => {
 					const {
 						getChainHeadNumberForRpcUrl,
 					} = await import('$/sources/Voltaire/JsonRpc/queries.ts')
@@ -1832,17 +1798,17 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$blocks: {
-					resolveCount: (count) => count,
+				Evm: {
+					$$blocks: {
+						resolveCount: (count) => count,
+					},
 				},
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
-			entityType: EntityType.EvmNetwork,
+			entityType: EntityType.Network,
 			resolve: {
-				[EvmNetworkSelector.Caip2]: async (entitySelector, context) => {
+				[NetworkSelector.Caip2]: async (entitySelector, context) => {
 					const subsetRowLimit = resolverContextRowLimit(context)
 					const {
 						getBlockByNumberForRpcUrl,
@@ -1871,10 +1837,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
-				$$blobs: (entity) => entity,
-			},
-		}),
+				Evm: {
+					$$blobs: (entity) => entity,
+				},
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
@@ -1897,10 +1863,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$blobs: (entity) => entity,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmTransaction,
@@ -1936,10 +1900,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$logs: (entity) => entity,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmBlock,
@@ -1964,10 +1926,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$transactions: (entity) => entity,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmAccount,
@@ -2015,11 +1975,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$avatar: (entity) => entity.$avatar,
 				avatarUrl: (entity) => entity.avatarUrl,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmContract,
@@ -2055,10 +2013,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				storageSlotReads: (entity) => entity,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmContract,
@@ -2087,10 +2043,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				code: (entity) => entity,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.EvmContract,
@@ -2119,9 +2073,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				codeHash: (entity) => entity,
-			},
-		}),
+			}),
 	],
 }

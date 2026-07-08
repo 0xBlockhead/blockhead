@@ -1,81 +1,70 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum SuiProgrammableTransactionCommandSelector {
 	TransactionCommandIndex = 'TransactionCommandIndex',
 }
-export default {
+export const SuiProgrammableTransactionCommand = entity({
 	entityType: EntityType.SuiProgrammableTransactionCommand,
 	label: 'sui programmable transaction command',
 	labelPlural: 'sui programmable transaction commands',
-	selectors: [
-		{
-			name: SuiProgrammableTransactionCommandSelector.TransactionCommandIndex,
-			fields: [
-				'$transaction',
-				'commandIndex',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$transaction',
-			label: 'transaction',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.SuiTransaction,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'commandIndex',
-			label: 'command index',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'commandKind',
-			label: 'command kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'packageId',
-			label: 'package ID',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'moduleName',
-			label: 'module name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'functionName',
-			label: 'function name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'typeArguments',
-			label: 'type arguments',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.Many,
-		},
-		{
-			name: 'arguments',
-			label: 'arguments',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$transaction: {
+		label: 'transaction',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.SuiTransaction,
+		cardinality: EntityFieldCardinality.One,
+	},
+	commandIndex: {
+		label: 'command index',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	commandKind: {
+		label: 'command kind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	packageId: {
+		label: 'package ID',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	moduleName: {
+		label: 'module name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	functionName: {
+		label: 'function name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	typeArguments: {
+		label: 'type arguments',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.Many,
+	},
+	arguments: {
+		label: 'arguments',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		TransactionCommandIndex: [
+			'$transaction',
+			'commandIndex',
+		],
+	},
+})

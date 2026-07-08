@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -119,7 +119,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection[EntityProxyField]<EntityType.Currency_Timestamp>('$$timestamps', {
+							selection.$$timestamps({
 								sources: [
 									Source.Constants_Internal,
 								],
@@ -312,7 +312,7 @@
 
 				{#snippet SectionMarketsWithCurrencyAsBase({ id, label, open })}
 					<MarketsView
-						selection={selection[EntityProxyField]<EntityType.Market>('$$marketsWithCurrencyAsBase')}
+						selection={selection.$$marketsWithCurrencyAsBase}
 						href={resolve('/(assets)/markets')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -323,7 +323,7 @@
 
 				{#snippet SectionMarketsWithCurrencyAsQuote({ id, label, open })}
 					<MarketsView
-						selection={selection[EntityProxyField]<EntityType.Market>('$$marketsWithCurrencyAsQuote')}
+						selection={selection.$$marketsWithCurrencyAsQuote}
 						href={resolve('/(assets)/markets')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}

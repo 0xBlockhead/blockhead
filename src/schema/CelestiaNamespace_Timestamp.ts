@@ -1,79 +1,69 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum CelestiaNamespace_TimestampSelector {
 	NamespaceTimestampMsSource = 'NamespaceTimestampMsSource',
 }
-export default {
+export const CelestiaNamespace_Timestamp = entity({
 	entityType: EntityType.CelestiaNamespace_Timestamp,
 	label: 'celestia namespace timestamp',
 	labelPlural: 'celestia namespace observations',
-	selectors: [
-		{
-			name: CelestiaNamespace_TimestampSelector.NamespaceTimestampMsSource,
-			fields: [
-				'$namespace',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$namespace',
-			label: 'Namespace',
-			description: 'The namespace that qualifies the identifier.',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CelestiaNamespace,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'height',
-			label: 'Height',
-			description: 'The block or ledger height in its network.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'blobCount',
-			label: 'blob count',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'observedStartHeight',
-			label: 'observed start height',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'observedEndHeight',
-			label: 'observed end height',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$namespace: {
+		label: 'Namespace',
+		description: 'The namespace that qualifies the identifier.',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.CelestiaNamespace,
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	height: {
+		label: 'Height',
+		description: 'The block or ledger height in its network.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	blobCount: {
+		label: 'blob count',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	observedStartHeight: {
+		label: 'observed start height',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	observedEndHeight: {
+		label: 'observed end height',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('bigint'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		NamespaceTimestampMsSource: [
+			'$namespace',
+			'timestampMs',
+			'source',
+		],
+	},
+})

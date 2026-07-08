@@ -3,7 +3,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { EntityProxyField } from '$/client/$proxy.svelte.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { Source } from '$/sources/Source.ts'
 
@@ -41,13 +40,13 @@
 		selection={
 			select(EntityType.Network, {
 				slug: params.networkSlug,
-			})[EntityProxyField]<EntityType.UtxoBlock>('$$utxoBlocks', {
+			}).Utxo.$$blocks({
 				sources: [
-					Source.MempoolSpace_Rest,
-					Source.Blockchair_Rest,
+					Source.Voltaire_JsonRpc,
+					Source.Blockscout_Rest,
 				],
 			})
 		}
-		id='utxo-blocks'
+		id='blocks'
 	/>
 </Page>

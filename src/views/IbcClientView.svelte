@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -399,17 +399,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<IbcConnectionsView
-				selection={selection[EntityProxyField]<EntityType.IbcConnection>('$$connections')}
+				selection={selection.$$connections}
 				title='Connections'
 				emptyText='No IBC connections.'
-				id='IbcConnectionsView-$$connections'
+				id='IbcConnectionsView-connections'
 			/>
 
 			<IbcChannelsView
-				selection={selection[EntityProxyField]<EntityType.IbcChannel>('$$channels')}
+				selection={selection.$$channels}
 				title='Channels'
 				emptyText='No IBC channels.'
-				id='IbcChannelsView-$$channels'
+				id='IbcChannelsView-channels'
 			/>
 		{/if}
 	{/snippet}

@@ -41,7 +41,6 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			title: (snapshot) => snapshot.title,
 			description: (snapshot) => snapshot.description,
 			link: (snapshot) => snapshot.link,
@@ -49,8 +48,7 @@ export default {
 			language: (snapshot) => snapshot.language,
 			lastBuildDate: (snapshot) => snapshot.lastBuildDate,
 			imageUrl: (snapshot) => snapshot.imageUrl,
-		},
-			}),
+		}),
 
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssItem,
@@ -91,7 +89,6 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			title: (snapshot) => snapshot.title,
 			link: (snapshot) => snapshot.link,
 			description: (snapshot) => snapshot.description,
@@ -103,8 +100,7 @@ export default {
 			enclosureUrl: (snapshot) => snapshot.enclosureUrl,
 			commentsUrl: (snapshot) => snapshot.commentsUrl,
 			$feed: (snapshot) => snapshot.$feed,
-		},
-			}),
+		}),
 
 			defineResolver(Source.Rss_Rest, {
 				entityType: EntityType.RssNetwork,
@@ -136,10 +132,8 @@ export default {
 			}
 			}
 		    })({
-					fields: {
 				$$observedItems: (snapshot) => snapshot,
-			},
-				}),
+			}),
 
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssFeed,
@@ -164,10 +158,8 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			$$items: (snapshot) => snapshot,
-		},
-			}),
+		}),
 
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssFeed_Timestamp,
@@ -184,12 +176,10 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			reachable: (snapshot) => snapshot.reachable,
 			observedItemCount: (snapshot) => snapshot.observedItemCount,
 			fetchWindowKind: (snapshot) => snapshot.fetchWindowKind,
-		},
-			}),
+		}),
 
 		defineResolver(Source.Rss_Rest, {
 			entityType: EntityType.RssItem_Timestamp,
@@ -212,11 +202,9 @@ export default {
 			}
 			}
 		})({
-				fields: {
 			title: (snapshot) => snapshot.title,
 			link: (snapshot) => snapshot.link,
 			publishedAt: (snapshot) => snapshot.publishedAt,
-		},
-			}),
+		}),
 	],
 }

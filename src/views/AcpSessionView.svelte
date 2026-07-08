@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -92,7 +92,7 @@
 		<ResourceBoundary resource={acpSession}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AcpAgentRuntime, false>('$runtime')}
+					resource={selection.$runtime}
 				>
 					{#snippet children(acpAgentRuntime)}
 						{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
@@ -110,7 +110,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.AcpAgentRuntime, false>('$runtime')}
+					resource={selection.$runtime}
 				>
 					{#snippet children(acpAgentRuntime)}
 						{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
@@ -197,7 +197,7 @@
 			</div>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.AcpAgentRuntime, false>('$runtime')}
+				resource={selection.$runtime}
 			>
 				{#snippet children(acpAgentRuntime)}
 					{#if acpAgentRuntime != null && acpAgentRuntime[EntityMetaKey.Selector] != null}
@@ -517,10 +517,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AcpPromptTurnsView
-				selection={selection[EntityProxyField]<EntityType.AcpPromptTurn>('$$promptTurns')}
+				selection={selection.$$promptTurns}
 				title='prompt turns'
 				emptyText='No ACP prompt turns.'
-				id='AcpPromptTurnsView-$$promptTurns'
+				id='AcpPromptTurnsView-prompt-turns'
 			/>
 		{/if}
 	{/snippet}

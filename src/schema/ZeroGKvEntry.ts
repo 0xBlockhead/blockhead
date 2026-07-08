@@ -1,69 +1,60 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum ZeroGKvEntrySelector {
 	NetworkNamespaceKey = 'NetworkNamespaceKey',
 }
-export default {
+export const ZeroGKvEntry = entity({
 	entityType: EntityType.ZeroGKvEntry,
 	label: 'zero g kv entry',
 	labelPlural: 'zero g kv entries',
-	selectors: [
-		{
-			name: ZeroGKvEntrySelector.NetworkNamespaceKey,
-			fields: [
-				'$network',
-				'namespace',
-				'key',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$network',
-			label: 'network',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'namespace',
-			label: 'Namespace',
-			description: 'The namespace that qualifies the identifier.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'key',
-			label: 'key',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$logEntry',
-			label: 'log entry',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.ZeroGStorageLogEntry,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: '$owner',
-			label: 'owner',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmAccount,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'valueHash',
-			label: 'value hash',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$network: {
+		label: 'network',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.Network,
+		cardinality: EntityFieldCardinality.One,
+	},
+	namespace: {
+		label: 'Namespace',
+		description: 'The namespace that qualifies the identifier.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	key: {
+		label: 'key',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	$logEntry: {
+		label: 'log entry',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.ZeroGStorageLogEntry,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	$owner: {
+		label: 'owner',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EvmAccount,
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	valueHash: {
+		label: 'value hash',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		NetworkNamespaceKey: [
+			'$network',
+			'namespace',
+			'key',
+		],
+	},
+})

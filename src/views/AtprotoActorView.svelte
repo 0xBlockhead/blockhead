@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -247,7 +247,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.Media, false>('$icon')}
+					resource={selection.$icon}
 				>
 					{#snippet children(media)}
 						{#if media != null && media[EntityMetaKey.Selector] != null}
@@ -274,7 +274,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.Media, false>('$banner')}
+					resource={selection.$banner}
 				>
 					{#snippet children(media)}
 						{#if media != null && media[EntityMetaKey.Selector] != null}
@@ -323,7 +323,7 @@
 		{#if detailsOpen}
 			<AtprotoPostsView
 				selection={
-						selection[EntityProxyField]<EntityType.AtprotoPost>('$$posts', {
+						selection.$$posts({
 							sources: [
 								Source.Atproto_Xrpc,
 							],
@@ -331,19 +331,19 @@
 					}
 				title='Posts'
 				href={resolve('/(social)/(atproto)/atproto/posts')}
-				id='AtprotoPostsView-$$posts'
+				id='AtprotoPostsView-posts'
 			/>
 
 			<AtprotoActor_TimestampsView
 				selection={
-						selection[EntityProxyField]<EntityType.AtprotoActor_Timestamp>('$$timestamps', {
+						selection.$$timestamps({
 							sources: [
 								Source.Atproto_Xrpc,
 							],
 						})
 					}
 				title='Metric observations'
-				id='AtprotoActor_TimestampsView-$$timestamps'
+				id='AtprotoActor_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

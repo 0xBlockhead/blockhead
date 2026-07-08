@@ -26,13 +26,13 @@
 <Page>
 	<EvmAccountView
 		href={
-			resolve('/(social)/(xmtp)/xmtp/account/[accountId]', {
-				accountId: params.accountId,
+			resolve('/(social)/(xmtp)/xmtp/account/[address=evmAddress]', {
+				address: params.address,
 			})
 		}
 		selection={
 			select(EntityType.EvmAccount, {
-				address: decodeURIComponent(params.accountId),
+				address: decodeURIComponent(params.address),
 			}, {
 				fields: {
 					$avatar: true,

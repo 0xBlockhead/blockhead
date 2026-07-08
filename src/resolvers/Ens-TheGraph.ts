@@ -173,7 +173,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				name: (ensName) => ensName.name,
 				normalizedName: (ensName) => ensName.normalizedName,
 				node: (ensName) => ensName.node,
@@ -187,8 +186,7 @@ export default {
 				resolverTextKeys: (ensName) => ensName.resolverTextKeys,
 				resolverCoinTypes: (ensName) => ensName.resolverCoinTypes,
 				$$records: (ensName) => ensName.$$records ?? [],
-			},
-		}),
+			}),
 
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EvmAccount,
@@ -214,10 +212,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$ensNamesOwned: (ensNamesOwned) => ensNamesOwned,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.EnsRecord,
@@ -236,12 +232,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				recordKey: (ensRecord) => ensRecord.recordKey,
 				recordKind: (ensRecord) => ensRecord.recordKind,
 				coinType: (ensRecord) => ensRecord.coinType,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TheGraph_Graphql, {
 			entityType: EntityType.BlockheadEnsNameSearch,
@@ -270,9 +264,7 @@ export default {
 			}
 			},
 		})({
-			fields: {
 				$$matchingNames: (matchingNames) => matchingNames,
-			},
-		}),
+			}),
 	],
 }

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -134,7 +134,7 @@
 				<dt>subnet</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.AvalancheSubnet, false>('$subnet')}
+						resource={selection.$subnet}
 					>
 						{#snippet children(avalancheSubnet)}
 							{#if avalancheSubnet[EntityMetaKey.Selector] != null}
@@ -251,7 +251,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.Network, false>('$network')}
+				resource={selection.$network}
 			>
 				{#snippet children(network)}
 					{#if network != null && network[EntityMetaKey.Selector] != null}

@@ -187,7 +187,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (block) => block.hash,
 				$parent: (block) => block.$parent,
 				parentHash: (block) => block.parentHash,
@@ -197,8 +196,7 @@ export default {
 				version: (block) => block.version,
 				transactionCount: (block) => block.transactionCount,
 				$$transactions: (block) => block.$$transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronTransaction,
@@ -225,7 +223,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				blockHeight: (transaction) => transaction.blockHeight,
 				timestampMs: (transaction) => transaction.timestampMs,
 				expirationTimestampMs: (transaction) => transaction.expirationTimestampMs,
@@ -240,8 +237,7 @@ export default {
 				assetName: (transaction) => transaction.assetName,
 				rawDataHex: (transaction) => transaction.rawDataHex,
 				signatures: (transaction) => transaction.signatures,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronAccount,
@@ -259,10 +255,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				name: (account) => account.name,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronAccount,
@@ -278,10 +272,8 @@ export default {
 				],
 			},
 		})({
-			fields: {
 				$$timestamps: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronAccount_Timestamp,
@@ -303,12 +295,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				balanceSun: (account) => account.balanceSun,
 				createdTimestampMs: (account) => account.createdTimestampMs,
 				latestOperationTimestampMs: (account) => account.latestOperationTimestampMs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TronSolidityNode_Rest, {
 			entityType: EntityType.TronTransactionReceipt,
@@ -323,13 +313,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				feeSun: (receipt) => receipt.feeSun,
 				result: (receipt) => receipt.result,
 				energyUsageTotal: (receipt) => receipt.energyUsageTotal,
 				netUsage: (receipt) => receipt.netUsage,
 				contractResultHex: (receipt) => receipt.contractResultHex,
-			},
-		}),
+			}),
 	],
 }

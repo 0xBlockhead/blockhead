@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -171,17 +171,17 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BitTorrentAnnounce_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BitTorrentAnnounce_Timestamp>('$$announces')}
+				selection={selection.$$announces}
 				title='announces'
 				emptyText='No announces yet.'
-				id='BitTorrentAnnounce_TimestampsView-$$announces'
+				id='BitTorrentAnnounce_TimestampsView-announces'
 			/>
 
 			<BitTorrentTrackerScrape_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BitTorrentTrackerScrape_Timestamp>('$$scrapes')}
+				selection={selection.$$scrapes}
 				title='scrapes'
 				emptyText='No scrapes yet.'
-				id='BitTorrentTrackerScrape_TimestampsView-$$scrapes'
+				id='BitTorrentTrackerScrape_TimestampsView-scrapes'
 			/>
 		{/if}
 	{/snippet}

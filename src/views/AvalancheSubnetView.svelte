@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -172,31 +172,31 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AvalancheSubnet_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AvalancheSubnet_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No observations yet.'
-				id='AvalancheSubnet_TimestampsView-$$timestamps'
+				id='AvalancheSubnet_TimestampsView-timestamps'
 			/>
 
 			<AvalancheBlockchainsView
-				selection={selection[EntityProxyField]<EntityType.AvalancheBlockchain>('$$blockchains')}
+				selection={selection.$$blockchains}
 				title='blockchains'
 				emptyText='No blockchains found.'
-				id='AvalancheBlockchainsView-$$blockchains'
+				id='AvalancheBlockchainsView-blockchains'
 			/>
 
 			<AvalancheValidatorsView
-				selection={selection[EntityProxyField]<EntityType.AvalancheValidator>('$$validators')}
+				selection={selection.$$validators}
 				title='validators'
 				emptyText='No validators found.'
-				id='AvalancheValidatorsView-$$validators'
+				id='AvalancheValidatorsView-validators'
 			/>
 
 			<AvalancheDelegatorsView
-				selection={selection[EntityProxyField]<EntityType.AvalancheDelegator>('$$delegators')}
+				selection={selection.$$delegators}
 				title='delegators'
 				emptyText='No delegators found.'
-				id='AvalancheDelegatorsView-$$delegators'
+				id='AvalancheDelegatorsView-delegators'
 			/>
 		{/if}
 	{/snippet}

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -106,7 +106,7 @@
 		<ResourceBoundary resource={utxoOutput}>
 			{#snippet Pending()}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.UtxoAddress, false>('$address')}
+					resource={selection.$address}
 				>
 					{#snippet children(utxoAddress)}
 						{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
@@ -138,7 +138,7 @@
 			{#snippet children(entity)}
 				{@const resolvedEntity = { ...pendingEntity, ...entity }}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.UtxoAddress, false>('$address')}
+					resource={selection.$address}
 				>
 					{#snippet children(utxoAddress)}
 						{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
@@ -237,7 +237,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.UtxoAddress, false>('$address')}
+				resource={selection.$address}
 			>
 				{#snippet children(utxoAddress)}
 					{#if utxoAddress != null && utxoAddress[EntityMetaKey.Selector] != null}
@@ -617,7 +617,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BitcoinCashCashTokenFungibleAmount, false>('$bitcoinCashCashTokenFungibleAmount')}
+				resource={selection.$bitcoinCashCashTokenFungibleAmount}
 			>
 				{#snippet children(bitcoinCashCashTokenFungibleAmount)}
 					{#if bitcoinCashCashTokenFungibleAmount != null && bitcoinCashCashTokenFungibleAmount[EntityMetaKey.Selector] != null}
@@ -644,7 +644,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.BitcoinCashCashTokenNft, false>('$bitcoinCashCashTokenNft')}
+				resource={selection.$bitcoinCashCashTokenNft}
 			>
 				{#snippet children(bitcoinCashCashTokenNft)}
 					{#if bitcoinCashCashTokenNft != null && bitcoinCashCashTokenNft[EntityMetaKey.Selector] != null}

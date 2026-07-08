@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -537,24 +537,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<A2aAgentInterfacesView
-				selection={selection[EntityProxyField]<EntityType.A2aAgentInterface>('$$interfaces')}
+				selection={selection.$$interfaces}
 				title='interfaces'
 				emptyText='No A2A agent interfaces.'
-				id='A2aAgentInterfacesView-$$interfaces'
+				id='A2aAgentInterfacesView-interfaces'
 			/>
 
 			<A2aAgentServicesView
-				selection={selection[EntityProxyField]<EntityType.A2aAgentService>('$$services')}
+				selection={selection.$$services}
 				title='services'
 				emptyText='No A2A agent services.'
-				id='A2aAgentServicesView-$$services'
+				id='A2aAgentServicesView-services'
 			/>
 
 			<A2aAgentSkillsView
-				selection={selection[EntityProxyField]<EntityType.A2aAgentSkill>('$$skills')}
+				selection={selection.$$skills}
 				title='skills'
 				emptyText='No A2A agent skills.'
-				id='A2aAgentSkillsView-$$skills'
+				id='A2aAgentSkillsView-skills'
 			/>
 		{/if}
 	{/snippet}

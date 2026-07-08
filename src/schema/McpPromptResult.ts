@@ -1,6 +1,6 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
@@ -8,88 +8,76 @@ import { type } from 'arktype'
 export enum McpPromptResultSelector {
 	PromptArgumentsHashAlgorithmArgumentsHashTimestampMsSource = 'PromptArgumentsHashAlgorithmArgumentsHashTimestampMsSource',
 }
-export default {
+export const McpPromptResult = entity({
 	entityType: EntityType.McpPromptResult,
 	label: 'mcp prompt result',
 	labelPlural: 'mcp prompt results',
-	selectors: [
-		{
-			name: McpPromptResultSelector.PromptArgumentsHashAlgorithmArgumentsHashTimestampMsSource,
-			fields: [
-				'$prompt',
-				'argumentsHashAlgorithm',
-				'argumentsHash',
-				'timestampMs',
-				'source',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$prompt',
-			label: 'prompt',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.McpPrompt,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'argumentsHashAlgorithm',
-			label: 'arguments hash algorithm',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'argumentsHash',
-			label: 'arguments hash',
-			type: EntityFieldType.Primitive,
-			primitiveType: (ZeroExHex),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			label: 'Timestamp',
-			description: 'The observation time in Unix milliseconds.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'source',
-			label: 'Source',
-			description: 'The source that produced this observation.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'description',
-			label: 'Description',
-			description: 'A human-readable description from the source domain.',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'messages',
-			label: 'messages',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'raw',
-			label: 'raw',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'error',
-			label: 'error',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$prompt: {
+		label: 'prompt',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.McpPrompt,
+		cardinality: EntityFieldCardinality.One,
+	},
+	argumentsHashAlgorithm: {
+		label: 'arguments hash algorithm',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	argumentsHash: {
+		label: 'arguments hash',
+		type: EntityFieldType.Primitive,
+		primitiveType: (ZeroExHex),
+		cardinality: EntityFieldCardinality.One,
+	},
+	timestampMs: {
+		label: 'Timestamp',
+		description: 'The observation time in Unix milliseconds.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('number'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	source: {
+		label: 'Source',
+		description: 'The source that produced this observation.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	description: {
+		label: 'Description',
+		description: 'A human-readable description from the source domain.',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	messages: {
+		label: 'messages',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	raw: {
+		label: 'raw',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	error: {
+		label: 'error',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+})({
+	selectors: {
+		PromptArgumentsHashAlgorithmArgumentsHashTimestampMsSource: [
+			'$prompt',
+			'argumentsHashAlgorithm',
+			'argumentsHash',
+			'timestampMs',
+			'source',
+		],
+	},
+})

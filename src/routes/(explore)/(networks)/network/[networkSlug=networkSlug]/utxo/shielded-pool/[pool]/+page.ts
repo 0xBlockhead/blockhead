@@ -5,14 +5,14 @@ import { error } from '@sveltejs/kit'
 import { networkBySlug } from '$/constants/Network.ts'
 import { parseEntitySelector } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import ZcashShieldedPoolSchema from '$/schema/ZcashShieldedPool.ts'
+import { ZcashShieldedPool as ZcashShieldedPoolSchema } from '$/schema/ZcashShieldedPool.ts'
 import { type as arktype } from 'arktype'
 
-// Route surface eligibility: requiredFacets=['Utxo', 'Zcash']
+// Route surface eligibility: requiredProjections=[['Utxo'], ['Zcash']]
 export const load: PageLoad = ({ params }) => {
-	const routeSurfaceNetwork = networkBySlug[params.networkSlug]
+	const routeSurfaceNetwork = Object.getOwnPropertyDescriptor(networkBySlug, params.networkSlug)?.value
 	if (routeSurfaceNetwork == null) error(404, 'Network route surface not found')
-	if (!(routeSurfaceNetwork.ledgerModels.includes('Utxo') && routeSurfaceNetwork.executionModels.includes('ZcashShielded'))) error(404, 'Network facet not available')
+	if (!((routeSurfaceNetwork.ledgerModels !== undefined && routeSurfaceNetwork.ledgerModels.some((value: string | number | boolean | null) => value === 'Utxo')) && (routeSurfaceNetwork.executionModels !== undefined && routeSurfaceNetwork.executionModels.some((value: string | number | boolean | null) => value === 'ZcashShielded')))) error(404, 'Network facet not available')
 
 	const zcashShieldedPoolSelector = parseEntitySelector(
 		schema,

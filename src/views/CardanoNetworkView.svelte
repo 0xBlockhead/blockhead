@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -189,87 +189,87 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CardanoNetwork_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.CardanoNetwork_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No Cardano network observations.'
-				id='CardanoNetwork_TimestampsView-$$timestamps'
+				id='CardanoNetwork_TimestampsView-timestamps'
 			/>
 
 			<CardanoBlocksView
-				selection={selection[EntityProxyField]<EntityType.CardanoBlock>('$$blocks')}
+				selection={selection.$$blocks}
 				title='blocks'
 				emptyText='No Cardano blocks.'
-				id='CardanoBlocksView-$$blocks'
+				id='CardanoBlocksView-blocks'
 			/>
 
 			<CardanoTransactionsView
-				selection={selection[EntityProxyField]<EntityType.CardanoTransaction>('$$transactions')}
+				selection={selection.$$transactions}
 				title='transactions'
 				emptyText='No Cardano transactions.'
-				id='CardanoTransactionsView-$$transactions'
+				id='CardanoTransactionsView-transactions'
 			/>
 
 			<CardanoAddressesView
-				selection={selection[EntityProxyField]<EntityType.CardanoAddress>('$$addresses')}
+				selection={selection.$$addresses}
 				title='addresses'
 				emptyText='No Cardano addresses.'
-				id='CardanoAddressesView-$$addresses'
+				id='CardanoAddressesView-addresses'
 			/>
 
 			<CardanoStakeCredentialsView
-				selection={selection[EntityProxyField]<EntityType.CardanoStakeCredential>('$$stakeCredentials')}
+				selection={selection.$$stakeCredentials}
 				title='stake credentials'
 				emptyText='No Cardano stake credentials.'
-				id='CardanoStakeCredentialsView-$$stakeCredentials'
+				id='CardanoStakeCredentialsView-stake-credentials'
 			/>
 
 			<CardanoStakePoolsView
-				selection={selection[EntityProxyField]<EntityType.CardanoStakePool>('$$stakePools')}
+				selection={selection.$$stakePools}
 				title='stake pools'
 				emptyText='No Cardano stake pools.'
-				id='CardanoStakePoolsView-$$stakePools'
+				id='CardanoStakePoolsView-stake-pools'
 			/>
 
 			<CardanoDRepsView
-				selection={selection[EntityProxyField]<EntityType.CardanoDRep>('$$dReps')}
+				selection={selection.$$dReps}
 				title='DReps'
 				emptyText='No Cardano DReps.'
-				id='CardanoDRepsView-$$dReps'
+				id='CardanoDRepsView-d-reps'
 			/>
 
 			<CardanoGovernanceProposalsView
-				selection={selection[EntityProxyField]<EntityType.CardanoGovernanceProposal>('$$governanceProposals')}
+				selection={selection.$$governanceProposals}
 				title='governance proposals'
 				emptyText='No Cardano governance proposals.'
-				id='CardanoGovernanceProposalsView-$$governanceProposals'
+				id='CardanoGovernanceProposalsView-governance-proposals'
 			/>
 
 			<CardanoNativeAssetsView
-				selection={selection[EntityProxyField]<EntityType.CardanoNativeAsset>('$$assets')}
+				selection={selection.$$assets}
 				title='assets'
 				emptyText='No Cardano native assets.'
-				id='CardanoNativeAssetsView-$$assets'
+				id='CardanoNativeAssetsView-assets'
 			/>
 
 			<CardanoProtocolParameters_EpochsView
-				selection={selection[EntityProxyField]<EntityType.CardanoProtocolParameters_Epoch>('$$protocolParameterEpochs')}
+				selection={selection.$$protocolParameterEpochs}
 				title='protocol parameter epochs'
 				emptyText='No Cardano protocol parameter epochs.'
-				id='CardanoProtocolParameters_EpochsView-$$protocolParameterEpochs'
+				id='CardanoProtocolParameters_EpochsView-protocol-parameter-epochs'
 			/>
 
 			<CardanoConstitution_EpochsView
-				selection={selection[EntityProxyField]<EntityType.CardanoConstitution_Epoch>('$$constitutionEpochs')}
+				selection={selection.$$constitutionEpochs}
 				title='constitution epochs'
 				emptyText='No Cardano constitution epochs.'
-				id='CardanoConstitution_EpochsView-$$constitutionEpochs'
+				id='CardanoConstitution_EpochsView-constitution-epochs'
 			/>
 
 			<CardanoCommittee_EpochsView
-				selection={selection[EntityProxyField]<EntityType.CardanoCommittee_Epoch>('$$committeeEpochs')}
+				selection={selection.$$committeeEpochs}
 				title='committee epochs'
 				emptyText='No Cardano committee epochs.'
-				id='CardanoCommittee_EpochsView-$$committeeEpochs'
+				id='CardanoCommittee_EpochsView-committee-epochs'
 			/>
 		{/if}
 	{/snippet}

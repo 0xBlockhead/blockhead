@@ -229,7 +229,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$network: (snapshot) => snapshot.$network,
 				timestampMs: (snapshot) => snapshot.timestampMs,
 				source: (snapshot) => snapshot.source,
@@ -246,8 +245,7 @@ export default {
 				storageTotalWinCount: (snapshot) => snapshot.storageTotalWinCount,
 				expiredFileCount: (snapshot) => snapshot.expiredFileCount,
 				prunedFileCount: (snapshot) => snapshot.prunedFileCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.Network,
@@ -265,10 +263,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$zeroGTimestamps: (timestamps) => timestamps,
-			},
-		}),
+				ZeroG: {
+					$$timestamps: (timestamps) => timestamps,
+				},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageNode,
@@ -301,11 +299,9 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$operator: (snapshot) => snapshot.$operator,
 				$$timestamps: (snapshot) => snapshot.$$timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageNode_Timestamp,
@@ -333,7 +329,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$storageNode: (snapshot) => snapshot.$storageNode,
 				timestampMs: (snapshot) => snapshot.timestampMs,
 				source: (snapshot) => snapshot.source,
@@ -341,8 +336,7 @@ export default {
 				totalReward: (snapshot) => snapshot.totalReward,
 				winCount: (snapshot) => snapshot.winCount,
 				miningAttempts: (snapshot) => snapshot.miningAttempts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.Network,
@@ -363,10 +357,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$zeroGStorageNodes: (storageNodes) => storageNodes,
-			},
-		}),
+				ZeroG: {
+					$$storageNodes: (storageNodes) => storageNodes,
+				},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGDataBlob,
@@ -390,10 +384,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.Network,
@@ -412,10 +404,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$zeroGDataBlobs: (dataBlobs) => dataBlobs,
-			},
-		}),
+				ZeroG: {
+					$$dataBlobs: (dataBlobs) => dataBlobs,
+				},
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.ZeroGStorageLogEntry,
@@ -437,13 +429,11 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$dataBlob: (snapshot) => snapshot.$dataBlob,
 				$consensusNetwork: (snapshot) => snapshot.$consensusNetwork,
 				sequenceNumber: (snapshot) => snapshot.sequenceNumber,
 				commitment: (snapshot) => snapshot.commitment,
-			},
-		}),
+			}),
 
 		defineResolver(Source.ZeroGStorageScan_Rest, {
 			entityType: EntityType.Network,
@@ -461,10 +451,10 @@ export default {
 				},
 			},
 		})({
-			fields: {
-				$$zeroGStorageLogEntries: (storageLogEntries) => storageLogEntries,
-			},
-		}),
+				ZeroG: {
+					$$storageLogEntries: (storageLogEntries) => storageLogEntries,
+				},
+			}),
 
 	],
 }

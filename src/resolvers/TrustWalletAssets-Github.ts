@@ -130,10 +130,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$icon: (snapshot) => snapshot,
-			},
-		}),
+			}),
 
 		defineResolver(Source.TrustWalletAssets_Github, {
 			entityType: EntityType.AssetInstance,
@@ -149,9 +147,7 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$icon: (snapshot) => snapshot,
-			},
-		}),
+			}),
 	],
 }

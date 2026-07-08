@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -388,10 +388,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<StarknetContractsView
-				selection={selection[EntityProxyField]<EntityType.StarknetContract>('$$contracts')}
+				selection={selection.$$contracts}
 				title='contracts'
 				emptyText='No Starknet contracts.'
-				id='StarknetContractsView-$$contracts'
+				id='StarknetContractsView-contracts'
 			/>
 		{/if}
 	{/snippet}

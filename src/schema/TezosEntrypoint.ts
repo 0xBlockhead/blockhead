@@ -1,53 +1,46 @@
 // Generated from APP.ts. Do not edit by hand.
 
-import { EntityFieldCardinality, EntityFieldType, type EntityDefinition } from '$/schema/$schema.ts'
+import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { type } from 'arktype'
 
 export enum TezosEntrypointSelector {
 	ContractEntrypointName = 'ContractEntrypointName',
 }
-export default {
+export const TezosEntrypoint = entity({
 	entityType: EntityType.TezosEntrypoint,
 	label: 'tezos entrypoint',
 	labelPlural: 'tezos entrypoints',
-	selectors: [
-		{
-			name: TezosEntrypointSelector.ContractEntrypointName,
-			fields: [
-				'$contract',
-				'entrypointName',
-			],
-		},
-	],
-	fields: [
-		{
-			name: '$contract',
-			label: 'contract',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.TezosContract,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'entrypointName',
-			label: 'entrypoint name',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'parameterType',
-			label: 'parameter type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('unknown'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'annotations',
-			label: 'annotations',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.Many,
-		},
-	],
-} as const satisfies EntityDefinition
+})({
+	$contract: {
+		label: 'contract',
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.TezosContract,
+		cardinality: EntityFieldCardinality.One,
+	},
+	entrypointName: {
+		label: 'entrypoint name',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.One,
+	},
+	parameterType: {
+		label: 'parameter type',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('unknown'),
+		cardinality: EntityFieldCardinality.ZeroOrOne,
+	},
+	annotations: {
+		label: 'annotations',
+		type: EntityFieldType.Primitive,
+		primitiveType: type('string'),
+		cardinality: EntityFieldCardinality.Many,
+	},
+})({
+	selectors: {
+		ContractEntrypointName: [
+			'$contract',
+			'entrypointName',
+		],
+	},
+})

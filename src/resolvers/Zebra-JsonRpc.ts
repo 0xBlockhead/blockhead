@@ -106,7 +106,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				hash: (snapshot) => snapshot.hash,
 				$parent: (snapshot) => snapshot.$parent,
 				timestampMs: (snapshot) => snapshot.timestampMs,
@@ -117,8 +116,7 @@ export default {
 				weightUnits: (snapshot) => snapshot.weightUnits,
 				transactionCount: (snapshot) => snapshot.transactionCount,
 				$$transactions: (snapshot) => snapshot.$$transactions,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoTransaction,
@@ -152,7 +150,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				version: (snapshot) => snapshot.version,
 				lockTime: (snapshot) => snapshot.lockTime,
 				sizeBytes: (snapshot) => snapshot.sizeBytes,
@@ -161,8 +158,7 @@ export default {
 				isCoinbase: (snapshot) => snapshot.isCoinbase,
 				$$inputs: (snapshot) => snapshot.$$inputs,
 				$$outputs: (snapshot) => snapshot.$$outputs,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoInput,
@@ -199,14 +195,12 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$spentOutput: (snapshot) => snapshot.$spentOutput,
 				coinbaseScript: (snapshot) => snapshot.coinbaseScript,
 				scriptSigAsm: (snapshot) => snapshot.scriptSigAsm,
 				sequence: (snapshot) => snapshot.sequence,
 				witness: (snapshot) => snapshot.witness ?? [],
-			},
-		}),
+			}),
 
 		defineResolver(Source.Zebra_JsonRpc, {
 			entityType: EntityType.UtxoOutput,
@@ -234,13 +228,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				valueSats: (snapshot) => snapshot.valueSats,
 				scriptPubKeyAsm: (snapshot) => snapshot.scriptPubKeyAsm,
 				scriptPubKeyHex: (snapshot) => snapshot.scriptPubKeyHex,
 				scriptPubKeyType: (snapshot) => snapshot.scriptPubKeyType,
 				$address: (snapshot) => snapshot.$address,
-			},
-		}),
+			}),
 	],
 }

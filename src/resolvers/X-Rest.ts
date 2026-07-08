@@ -84,7 +84,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				id: (user) => user.id,
 				username: (user) => user.username,
 				name: (user) => user.name,
@@ -95,8 +94,7 @@ export default {
 				websiteUrl: (user) => user.websiteUrl,
 				$icon: (user) => user.$icon,
 				$profileBanner: (user) => user.$profileBanner,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
@@ -162,7 +160,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				text: (post) => post.text,
 				createdAt: (post) => post.createdAt,
 				conversationId: (post) => post.conversationId,
@@ -171,8 +168,7 @@ export default {
 				postUrl: (post) => post.postUrl,
 				$$media: (post) => post.$$media,
 				$author: (post) => post.$author,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser_Timestamp,
@@ -192,13 +188,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
 				followingCount: (timestamp) => timestamp.followingCount,
 				tweetCount: (timestamp) => timestamp.tweetCount,
 				listedCount: (timestamp) => timestamp.listedCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost_Timestamp,
@@ -216,13 +210,11 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				likeCount: (timestamp) => timestamp.likeCount,
 				retweetCount: (timestamp) => timestamp.retweetCount,
 				replyCount: (timestamp) => timestamp.replyCount,
 				quoteCount: (timestamp) => timestamp.quoteCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XPost,
@@ -246,10 +238,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser,
@@ -275,10 +265,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.X_Rest, {
 			entityType: EntityType.XUser,
@@ -301,9 +289,7 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$posts: (posts) => posts,
-			},
-		}),
+			}),
 	],
 }

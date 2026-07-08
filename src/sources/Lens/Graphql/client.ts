@@ -8,7 +8,6 @@ import { getJson } from '$/lib/http.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 import {
 	lensGraphqlUrl,
-	lensHeyGraphqlUrl,
 } from '$/sources/Lens/Graphql/constants.ts'
 import { lensOrigins } from '$/sources/Lens/index.ts'
 
@@ -34,7 +33,6 @@ type LensGqlResponse<_Result> = {
 
 const lensGraphqlUrls = [
 	lensGraphqlUrl,
-	lensHeyGraphqlUrl,
 ] as const
 
 export const queryLens = async <

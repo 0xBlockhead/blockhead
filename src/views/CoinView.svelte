@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -148,7 +148,7 @@
 				<dd>
 					<ResourceBoundary
 						resource={
-							selection[EntityProxyField]<EntityType.Coin_Timestamp>('$$timestamps', {
+							selection.$$timestamps({
 								sources: [
 									Source.Constants_Internal,
 									Source.Coingecko_Rest,
@@ -298,13 +298,13 @@
 			>
 				{#snippet Summary({})}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Relationship model</HeadingComponent>
+						<HeadingComponent>Connection model</HeadingComponent>
 					</header>
 				{/snippet}
 
 				{#snippet SectionCoinInstances({ id, label, open })}
 					<EvmCoinInstancesView
-						selection={selection[EntityProxyField]<EntityType.EvmCoinInstance>('$$coinInstances')}
+						selection={selection.$$coinInstances}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -314,7 +314,7 @@
 
 				{#snippet SectionCoinWrapped({ id, label, open })}
 					<EvmCoinInstancesView
-						selection={selection[EntityProxyField]<EntityType.EvmCoinInstance>('$$coinInstances')}
+						selection={selection.$$coinInstances}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -324,7 +324,7 @@
 
 				{#snippet SectionCoinBridgeCapabilities({ id, label, open })}
 					<CoinBridgeCapabilitiesView
-						selection={selection[EntityProxyField]<EntityType.CoinBridgeCapability>('$$bridgeCapabilities')}
+						selection={selection.$$bridgeCapabilities}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -404,7 +404,7 @@
 
 				{#snippet SectionMarketsWithCoinAsBase({ id, label, open })}
 					<MarketsView
-						selection={selection[EntityProxyField]<EntityType.Market>('$$marketsWithCoinAsBase')}
+						selection={selection.$$marketsWithCoinAsBase}
 						href={resolve('/(assets)/markets')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
@@ -415,7 +415,7 @@
 
 				{#snippet SectionMarketsWithCoinAsQuote({ id, label, open })}
 					<MarketsView
-						selection={selection[EntityProxyField]<EntityType.Market>('$$marketsWithCoinAsQuote')}
+						selection={selection.$$marketsWithCoinAsQuote}
 						href={resolve('/(assets)/markets')}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}

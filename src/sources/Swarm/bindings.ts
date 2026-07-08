@@ -24,14 +24,14 @@ export const swarmBindings = [
 			endpointKind: SourceEndpointKind.HttpUrl,
 			locator: origin,
 			origin,
-			corsEnabled: false,
+			corsEnabled: true,
 		})),
 		wireProtocol: WireProtocol.HttpRest,
 		apiFamily: ApiFamily.SwarmGateway,
 		operationGroups: [
 			SourceOperationGroup.ContentGatewayRead,
 		],
-		delivery: SourceDelivery.HttpProxy,
+		delivery: SourceDelivery.BrowserDirect,
 		credentials: [
 			{
 				scope: SourceCredentialScope.None,

@@ -4,7 +4,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -343,7 +343,7 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.ZeroGConsensusNetwork, false>('$consensusNetwork')}
+				resource={selection.$consensusNetwork}
 			>
 				{#snippet children(zeroGConsensusNetwork)}
 					{#if zeroGConsensusNetwork != null && zeroGConsensusNetwork[EntityMetaKey.Selector] != null}
@@ -363,7 +363,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.ZeroGDaQuorum, false>('$daQuorum')}
+				resource={selection.$daQuorum}
 			>
 				{#snippet children(zeroGDaQuorum)}
 					{#if zeroGDaQuorum != null && zeroGDaQuorum[EntityMetaKey.Selector] != null}
@@ -383,7 +383,7 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={selection[EntityProxyField]<EntityType.ZeroGStorageLogEntry, false>('$storageLogEntry')}
+				resource={selection.$storageLogEntry}
 			>
 				{#snippet children(zeroGStorageLogEntry)}
 					{#if zeroGStorageLogEntry != null && zeroGStorageLogEntry[EntityMetaKey.Selector] != null}

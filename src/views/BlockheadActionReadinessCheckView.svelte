@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -133,7 +133,7 @@
 				<dt>session action</dt>
 				<dd>
 					<ResourceBoundary
-						resource={selection[EntityProxyField]<EntityType.BlockheadSessionAction, false>('$sessionAction')}
+						resource={selection.$sessionAction}
 					>
 						{#snippet children(blockheadSessionAction)}
 							{#if blockheadSessionAction[EntityMetaKey.Selector] != null}
@@ -561,10 +561,10 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadActionReadinessCheck_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.BlockheadActionReadinessCheck_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No readiness observations.'
-				id='BlockheadActionReadinessCheck_TimestampsView-$$timestamps'
+				id='BlockheadActionReadinessCheck_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

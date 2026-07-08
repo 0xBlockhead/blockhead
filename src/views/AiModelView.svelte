@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -393,24 +393,24 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AiModelVersionsView
-				selection={selection[EntityProxyField]<EntityType.AiModelVersion>('$$versions')}
+				selection={selection.$$versions}
 				title='versions'
 				emptyText='No AI model versions.'
-				id='AiModelVersionsView-$$versions'
+				id='AiModelVersionsView-versions'
 			/>
 
 			<AiDocumentsView
-				selection={selection[EntityProxyField]<EntityType.AiDocument>('$$documents')}
+				selection={selection.$$documents}
 				title='documents'
 				emptyText='No linked documents.'
-				id='AiDocumentsView-$$documents'
+				id='AiDocumentsView-documents'
 			/>
 
 			<AiModel_TimestampsView
-				selection={selection[EntityProxyField]<EntityType.AiModel_Timestamp>('$$timestamps')}
+				selection={selection.$$timestamps}
 				title='timestamps'
 				emptyText='No AI model observations.'
-				id='AiModel_TimestampsView-$$timestamps'
+				id='AiModel_TimestampsView-timestamps'
 			/>
 		{/if}
 	{/snippet}

@@ -182,7 +182,6 @@ export default {
 				}
 			},
 			})({
-				fields: {
 					username: (user) => user.username,
 				displayName: (user) => user.displayName,
 				iconUrl: (user) => user.iconUrl,
@@ -191,8 +190,7 @@ export default {
 				url: (user) => user.url,
 				$primaryEvmAccount: (user) => user.$primaryEvmAccount,
 				$$verifiedAddresses: (user) => user.$$verifiedAddresses ?? [],
-				},
-			}),
+				}),
 
 			defineResolver(Source.Snapchain_Rest, {
 				entityType: EntityType.FarcasterVerifiedAddress,
@@ -263,15 +261,13 @@ export default {
 					},
 				},
 			})({
-				fields: {
 					fid: (verifiedAddress) => verifiedAddress.fid,
 					protocol: (verifiedAddress) => verifiedAddress.protocol,
 					address: (verifiedAddress) => verifiedAddress.address,
 					$user: (verifiedAddress) => verifiedAddress.$user,
 					$evmAccount: (verifiedAddress) => verifiedAddress.$evmAccount,
 					$solanaAccount: (verifiedAddress) => verifiedAddress.$solanaAccount,
-				},
-			}),
+				}),
 
 			defineResolver(Source.Snapchain_Rest, {
 				entityType: EntityType.FarcasterUser_Timestamp,
@@ -296,11 +292,9 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				followerCount: (timestamp) => timestamp.followerCount,
 				followingCount: (timestamp) => timestamp.followingCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
@@ -384,7 +378,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				fid: (cast) => cast.fid,
 				hash: (cast) => cast.hash,
 				$author: (cast) => cast.$author,
@@ -395,8 +388,7 @@ export default {
 				mentions: (cast) => cast.mentions,
 				$channel: (cast) => cast.$channel,
 				$$embeds: (cast) => cast.$$embeds,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast_Timestamp,
@@ -421,12 +413,10 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				likeCount: (timestamp) => timestamp.likeCount,
 				recastCount: (timestamp) => timestamp.recastCount,
 				replyCount: (timestamp) => timestamp.replyCount,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCastEmbed,
@@ -465,7 +455,6 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$cast: (embed) => embed.$cast,
 				indexInCast: (embed) => embed.indexInCast,
 				url: (embed) => embed.url,
@@ -475,8 +464,7 @@ export default {
 				iconUrl: () => undefined,
 				$icon: () => undefined,
 				quotedPreviewText: () => undefined,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
@@ -540,7 +528,6 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				username: (connection) => connection.username,
 				displayName: (connection) => connection.displayName,
 				iconUrl: (connection) => connection.iconUrl,
@@ -548,8 +535,7 @@ export default {
 				bio: (connection) => connection.bio,
 				verifications: (connection) => connection.verifications,
 				custody: (connection) => connection.custody,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType._GlobalFarcasterNetwork,
@@ -585,10 +571,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$observedUsers: (users) => users,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
@@ -619,10 +603,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterUser,
@@ -663,10 +645,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$casts: (casts) => casts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterCast,
@@ -700,10 +680,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$timestamps: (timestamps) => timestamps,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterChannel,
@@ -752,10 +730,8 @@ export default {
 				}
 			},
 		})({
-			fields: {
 				$$casts: (casts) => casts,
-			},
-		}),
+			}),
 
 		defineResolver(Source.Snapchain_Rest, {
 			entityType: EntityType.FarcasterFeed,
@@ -960,10 +936,8 @@ export default {
 				},
 			},
 		})({
-			fields: {
 				$$entries: (entries) => entries,
-			},
-		}),
+			}),
 
 	],
 }

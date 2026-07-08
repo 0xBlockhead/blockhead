@@ -3,7 +3,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { EntityProxyField, type EntityProxyData, type EntityProxyResource } from '$/client/$proxy.svelte.ts'
+	import type { EntityProxyData, EntityProxyResource } from '$/client/$proxy.svelte.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$schema.ts'
@@ -260,7 +260,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.RedditLink, false>('$link')}
+					resource={selection.$link}
 				>
 					{#snippet children(redditLink)}
 						{#if redditLink != null && redditLink[EntityMetaKey.Selector] != null}
@@ -282,7 +282,7 @@
 
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={selection[EntityProxyField]<EntityType.RedditComment, false>('$parentComment')}
+					resource={selection.$parentComment}
 				>
 					{#snippet children(redditComment)}
 						{#if redditComment != null && redditComment[EntityMetaKey.Selector] != null}
@@ -326,7 +326,7 @@
 		{#if detailsOpen}
 			<RedditCommentsView
 				selection={
-						selection[EntityProxyField]<EntityType.RedditComment>('$$replies', {
+						selection.$$replies({
 							sources: [
 								Source.Constants_Internal,
 								Source.Reddit_PublicJson,
@@ -334,7 +334,7 @@
 						})
 					}
 				title='Replies'
-				id='RedditCommentsView-$$replies'
+				id='RedditCommentsView-replies'
 			/>
 		{/if}
 	{/snippet}
