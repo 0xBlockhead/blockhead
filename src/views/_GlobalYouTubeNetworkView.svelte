@@ -156,6 +156,7 @@
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/youtube/channels')}
@@ -174,6 +175,7 @@
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/youtube/videos')}
@@ -192,6 +194,7 @@
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/youtube/playlists')}

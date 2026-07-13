@@ -376,14 +376,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LightningChannel_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				emptyText='No observations yet.'
 				id='LightningChannel_TimestampsView-timestamps'
 			/>
 
 			<BlockheadLightningChannelStatesView
-				selection={selection.$$localStates}
+				selection={
+						selection.$$localStates({
+							count: true,
+						})
+					}
 				title='Local states'
 				emptyText='No local channel states.'
 				id='BlockheadLightningChannelStatesView-local-states'

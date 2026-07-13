@@ -254,7 +254,11 @@
 
 				{#snippet SectionMoveModuleFunctions({ id, label, open })}
 					<MoveFunctionsView
-						selection={selection.$$functions}
+						selection={
+							selection.$$functions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No functions found.'
 						open={open}
@@ -265,7 +269,11 @@
 
 				{#snippet SectionMoveModuleStructs({ id, label, open })}
 					<MoveStructsView
-						selection={selection.$$structs}
+						selection={
+							selection.$$structs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No structs found.'
 						open={open}
@@ -301,7 +309,11 @@
 
 				{#snippet SectionMoveModuleTimestamps({ id, label, open })}
 					<MoveModule_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No observations yet.'
 						open={open}

@@ -408,7 +408,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PythPriceFeed_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Timestamps'
 				emptyText='No Pyth price feed observations.'
 				id='PythPriceFeed_TimestampsView-timestamps'

@@ -302,6 +302,7 @@
 							sources: [
 								Source.Bittensor_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Metagraph observations'
@@ -314,6 +315,7 @@
 							sources: [
 								Source.Bittensor_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Neurons'

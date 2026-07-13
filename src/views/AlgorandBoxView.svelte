@@ -125,7 +125,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AlgorandBox_RoundsView
-				selection={selection.$$rounds}
+				selection={
+						selection.$$rounds({
+							count: true,
+						})
+					}
 				title='rounds'
 				emptyText='No Algorand box rounds.'
 				id='AlgorandBox_RoundsView-rounds'

@@ -157,7 +157,11 @@
 
 				{#snippet SectionIcpLedgerCanisterBlocks({ id, label, open })}
 					<IcpLedgerBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No blocks.'
 						open={open}
@@ -168,7 +172,11 @@
 
 				{#snippet SectionIcpLedgerCanisterTransactions({ id, label, open })}
 					<IcpLedgerTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}
@@ -208,7 +216,11 @@
 
 				{#snippet SectionIcpLedgerCanisterTimestamps({ id, label, open })}
 					<IcpLedgerCanister_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}
@@ -219,7 +231,11 @@
 
 				{#snippet SectionIcpLedgerCanisterAccountTimestamps({ id, label, open })}
 					<IcpLedgerAccount_TimestampsView
-						selection={selection.$$accountTimestamps}
+						selection={
+							selection.$$accountTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No account timestamps.'
 						open={open}

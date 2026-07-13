@@ -131,14 +131,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<A2aAgentCard_SnapshotsView
-				selection={selection.$$snapshots}
+				selection={
+						selection.$$snapshots({
+							count: true,
+						})
+					}
 				title='snapshots'
 				emptyText='No A2A agent card snapshots.'
 				id='A2aAgentCard_SnapshotsView-snapshots'
 			/>
 
 			<AiDocumentsView
-				selection={selection.$$documents}
+				selection={
+						selection.$$documents({
+							count: true,
+						})
+					}
 				title='documents'
 				emptyText='No linked documents.'
 				id='AiDocumentsView-documents'

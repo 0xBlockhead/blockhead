@@ -496,7 +496,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadWalletAccountsView
-				selection={selection.$$connectedAccounts}
+				selection={
+						selection.$$connectedAccounts({
+							count: true,
+						})
+					}
 				title='Connected accounts'
 				emptyText='No connected accounts yet.'
 				id='BlockheadWalletAccountsView-connected-accounts'

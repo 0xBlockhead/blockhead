@@ -37,7 +37,11 @@
 			})
 		}
 		title='Nodes'
-		selection={select(EntityType.LightningNetwork, data.selector).$$nodes}
+		selection={
+			select(EntityType.LightningNetwork, data.selector).$$nodes({
+				count: true,
+			})
+		}
 		id='nodes'
 	/>
 </Page>

@@ -235,7 +235,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AcpMessagePartsView
-				selection={selection.$$parts}
+				selection={
+						selection.$$parts({
+							count: true,
+						})
+					}
 				title='parts'
 				emptyText='No ACP message parts.'
 				id='AcpMessagePartsView-parts'

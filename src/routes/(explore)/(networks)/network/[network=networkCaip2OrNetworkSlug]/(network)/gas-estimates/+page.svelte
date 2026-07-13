@@ -49,6 +49,7 @@
 							Source.Blockscout_Rest,
 							Source.Etherscan_Rest,
 						],
+						count: true,
 					})
 				}
 				id='gas-estimate-timestamps'

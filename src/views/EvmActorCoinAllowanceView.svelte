@@ -275,7 +275,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmActorCoinAllowance_BlocksView
-				selection={selection.$$blocks}
+				selection={
+						selection.$$blocks({
+							count: true,
+						})
+					}
 				title='Blocks'
 				emptyText='No allowance blocks yet.'
 				id='EvmActorCoinAllowance_BlocksView-blocks'

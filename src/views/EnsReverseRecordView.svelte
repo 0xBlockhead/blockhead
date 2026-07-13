@@ -158,7 +158,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EnsReverseRecord_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Timestamps'
 				emptyText='No ENS reverse record observations.'
 				id='EnsReverseRecord_TimestampsView-timestamps'

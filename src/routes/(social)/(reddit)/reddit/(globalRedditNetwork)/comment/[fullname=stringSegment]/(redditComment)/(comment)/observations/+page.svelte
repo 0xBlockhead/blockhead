@@ -44,6 +44,7 @@
 				sources: [
 					Source.Reddit_PublicJson,
 				],
+				count: true,
 			})
 		}
 		id='timestamps'

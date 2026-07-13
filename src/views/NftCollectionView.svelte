@@ -103,14 +103,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<NftTokensView
-				selection={selection.$$tokens}
+				selection={
+						selection.$$tokens({
+							count: true,
+						})
+					}
 				title='tokens'
 				emptyText='No NFT tokens.'
 				id='NftTokensView-tokens'
 			/>
 
 			<RoyaltyRight_TimestampsView
-				selection={selection.$$royaltyTimestamps}
+				selection={
+						selection.$$royaltyTimestamps({
+							count: true,
+						})
+					}
 				title='royalty timestamps'
 				emptyText='No royalty right observations.'
 				id='RoyaltyRight_TimestampsView-royalty-timestamps'

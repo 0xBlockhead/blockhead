@@ -126,7 +126,11 @@
 
 				{#snippet SectionXUsers({ id, label, open })}
 					<XUsersView
-						selection={selection.$$observedUsers}
+						selection={
+							selection.$$observedUsers({
+								count: true,
+							})
+						}
 						href={resolve('/x/users')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No X users in this observed.'
@@ -138,7 +142,11 @@
 
 				{#snippet SectionXPosts({ id, label, open })}
 					<XPostsView
-						selection={selection.$$observedPosts}
+						selection={
+							selection.$$observedPosts({
+								count: true,
+							})
+						}
 						href={resolve('/x/posts')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No X posts in this observed.'
@@ -175,7 +183,11 @@
 
 				{#snippet SectionXHubObservations({ id, label, open })}
 					<GlobalXNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No X observed observations yet.'
 						open={open}

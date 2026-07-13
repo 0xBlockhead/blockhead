@@ -428,7 +428,11 @@
 
 				{#snippet SectionMoneroSubaddresses({ id, label, open })}
 					<BlockheadMoneroSubaddressStatesView
-						selection={selection.$$subaddresses}
+						selection={
+							selection.$$subaddresses({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Monero subaddresses.'
 						open={open}
@@ -439,7 +443,11 @@
 
 				{#snippet SectionMoneroOutputs({ id, label, open })}
 					<BlockheadMoneroOutputStatesView
-						selection={selection.$$outputs}
+						selection={
+							selection.$$outputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Monero outputs.'
 						open={open}
@@ -479,7 +487,11 @@
 
 				{#snippet SectionMoneroTransfers({ id, label, open })}
 					<BlockheadMoneroTransferStatesView
-						selection={selection.$$transfers}
+						selection={
+							selection.$$transfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Monero transfers.'
 						open={open}
@@ -490,7 +502,11 @@
 
 				{#snippet SectionMoneroWalletTimestamps({ id, label, open })}
 					<BlockheadMoneroWalletState_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Monero wallet observations.'
 						open={open}

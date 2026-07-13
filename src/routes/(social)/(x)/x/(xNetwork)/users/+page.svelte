@@ -33,6 +33,7 @@
 				sources: [
 					Source.X_FxEmbed_Rest,
 				],
+				count: true,
 			})
 		}
 		id='x-users'

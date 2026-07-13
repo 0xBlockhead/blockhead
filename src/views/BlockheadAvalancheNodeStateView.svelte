@@ -334,7 +334,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadAvalancheNodeState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Avalanche node-state observations.'
 				id='BlockheadAvalancheNodeState_TimestampsView-timestamps'

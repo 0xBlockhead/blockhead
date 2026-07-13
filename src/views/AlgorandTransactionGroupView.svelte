@@ -125,7 +125,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AlgorandTransactionsView
-				selection={selection.$$transactions}
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
 				title='transactions'
 				emptyText='No Algorand transactions.'
 				id='AlgorandTransactionsView-transactions'

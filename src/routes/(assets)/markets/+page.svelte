@@ -33,6 +33,7 @@
 				sources: [
 					Source.Constants_Internal,
 				],
+				count: true,
 			})
 		}
 		id='markets'

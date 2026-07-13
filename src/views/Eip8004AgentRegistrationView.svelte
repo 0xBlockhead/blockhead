@@ -280,14 +280,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<Eip8004AgentRegistration_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Timestamps'
 				emptyText='No EIP-8004 registration observations.'
 				id='Eip8004AgentRegistration_TimestampsView-timestamps'
 			/>
 
 			<Eip8004AgentRegistrationFilesView
-				selection={selection.$$files}
+				selection={
+						selection.$$files({
+							count: true,
+						})
+					}
 				title='Files'
 				emptyText='No EIP-8004 registration files.'
 				id='Eip8004AgentRegistrationFilesView-files'

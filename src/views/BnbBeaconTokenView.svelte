@@ -315,7 +315,11 @@
 
 				{#snippet SectionBnbBeaconTokenTransfers({ id, label, open })}
 					<BnbBeaconTokenTransfersView
-						selection={selection.$$transfers}
+						selection={
+							selection.$$transfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transfers.'
 						open={open}
@@ -326,7 +330,11 @@
 
 				{#snippet SectionBnbBeaconTokenMigrations({ id, label, open })}
 					<BnbBeaconTokenMigrationsView
-						selection={selection.$$migrations}
+						selection={
+							selection.$$migrations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No migrations.'
 						open={open}
@@ -362,7 +370,11 @@
 
 				{#snippet SectionBnbBeaconTokenTimestamps({ id, label, open })}
 					<BnbBeaconToken_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

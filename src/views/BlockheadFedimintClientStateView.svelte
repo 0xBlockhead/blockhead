@@ -429,7 +429,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadFedimintClientState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='BlockheadFedimintClientState_TimestampsView-timestamps'

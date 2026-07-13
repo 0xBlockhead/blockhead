@@ -168,7 +168,11 @@
 
 				{#snippet SectionIcpSubnetList({ id, label, open })}
 					<IcpSubnetsView
-						selection={selection.$$subnets}
+						selection={
+							selection.$$subnets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ICP subnets.'
 						open={open}
@@ -208,7 +212,11 @@
 
 				{#snippet SectionIcpCanisterList({ id, label, open })}
 					<IcpCanistersView
-						selection={selection.$$canisters}
+						selection={
+							selection.$$canisters({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ICP canisters.'
 						open={open}
@@ -219,7 +227,11 @@
 
 				{#snippet SectionIcpLedgerCanisters({ id, label, open })}
 					<IcpLedgerCanistersView
-						selection={selection.$$ledgerCanisters}
+						selection={
+							selection.$$ledgerCanisters({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ICP ledger canisters.'
 						open={open}
@@ -255,7 +267,11 @@
 
 				{#snippet SectionIcpRequestStatuses({ id, label, open })}
 					<IcpRequestStatusesView
-						selection={selection.$$requestStatuses}
+						selection={
+							selection.$$requestStatuses({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ICP request statuses.'
 						open={open}
@@ -291,7 +307,11 @@
 
 				{#snippet SectionIcpNetworkObservations({ id, label, open })}
 					<IcpNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ICP network observations.'
 						open={open}

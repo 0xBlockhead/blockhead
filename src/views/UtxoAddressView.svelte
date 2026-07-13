@@ -235,7 +235,11 @@
 
 				{#snippet SectionUtxoAddressOutputs({ id, label, open })}
 					<UtxoOutputsView
-						selection={selection.$$outputs}
+						selection={
+							selection.$$outputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No outputs.'
 						open={open}
@@ -246,7 +250,11 @@
 
 				{#snippet SectionUtxoAddressTransactions({ id, label, open })}
 					<UtxoTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}
@@ -282,7 +290,11 @@
 
 				{#snippet SectionUtxoAddressTimestamps({ id, label, open })}
 					<UtxoAddress_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

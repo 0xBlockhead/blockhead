@@ -3,6 +3,10 @@ import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
 import { cosmosNetworkBySlug } from '$/constants/CosmosNetwork.ts'
+import {
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { Source } from '$/sources/Source.ts'
@@ -29,6 +33,20 @@ import { CosmosContractSelector } from '$/schema/CosmosContract.ts'
 import { schema } from '$/schema/index.ts'
 
 type NetworkId = EntitySelector<typeof schema, EntityType.Network>
+
+const cosmosPaginationCount = (
+	total: string | undefined,
+	label: string
+) => {
+	if (total == null)
+		throw new Error(`CosmosSdk_Rest: ${label} pagination total missing`)
+
+	const count = Number(total)
+	if (!Number.isSafeInteger(count) || count < 0)
+		throw new Error(`CosmosSdk_Rest: invalid ${label} pagination total ${total}`)
+
+	return count
+}
 
 const assertCosmosHub = (network: NetworkId) => {
 	if (
@@ -279,25 +297,26 @@ export default {
 					const {
 						getLatestBlock,
 						getNodeInfo,
-						getProposals,
 						getStakingPool,
 						getSyncing,
 						getValidators,
 					} = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					const [
 						latestBlock,
-					nodeInfo,
-					syncing,
-					validators,
-					stakingPool,
-					proposals,
+						nodeInfo,
+						syncing,
+						bondedValidators,
+						stakingPool,
 					] = await Promise.all([
 						getLatestBlock({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
 						getNodeInfo({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
 						getSyncing({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
-						getValidators({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
+						getValidators({
+							restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+							limit: 1,
+							status: 'BOND_STATUS_BONDED',
+						}),
 						getStakingPool({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
-						getProposals({ restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl }),
 					])
 					return {
 						$network: {
@@ -305,6 +324,8 @@ export default {
 						},
 						timestampMs,
 						source,
+						ledgerModels: [NetworkLedgerModel.Account],
+						executionModels: [NetworkExecutionModel.CosmosSdk],
 						latestBlockHeight: BigInt(latestBlock.block.header.height),
 						latestBlockHash: latestBlock.block_id.hash,
 						latestBlockTimeMs: Date.parse(latestBlock.block.header.time),
@@ -315,11 +336,9 @@ export default {
 						applicationVersion: nodeInfo.application_version?.version,
 						cosmosSdkVersion: nodeInfo.application_version?.cosmos_sdk_version,
 						isSyncing: syncing.syncing,
-						validatorCount: validators.pagination?.total == null ? validators.validators.length : Number(validators.pagination.total),
-						bondedValidatorCount: validators.validators.filter((validator) => validator.status === 'BOND_STATUS_BONDED').length,
+						bondedValidatorCount: cosmosPaginationCount(bondedValidators.pagination?.total, 'bonded validator'),
 						bondedTokens: BigInt(stakingPool.pool.bonded_tokens),
 						notBondedTokens: BigInt(stakingPool.pool.not_bonded_tokens),
-						governanceProposalCount: proposals.pagination?.total == null ? proposals.proposals.length : Number(proposals.pagination.total),
 					}
 				}
 			},
@@ -327,21 +346,23 @@ export default {
 				$network: (timestamp) => timestamp.$network,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
-				latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
-				latestBlockHash: (timestamp) => timestamp.latestBlockHash,
-				latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
-				latestBlockTransactionCount: (timestamp) => timestamp.latestBlockTransactionCount,
-				chainId: (timestamp) => timestamp.chainId,
-				nodeNetwork: (timestamp) => timestamp.nodeNetwork,
-				applicationName: (timestamp) => timestamp.applicationName,
-				applicationVersion: (timestamp) => timestamp.applicationVersion,
-				cosmosSdkVersion: (timestamp) => timestamp.cosmosSdkVersion,
-				isSyncing: (timestamp) => timestamp.isSyncing,
-				validatorCount: (timestamp) => timestamp.validatorCount,
-				bondedValidatorCount: (timestamp) => timestamp.bondedValidatorCount,
-				bondedTokens: (timestamp) => timestamp.bondedTokens,
-				notBondedTokens: (timestamp) => timestamp.notBondedTokens,
-				governanceProposalCount: (timestamp) => timestamp.governanceProposalCount,
+				ledgerModels: (timestamp) => timestamp.ledgerModels,
+				executionModels: (timestamp) => timestamp.executionModels,
+				Cosmos: {
+					latestBlockHeight: (timestamp) => timestamp.latestBlockHeight,
+					latestBlockHash: (timestamp) => timestamp.latestBlockHash,
+					latestBlockTimeMs: (timestamp) => timestamp.latestBlockTimeMs,
+					latestBlockTransactionCount: (timestamp) => timestamp.latestBlockTransactionCount,
+					chainId: (timestamp) => timestamp.chainId,
+					nodeNetwork: (timestamp) => timestamp.nodeNetwork,
+					applicationName: (timestamp) => timestamp.applicationName,
+					applicationVersion: (timestamp) => timestamp.applicationVersion,
+					cosmosSdkVersion: (timestamp) => timestamp.cosmosSdkVersion,
+					isSyncing: (timestamp) => timestamp.isSyncing,
+					bondedValidatorCount: (timestamp) => timestamp.bondedValidatorCount,
+					bondedTokens: (timestamp) => timestamp.bondedTokens,
+					notBondedTokens: (timestamp) => timestamp.notBondedTokens,
+				},
 			}),
 
 		defineResolver(Source.CosmosSdk_Rest, {
@@ -796,6 +817,34 @@ export default {
 			resolve: {
 				[NetworkSelector.Caip2]: async (network) => {
 					assertCosmosHub(network)
+					const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosPaginationCount((await getValidators({
+						restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+						limit: 1,
+					})).pagination?.total, 'validator')
+				},
+				[NetworkSelector.Slug]: async (network) => {
+					assertCosmosHub(network)
+					const { getValidators } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosPaginationCount((await getValidators({
+						restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+						limit: 1,
+					})).pagination?.total, 'validator')
+				}
+			},
+		})({
+				Cosmos: {
+					$$validators: {
+						resolveCount: (count) => count,
+					},
+				},
+			}),
+
+		defineResolver(Source.CosmosSdk_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Caip2]: async (network) => {
+					assertCosmosHub(network)
 					const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
 					return cosmosProposalRows(
 						network,
@@ -814,6 +863,34 @@ export default {
 		})({
 				Cosmos: {
 					$$governanceProposals: (proposals) => proposals,
+				},
+			}),
+
+		defineResolver(Source.CosmosSdk_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Caip2]: async (network) => {
+					assertCosmosHub(network)
+					const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosPaginationCount((await getProposals({
+						restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+						limit: 1,
+					})).pagination?.total, 'governance proposal')
+				},
+				[NetworkSelector.Slug]: async (network) => {
+					assertCosmosHub(network)
+					const { getProposals } = await import('$/sources/CosmosSdk/Rest/queries.ts')
+					return cosmosPaginationCount((await getProposals({
+						restBaseUrl: cosmosNetworkBySlug.cosmos.cosmosSdkRestBaseUrl,
+						limit: 1,
+					})).pagination?.total, 'governance proposal')
+				}
+			},
+		})({
+				Cosmos: {
+					$$governanceProposals: {
+						resolveCount: (count) => count,
+					},
 				},
 			}),
 

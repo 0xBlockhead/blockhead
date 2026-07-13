@@ -70,12 +70,26 @@ export const getTx = ({
 	)
 )
 
-export const getValidators = ({ restBaseUrl }: { restBaseUrl: string }) => (
-	getJson<CosmosSdkValidatorsResponse>(
-		`${base(restBaseUrl)}/cosmos/staking/v1beta1/validators?pagination.limit=24&pagination.count_total=true`,
+export const getValidators = ({
+	restBaseUrl,
+	limit = 24,
+	status,
+}: {
+	restBaseUrl: string
+	limit?: number
+	status?: string
+}) => {
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+		...(status != null && { status }),
+	})
+
+	return getJson<CosmosSdkValidatorsResponse>(
+		`${base(restBaseUrl)}/cosmos/staking/v1beta1/validators?${parameters}`,
 		{ origins: cosmosSdkOrigins }
 	)
-)
+}
 
 export const getStakingPool = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	getJson<CosmosSdkStakingPoolResponse>(
@@ -123,12 +137,23 @@ export const getProposal = ({
 	)
 )
 
-export const getProposals = ({ restBaseUrl }: { restBaseUrl: string }) => (
-	getJson<CosmosSdkProposalsResponse>(
-		`${base(restBaseUrl)}/cosmos/gov/v1/proposals?pagination.limit=12&pagination.count_total=true`,
+export const getProposals = ({
+	restBaseUrl,
+	limit = 12,
+}: {
+	restBaseUrl: string
+	limit?: number
+}) => {
+	const parameters = new URLSearchParams({
+		'pagination.limit': String(limit),
+		'pagination.count_total': 'true',
+	})
+
+	return getJson<CosmosSdkProposalsResponse>(
+		`${base(restBaseUrl)}/cosmos/gov/v1/proposals?${parameters}`,
 		{ origins: cosmosSdkOrigins }
 	)
-)
+}
 
 export const getDenomMetadata = ({
 	restBaseUrl,

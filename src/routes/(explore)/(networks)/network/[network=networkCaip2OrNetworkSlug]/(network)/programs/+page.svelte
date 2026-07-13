@@ -42,7 +42,11 @@
 					})
 				}
 				title='Solana programs'
-				selection={projection.$$programs}
+				selection={
+					projection.$$programs({
+						count: true,
+					})
+				}
 				id='programs'
 			/>
 		{/snippet}

@@ -431,7 +431,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmStorageRead_TimestampsView
-				selection={selection.$$storageReads}
+				selection={
+						selection.$$storageReads({
+							count: true,
+						})
+					}
 				title='Storage reads'
 				emptyText='No EVM storage reads.'
 				id='EvmStorageRead_TimestampsView-storage-reads'

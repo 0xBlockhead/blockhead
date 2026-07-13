@@ -321,7 +321,11 @@
 
 				{#snippet SectionRadiclePeers({ id, label, open })}
 					<BlockheadRadiclePeersView
-						selection={selection.$$peers}
+						selection={
+							selection.$$peers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No peers.'
 						open={open}
@@ -332,7 +336,11 @@
 
 				{#snippet SectionRadicleSyncSessions({ id, label, open })}
 					<BlockheadRadicleSyncSessionsView
-						selection={selection.$$syncSessions}
+						selection={
+							selection.$$syncSessions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No sync sessions.'
 						open={open}
@@ -372,7 +380,11 @@
 
 				{#snippet SectionRadicleInventory({ id, label, open })}
 					<BlockheadRadicleNodeInventory_TimestampsView
-						selection={selection.$$inventoryTimestamps}
+						selection={
+							selection.$$inventoryTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No inventory observations.'
 						open={open}
@@ -383,7 +395,11 @@
 
 				{#snippet SectionRadicleSeeds({ id, label, open })}
 					<BlockheadRadicleSeedObservation_TimestampsView
-						selection={selection.$$seedObservations}
+						selection={
+							selection.$$seedObservations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No seed observations.'
 						open={open}
@@ -419,7 +435,11 @@
 
 				{#snippet SectionRadicleNodeTimestamps({ id, label, open })}
 					<BlockheadRadicleNodeState_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Radicle node-state observations.'
 						open={open}

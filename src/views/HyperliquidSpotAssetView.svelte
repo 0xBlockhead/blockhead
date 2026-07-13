@@ -164,7 +164,11 @@
 
 				{#snippet SectionHyperliquidSpotAssetBasePairs({ id, label, open })}
 					<HyperliquidSpotPairsView
-						selection={selection.$$basePairs}
+						selection={
+							selection.$$basePairs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No base pairs.'
 						open={open}
@@ -175,7 +179,11 @@
 
 				{#snippet SectionHyperliquidSpotAssetQuotePairs({ id, label, open })}
 					<HyperliquidSpotPairsView
-						selection={selection.$$quotePairs}
+						selection={
+							selection.$$quotePairs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No quote pairs.'
 						open={open}
@@ -211,7 +219,11 @@
 
 				{#snippet SectionHyperliquidSpotAssetTimestamps({ id, label, open })}
 					<HyperliquidSpotAsset_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

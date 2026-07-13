@@ -250,7 +250,11 @@
 
 				{#snippet SectionLitecoinMwebTransactionOutputs({ id, label, open })}
 					<LitecoinMwebOutputsView
-						selection={selection.$$outputs}
+						selection={
+							selection.$$outputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No outputs.'
 						open={open}
@@ -261,7 +265,11 @@
 
 				{#snippet SectionLitecoinMwebTransactionPegIns({ id, label, open })}
 					<LitecoinMwebPegInsView
-						selection={selection.$$pegIns}
+						selection={
+							selection.$$pegIns({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No peg ins.'
 						open={open}
@@ -297,7 +305,11 @@
 
 				{#snippet SectionLitecoinMwebTransactionPegOuts({ id, label, open })}
 					<LitecoinMwebPegOutsView
-						selection={selection.$$pegOuts}
+						selection={
+							selection.$$pegOuts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No peg outs.'
 						open={open}

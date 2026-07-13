@@ -4,6 +4,7 @@
 	// Types/constants
 	import type { PageProps } from './$types.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
+	import { NetworkExecutionModel, NetworkLedgerModel } from '$/constants/Network.ts'
 
 
 	// Context
@@ -28,9 +29,8 @@
 		source: params.source,
 	}).source],
 		fields: {
-			latestHeight: true,
-			health: true,
-			txCount: true,
+			ledgerModels: true,
+			executionModels: true,
 			latestBlockHeight: true,
 			latestBlockHash: true,
 			latestBlockTimeMs: true,
@@ -41,11 +41,43 @@
 			applicationVersion: true,
 			cosmosSdkVersion: true,
 			isSyncing: true,
-			validatorCount: true,
 			bondedValidatorCount: true,
 			bondedTokens: true,
 			notBondedTokens: true,
-			governanceProposalCount: true,
+			finalizedBlockNumber: true,
+			finalizedBlockHash: true,
+			finalizedExtrinsicCount: true,
+			runtimeSpecName: true,
+			runtimeSpecVersion: true,
+			transactionVersion: true,
+			stateVersion: true,
+			peerCount: true,
+			shouldHavePeers: true,
+			health: true,
+			absoluteSlot: true,
+			blockHeight: true,
+			epoch: true,
+			slotIndex: true,
+			slotsInEpoch: true,
+			transactionCount: true,
+			currentValidatorCount: true,
+			delinquentValidatorCount: true,
+			totalActivatedStakeLamports: true,
+			solanaCoreVersion: true,
+			featureSet: true,
+			bestBlockHeight: true,
+			bestBlockHash: true,
+			bestBlockTimeMs: true,
+			blockCount: true,
+			blocks24h: true,
+			transactions24h: true,
+			mempoolTransactionCount: true,
+			mempoolSizeBytes: true,
+			mempoolTps: true,
+			averageTransactionFee24hSats: true,
+			medianTransactionFee24hSats: true,
+			suggestedTransactionFeePerByteSats: true,
+			blockchainSizeBytes: true,
 		},
 	}))
 	const pageEntityTitle = $derived((data.title ?? (pageSelection.entity == null ? [String((pageSelection.entitySelector.timestampMs) ?? '')].filter(Boolean).join(' ') || 'Network timestamp' : [String((({ ...pageSelection.entitySelector, ...pageSelection.entity }).timestampMs) ?? '')].filter(Boolean).join(' ') || 'Network timestamp')))

@@ -505,7 +505,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BnbBeaconTransactionsView
-				selection={selection.$$transactions}
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
 				title='transactions'
 				emptyText='No transactions found.'
 				id='BnbBeaconTransactionsView-transactions'

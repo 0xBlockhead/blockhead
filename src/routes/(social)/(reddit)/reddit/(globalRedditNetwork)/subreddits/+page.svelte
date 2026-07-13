@@ -34,6 +34,7 @@
 					Source.Constants_Internal,
 					Source.Reddit_PublicJson,
 				],
+				count: true,
 			})
 		}
 		id='observed-subreddits'

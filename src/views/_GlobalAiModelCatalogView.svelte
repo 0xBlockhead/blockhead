@@ -218,7 +218,11 @@
 
 				{#snippet SectionAiProviders({ id, label, open })}
 					<AiModelProvidersView
-						selection={selection.$$providers}
+						selection={
+							selection.$$providers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI model providers.'
 						open={open}
@@ -229,7 +233,11 @@
 
 				{#snippet SectionAiCatalogEntries({ id, label, open })}
 					<AiProviderCatalogEntriesView
-						selection={selection.$$catalogEntries}
+						selection={
+							selection.$$catalogEntries({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI provider catalog entries.'
 						open={open}
@@ -240,7 +248,11 @@
 
 				{#snippet SectionAiModels({ id, label, open })}
 					<AiModelsView
-						selection={selection.$$models}
+						selection={
+							selection.$$models({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI models.'
 						open={open}
@@ -284,7 +296,11 @@
 
 				{#snippet SectionAiDatasets({ id, label, open })}
 					<AiDatasetsView
-						selection={selection.$$datasets}
+						selection={
+							selection.$$datasets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI datasets.'
 						open={open}
@@ -295,7 +311,11 @@
 
 				{#snippet SectionAiBenchmarks({ id, label, open })}
 					<AiBenchmarksView
-						selection={selection.$$benchmarks}
+						selection={
+							selection.$$benchmarks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI benchmarks.'
 						open={open}
@@ -306,7 +326,11 @@
 
 				{#snippet SectionAiEvaluations({ id, label, open })}
 					<AiEvaluation_TimestampsView
-						selection={selection.$$evaluations}
+						selection={
+							selection.$$evaluations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI evaluation observations.'
 						open={open}
@@ -342,7 +366,11 @@
 
 				{#snippet SectionAiCatalogTimestamps({ id, label, open })}
 					<GlobalAiModelCatalog_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI model catalog observations.'
 						open={open}

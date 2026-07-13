@@ -472,7 +472,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PayoutClaim_TimestampsView
-				selection={selection.$$claims}
+				selection={
+						selection.$$claims({
+							count: true,
+						})
+					}
 				title='claims'
 				emptyText='No payout claim observations.'
 				id='PayoutClaim_TimestampsView-claims'

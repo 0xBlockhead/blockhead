@@ -48,6 +48,7 @@
 						sources: [
 							Source.Constants_Internal,
 						],
+						count: true,
 					})
 				}
 				id='mev-relays'

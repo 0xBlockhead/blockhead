@@ -129,6 +129,7 @@
 							sources: [
 								Source.Constants_Internal,
 							],
+							count: true,
 						})
 					}
 				title='Markets'

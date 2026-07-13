@@ -397,14 +397,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<IbcChannelsView
-				selection={selection.$$ibcChannels}
+				selection={
+						selection.$$ibcChannels({
+							count: true,
+						})
+					}
 				title='ibc channels'
 				emptyText='No IBC channels.'
 				id='IbcChannelsView-ibc-channels'
 			/>
 
 			<Network_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No network observations.'
 				id='Network_TimestampsView-timestamps'

@@ -248,14 +248,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadWakuNodeState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Waku node-state observations.'
 				id='BlockheadWakuNodeState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadWakuMessageObservation_TimestampsView
-				selection={selection.$$messageObservations}
+				selection={
+						selection.$$messageObservations({
+							count: true,
+						})
+					}
 				title='message observations'
 				emptyText='No Waku message observations.'
 				id='BlockheadWakuMessageObservation_TimestampsView-message-observations'

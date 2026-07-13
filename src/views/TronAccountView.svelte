@@ -237,6 +237,7 @@
 									Source.TronGrid_Rest,
 									Source.TronScan_Rest,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -286,6 +287,7 @@
 									Source.TronSolidityNode_Rest,
 									Source.TronScan_Rest,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -303,6 +305,7 @@
 								sources: [
 									Source.TronScan_Rest,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

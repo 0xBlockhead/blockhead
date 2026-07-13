@@ -432,7 +432,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadAgentProgramInstall_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No install observations.'
 				id='BlockheadAgentProgramInstall_TimestampsView-timestamps'

@@ -355,6 +355,7 @@
 									Source.Constants_Internal,
 									Source.Lens_Graphql,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/lens/observations/accounts')}
@@ -368,7 +369,11 @@
 
 				{#snippet SectionLensNetworkFeeds({ id, label, open })}
 					<LensFeedsView
-						selection={selection.$$lensFeeds}
+						selection={
+							selection.$$lensFeeds({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens feeds in this observed.'
 						open={open}
@@ -379,7 +384,11 @@
 
 				{#snippet SectionLensNetworkUsernameNamespaces({ id, label, open })}
 					<LensUsernameNamespacesView
-						selection={selection.$$lensUsernameNamespaces}
+						selection={
+							selection.$$lensUsernameNamespaces({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens username namespaces in this observed.'
 						open={open}
@@ -420,6 +429,7 @@
 								sources: [
 									Source.Lens_Graphql,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/lens/observations/posts')}

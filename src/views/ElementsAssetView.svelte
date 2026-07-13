@@ -389,6 +389,7 @@
 							sources: [
 								Source.Esplora_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Observations'
@@ -396,7 +397,11 @@
 			/>
 
 			<ElementsIssuancesView
-				selection={selection.$$issuances}
+				selection={
+						selection.$$issuances({
+							count: true,
+						})
+					}
 				title='Issuances'
 				id='ElementsIssuancesView-issuances'
 			/>

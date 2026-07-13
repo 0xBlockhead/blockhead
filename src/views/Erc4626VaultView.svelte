@@ -373,14 +373,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<Erc4626Vault_BlocksView
-				selection={selection.$$blocks}
+				selection={
+						selection.$$blocks({
+							count: true,
+						})
+					}
 				title='Blocks'
 				emptyText='No ERC-4626 block states yet.'
 				id='Erc4626Vault_BlocksView-blocks'
 			/>
 
 			<Erc4626Vault_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				emptyText='No ERC-4626 observations yet.'
 				id='Erc4626Vault_TimestampsView-timestamps'

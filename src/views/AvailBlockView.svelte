@@ -458,7 +458,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AvailDataSubmissionsView
-				selection={selection.$$dataSubmissions}
+				selection={
+						selection.$$dataSubmissions({
+							count: true,
+						})
+					}
 				title='data submissions'
 				emptyText='No data submissions found.'
 				id='AvailDataSubmissionsView-data-submissions'

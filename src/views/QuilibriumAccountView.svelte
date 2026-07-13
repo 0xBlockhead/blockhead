@@ -235,7 +235,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadQuilibriumAccountStatesView
-				selection={selection.$$blockheadAccountStates}
+				selection={
+						selection.$$blockheadAccountStates({
+							count: true,
+						})
+					}
 				title='blockhead account states'
 				emptyText='No connected account states.'
 				id='BlockheadQuilibriumAccountStatesView-blockhead-account-states'

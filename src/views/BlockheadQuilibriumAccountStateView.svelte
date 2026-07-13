@@ -397,14 +397,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadQuilibriumAccountState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Quilibrium account observations.'
 				id='BlockheadQuilibriumAccountState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadQuilibriumPendingTransactionsView
-				selection={selection.$$pendingTransactions}
+				selection={
+						selection.$$pendingTransactions({
+							count: true,
+						})
+					}
 				title='pending transactions'
 				emptyText='No pending transactions.'
 				id='BlockheadQuilibriumPendingTransactionsView-pending-transactions'

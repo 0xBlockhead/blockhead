@@ -225,7 +225,11 @@
 
 				{#snippet SectionStarknetChainObservations({ id, label, open })}
 					<StarknetNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Starknet network observations.'
 						open={open}
@@ -236,7 +240,11 @@
 
 				{#snippet SectionStarknetChainBlocks({ id, label, open })}
 					<StarknetBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Starknet blocks.'
 						open={open}
@@ -247,7 +255,11 @@
 
 				{#snippet SectionStarknetChainTransactions({ id, label, open })}
 					<StarknetTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Starknet transactions.'
 						open={open}
@@ -287,7 +299,11 @@
 
 				{#snippet SectionStarknetContracts({ id, label, open })}
 					<StarknetContractsView
-						selection={selection.$$contracts}
+						selection={
+							selection.$$contracts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Starknet contracts.'
 						open={open}
@@ -298,7 +314,11 @@
 
 				{#snippet SectionStarknetClasses({ id, label, open })}
 					<StarknetClassesView
-						selection={selection.$$classes}
+						selection={
+							selection.$$classes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Starknet classes.'
 						open={open}

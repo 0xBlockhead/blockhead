@@ -416,6 +416,7 @@
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Replies'
@@ -431,6 +432,7 @@
 								Source.Constants_Internal,
 								Source.NostrBand_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Reactions'

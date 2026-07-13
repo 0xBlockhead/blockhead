@@ -428,6 +428,7 @@
 									Source.Neynar_Rest,
 									Source.Snapchain_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/farcaster/feed/trending')}
@@ -466,7 +467,11 @@
 
 				{#snippet SectionFarcasterChannelTimestamps({ id, label, open })}
 					<FarcasterChannel_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Farcaster channel observations yet.'
 						open={open}

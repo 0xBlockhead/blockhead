@@ -42,7 +42,11 @@
 					})
 				}
 				title='Solana accounts'
-				selection={projection.$$accounts}
+				selection={
+					projection.$$accounts({
+						count: true,
+					})
+				}
 				id='accounts'
 			/>
 		{/snippet}

@@ -600,7 +600,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<FilecoinDeal_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				id='FilecoinDeal_TimestampsView-timestamps'
 			/>

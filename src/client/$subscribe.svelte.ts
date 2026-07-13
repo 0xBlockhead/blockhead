@@ -152,7 +152,7 @@ const subscribeToLiveQueryCollections = (
 			includeInitialState: true,
 			onStatusChange: update,
 		})
-		subscriptions.push(subscription.unsubscribe)
+		subscriptions.push(() => subscription.unsubscribe())
 	}
 
 	void (async () => {
@@ -361,7 +361,7 @@ const fieldDataFromRows = <
 	definition: EntityFieldDefinition,
 	rows: readonly EntityFieldCollectionItem<_Schema>[],
 	countRows: readonly EntityFieldCountCollectionItem<_Schema>[],
-	count = false
+	countSourcePriority: readonly string[]
 ) => {
 	const values = (
 		entityFieldCardinalityIsMultiple(definition.cardinality) ?
@@ -393,6 +393,9 @@ const fieldDataFromRows = <
 			),
 		}
 	})
+	const countRow = countSourcePriority
+		.map((source) => countRows.find((row) => row[EntityMetaKey.Source] === source))
+		.find((row) => row !== undefined)
 	if (entityFieldCardinalityIsMultiple(definition.cardinality))
 		return {
 			entityType,
@@ -400,8 +403,8 @@ const fieldDataFromRows = <
 			fieldName: definition.name,
 			values,
 			entities: values,
-			...(countRows.length > 0 && {
-				totalCount: countRows[0][EntityMetaKey.Value],
+			...(countRow != null && {
+				totalCount: countRow[EntityMetaKey.Value],
 			}),
 		}
 
@@ -433,6 +436,13 @@ const fieldResourceQueries = <
 	const querySources = enabledSelectionSources(context, selection.sources)
 	const facetPathKey = stringify(entityFieldFacetPath(definition))
 	const fieldAddressKey = entityFieldAddressKey(entityType, entityFieldFacetPath(definition), fieldName)
+	const valueResolverParts = context.resolverIndexes.resolverValuePartsByEntityTypeAndFieldName[fieldAddressKey] ?? []
+	const countSourcePriority = enabledSelectionSources(
+		context,
+		selection.sources ?? definition.defaultSources
+	) ?? (context.resolverIndexes.resolverCountPartsByEntityTypeAndFieldName[fieldAddressKey] ?? [])
+		.map((resolverPart) => String(resolverPart.source))
+		.filter((source) => context.enabledSources.has(source))
 	const parentSelectorKey = entitySelectorKey(
 		context.schema,
 		context.entityDefinitionByType[entityType],
@@ -440,6 +450,7 @@ const fieldResourceQueries = <
 	)
 	const fieldCollection = context.entityFieldCollections[entityType][fieldAddressKey]
 	const rowsCollection = createLiveQueryCollection({
+		gcTime: 1,
 		startSync: true,
 		query: (query) => {
 			let built = query
@@ -587,7 +598,12 @@ const fieldResourceQueries = <
 		),
 		countCollection,
 		sourceDisabled: selectedSourcesDisabled(context, selection.sources),
+		sourceUnsupported: !valueResolverParts.some((resolverPart) => (
+			querySources == null
+			|| querySources.includes(String(resolverPart.source))
+		)),
 		sources: querySources,
+		countSourcePriority,
 	}
 }
 
@@ -670,7 +686,7 @@ export const subscribeEntityField = <
 							definition,
 							queries.rows.data,
 							queries.rows.isReady,
-							queries.sourceDisabled
+							queries.sourceDisabled || queries.sourceUnsupported
 						)
 					)
 				),
@@ -691,7 +707,7 @@ export const subscribeEntityField = <
 			definition,
 			queries.rows.data,
 			queries.counts?.data ?? [],
-			selection.count === true
+			queries.countSourcePriority
 		)
 	), (update) => {
 		const unsubscribeLive = subscribeToLiveQueryCollections(
@@ -858,9 +874,7 @@ export const subscribeEntity = <
 				definition,
 				queries.rows.data,
 				queries.counts?.data ?? [],
-				fieldSelection !== true
-				&& fieldSelection !== undefined
-				&& fieldSelection.count === true
+				queries.countSourcePriority
 			)
 			if (entityFieldFacetPath(definition).length === 0)
 				fieldValues[fieldName] = fieldData
@@ -895,7 +909,7 @@ export const subscribeEntity = <
 									definition,
 									queries.rows.data,
 									queries.rows.isReady,
-									queries.sourceDisabled
+									queries.sourceDisabled || queries.sourceUnsupported
 								)
 							),
 						}]
@@ -910,7 +924,7 @@ export const subscribeEntity = <
 										definition,
 										queries.rows.data,
 										queries.rows.isReady,
-										queries.sourceDisabled
+										queries.sourceDisabled || queries.sourceUnsupported
 									)
 								),
 							},

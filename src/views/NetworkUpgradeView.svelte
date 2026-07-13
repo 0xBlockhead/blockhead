@@ -216,13 +216,21 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SpecificationProposalsView
-				selection={selection.$$specificationProposals}
+				selection={
+						selection.$$specificationProposals({
+							count: true,
+						})
+					}
 				title='Specification proposals'
 				id='SpecificationProposalsView-specification-proposals'
 			/>
 
 			<NetworkUpgrade_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				id='NetworkUpgrade_TimestampsView-timestamps'
 			/>

@@ -239,7 +239,11 @@
 
 				{#snippet SectionAlgorandAppBoxes({ id, label, open })}
 					<AlgorandBoxesView
-						selection={selection.$$boxes}
+						selection={
+							selection.$$boxes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand boxes.'
 						open={open}
@@ -250,7 +254,11 @@
 
 				{#snippet SectionAlgorandAppLocalState({ id, label, open })}
 					<AlgorandApplicationLocalState_RoundsView
-						selection={selection.$$localStateRounds}
+						selection={
+							selection.$$localStateRounds({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand application local state rounds.'
 						open={open}
@@ -286,7 +294,11 @@
 
 				{#snippet SectionAlgorandAppTimestamps({ id, label, open })}
 					<AlgorandApplication_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand application observations.'
 						open={open}

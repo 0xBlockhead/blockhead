@@ -363,7 +363,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLocalMediaIngest_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No local media ingest observations.'
 				id='BlockheadLocalMediaIngest_TimestampsView-timestamps'

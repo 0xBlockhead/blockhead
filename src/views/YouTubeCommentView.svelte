@@ -362,6 +362,7 @@
 								Source.Piped_Rest,
 							],
 							limit: 50,
+							count: true,
 						})
 					}
 				title='Replies'
@@ -377,6 +378,7 @@
 								Source.Piped_Rest,
 							],
 							limit: 50,
+							count: true,
 						})
 					}
 				title='Metric snapshots'

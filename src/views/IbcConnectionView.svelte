@@ -351,7 +351,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<IbcChannelsView
-				selection={selection.$$channels}
+				selection={
+						selection.$$channels({
+							count: true,
+						})
+					}
 				title='Channels'
 				emptyText='No IBC channels.'
 				id='IbcChannelsView-channels'

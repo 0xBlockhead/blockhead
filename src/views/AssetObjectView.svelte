@@ -370,7 +370,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<UsageRight_TimestampsView
-				selection={selection.$$usageRights}
+				selection={
+						selection.$$usageRights({
+							count: true,
+						})
+					}
 				title='usage rights'
 				emptyText='No usage right observations.'
 				id='UsageRight_TimestampsView-usage-rights'

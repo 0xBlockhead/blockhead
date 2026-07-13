@@ -370,7 +370,11 @@
 
 				{#snippet SectionAiProviderCatalogEntries({ id, label, open })}
 					<AiProviderCatalogEntriesView
-						selection={selection.$$catalogEntries}
+						selection={
+							selection.$$catalogEntries({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI provider catalog entries.'
 						open={open}
@@ -381,7 +385,11 @@
 
 				{#snippet SectionAiProviderModels({ id, label, open })}
 					<AiModelsView
-						selection={selection.$$models}
+						selection={
+							selection.$$models({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI models.'
 						open={open}
@@ -417,7 +425,11 @@
 
 				{#snippet SectionAiProviderApiOperations({ id, label, open })}
 					<AiProviderApiOperationsView
-						selection={selection.$$apiOperations}
+						selection={
+							selection.$$apiOperations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI provider API operations.'
 						open={open}

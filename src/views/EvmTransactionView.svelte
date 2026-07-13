@@ -59,7 +59,11 @@
 			$block: true,
 			$from: true,
 			$to: true,
-			$contract: true,
+			ContractCreation: {
+				fields: {
+					$contract: true,
+				},
+			},
 		},
 	}))
 	const titleFallback = $derived([String((pendingEntity.txHash) ?? '')].filter(Boolean).join(' ') || 'EVM transaction')
@@ -226,33 +230,39 @@
 				{/snippet}
 			</ResourceBoundary>
 
-			<ResourceBoundary
-				resource={selection.$contract}
+			<ProjectionBoundary
+				resource={selection.ContractCreation}
 			>
-				{#snippet Pending()}{/snippet}
+				{#snippet Applicable(projection)}
+					<ResourceBoundary
+						resource={projection.$contract}
+					>
+						{#snippet Pending()}{/snippet}
 
-				{#snippet children(evmContract)}
-					{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
-						<div>
-							<dt>Contract</dt>
-							<dd>
-								<EvmContractView
-									selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
-									prefetched={evmContract}
-									href={
-										(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
-											network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
-											address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
-										}) : undefined)
-									}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							</dd>
-						</div>
-					{/if}
+						{#snippet children(evmContract)}
+							{#if evmContract != null && evmContract[EntityMetaKey.Selector] != null}
+								<div>
+									<dt>Created contract</dt>
+									<dd>
+										<EvmContractView
+											selection={select(EntityType.EvmContract, evmContract[EntityMetaKey.Selector])}
+											prefetched={evmContract}
+											href={
+												(evmContract[EntityMetaKey.Selector].$network !== undefined && evmContract[EntityMetaKey.Selector].$network.slug !== undefined && evmContract[EntityMetaKey.Selector].address !== undefined ? resolve('/network/[network=networkCaip2OrNetworkSlug]/contract/[address=evmAddress]', {
+													network: String(evmContract[EntityMetaKey.Selector].$network.slug ?? ''),
+													address: String(evmContract[EntityMetaKey.Selector].address ?? ''),
+												}) : undefined)
+											}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
-			</ResourceBoundary>
+			</ProjectionBoundary>
 		</dl>
 
 		<dl data-column-item="center">
@@ -524,13 +534,7 @@
 							{/snippet}
 						</ResourceBoundary>
 					{/if}
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.FeeMarket}
-			>
-				{#snippet Applicable(projection)}
 					{#if contentOpen}
 						<ResourceBoundary
 							resource={
@@ -877,13 +881,7 @@
 							{/snippet}
 						</ResourceBoundary>
 					{/if}
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Blob}
-			>
-				{#snippet Applicable(projection)}
 					{#if contentOpen}
 						<ResourceBoundary
 							resource={
@@ -943,7 +941,11 @@
 
 				{#snippet SectionEvmTxTokenTransfers({ id, label, open })}
 					<EvmTokenTransfersView
-						selection={selection.$$tokenTransfers}
+						selection={
+							selection.$$tokenTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No token transfers.'
 						open={open}
@@ -954,7 +956,11 @@
 
 				{#snippet SectionEvmTxInternalTransfers({ id, label, open })}
 					<EvmInternalTransfersView
-						selection={selection.$$internalTransfers}
+						selection={
+							selection.$$internalTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No internal transfers.'
 						open={open}
@@ -998,7 +1004,11 @@
 
 				{#snippet SectionEvmTxLogs({ id, label, open })}
 					<EvmLogsView
-						selection={selection.$$logs}
+						selection={
+							selection.$$logs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No logs.'
 						open={open}
@@ -1009,7 +1019,11 @@
 
 				{#snippet SectionEvmTxTraces({ id, label, open })}
 					<EvmTracesView
-						selection={selection.$$traces}
+						selection={
+							selection.$$traces({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No traces.'
 						open={open}
@@ -1024,7 +1038,11 @@
 					>
 						{#snippet Applicable(projection)}
 							<EvmBlobsView
-								selection={projection.$$blobs}
+								selection={
+									projection.$$blobs({
+										count: true,
+									})
+								}
 								CollapsibleProps={{ canToggle: false }}
 								emptyText='No blobs.'
 								open={open}
@@ -1066,7 +1084,11 @@
 
 				{#snippet SectionEvmTxUserOperations({ id, label, open })}
 					<EvmUserOperationsView
-						selection={selection.$$userOperations}
+						selection={
+							selection.$$userOperations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No user operations.'
 						open={open}
@@ -1076,14 +1098,24 @@
 				{/snippet}
 
 				{#snippet SectionEvmTxAuthorizations({ id, label, open })}
-					<Eip7702AuthorizationsView
-						selection={selection.$$authorizations}
-						CollapsibleProps={{ canToggle: false }}
-						emptyText='No authorizations.'
-						open={open}
-						title={label}
-						id={`${id}-list`}
-					/>
+					<ProjectionBoundary
+						resource={selection.SetCode}
+					>
+						{#snippet Applicable(projection)}
+							<Eip7702AuthorizationsView
+								selection={
+									projection.$$authorizations({
+										count: true,
+									})
+								}
+								CollapsibleProps={{ canToggle: false }}
+								emptyText='No authorizations.'
+								open={open}
+								title={label}
+								id={`${id}-list`}
+							/>
+						{/snippet}
+					</ProjectionBoundary>
 				{/snippet}
 
 			</CollapsibleTabs>

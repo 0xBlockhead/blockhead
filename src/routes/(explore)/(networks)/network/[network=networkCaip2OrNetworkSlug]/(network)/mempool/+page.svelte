@@ -48,6 +48,7 @@
 						sources: [
 							Source.Voltaire_JsonRpc,
 						],
+						count: true,
 					})
 				}
 				id='txpool-timestamps'

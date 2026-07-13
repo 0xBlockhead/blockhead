@@ -179,7 +179,11 @@
 
 				{#snippet SectionSuiChainObservations({ id, label, open })}
 					<SuiNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Sui network observations.'
 						open={open}
@@ -190,7 +194,11 @@
 
 				{#snippet SectionSuiChainCheckpoints({ id, label, open })}
 					<SuiCheckpointsView
-						selection={selection.$$checkpoints}
+						selection={
+							selection.$$checkpoints({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Sui checkpoints.'
 						open={open}
@@ -201,7 +209,11 @@
 
 				{#snippet SectionSuiChainTransactions({ id, label, open })}
 					<SuiTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Sui transactions.'
 						open={open}
@@ -241,7 +253,11 @@
 
 				{#snippet SectionSuiObjects({ id, label, open })}
 					<SuiObjectsView
-						selection={selection.$$objects}
+						selection={
+							selection.$$objects({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Sui objects.'
 						open={open}
@@ -252,7 +268,11 @@
 
 				{#snippet SectionSuiPackages({ id, label, open })}
 					<SuiPackagesView
-						selection={selection.$$packages}
+						selection={
+							selection.$$packages({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Sui packages.'
 						open={open}
@@ -296,7 +316,11 @@
 
 				{#snippet SectionSuiAccounts({ id, label, open })}
 					<SuiAccountsView
-						selection={selection.$$accounts}
+						selection={
+							selection.$$accounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Sui accounts.'
 						open={open}
@@ -307,7 +331,11 @@
 
 				{#snippet SectionSuiCoinTypes({ id, label, open })}
 					<SuiCoinTypesView
-						selection={selection.$$coinTypes}
+						selection={
+							selection.$$coinTypes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Sui coin types.'
 						open={open}
@@ -318,7 +346,11 @@
 
 				{#snippet SectionSuiCoinBalances({ id, label, open })}
 					<SuiCoinBalance_TimestampsView
-						selection={selection.$$coinBalanceTimestamps}
+						selection={
+							selection.$$coinBalanceTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Sui coin balance observations.'
 						open={open}

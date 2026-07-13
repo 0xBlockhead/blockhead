@@ -28,7 +28,9 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$blockheadFarcasterAccountConnections',
-			}).$$blockheadFarcasterAccountConnections
+			}).$$blockheadFarcasterAccountConnections({
+				count: true,
+			})
 		}
 		id='blockhead-farcaster-account-connections'
 	/>

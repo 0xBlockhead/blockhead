@@ -402,7 +402,11 @@
 
 				{#snippet SectionSessionActionReadiness({ id, label, open })}
 					<BlockheadActionReadinessChecksView
-						selection={selection.$$readinessChecks}
+						selection={
+							selection.$$readinessChecks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No readiness checks.'
 						open={open}
@@ -413,7 +417,11 @@
 
 				{#snippet SectionSessionActionQuotes({ id, label, open })}
 					<BlockheadIntentQuotesView
-						selection={selection.$$quotes}
+						selection={
+							selection.$$quotes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No quotes.'
 						open={open}
@@ -424,7 +432,11 @@
 
 				{#snippet SectionSessionActionOrders({ id, label, open })}
 					<BlockheadIntentOrdersView
-						selection={selection.$$orders}
+						selection={
+							selection.$$orders({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No orders.'
 						open={open}
@@ -464,7 +476,11 @@
 
 				{#snippet SectionSessionActionWalletRequests({ id, label, open })}
 					<BlockheadWalletRequestsView
-						selection={selection.$$walletRequests}
+						selection={
+							selection.$$walletRequests({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No wallet requests.'
 						open={open}
@@ -475,7 +491,11 @@
 
 				{#snippet SectionSessionActionOutcomes({ id, label, open })}
 					<BlockheadActionOutcomesView
-						selection={selection.$$outcomes}
+						selection={
+							selection.$$outcomes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No outcomes.'
 						open={open}

@@ -9,7 +9,11 @@ import type { EntitySelector } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/Source.ts'
-import { networkBySlug } from '$/constants/Network.ts'
+import {
+	networkBySlug,
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
 import type {
 	BlockchairBitcoinLikeChain,
 	BlockchairBitcoinLikeBlock,
@@ -69,6 +73,16 @@ const timestampMsFromBlockchairTime = (time: string | undefined) => (
 const bigintFromNumber = (value: number | undefined) => (
 	value == null ? undefined : BigInt(value)
 )
+
+const blockchairCount = (
+	value: number | undefined,
+	label: string
+) => {
+	if (value == null || !Number.isSafeInteger(value) || value < 0)
+		throw new Error(`Blockchair_Rest: invalid ${label} count ${value}`)
+
+	return value
+}
 
 const getTransactionDashboard = async ({ $network, txId }: {
 	$network: NetworkId
@@ -373,6 +387,8 @@ export default {
 						},
 						timestampMs,
 						source,
+						ledgerModels: [NetworkLedgerModel.Utxo],
+						executionModels: [] satisfies NetworkExecutionModel[],
 						...(bestBlockHeight != null && { bestBlockHeight }),
 						...(stats.best_block_hash != null && { bestBlockHash: stats.best_block_hash }),
 						...(bestBlockTimeMs != null && { bestBlockTimeMs }),
@@ -396,20 +412,24 @@ export default {
 				$network: (timestamp) => timestamp.$network,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
-				bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
-				bestBlockHash: (timestamp) => timestamp.bestBlockHash,
-				bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
-				blockCount: (timestamp) => timestamp.blockCount,
-				transactionCount: (timestamp) => timestamp.transactionCount,
-				blocks24h: (timestamp) => timestamp.blocks24h,
-				transactions24h: (timestamp) => timestamp.transactions24h,
-				mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
-				mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
-				mempoolTps: (timestamp) => timestamp.mempoolTps,
-				averageTransactionFee24hSats: (timestamp) => timestamp.averageTransactionFee24hSats,
-				medianTransactionFee24hSats: (timestamp) => timestamp.medianTransactionFee24hSats,
-				suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
-				blockchainSizeBytes: (timestamp) => timestamp.blockchainSizeBytes,
+				ledgerModels: (timestamp) => timestamp.ledgerModels,
+				executionModels: (timestamp) => timestamp.executionModels,
+				Utxo: {
+					bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
+					bestBlockHash: (timestamp) => timestamp.bestBlockHash,
+					bestBlockTimeMs: (timestamp) => timestamp.bestBlockTimeMs,
+					blockCount: (timestamp) => timestamp.blockCount,
+					transactionCount: (timestamp) => timestamp.transactionCount,
+					blocks24h: (timestamp) => timestamp.blocks24h,
+					transactions24h: (timestamp) => timestamp.transactions24h,
+					mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
+					mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
+					mempoolTps: (timestamp) => timestamp.mempoolTps,
+					averageTransactionFee24hSats: (timestamp) => timestamp.averageTransactionFee24hSats,
+					medianTransactionFee24hSats: (timestamp) => timestamp.medianTransactionFee24hSats,
+					suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
+					blockchainSizeBytes: (timestamp) => timestamp.blockchainSizeBytes,
+				},
 			}),
 
 		defineResolver(Source.Blockchair_Rest, {
@@ -521,6 +541,31 @@ export default {
 		})({
 				Utxo: {
 					$$transactions: (transactions) => transactions,
+				},
+			}),
+
+		defineResolver(Source.Blockchair_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+					const stats = (await getBitcoinLikeStats({
+						chain: blockchairChain(network),
+					})).data
+					return {
+						blocks: blockchairCount(stats.blocks, 'block'),
+						transactions: blockchairCount(stats.transactions, 'transaction'),
+					}
+				}
+			},
+		})({
+				Utxo: {
+					$$blocks: {
+						resolveCount: (counts) => counts.blocks,
+					},
+					$$transactions: {
+						resolveCount: (counts) => counts.transactions,
+					},
 				},
 			}),
 

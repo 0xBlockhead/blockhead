@@ -410,7 +410,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<NostrRelay_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Relay observations'
 				emptyText='No Nostr relay observations.'
 				id='NostrRelay_TimestampsView-timestamps'

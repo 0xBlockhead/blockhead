@@ -191,7 +191,11 @@
 
 				{#snippet SectionTezosBigMapKeys({ id, label, open })}
 					<TezosBigMapKeysView
-						selection={selection.$$keys}
+						selection={
+							selection.$$keys({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No keys.'
 						open={open}
@@ -202,7 +206,11 @@
 
 				{#snippet SectionTezosBigMapUpdates({ id, label, open })}
 					<TezosBigMapDiffsView
-						selection={selection.$$updates}
+						selection={
+							selection.$$updates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No updates.'
 						open={open}
@@ -238,7 +246,11 @@
 
 				{#snippet SectionTezosBigMapTimestamps({ id, label, open })}
 					<TezosBigMap_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

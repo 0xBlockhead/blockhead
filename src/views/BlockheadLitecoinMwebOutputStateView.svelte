@@ -407,7 +407,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLitecoinMwebOutputState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Litecoin MWEB output observations.'
 				id='BlockheadLitecoinMwebOutputState_TimestampsView-timestamps'

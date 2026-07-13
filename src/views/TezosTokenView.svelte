@@ -241,7 +241,11 @@
 
 				{#snippet SectionTezosTokenTransfers({ id, label, open })}
 					<TezosTokenTransfersView
-						selection={selection.$$transfers}
+						selection={
+							selection.$$transfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transfers.'
 						open={open}
@@ -281,7 +285,11 @@
 
 				{#snippet SectionTezosTokenTimestamps({ id, label, open })}
 					<TezosToken_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}
@@ -292,7 +300,11 @@
 
 				{#snippet SectionTezosTokenBalanceTimestamps({ id, label, open })}
 					<TezosTokenBalance_TimestampsView
-						selection={selection.$$balanceTimestamps}
+						selection={
+							selection.$$balanceTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No balance timestamps.'
 						open={open}

@@ -37,7 +37,11 @@
 			})
 		}
 		title='Faucets'
-		selection={select(EntityType.Network, data.selector).$$faucetUrls}
+		selection={
+			select(EntityType.Network, data.selector).$$faucetUrls({
+				count: true,
+			})
+		}
 		id='faucet-urls'
 	/>
 </Page>

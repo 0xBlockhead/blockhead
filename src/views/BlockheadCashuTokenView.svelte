@@ -494,7 +494,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCashuProofsView
-				selection={selection.$$proofs}
+				selection={
+						selection.$$proofs({
+							count: true,
+						})
+					}
 				title='proofs'
 				emptyText='No proofs found.'
 				id='BlockheadCashuProofsView-proofs'

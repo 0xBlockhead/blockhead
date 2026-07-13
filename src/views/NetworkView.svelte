@@ -727,13 +727,7 @@
 							{/snippet}
 						</ResourceBoundary>
 					{/if}
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Evm}
-			>
-				{#snippet Applicable(projection)}
 					{#if contentOpen}
 						<ResourceBoundary
 							resource={
@@ -757,13 +751,7 @@
 							{/snippet}
 						</ResourceBoundary>
 					{/if}
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Evm}
-			>
-				{#snippet Applicable(projection)}
 					{#if contentOpen}
 						<ResourceBoundary
 							resource={
@@ -787,13 +775,7 @@
 							{/snippet}
 						</ResourceBoundary>
 					{/if}
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Evm}
-			>
-				{#snippet Applicable(projection)}
 					{#if contentOpen}
 						<ResourceBoundary
 							resource={
@@ -817,13 +799,7 @@
 							{/snippet}
 						</ResourceBoundary>
 					{/if}
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Evm}
-			>
-				{#snippet Applicable(projection)}
 					{#if contentOpen}
 						<ResourceBoundary
 							resource={
@@ -983,6 +959,7 @@
 											Source.Constants_Internal,
 										],
 										limit: 512,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1018,6 +995,7 @@
 											Source.Blockscout_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1035,6 +1013,7 @@
 											Source.Voltaire_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1052,6 +1031,7 @@
 											Source.Voltaire_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1070,6 +1050,7 @@
 											Source.Etherscan_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1089,6 +1070,7 @@
 											Source.EthereumLists_Rest,
 											Source.Lifi_Rest,
 										],
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1192,6 +1174,7 @@
 														Source.Constants_Internal,
 													],
 													limit: 512,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1209,6 +1192,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1226,6 +1210,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1243,6 +1228,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1260,6 +1246,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1277,6 +1264,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1294,6 +1282,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1311,6 +1300,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1328,6 +1318,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1345,6 +1336,7 @@
 														Source.Beacon_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1362,6 +1354,7 @@
 														Source.Constants_Internal,
 													],
 													limit: 64,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1379,6 +1372,7 @@
 														Source.MevRelay_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1396,6 +1390,7 @@
 														Source.MevRelay_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1493,6 +1488,7 @@
 											Source.Voltaire_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1569,6 +1565,7 @@
 											precompileName: true,
 										},
 										limit: 64,
+										count: true,
 									})
 								}
 								href={resolve('/contracts')}
@@ -1587,6 +1584,7 @@
 											Source.Blockscout_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								href={resolve('/contracts')}
@@ -1605,6 +1603,7 @@
 											Source.Blockscout_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1622,6 +1621,7 @@
 											Source.Blockscout_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1639,6 +1639,7 @@
 											Source.Blockscout_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1656,6 +1657,7 @@
 											Source.Blockscout_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1673,6 +1675,7 @@
 											Source.Blockscout_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1744,6 +1747,7 @@
 														name: true,
 														symbol: true,
 													},
+													count: true,
 												})
 											}
 										>
@@ -1779,6 +1783,7 @@
 														name: true,
 														$network: true,
 													},
+													count: true,
 												})
 											}
 										>
@@ -1808,7 +1813,11 @@
 
 									{#snippet SectionEvmAssetsNativeAssets({ id, label, open })}
 										<AssetInstancesView
-											selection={selection.$$nativeAssets}
+											selection={
+												selection.$$nativeAssets({
+													count: true,
+												})
+											}
 											CollapsibleProps={{ canToggle: false }}
 											open={open}
 											title={label}
@@ -1825,6 +1834,7 @@
 														Source.EthereumLists_Rest,
 														Source.Lifi_Rest,
 													],
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1842,6 +1852,7 @@
 														Source.Blockscout_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1859,6 +1870,7 @@
 														Source.Blockscout_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -1911,6 +1923,7 @@
 											Source.Constants_Internal,
 											Source.Chainlist_Rest,
 										],
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -1930,6 +1943,7 @@
 											Source.EthereumLists_Rest,
 											Source.Lifi_Rest,
 										],
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2006,6 +2020,7 @@
 														Source.Constants_Internal,
 													],
 													limit: 512,
+													count: true,
 												})
 											}
 											href={resolve('/upgrades')}
@@ -2025,6 +2040,7 @@
 														Source.EthereumLists_Rest,
 														Source.L2Beat_Rest,
 													],
+													count: true,
 												})
 											}
 										>
@@ -2061,6 +2077,7 @@
 													sources: [
 														Source.L2Beat_Rest,
 													],
+													count: true,
 												})
 											}
 										>
@@ -2096,6 +2113,7 @@
 														Source.EthereumLists_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											href={resolve('/networks')}
@@ -2116,6 +2134,7 @@
 														Source.EthereumLists_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											href={resolve('/networks')}
@@ -2135,6 +2154,7 @@
 														Source.Chainlist_Rest,
 														Source.EthereumLists_Rest,
 													],
+													count: true,
 												})
 											}
 										>
@@ -2173,6 +2193,7 @@
 														Source.L2Beat_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											href={resolve('/networks')}
@@ -2192,6 +2213,7 @@
 														Source.L2Beat_Rest,
 													],
 													limit: 16,
+													count: true,
 												})
 											}
 											CollapsibleProps={{ canToggle: false }}
@@ -2263,6 +2285,7 @@
 											Source.CosmosSdk_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2311,6 +2334,7 @@
 											Source.CosmosSdk_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2359,6 +2383,7 @@
 											Source.CosmosSdk_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2512,6 +2537,7 @@
 											Source.SubstrateSidecar_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2567,6 +2593,7 @@
 										sources: [
 											Source.Constants_Internal,
 										],
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2585,6 +2612,7 @@
 											Source.SubstrateSidecar_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2603,6 +2631,7 @@
 											Source.SubstrateSidecar_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2652,6 +2681,7 @@
 											Source.SubstrateSidecar_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2806,6 +2836,7 @@
 											Source.Helius_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2855,6 +2886,7 @@
 											Source.Helius_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2908,6 +2940,7 @@
 											Source.Helius_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2926,6 +2959,7 @@
 											Source.Helius_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2981,6 +3015,7 @@
 										sources: [
 											Source.Constants_Internal,
 										],
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -2999,6 +3034,7 @@
 											Source.Helius_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3017,6 +3053,7 @@
 											Source.Helius_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3152,6 +3189,7 @@
 											Source.Blockchair_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3226,6 +3264,7 @@
 											Source.Zcashd_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3243,6 +3282,7 @@
 											Source.MempoolSpace_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3290,6 +3330,7 @@
 										sources: [
 											Source.Constants_Internal,
 										],
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3337,6 +3378,7 @@
 										sources: [
 											Source.Zcashd_JsonRpc,
 										],
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3389,6 +3431,7 @@
 											Source.Bittensor_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3455,6 +3498,7 @@
 											Source.Bittensor_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3515,6 +3559,7 @@
 											Source.ZeroGStorageScan_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3532,6 +3577,7 @@
 											Source.ZeroGStorageScan_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3549,6 +3595,7 @@
 											Source.ZeroGStorageScan_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3566,6 +3613,7 @@
 											Source.ZeroGStorageScan_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3618,6 +3666,7 @@
 											Source.QuilibriumNode_Grpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3635,6 +3684,7 @@
 											Source.QuilibriumNode_Grpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3687,6 +3737,7 @@
 											Source.QuilibriumNode_Grpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3704,6 +3755,7 @@
 											Source.QuilibriumNode_Grpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3756,6 +3808,7 @@
 											Source.Lotus_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3773,6 +3826,7 @@
 											Source.Lotus_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3906,6 +3960,7 @@
 											Source.NearRpc_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -3972,6 +4027,7 @@
 											Source.NearRpc_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4105,6 +4161,7 @@
 											Source.MoneroDaemonRpc_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4122,6 +4179,7 @@
 											Source.MoneroDaemonRpc_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4259,6 +4317,7 @@
 											Source.LightningMempoolSpace_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4277,6 +4336,7 @@
 											Source.LightningLnd_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4295,6 +4355,7 @@
 											Source.LightningLnd_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4351,6 +4412,7 @@
 											Source.LightningLnd_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4368,6 +4430,7 @@
 											Source.LightningLnd_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4386,6 +4449,7 @@
 											Source.LightningLnd_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4442,6 +4506,7 @@
 											Source.TronGrid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4461,6 +4526,7 @@
 											Source.TronSolidityNode_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4478,6 +4544,7 @@
 											Source.TronGrid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4530,6 +4597,7 @@
 											Source.TronGrid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4547,6 +4615,7 @@
 											Source.TronGrid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4685,6 +4754,7 @@
 											Source.Hyperliquid_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4702,6 +4772,7 @@
 											Source.Hyperliquid_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4719,6 +4790,7 @@
 											Source.Hyperliquid_JsonRpc,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4767,6 +4839,7 @@
 											Source.Hyperliquid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4827,6 +4900,7 @@
 											Source.Hyperliquid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4844,6 +4918,7 @@
 											Source.Hyperliquid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4861,6 +4936,7 @@
 											Source.Hyperliquid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}
@@ -4878,6 +4954,7 @@
 											Source.Hyperliquid_Rest,
 										],
 										limit: 16,
+										count: true,
 									})
 								}
 								CollapsibleProps={{ canToggle: false }}

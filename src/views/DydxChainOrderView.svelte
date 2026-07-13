@@ -407,7 +407,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<DydxChainOrder_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No dYdX order observations.'
 				id='DydxChainOrder_TimestampsView-timestamps'

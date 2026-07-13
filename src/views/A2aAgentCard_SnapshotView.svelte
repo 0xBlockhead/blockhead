@@ -537,21 +537,33 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<A2aAgentInterfacesView
-				selection={selection.$$interfaces}
+				selection={
+						selection.$$interfaces({
+							count: true,
+						})
+					}
 				title='interfaces'
 				emptyText='No A2A agent interfaces.'
 				id='A2aAgentInterfacesView-interfaces'
 			/>
 
 			<A2aAgentServicesView
-				selection={selection.$$services}
+				selection={
+						selection.$$services({
+							count: true,
+						})
+					}
 				title='services'
 				emptyText='No A2A agent services.'
 				id='A2aAgentServicesView-services'
 			/>
 
 			<A2aAgentSkillsView
-				selection={selection.$$skills}
+				selection={
+						selection.$$skills({
+							count: true,
+						})
+					}
 				title='skills'
 				emptyText='No A2A agent skills.'
 				id='A2aAgentSkillsView-skills'

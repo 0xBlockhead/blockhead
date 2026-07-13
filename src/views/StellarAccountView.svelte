@@ -164,7 +164,11 @@
 
 				{#snippet SectionStellarAccountTrustlines({ id, label, open })}
 					<StellarTrustlinesView
-						selection={selection.$$trustlines}
+						selection={
+							selection.$$trustlines({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No trustlines.'
 						open={open}
@@ -175,7 +179,11 @@
 
 				{#snippet SectionStellarAccountOffers({ id, label, open })}
 					<StellarOffersView
-						selection={selection.$$offers}
+						selection={
+							selection.$$offers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No offers.'
 						open={open}
@@ -186,7 +194,11 @@
 
 				{#snippet SectionStellarAccountTrades({ id, label, open })}
 					<StellarTradesView
-						selection={selection.$$trades}
+						selection={
+							selection.$$trades({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No trades.'
 						open={open}
@@ -226,7 +238,11 @@
 
 				{#snippet SectionStellarAccountTransactions({ id, label, open })}
 					<StellarTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}
@@ -237,7 +253,11 @@
 
 				{#snippet SectionStellarAccountSigners({ id, label, open })}
 					<StellarAccountSignersView
-						selection={selection.$$signers}
+						selection={
+							selection.$$signers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No signers.'
 						open={open}
@@ -273,7 +293,11 @@
 
 				{#snippet SectionStellarAccountTimestamps({ id, label, open })}
 					<StellarAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

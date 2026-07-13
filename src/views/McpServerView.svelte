@@ -338,7 +338,11 @@
 
 				{#snippet SectionMcpTools({ id, label, open })}
 					<McpToolsView
-						selection={selection.$$tools}
+						selection={
+							selection.$$tools({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No MCP tools.'
 						open={open}
@@ -349,7 +353,11 @@
 
 				{#snippet SectionMcpPrompts({ id, label, open })}
 					<McpPromptsView
-						selection={selection.$$prompts}
+						selection={
+							selection.$$prompts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No MCP prompts.'
 						open={open}
@@ -389,7 +397,11 @@
 
 				{#snippet SectionMcpResourceList({ id, label, open })}
 					<McpResourcesView
-						selection={selection.$$resources}
+						selection={
+							selection.$$resources({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No MCP resources.'
 						open={open}
@@ -400,7 +412,11 @@
 
 				{#snippet SectionMcpResourceTemplates({ id, label, open })}
 					<McpResourceTemplatesView
-						selection={selection.$$resourceTemplates}
+						selection={
+							selection.$$resourceTemplates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No MCP resource templates.'
 						open={open}
@@ -436,7 +452,11 @@
 
 				{#snippet SectionMcpServerObservations({ id, label, open })}
 					<McpServer_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No MCP server observations.'
 						open={open}

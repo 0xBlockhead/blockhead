@@ -3,7 +3,7 @@ import { extractSimpleComparisons, parseOrderByExpression } from '@tanstack/db'
 import type { LoadSubsetOptions } from '@tanstack/db'
 
 import { EntityFieldCardinality, EntityFieldType, EntityMetaKey, entityFieldAddressKey } from '$/schema/$schema.ts'
-import type { EntityDefinition, EntityFacetDefinition, EntityFacetPath, EntityFieldDefinition, EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValueFromDefinition, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
+import type { EntityDefinition, EntityDefinitionForEntityType, EntityFacetDefinition, EntityFacetPath, EntityFieldDefinition, EntityFieldDefinitionByName, EntityFieldName, EntityFieldSingleResolvedValueFromDefinition, EntitySelector, EntityType, Schema } from '$/schema/$schema.ts'
 import type { SourcePublicEnv } from '$/sources/$sources.ts'
 
 export type ResolverValue =
@@ -429,12 +429,13 @@ export type ResolveLiveFieldHandle<
 export type ResolveLiveFields<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
+	_FieldName extends string = EntityFieldName<_Schema, _EntityType>,
 > = {
 	readonly [
-		_FieldName in EntityFieldName<_Schema, _EntityType>
-	]: ResolveLiveFieldHandle<_Schema, _EntityType, _FieldName>
+		_Name in _FieldName
+	]: ResolveLiveFieldHandle<_Schema, _EntityType, _Name>
 } & {
-	readonly invalidate: (fieldNames: readonly EntityFieldName<_Schema, _EntityType>[]) => void
+	readonly invalidate: (fieldNames: readonly _FieldName[]) => void
 }
 
 export type ResolveLivePublisherContext<
@@ -451,17 +452,59 @@ export type ResolveLivePublisherContext<
 	readonly fields: ResolveLiveFields<_Schema, _EntityType>
 }
 
+type ResolveLivePublisherForFacetPath<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FacetPath extends EntityFacetPath,
+	_FieldName extends string,
+> = {
+	readonly facetPath: _FacetPath
+	readonly publishes: Partial<Record<_FieldName, true>>
+	readonly start: (
+		context: Omit<ResolveLivePublisherContext<_Schema, _EntityType>, 'fields'> & {
+			readonly fields: ResolveLiveFields<_Schema, _EntityType, _FieldName>
+		}
+	) => void | (() => void) | Promise<void | (() => void)>
+}
+
+type ResolveLiveFacetPublishers<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_Facets extends readonly EntityFacetDefinition[] | undefined,
+	_ParentPath extends EntityFacetPath = readonly [],
+> = NonNullable<_Facets>[number] extends infer _Facet extends EntityFacetDefinition ?
+	_Facet extends EntityFacetDefinition ?
+		| ResolveLivePublisherForFacetPath<
+			_Schema,
+			_EntityType,
+			readonly [..._ParentPath, _Facet['name']],
+			_Facet['fields'][number]['name']
+		>
+		| ResolveLiveFacetPublishers<
+			_Schema,
+			_EntityType,
+			_Facet['facets'],
+			readonly [..._ParentPath, _Facet['name']]
+		>
+	:
+		never
+:
+	never
+
 export type ResolveLivePublishers<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = {
-	readonly [_PublisherName in string]: {
-		readonly facetPath: EntityFacetPath
-		readonly publishes: Partial<Record<string, true>>
-		readonly start: (
-			context: ResolveLivePublisherContext<_Schema, _EntityType>
-		) => void | (() => void) | Promise<void | (() => void)>
-	}
+	readonly [_PublisherName in string]: ResolveLivePublisherForFacetPath<
+		_Schema,
+		_EntityType,
+		readonly [],
+		EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number]['name']
+	> | ResolveLiveFacetPublishers<
+		_Schema,
+		_EntityType,
+		EntityDefinitionForEntityType<_Schema, _EntityType>['facets']
+	>
 }
 
 export type FieldSelector<
@@ -484,7 +527,6 @@ export type FieldSelector<
 					}
 				) => void | (() => void) | Promise<void | (() => void)>
 			}
-			readonly partial?: boolean
 		}
 	:
 		never
@@ -509,7 +551,6 @@ export type ProjectionFieldSelector<
 				}
 			) => void | (() => void) | Promise<void | (() => void)>
 		}
-		readonly partial?: boolean
 	}
 
 type ResolverProjectionFieldSelector<
@@ -539,7 +580,6 @@ type ResolverProjectionFieldSelector<
 				}
 			) => void | (() => void) | Promise<void | (() => void)>
 		}
-		readonly partial?: boolean
 	}
 
 type ResolverResolve<
@@ -566,6 +606,17 @@ export interface ResolverProjections<
 		| undefined
 }
 
+type IndexedResolveLivePublishers<
+	_Schema extends Schema,
+> = Readonly<Record<
+	string,
+	{
+		readonly facetPath: EntityFacetPath
+		readonly publishes: Partial<Record<string, true>>
+		readonly start: (context: ResolveLivePublisherContext<_Schema, EntityType<_Schema>>) => void | (() => void) | Promise<void | (() => void)>
+	}
+>>
+
 export type SourceResolverDefinition<
 	_Schema extends Schema = Schema,
 	_Source extends string = string,
@@ -581,7 +632,7 @@ export type SourceResolverDefinition<
 		ResolverResolve<_Schema, _EntityType, _Context, _Snapshot>
 	>>
 	readonly projections: ResolverProjections<_Schema, _EntityType, _Context, _Snapshot>
-	readonly resolveLive?: ResolveLivePublishers<_Schema, _EntityType>
+	readonly resolveLive?: IndexedResolveLivePublishers<_Schema>
 }
 
 export type SourceResolverDefinitionCandidate<
@@ -596,14 +647,7 @@ export type SourceResolverDefinitionCandidate<
 	readonly entityType: _EntityType
 	readonly resolve: Partial<Record<string, ResolverResolve<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Context, _Snapshot>>>
 	readonly projections: ResolverProjections<_Schema, Extract<_EntityType, EntityType<_Schema>>, _Context, _Snapshot>
-	readonly resolveLive?: Partial<Record<
-		string,
-		{
-			readonly facetPath: EntityFacetPath
-			readonly publishes: Partial<Record<string, true>>
-			readonly start: (context: ResolveLivePublisherContext<_Schema, EntityType<_Schema>>) => void | (() => void) | Promise<void | (() => void)>
-		}
-	>>
+	readonly resolveLive?: IndexedResolveLivePublishers<_Schema>
 }
 
 export type ResolverPart<
@@ -633,7 +677,6 @@ export type ResolverPart<
 			readonly field: ResolveLiveFieldHandle<_Schema, EntityType<_Schema>, EntityFieldName<_Schema, EntityType<_Schema>>>
 		}) => void | (() => void) | Promise<void | (() => void)>
 	}
-	readonly partial?: boolean
 }
 
 export type ResolverRootLivePart<
@@ -642,7 +685,11 @@ export type ResolverRootLivePart<
 	_Context extends ResolverContext = ResolverContext,
 > = {
 	readonly resolver: SourceResolverDefinition<_Schema, _Source, EntityType<_Schema>, _Context>
-	readonly publisher: ResolveLivePublishers<_Schema, EntityType<_Schema>>[string]
+	readonly publisher: {
+		readonly facetPath: EntityFacetPath
+		readonly publishes: Partial<Record<string, true>>
+		readonly start: (context: ResolveLivePublisherContext<_Schema, EntityType<_Schema>>) => void | (() => void) | Promise<void | (() => void)>
+	}
 	readonly publisherName: string
 	readonly source: _Source
 	readonly entityType: EntityType<_Schema>
@@ -815,9 +862,6 @@ export const validateResolverDefinitions = <
 		}
 
 		for (const publisher of Object.values(resolver.resolveLive ?? {})) {
-			if (publisher == null)
-				continue
-
 			for (const liveFieldName of Object.keys(publisher.publishes)) {
 				const liveResolverProjectionParts = resolverProjectionParts.filter((resolverProjectionPart) => (
 					resolverProjectionPart.fieldName === liveFieldName
@@ -881,7 +925,7 @@ export const indexResolvers = <
 
 	const resolverDefinitionsByEntityType = Object.groupBy(
 		resolverDefinitions,
-		(resolver) => resolver.entityType
+		(resolver) => String(resolver.entityType)
 	)
 	const resolverParts: ResolverPart<_Schema, _Source, _Context>[] = []
 	for (const resolver of resolverDefinitions) {
@@ -922,7 +966,6 @@ export const indexResolvers = <
 					select: fieldSelector.select,
 					resolveCount: fieldSelector.resolveCount,
 					resolveLive: fieldSelector.resolveLive,
-					partial: fieldSelector.partial,
 				})
 			}
 			partIndex += 1
@@ -952,43 +995,49 @@ export const indexResolvers = <
 			resolverPart.fieldName
 		)
 	)
+	const resolverRootLiveParts = resolverDefinitions.flatMap((resolver) => (
+		Object.entries(resolver.resolveLive ?? {}).map(([publisherName, publisher]) => ({
+			resolver,
+			publisher,
+			publisherName,
+			source: resolver.source,
+			entityType: resolver.entityType,
+			facetPath: publisher.facetPath,
+		}))
+	))
 	const resolverRootLivePartsByEntityType = Object.groupBy(
-		resolverDefinitions.flatMap((resolver) => (
-			Object.entries(resolver.resolveLive ?? {}).map(([publisherName, publisher]) => ({
-				resolver,
-				publisher,
-				publisherName,
-				source: resolver.source,
-				entityType: resolver.entityType,
-				facetPath: publisher.facetPath,
+		resolverRootLiveParts,
+		(part) => String(part.entityType)
+	)
+	const liveFieldNamesByEntityType = new Map<string, Set<string>>()
+	for (const liveField of [
+		...resolverRootLiveParts.flatMap((part) => (
+			Object.keys(part.publisher.publishes).map((fieldName) => ({
+				entityType: part.entityType,
+				fieldName,
 			}))
 		)),
-		(part) => part.entityType
-	)
+		...resolverParts
+			.filter((resolverPart) => resolverPart.resolveLive != null)
+			.map((resolverPart) => ({
+				entityType: resolverPart.entityType,
+				fieldName: resolverPart.fieldName,
+			})),
+	]) {
+		const entityType = String(liveField.entityType)
+		const fieldNames = liveFieldNamesByEntityType.get(entityType)
+		if (fieldNames === undefined)
+			liveFieldNamesByEntityType.set(entityType, new Set([
+				liveField.fieldName,
+			]))
+		else
+			fieldNames.add(liveField.fieldName)
+	}
 	const fieldNamesWithLiveResolverByEntityType = Object.fromEntries(
-		Object.entries(Object.groupBy(
-			[
-				...Object.values(resolverRootLivePartsByEntityType)
-					.flat()
-					.flatMap((part) => (
-						Object.keys(part.publisher.publishes).map((fieldName) => ({
-							entityType: part.entityType,
-							fieldName,
-						}))
-					)),
-				...Object.values(resolverLivePartsByEntityTypeAndFieldName)
-					.flat()
-					.map((resolverPart) => ({
-						entityType: resolverPart.entityType,
-						fieldName: resolverPart.fieldName,
-					})),
-			],
-			(liveField) => liveField.entityType
-		))
-			.map(([entityType, liveFields]) => [
-				entityType,
-				[...new Set(liveFields.map((liveField) => liveField.fieldName))],
-			])
+		[...liveFieldNamesByEntityType].map(([entityType, fieldNames]) => [
+			entityType,
+			[...fieldNames],
+		])
 	)
 	return {
 		resolverDefinitions,

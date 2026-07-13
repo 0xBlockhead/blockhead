@@ -188,7 +188,11 @@
 
 				{#snippet SectionStarknetContractAccountStates({ id, label, open })}
 					<StarknetAccount_TimestampsView
-						selection={selection.$$accountStates}
+						selection={
+							selection.$$accountStates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No account states.'
 						open={open}
@@ -199,7 +203,11 @@
 
 				{#snippet SectionStarknetContractEvents({ id, label, open })}
 					<StarknetEventsView
-						selection={selection.$$events}
+						selection={
+							selection.$$events({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No events.'
 						open={open}
@@ -239,7 +247,11 @@
 
 				{#snippet SectionStarknetContractStorage({ id, label, open })}
 					<StarknetStorageEntriesView
-						selection={selection.$$storage}
+						selection={
+							selection.$$storage({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No storage.'
 						open={open}
@@ -250,7 +262,11 @@
 
 				{#snippet SectionStarknetContractTransactions({ id, label, open })}
 					<StarknetTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}

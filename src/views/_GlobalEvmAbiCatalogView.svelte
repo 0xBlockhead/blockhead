@@ -135,6 +135,7 @@
 								sources: [
 									Source.Local_Internal,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/evm/selectors')}
@@ -153,6 +154,7 @@
 								sources: [
 									Source.Local_Internal,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/evm/topics')}
@@ -171,6 +173,7 @@
 								sources: [
 									Source.Local_Internal,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/evm/errors')}
@@ -214,6 +217,7 @@
 								sources: [
 									Source.Local_Internal,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

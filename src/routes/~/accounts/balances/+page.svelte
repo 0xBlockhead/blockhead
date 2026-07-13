@@ -33,6 +33,7 @@
 				sources: [
 					Source.Allium_Rest,
 				],
+				count: true,
 			})
 		}
 		id='actor-coins'

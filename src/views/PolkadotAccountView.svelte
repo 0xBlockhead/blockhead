@@ -214,6 +214,7 @@
 							sources: [
 								Source.SubstrateSidecar_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Account snapshots'
@@ -222,7 +223,11 @@
 			/>
 
 			<PolkadotAssetBalance_TimestampsView
-				selection={selection.$$assetBalanceTimestamps}
+				selection={
+						selection.$$assetBalanceTimestamps({
+							count: true,
+						})
+					}
 				title='Asset balances'
 				emptyText='No Polkadot asset balance observations.'
 				id='PolkadotAssetBalance_TimestampsView-asset-balance-timestamps'

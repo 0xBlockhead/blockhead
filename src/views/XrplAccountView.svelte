@@ -162,7 +162,11 @@
 
 				{#snippet SectionXrplAccountLedgerEntries({ id, label, open })}
 					<XrplLedgerEntriesView
-						selection={selection.$$ledgerEntries}
+						selection={
+							selection.$$ledgerEntries({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ledger entries.'
 						open={open}
@@ -173,7 +177,11 @@
 
 				{#snippet SectionXrplAccountTransactions({ id, label, open })}
 					<XrplTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}
@@ -184,7 +192,11 @@
 
 				{#snippet SectionXrplAccountTrustlines({ id, label, open })}
 					<XrplTrustlinesView
-						selection={selection.$$trustlines}
+						selection={
+							selection.$$trustlines({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No trustlines.'
 						open={open}
@@ -220,7 +232,11 @@
 
 				{#snippet SectionXrplAccountTimestamps({ id, label, open })}
 					<XrplAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

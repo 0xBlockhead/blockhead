@@ -258,14 +258,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLightningChannelState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No state observations.'
 				id='BlockheadLightningChannelState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadLightningHtlcsView
-				selection={selection.$$htlcs}
+				selection={
+						selection.$$htlcs({
+							count: true,
+						})
+					}
 				title='htlcs'
 				emptyText='No pending HTLCs.'
 				id='BlockheadLightningHtlcsView-htlcs'

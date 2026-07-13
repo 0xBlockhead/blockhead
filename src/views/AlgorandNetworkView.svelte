@@ -143,7 +143,11 @@
 
 				{#snippet SectionAlgorandChainObservations({ id, label, open })}
 					<AlgorandNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand network observations.'
 						open={open}
@@ -154,7 +158,11 @@
 
 				{#snippet SectionAlgorandChainRounds({ id, label, open })}
 					<AlgorandRoundsView
-						selection={selection.$$rounds}
+						selection={
+							selection.$$rounds({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand rounds.'
 						open={open}
@@ -165,7 +173,11 @@
 
 				{#snippet SectionAlgorandChainTransactions({ id, label, open })}
 					<AlgorandTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand transactions.'
 						open={open}
@@ -205,7 +217,11 @@
 
 				{#snippet SectionAlgorandAccounts({ id, label, open })}
 					<AlgorandAccountsView
-						selection={selection.$$accounts}
+						selection={
+							selection.$$accounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand accounts.'
 						open={open}
@@ -216,7 +232,11 @@
 
 				{#snippet SectionAlgorandAssets({ id, label, open })}
 					<AlgorandAssetsView
-						selection={selection.$$assets}
+						selection={
+							selection.$$assets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand assets.'
 						open={open}
@@ -256,7 +276,11 @@
 
 				{#snippet SectionAlgorandApplicationList({ id, label, open })}
 					<AlgorandApplicationsView
-						selection={selection.$$applications}
+						selection={
+							selection.$$applications({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand applications.'
 						open={open}
@@ -267,7 +291,11 @@
 
 				{#snippet SectionAlgorandTealPrograms({ id, label, open })}
 					<AlgorandTealProgramsView
-						selection={selection.$$tealPrograms}
+						selection={
+							selection.$$tealPrograms({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand TEAL programs.'
 						open={open}

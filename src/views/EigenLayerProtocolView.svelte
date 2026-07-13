@@ -390,7 +390,11 @@
 
 				{#snippet SectionEigenlayerOperators({ id, label, open })}
 					<EigenLayerOperatorsView
-						selection={selection.$$operators}
+						selection={
+							selection.$$operators({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer operators.'
 						open={open}
@@ -401,7 +405,11 @@
 
 				{#snippet SectionEigenlayerAvss({ id, label, open })}
 					<EigenLayerAVSsView
-						selection={selection.$$avss}
+						selection={
+							selection.$$avss({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer AVSs.'
 						open={open}
@@ -412,7 +420,11 @@
 
 				{#snippet SectionEigenlayerStrategies({ id, label, open })}
 					<EigenLayerStrategiesView
-						selection={selection.$$strategies}
+						selection={
+							selection.$$strategies({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer strategies.'
 						open={open}
@@ -452,7 +464,11 @@
 
 				{#snippet SectionEigenlayerRewards({ id, label, open })}
 					<EigenLayerReward_TimestampsView
-						selection={selection.$$rewards}
+						selection={
+							selection.$$rewards({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer reward observations.'
 						open={open}
@@ -463,7 +479,11 @@
 
 				{#snippet SectionEigenlayerSlashing({ id, label, open })}
 					<EigenLayerSlashingEventsView
-						selection={selection.$$slashingEvents}
+						selection={
+							selection.$$slashingEvents({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer slashing events.'
 						open={open}

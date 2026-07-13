@@ -930,7 +930,7 @@ export default {
 			},
 		})({
 				Event: {
-					Erc20Transfer: {
+					TokenTransfer: {
 						$$tokenTransfers: (log) => log,
 					},
 				},

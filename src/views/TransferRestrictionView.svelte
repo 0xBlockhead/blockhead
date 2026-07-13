@@ -252,7 +252,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<TransferRestrictionCheck_TimestampsView
-				selection={selection.$$checks}
+				selection={
+						selection.$$checks({
+							count: true,
+						})
+					}
 				title='checks'
 				emptyText='No transfer restriction checks.'
 				id='TransferRestrictionCheck_TimestampsView-checks'

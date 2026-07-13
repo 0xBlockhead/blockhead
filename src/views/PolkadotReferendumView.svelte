@@ -260,7 +260,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PolkadotReferendum_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Lifecycle observations'
 				emptyText='No Polkadot referendum observations.'
 				id='PolkadotReferendum_TimestampsView-timestamps'

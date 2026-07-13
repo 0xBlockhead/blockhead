@@ -379,7 +379,11 @@
 
 				{#snippet SectionCardanoTransactionInputs({ id, label, open })}
 					<CardanoTxInputsView
-						selection={selection.$$inputs}
+						selection={
+							selection.$$inputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No inputs.'
 						open={open}
@@ -390,7 +394,11 @@
 
 				{#snippet SectionCardanoTransactionOutputs({ id, label, open })}
 					<CardanoTxOutputsView
-						selection={selection.$$outputs}
+						selection={
+							selection.$$outputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No outputs.'
 						open={open}
@@ -401,7 +409,11 @@
 
 				{#snippet SectionCardanoTransactionCertificates({ id, label, open })}
 					<CardanoCertificatesView
-						selection={selection.$$certificates}
+						selection={
+							selection.$$certificates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No certificates.'
 						open={open}
@@ -412,7 +424,11 @@
 
 				{#snippet SectionCardanoTransactionScripts({ id, label, open })}
 					<CardanoScriptWitnessesView
-						selection={selection.$$scripts}
+						selection={
+							selection.$$scripts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No scripts.'
 						open={open}
@@ -456,7 +472,11 @@
 
 				{#snippet SectionCardanoTransactionGovernanceProposals({ id, label, open })}
 					<CardanoGovernanceProposalsView
-						selection={selection.$$governanceProposals}
+						selection={
+							selection.$$governanceProposals({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No governance proposals.'
 						open={open}
@@ -467,7 +487,11 @@
 
 				{#snippet SectionCardanoTransactionGovernanceVotes({ id, label, open })}
 					<CardanoGovernanceVotesView
-						selection={selection.$$governanceVotes}
+						selection={
+							selection.$$governanceVotes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No governance votes.'
 						open={open}
@@ -478,7 +502,11 @@
 
 				{#snippet SectionCardanoTransactionAssets({ id, label, open })}
 					<CardanoNativeAssetsView
-						selection={selection.$$assets}
+						selection={
+							selection.$$assets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No assets.'
 						open={open}

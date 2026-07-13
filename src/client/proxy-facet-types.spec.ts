@@ -8,7 +8,7 @@ it('types nested facet access by entity and facet path', () => {
 	type EvmLogProxy = EntityProxyResource<typeof schema, EntityType.EvmLog>
 
 	expectTypeOf<NetworkProxy['Evm']['$$blocks']>().toMatchTypeOf<object>()
-	expectTypeOf<EvmLogProxy['Event']['Erc20Transfer']['$$tokenTransfers']>().toMatchTypeOf<object>()
+	expectTypeOf<EvmLogProxy['Event']['TokenTransfer']['$$tokenTransfers']>().toMatchTypeOf<object>()
 	expect(schemaMeta.projectionDefinitions).toEqual(expect.arrayContaining([
 		expect.objectContaining({
 			entityType: EntityType.Network,
@@ -25,7 +25,7 @@ it('types nested facet access by entity and facet path', () => {
 			entityType: EntityType.EvmLog,
 			facetPath: [
 				'Event',
-				'Erc20Transfer',
+				'TokenTransfer',
 			],
 			fields: expect.arrayContaining([
 				expect.objectContaining({
@@ -40,7 +40,7 @@ it('types nested facet access by entity and facet path', () => {
 	// @ts-expect-error nested facet fields are not available on the parent projection
 	type InvalidEventField = EvmLogProxy['Event']['$$tokenTransfers']
 	// @ts-expect-error unknown facet members are rejected at every nested level
-	type InvalidNestedFacetField = EvmLogProxy['Event']['Erc20Transfer']['missing']
+	type InvalidNestedFacetField = EvmLogProxy['Event']['TokenTransfer']['missing']
 
 	expectTypeOf<InvalidNetworkField>().toBeNever()
 })

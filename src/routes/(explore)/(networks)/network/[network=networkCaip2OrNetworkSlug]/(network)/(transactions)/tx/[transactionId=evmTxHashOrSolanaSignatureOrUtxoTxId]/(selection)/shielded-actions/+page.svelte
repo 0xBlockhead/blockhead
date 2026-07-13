@@ -38,7 +38,11 @@
 			})
 		}
 		title='Zcash shielded actions'
-		selection={select(EntityType.UtxoTransaction, data.selector).$$zcashShieldedActions}
+		selection={
+			select(EntityType.UtxoTransaction, data.selector).$$zcashShieldedActions({
+				count: true,
+			})
+		}
 		id='zcash-shielded-actions'
 	/>
 </Page>

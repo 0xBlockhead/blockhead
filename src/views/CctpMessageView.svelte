@@ -910,7 +910,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CctpAttestation_TimestampsView
-				selection={selection.$$attestationTimestamps}
+				selection={
+						selection.$$attestationTimestamps({
+							count: true,
+						})
+					}
 				title='Attestation timestamps'
 				emptyText='No CCTP attestation observations.'
 				id='CctpAttestation_TimestampsView-attestation-timestamps'

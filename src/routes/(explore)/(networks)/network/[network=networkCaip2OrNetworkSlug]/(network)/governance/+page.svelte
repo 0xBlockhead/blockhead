@@ -42,7 +42,11 @@
 					})
 				}
 				title='Governance'
-				selection={projection.$$governanceProposals}
+				selection={
+					projection.$$governanceProposals({
+						count: true,
+					})
+				}
 				id='governance-proposals'
 			/>
 		{/snippet}

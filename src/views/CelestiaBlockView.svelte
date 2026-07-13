@@ -435,7 +435,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CelestiaBlobsView
-				selection={selection.$$blobs}
+				selection={
+						selection.$$blobs({
+							count: true,
+						})
+					}
 				title='blobs'
 				emptyText='No blobs found.'
 				id='CelestiaBlobsView-blobs'

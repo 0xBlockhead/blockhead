@@ -37,7 +37,11 @@
 			})
 		}
 		title='Payments'
-		selection={select(EntityType.LightningNetwork, data.selector).$$payments}
+		selection={
+			select(EntityType.LightningNetwork, data.selector).$$payments({
+				count: true,
+			})
+		}
 		id='payments'
 	/>
 </Page>

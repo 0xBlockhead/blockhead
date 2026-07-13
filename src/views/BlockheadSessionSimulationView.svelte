@@ -479,14 +479,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadSessionSimulationCallsView
-				selection={selection.$$calls}
+				selection={
+						selection.$$calls({
+							count: true,
+						})
+					}
 				title='calls'
 				emptyText='No calls.'
 				id='BlockheadSessionSimulationCallsView-calls'
 			/>
 
 			<BlockheadSessionSimulationLogsView
-				selection={selection.$$logs}
+				selection={
+						selection.$$logs({
+							count: true,
+						})
+					}
 				title='logs'
 				emptyText='No logs.'
 				id='BlockheadSessionSimulationLogsView-logs'

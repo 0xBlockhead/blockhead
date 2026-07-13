@@ -246,14 +246,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PayjoinEndpoint_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='PayjoinEndpoint_TimestampsView-timestamps'
 			/>
 
 			<BlockheadPayjoinSessionsView
-				selection={selection.$$blockheadSessions}
+				selection={
+						selection.$$blockheadSessions({
+							count: true,
+						})
+					}
 				title='blockhead sessions'
 				emptyText='No local payjoin sessions.'
 				id='BlockheadPayjoinSessionsView-blockhead-sessions'

@@ -34,6 +34,7 @@
 					Source.Constants_Internal,
 					Source.Youtube_Rest,
 				],
+				count: true,
 			})
 		}
 		id='observed-videos'

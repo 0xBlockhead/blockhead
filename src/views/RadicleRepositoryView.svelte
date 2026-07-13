@@ -302,7 +302,11 @@
 
 				{#snippet SectionRadicleRepositoryDelegates({ id, label, open })}
 					<RadicleDelegatesView
-						selection={selection.$$delegates}
+						selection={
+							selection.$$delegates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No delegates.'
 						open={open}
@@ -313,7 +317,11 @@
 
 				{#snippet SectionRadicleRepositorySignedRefs({ id, label, open })}
 					<RadicleSignedRefsView
-						selection={selection.$$signedRefs}
+						selection={
+							selection.$$signedRefs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No signed refs.'
 						open={open}
@@ -353,7 +361,11 @@
 
 				{#snippet SectionRadicleRepositoryIssues({ id, label, open })}
 					<RadicleIssuesView
-						selection={selection.$$issues}
+						selection={
+							selection.$$issues({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No issues.'
 						open={open}
@@ -364,7 +376,11 @@
 
 				{#snippet SectionRadicleRepositoryPatches({ id, label, open })}
 					<RadiclePatchesView
-						selection={selection.$$patches}
+						selection={
+							selection.$$patches({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No patches.'
 						open={open}
@@ -400,7 +416,11 @@
 
 				{#snippet SectionRadicleRepositorySeedObservations({ id, label, open })}
 					<BlockheadRadicleSeedObservation_TimestampsView
-						selection={selection.$$seedObservations}
+						selection={
+							selection.$$seedObservations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No seed observations.'
 						open={open}

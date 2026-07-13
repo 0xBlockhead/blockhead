@@ -324,7 +324,11 @@
 
 				{#snippet SectionEvmProtocolSelectors({ id, label, open })}
 					<EvmSelectorsView
-						selection={selection.$$evmSelectors}
+						selection={
+							selection.$$evmSelectors({
+								count: true,
+							})
+						}
 						href={resolve('/evm/selectors')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EVM selectors in this observed.'
@@ -336,7 +340,11 @@
 
 				{#snippet SectionEvmProtocolTopics({ id, label, open })}
 					<EvmTopicsView
-						selection={selection.$$evmTopics}
+						selection={
+							selection.$$evmTopics({
+								count: true,
+							})
+						}
 						href={resolve('/evm/topics')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EVM topics in this observed.'
@@ -373,7 +381,11 @@
 
 				{#snippet SectionEvmProtocolErrorList({ id, label, open })}
 					<EvmErrorsView
-						selection={selection.$$evmErrors}
+						selection={
+							selection.$$evmErrors({
+								count: true,
+							})
+						}
 						href={resolve('/evm/errors')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EVM errors in this observed.'

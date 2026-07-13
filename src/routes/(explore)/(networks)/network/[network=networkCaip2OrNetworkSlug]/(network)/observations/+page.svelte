@@ -42,7 +42,11 @@
 					})
 				}
 				title='Observations'
-				selection={projection.$$timestamps}
+				selection={
+					projection.$$timestamps({
+						count: true,
+					})
+				}
 				id='timestamps'
 			/>
 		{/snippet}

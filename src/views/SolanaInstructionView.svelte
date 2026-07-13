@@ -419,7 +419,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SolanaAccountsView
-				selection={selection.$$accounts}
+				selection={
+						selection.$$accounts({
+							count: true,
+						})
+					}
 				title='Accounts'
 				emptyText='No instruction accounts.'
 				id='SolanaAccountsView-accounts'

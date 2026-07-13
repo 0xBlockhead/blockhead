@@ -561,7 +561,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadActionReadinessCheck_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No readiness observations.'
 				id='BlockheadActionReadinessCheck_TimestampsView-timestamps'

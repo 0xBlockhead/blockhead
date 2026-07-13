@@ -308,6 +308,7 @@
 									Source.Constants_Internal,
 									Source.Atproto_Xrpc,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/atproto/actors')}
@@ -326,6 +327,7 @@
 									Source.Constants_Internal,
 									Source.Atproto_Xrpc,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/atproto/posts')}

@@ -1287,7 +1287,8 @@ const renderQuery = (
 	sourcesExpression?: string,
 	openExpression?: string,
 	excludedFields?: ReadonlySet<string>,
-	orderEntity?: Entity
+	orderEntity?: Entity,
+	requestCount = false
 ) => {
 	const queryEntries: [string, string | undefined][] = []
 	const sources = query == null ? undefined : 'sources' in query ? query.sources : undefined
@@ -1316,7 +1317,7 @@ const renderQuery = (
 	])
 	queryEntries.push([
 		'count',
-		query != null && 'count' in query && query.count === true ? 'true' : undefined,
+		requestCount || query != null && 'count' in query && query.count === true ? 'true' : undefined,
 	])
 	queryEntries.push([
 		'orderBy',
@@ -5771,7 +5772,14 @@ const renderSingularViewFile = (entity: Entity, indexes: AppIndexes) => {
 			viewEntry,
 		}).map((line) => line.replace(/^\t\t\t\t/, '\t\t'))
 	}))
-	const contentRowMarkupGroups = contentRows.map((viewEntries) => contentDlViewEntries(viewEntries).flatMap((viewEntry) => renderContentItem(entity, indexes, viewEntry, 'contentOpen', 3, viewSourcesExpression)))
+	const contentRowMarkupGroups = contentRows.map((viewEntries) => renderContentItems(
+		entity,
+		indexes,
+		contentDlViewEntries(viewEntries),
+		'contentOpen',
+		3,
+		viewSourcesExpression
+	))
 		.filter((group) => group.length > 0)
 	const contentBody = singularViewContent(entitySingularView(entity))?.body
 	const contentBodyMarkup = contentBody == null ? [] : renderBodySection(entity, indexes, contentBody, 'contentOpen', 2, viewSourcesExpression)
@@ -6470,8 +6478,13 @@ const renderContentItem = (
 	viewEntry: _ViewItem,
 	openExpression: string,
 	level: number,
-	sourcesExpression?: string
+	sourcesExpression?: string,
+	projectionBoundary = true
 ) => {
+	const renderWithinProjection = (fieldReference: FieldReference, lines: string[]) => (
+		projectionBoundary ? renderProjectionBoundaryLines(fieldReference, lines, level) : lines
+	)
+
 	if (typeof viewEntry === 'object' && 'kind' in viewEntry && viewEntry.kind === _ViewItemKind.Text)
 		return wrapWhen(viewEntry, openExpression, [
 			`${'\t'.repeat(level)}<div>`,
@@ -6499,10 +6512,9 @@ const renderContentItem = (
 	const label = typeof viewEntry === 'object' && 'label' in viewEntry && viewEntry.label != null ? viewEntry.label : labelForField(fieldDefinition)
 
 	if (fieldDefinition.type === EntityFieldType.EntityReference)
-		return renderProjectionBoundaryLines(
+		return renderWithinProjection(
 			fieldReference,
-			renderEntityReferenceDlItem(entity, indexes, viewEntry, fieldDefinition, fieldReference, label, openExpression, level),
-			level
+			renderEntityReferenceDlItem(entity, indexes, viewEntry, fieldDefinition, fieldReference, label, openExpression, level)
 		)
 
 	const valueExpression = resolvedFieldExpression(fieldName)
@@ -6532,7 +6544,7 @@ const renderContentItem = (
 	]
 
 	if (fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrOne)
-		return renderProjectionBoundaryLines(fieldReference, wrapWhen(viewEntry, openExpression, [
+		return renderWithinProjection(fieldReference, wrapWhen(viewEntry, openExpression, [
 			`${'\t'.repeat(level)}<ResourceBoundary`,
 			renderSvelteAttribute(level + 1, 'resource', projectionFieldResource ?? `selection(${query})`),
 			`${'\t'.repeat(level)}>`,
@@ -6556,9 +6568,9 @@ const renderContentItem = (
 			`${'\t'.repeat(level + 2)}{/if}`,
 			`${'\t'.repeat(level + 1)}{/snippet}`,
 			`${'\t'.repeat(level)}</ResourceBoundary>`,
-		]), level)
+		]))
 
-		return renderProjectionBoundaryLines(fieldReference, wrapWhen(viewEntry, openExpression, [
+		return renderWithinProjection(fieldReference, wrapWhen(viewEntry, openExpression, [
 			`${'\t'.repeat(level)}<div>`,
 			`${'\t'.repeat(level + 1)}<dt>${label}</dt>`,
 			`${'\t'.repeat(level + 1)}<dd>`,
@@ -6587,8 +6599,48 @@ const renderContentItem = (
 		`${'\t'.repeat(level + 2)}</ResourceBoundary>`,
 		`${'\t'.repeat(level + 1)}</dd>`,
 		`${'\t'.repeat(level)}</div>`,
-	]), level)
+	]))
 }
+
+const renderContentItems = (
+	entity: Entity,
+	indexes: AppIndexes,
+	viewEntries: readonly _ViewItem[],
+	openExpression: string,
+	level: number,
+	sourcesExpression?: string
+) => viewEntries.reduce<{
+	projectionFieldReference?: FieldReference
+	viewEntries: _ViewItem[]
+}[]>((groups, viewEntry) => {
+	const fieldReference = itemFieldReferences(viewEntry)[0]
+	const projectionFieldReference = fieldReference != null && isProjectionFieldReference(fieldReference) ? fieldReference : undefined
+	const projectionKey = projectionFieldReference?.slice(0, -1).join('.') ?? ''
+	const previousGroup = groups.at(-1)
+	const previousProjectionKey = previousGroup?.projectionFieldReference?.slice(0, -1).join('.') ?? ''
+
+	if (previousGroup != null && previousProjectionKey === projectionKey)
+		previousGroup.viewEntries.push(viewEntry)
+	else
+		groups.push({
+			projectionFieldReference,
+			viewEntries: [viewEntry],
+		})
+
+	return groups
+}, []).flatMap(({ projectionFieldReference, viewEntries: projectionViewEntries }) => {
+	const lines = projectionViewEntries.flatMap((viewEntry) => renderContentItem(
+		entity,
+		indexes,
+		viewEntry,
+		openExpression,
+		level,
+		sourcesExpression,
+		false
+	))
+
+	return projectionFieldReference == null ? lines : renderProjectionBoundaryLines(projectionFieldReference, lines, level)
+})
 
 const latestTargetEntityType = (
 	entity: Entity,
@@ -7292,7 +7344,7 @@ const renderCarouselSection = (
 	if (component == null)
 		throw new Error(`${entity.entityType} carousel section ${carouselSectionId(section)} has no renderable relationship component for ${section.field}`)
 
-	const query = renderQuery(fieldQuery(fieldDefinition, section.selection), [])
+	const query = renderQuery(fieldQuery(fieldDefinition, section.selection), [], undefined, undefined, undefined, undefined, true)
 	const fieldBelongsToProjection = (
 		projectionPath != null
 		&& isProjectionFieldReference(section.field)
@@ -7614,7 +7666,7 @@ const renderEntitiesReferenceSection = (
 	fieldDefinition: EntityField,
 	component: string
 ) => {
-	const query = renderQuery(fieldQuery(fieldDefinition, section.selection), [])
+	const query = renderQuery(fieldQuery(fieldDefinition, section.selection), [], undefined, undefined, undefined, undefined, true)
 	const targetEntity = fieldDefinition.entityType
 	if (targetEntity == null)
 		throw new Error(`${entity.entityType}.${section.field} EntitiesReference section is missing entityType`)
@@ -8553,7 +8605,7 @@ const renderMultiCollectionPageFile = (
 			sourceEntity,
 			collection.source.field,
 			collection.query
-		), [])
+			), [], undefined, undefined, undefined, undefined, true)
 		const sourceSelection = `select(EntityType.${collection.source.entity}, ${renderExpression(collection.source.selector, {
 			pageSelector: 'data.selector',
 			fields: 'data.selector',
@@ -8738,7 +8790,7 @@ const renderPageFile = (
 		...(component == null || componentFile == null ? [] : [`import ${component} from '${viewModulePath(componentFile)}'`]),
 		...(collectionComponent == null || collectionComponentFile == null ? [] : [`import ${collectionComponent} from '${viewModulePath(collectionComponentFile)}'`]),
 	])
-	const collectionQuery = collection == null ? undefined : renderQuery(collection.query, [])
+	const collectionQuery = collection == null ? undefined : renderQuery(collection.query, [], undefined, undefined, undefined, undefined, true)
 	const viewEntityDefinition = viewEntity == null ? undefined : indexes.entityByType.get(viewEntity)
 	const collectionEntityDefinitionForTitle = collectionEntity == null ? undefined : indexes.entityByType.get(collectionEntity)
 	const viewSelectionQuery = renderQuery(viewEntityDefinition == null ? undefined : singularViewQuery(entitySingularView(viewEntityDefinition)), [])
@@ -8840,7 +8892,7 @@ const renderPageFile = (
 		collectionSourceEntityDefinition,
 		collection.source.field,
 		collection.query
-	), [])
+	), [], undefined, undefined, undefined, undefined, true)
 	const collectionSourceSelectionExpression = collection == null ? '' : `select(EntityType.${collection.source.entity}, ${renderExpression(collection.source.selector, {
 		pageSelector: 'data.selector',
 		fields: 'data.selector',

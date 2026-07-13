@@ -387,14 +387,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<IbcConnectionsView
-				selection={selection.$$connections}
+				selection={
+						selection.$$connections({
+							count: true,
+						})
+					}
 				title='Connections'
 				emptyText='No IBC connections.'
 				id='IbcConnectionsView-connections'
 			/>
 
 			<IbcChannelsView
-				selection={selection.$$channels}
+				selection={
+						selection.$$channels({
+							count: true,
+						})
+					}
 				title='Channels'
 				emptyText='No IBC channels.'
 				id='IbcChannelsView-channels'

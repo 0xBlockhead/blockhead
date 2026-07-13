@@ -8985,7 +8985,7 @@ export const schema = {
 				"$box": { label: "box", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.AlgorandBox },
 				"round": { label: "round", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "bigint" },
 				"source": { label: "Source", description: "The source that produced this observation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
-				"value": { label: "Value", description: "The source-domain value.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
+				"value": { label: "Value", description: "The native asset amount transferred by the call frame.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"valueHash": { label: "value hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
 				"deleted": { label: "deleted", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
 			})({
@@ -29811,6 +29811,8 @@ export const schema = {
 						path: ["topic0"],
 						isOneOf: [
 							"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+							"0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62",
+							"0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb",
 						],
 					})({
 						signatureHash: {
@@ -29821,12 +29823,16 @@ export const schema = {
 						},
 					})({
 						facets: {
-							Erc20Transfer: facet({
+							TokenTransfer: facet({
 								path: ["Event", "signatureHash"],
-								is: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+								isOneOf: [
+									"0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+									"0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62",
+									"0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb",
+								],
 							})({
 								"$$tokenTransfers": {
-									label: "ERC-20 token transfers",
+									label: "Token transfers",
 									type: EntityFieldType.EntitiesReference,
 									cardinality: EntityFieldCardinality.Many,
 									entityType: EntityType.EvmTokenTransfer,
@@ -29849,7 +29855,7 @@ export const schema = {
 							openFields: [
 								"$block",
 								"removed",
-								["Event", "Erc20Transfer", "$$tokenTransfers"],
+								["Event", "TokenTransfer", "$$tokenTransfers"],
 							],
 						},
 						summary: {
@@ -29923,7 +29929,7 @@ export const schema = {
 								component: "EvmTopicsView",
 							},
 							{
-								field: ["Event", "Erc20Transfer", "$$tokenTransfers"],
+								field: ["Event", "TokenTransfer", "$$tokenTransfers"],
 								component: "EvmTokenTransfersView",
 							},
 						],
@@ -31894,10 +31900,10 @@ export const schema = {
 				"$transaction": { label: "Transaction", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.One, entityType: EntityType.EvmTransaction },
 				"traceAddress": { label: "Trace address", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "string" },
 				"index": { label: "Index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "number" },
-				"type": { label: "Type", description: "The source-domain type or category.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"from": { label: "From", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
-				"to": { label: "To", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "evmAddress" },
-				"value": { label: "Value", description: "The source-domain value.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
+				"type": { label: "Type", description: "The EVM call-frame operation.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.One, valueType: "EvmInternalCallType" },
+				"$from": { label: "From", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
+				"$to": { label: "To", type: EntityFieldType.EntityReference, cardinality: EntityFieldCardinality.ZeroOrOne, entityType: EntityType.EvmAccount },
+				"value": { label: "Value", description: "The native asset amount transferred by the call frame.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"gas": { label: "Gas", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"gasUsed": { label: "Gas used", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
 				"input": { label: "Input", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "zeroExHex" },
@@ -31922,7 +31928,7 @@ export const schema = {
 						content: {
 							dl: [
 								["traceAddress", "index", "type", "error"],
-								["from", "to", { field: "value", format: "truncated" }, "gas", "gasUsed"],
+								["$from", "$to", { field: "value", format: "truncated" }, "gas", "gasUsed"],
 								[{ field: "input", format: "truncated" }, { field: "output", format: "truncated" }, "$transaction"],
 							],
 						},
@@ -32064,12 +32070,6 @@ export const schema = {
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 					entityType: EntityType.EvmBlock,
 				},
-				"$contract": {
-					label: "Contract",
-					type: EntityFieldType.EntityReference,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					entityType: EntityType.EvmContract,
-				},
 				"$$logs": {
 					label: "Receipt logs",
 					type: EntityFieldType.EntitiesReference,
@@ -32094,35 +32094,28 @@ export const schema = {
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.EvmUserOperation,
 				},
-				"$$authorizations": {
-					label: "EIP-7702 authorizations",
-					type: EntityFieldType.EntitiesReference,
-					cardinality: EntityFieldCardinality.Many,
-					entityType: EntityType.Eip7702Authorization,
-				},
 				"$$traces": {
 					label: "Traces",
 					type: EntityFieldType.EntitiesReference,
 					cardinality: EntityFieldCardinality.Many,
 					entityType: EntityType.EvmTrace,
 				},
-				"traceRoot": {
-					label: "Trace root",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "unknown",
-				},
-				"traceUnavailable": {
-					label: "Trace unavailable",
-					type: EntityFieldType.Primitive,
-					cardinality: EntityFieldCardinality.ZeroOrOne,
-					valueType: "boolean",
-				},
 			})({
 				selectors: {
 					"EvmNetworkTxHash": ["$network", "txHash"],
 				},
 				facets: {
+					ContractCreation: facet({
+						path: ["kind"],
+						is: "ContractCreation",
+					})({
+						"$contract": {
+							label: "Created contract",
+							type: EntityFieldType.EntityReference,
+							cardinality: EntityFieldCardinality.ZeroOrOne,
+							entityType: EntityType.EvmContract,
+						},
+					}),
 					FeeMarket: facet({
 						path: ["envelopeType"],
 						isOneOf: ["FeeMarket", "Blob", "SetCode"],
@@ -32163,6 +32156,17 @@ export const schema = {
 							entityType: EntityType.EvmBlob,
 						},
 					}),
+					SetCode: facet({
+						path: ["envelopeType"],
+						is: "SetCode",
+					})({
+						"$$authorizations": {
+							label: "EIP-7702 authorizations",
+							type: EntityFieldType.EntitiesReference,
+							cardinality: EntityFieldCardinality.Many,
+							entityType: EntityType.Eip7702Authorization,
+						},
+					}),
 				},
 				views: {
 					singular: {
@@ -32178,7 +32182,7 @@ export const schema = {
 								"$block",
 								"$from",
 								"$to",
-								"$contract",
+								["ContractCreation", "$contract"],
 							],
 							openFields: [
 								"nonce",
@@ -32196,14 +32200,12 @@ export const schema = {
 								"v",
 								["Blob", "blobGasUsed"],
 								["Blob", "maxFeePerBlobGas"],
-								"traceRoot",
-								"traceUnavailable",
 								["Blob", "$$blobs"],
 								"$$logs",
 								"$$internalTransfers",
 								"$$tokenTransfers",
 								"$$userOperations",
-								"$$authorizations",
+								["SetCode", "$$authorizations"],
 								"$$traces",
 							],
 						},
@@ -32250,7 +32252,7 @@ export const schema = {
 										field: "$to",
 									},
 									{
-										field: "$contract",
+										field: ["ContractCreation", "$contract"],
 									},
 								],
 								[
@@ -32370,7 +32372,7 @@ export const schema = {
 								className: "network-view-collapsible-account-abstraction",
 								sections: [
 									{ id: "evm-tx-user-operations", field: "$$userOperations", List: "EvmUserOperationsView", label: "User operations", emptyText: "No user operations." },
-									{ id: "evm-tx-authorizations", field: "$$authorizations", List: "Eip7702AuthorizationsView", label: "Authorizations", emptyText: "No authorizations." },
+									{ id: "evm-tx-authorizations", field: ["SetCode", "$$authorizations"], List: "Eip7702AuthorizationsView", label: "Authorizations", emptyText: "No authorizations." },
 								],
 							},
 						],
@@ -47340,7 +47342,7 @@ export const schema = {
 									scrollContainerClassName: "network-carousel-execution",
 									sections: [
 										{ id: "evm-execution-upgrades", field: ["Evm", "$$executionUpgrades"], List: "EthereumExecutionUpgradesView", label: "Upgrades", selection: { sources: [Source.Constants_Internal], limit: 512 } },
-										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16, count: true } },
+										{ id: "evm-execution-blocks", field: ["Evm", "$$blocks"], List: "EvmBlocksView", label: "Blocks", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 										{ id: "evm-execution-transactions", field: ["Evm", "$$transactions"], List: "EvmTransactionsView", label: "Transactions", selection: { sources: [Source.Blockscout_Rest], limit: 16 } },
 										{ id: "evm-execution-mempool", field: ["Evm", "$$txpoolTimestamps"], List: "EvmNetwork_Txpool_TimestampsView", label: "Mempool", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
 										{ id: "evm-execution-gas-blocks", field: ["Evm", "$$gasFeeBlocks"], List: "EvmNetwork_GasFee_BlocksView", label: "Fee market", selection: { sources: [Source.Voltaire_JsonRpc], limit: 16 } },
@@ -47464,7 +47466,7 @@ export const schema = {
 									label: "Consensus and block production",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "cosmos-consensus-blocks", field: ["Cosmos", "$$blocks"], List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CosmosSdk_Rest], limit: 16, count: true } },
+										{ id: "cosmos-consensus-blocks", field: ["Cosmos", "$$blocks"], List: "CosmosBlocksView", label: "Blocks", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
 										{ id: "cosmos-consensus-validators", field: ["Cosmos", "$$validators"], List: "CosmosValidatorsView", label: "Validators", selection: { sources: [Source.CosmosSdk_Rest], limit: 16 } },
 									],
 								},
@@ -47522,7 +47524,7 @@ export const schema = {
 									label: "Consensus and block production",
 									className: "network-view-collapsible-consensus",
 									sections: [
-										{ id: "polkadot-consensus-blocks", field: ["Polkadot", "$$blocks"], List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16, count: true } },
+										{ id: "polkadot-consensus-blocks", field: ["Polkadot", "$$blocks"], List: "PolkadotBlocksView", label: "Blocks", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
 										{ id: "polkadot-consensus-validators", field: ["Polkadot", "$$validators"], List: "PolkadotValidatorsView", label: "Validators", selection: { sources: [Source.Polkadot_JsonRpc, Source.SubstrateSidecar_Rest], limit: 16 } },
 									],
 								},
@@ -47585,7 +47587,7 @@ export const schema = {
 									className: "network-view-collapsible-execution",
 									scrollContainerClassName: "network-carousel-execution",
 									sections: [
-										{ id: "solana-execution-blocks", field: ["Solana", "$$blocks"], List: "SolanaBlocksView", label: "Blocks", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16, count: true } },
+										{ id: "solana-execution-blocks", field: ["Solana", "$$blocks"], List: "SolanaBlocksView", label: "Blocks", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
 										{ id: "solana-execution-transactions", field: ["Solana", "$$transactions"], List: "SolanaTransactionsView", label: "Transactions", selection: { sources: [Source.Solana_JsonRpc, Source.Helius_Rest], limit: 16 } },
 									],
 								},
@@ -47652,7 +47654,7 @@ export const schema = {
 									scrollContainerClassName: "network-carousel-chain-activity",
 									sections: [
 										{ id: "utxo-consensus-observations", field: "$$timestamps", List: "Network_TimestampsView", label: "Observations", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16 } },
-										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16, count: true } },
+										{ id: "utxo-consensus-blocks", field: ["Utxo", "$$blocks"], List: "UtxoBlocksView", label: "Blocks", selection: { sources: [Source.MempoolSpace_Rest, Source.Blockchair_Rest], limit: 16 } },
 									],
 								},
 								{
@@ -47713,7 +47715,7 @@ export const schema = {
 									className: "network-view-collapsible-chain-activity",
 									sections: [
 										{ id: "bittensor-chain-observations", field: ["Bittensor", "$$timestamps"], List: "BittensorNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16 } },
-										{ id: "bittensor-chain-blocks", field: ["Bittensor", "$$blocks"], List: "BittensorBlocksView", label: "Blocks", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16, count: true } },
+										{ id: "bittensor-chain-blocks", field: ["Bittensor", "$$blocks"], List: "BittensorBlocksView", label: "Blocks", selection: { sources: [Source.Bittensor_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -47845,7 +47847,7 @@ export const schema = {
 									className: "network-view-collapsible-chain-activity",
 									sections: [
 										{ id: "near-chain-observations", field: ["Near", "$$timestamps"], List: "NearNetwork_TimestampsView", label: "Observations", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16 } },
-										{ id: "near-chain-blocks", field: ["Near", "$$blocks"], List: "NearBlocksView", label: "Blocks", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16, count: true } },
+										{ id: "near-chain-blocks", field: ["Near", "$$blocks"], List: "NearBlocksView", label: "Blocks", selection: { sources: [Source.NearRpc_JsonRpc], limit: 16 } },
 									],
 								},
 								{
@@ -48161,67 +48163,76 @@ export const schema = {
 					cardinality: EntityFieldCardinality.One,
 					valueType: "string",
 				},
-				"latestHeight": { label: "Latest height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"txCount": { label: "Transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"health": { label: "Health", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"finalizedBlockNumber": { label: "Finalized block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"finalizedBlockHash": { label: "Finalized block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"finalizedExtrinsicCount": { label: "Finalized extrinsics", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"runtimeSpecName": { label: "Runtime spec name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"runtimeSpecVersion": { label: "Runtime spec version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"transactionVersion": { label: "Transaction version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"stateVersion": { label: "State version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"peerCount": { label: "Peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"isSyncing": { label: "Syncing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"shouldHavePeers": { label: "Should have peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
-				"latestBlockHeight": { label: "Latest block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"latestBlockHash": { label: "Latest block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"latestBlockTimeMs": { label: "Latest block time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"latestBlockTransactionCount": { label: "Latest block transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"chainId": { label: "Chain ID", description: "The chain identifier used by the network family.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"nodeNetwork": { label: "Node network", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"applicationName": { label: "Application name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"applicationVersion": { label: "Application version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"cosmosSdkVersion": { label: "Cosmos SDK version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"validatorCount": { label: "Validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"bondedValidatorCount": { label: "Bonded validators", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"bondedTokens": { label: "Bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"notBondedTokens": { label: "Not bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"governanceProposalCount": { label: "Governance proposals", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"bestBlockHeight": { label: "Best block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"bestBlockHash": { label: "Best block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"bestBlockTimeMs": { label: "Best block time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"blockCount": { label: "Block count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"blocks24h": { label: "Blocks 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"transactions24h": { label: "Transactions 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"mempoolTransactionCount": { label: "Mempool transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"mempoolSizeBytes": { label: "Mempool size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"mempoolTps": { label: "Mempool TPS", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"averageTransactionFee24hSats": { label: "Average transaction fee 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"medianTransactionFee24hSats": { label: "Median transaction fee 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"suggestedTransactionFeePerByteSats": { label: "Suggested fee per byte", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"blockchainSizeBytes": { label: "Blockchain size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"absoluteSlot": { label: "Absolute slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"blockHeight": { label: "Block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"epoch": { label: "Epoch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"slotIndex": { label: "Slot index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"slotsInEpoch": { label: "Slots in epoch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"currentValidatorCount": { label: "Current validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"delinquentValidatorCount": { label: "Delinquent validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
-				"totalActivatedStakeLamports": { label: "Total activated stake", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
-				"solanaCoreVersion": { label: "Solana core version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
-				"featureSet": { label: "Feature set", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+				"ledgerModels": { label: "Ledger models", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "NetworkLedgerModel" },
+				"executionModels": { label: "Execution models", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.Many, valueType: "NetworkExecutionModel" },
 			})({
 				selectors: {
 					"NetworkTimestampMsSource": ["$network", "timestampMs", "source"],
+				},
+				facets: {
+					Cosmos: facet({ path: ["executionModels"], includes: "CosmosSdk" })({
+						"latestBlockHeight": { label: "Latest block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"latestBlockHash": { label: "Latest block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"latestBlockTimeMs": { label: "Latest block time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"latestBlockTransactionCount": { label: "Latest block transactions", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"chainId": { label: "Chain ID", description: "The chain identifier used by the network family.", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"nodeNetwork": { label: "Node network", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"applicationName": { label: "Application name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"applicationVersion": { label: "Application version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"cosmosSdkVersion": { label: "Cosmos SDK version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"isSyncing": { label: "Syncing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+						"bondedValidatorCount": { label: "Bonded validators", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"bondedTokens": { label: "Bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"notBondedTokens": { label: "Not bonded tokens", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+					}),
+					Polkadot: facet({ path: ["executionModels"], includes: "PolkadotRuntime" })({
+						"finalizedBlockNumber": { label: "Finalized block number", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"finalizedBlockHash": { label: "Finalized block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"finalizedExtrinsicCount": { label: "Finalized extrinsics", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"runtimeSpecName": { label: "Runtime spec name", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"runtimeSpecVersion": { label: "Runtime spec version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"transactionVersion": { label: "Transaction version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"stateVersion": { label: "State version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"peerCount": { label: "Peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"isSyncing": { label: "Syncing", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+						"shouldHavePeers": { label: "Should have peers", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "boolean" },
+					}),
+					Solana: facet({ path: ["executionModels"], includes: "SolanaRuntime" })({
+						"health": { label: "Health", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"absoluteSlot": { label: "Absolute slot", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"blockHeight": { label: "Block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"epoch": { label: "Epoch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"slotIndex": { label: "Slot index", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"slotsInEpoch": { label: "Slots in epoch", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"currentValidatorCount": { label: "Current validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"delinquentValidatorCount": { label: "Delinquent validator count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"totalActivatedStakeLamports": { label: "Total activated stake", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"solanaCoreVersion": { label: "Solana core version", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"featureSet": { label: "Feature set", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+					}),
+					Utxo: facet({ path: ["ledgerModels"], includes: "Utxo" })({
+						"bestBlockHeight": { label: "Best block height", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"bestBlockHash": { label: "Best block hash", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "string" },
+						"bestBlockTimeMs": { label: "Best block time", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"blockCount": { label: "Block count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"transactionCount": { label: "Transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"blocks24h": { label: "Blocks 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"transactions24h": { label: "Transactions 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"mempoolTransactionCount": { label: "Mempool transaction count", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"mempoolSizeBytes": { label: "Mempool size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"mempoolTps": { label: "Mempool TPS", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"averageTransactionFee24hSats": { label: "Average transaction fee 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"medianTransactionFee24hSats": { label: "Median transaction fee 24h", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+						"suggestedTransactionFeePerByteSats": { label: "Suggested fee per byte", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "number" },
+						"blockchainSizeBytes": { label: "Blockchain size", type: EntityFieldType.Primitive, cardinality: EntityFieldCardinality.ZeroOrOne, valueType: "bigint" },
+					}),
 				},
 				views: {
 					singular: {
 						summary: {
 							title: [{ field: "timestampMs", format: "timestamp" }],
-							value: [{ field: "latestHeight", format: "numberValue" }],
-							HeadingAfter: ["source", "health"],
+							value: ["source"],
 						},
 						closed: [
 							{ field: "timestampMs", format: "timestamp" },
@@ -48229,18 +48240,12 @@ export const schema = {
 						],
 						content: {
 							dl: [
-								[
-									{ field: "timestampMs", format: "timestamp" },
-									"source",
-									{ field: "latestHeight", format: "numberValue" },
-									{ field: "txCount", format: "number" },
-									{ field: "latestBlockHeight", format: "numberValue" },
-									"latestBlockHash",
-									{ field: "latestBlockTimeMs", format: "timestamp" },
-									{ field: "latestBlockTransactionCount", format: "number" },
-									"health",
-								],
-								["chainId", "nodeNetwork", "applicationName", "applicationVersion", "cosmosSdkVersion", "isSyncing", "validatorCount", "bondedValidatorCount", "bondedTokens", "notBondedTokens", "governanceProposalCount", "$network"],
+								["$network", { field: "timestampMs", format: "timestamp" }, "source", "ledgerModels", "executionModels"],
+								[{ field: ["Cosmos", "latestBlockHeight"], format: "numberValue" }, { field: ["Cosmos", "latestBlockHash"] }, { field: ["Cosmos", "latestBlockTimeMs"], format: "timestamp" }, { field: ["Cosmos", "latestBlockTransactionCount"], format: "number" }],
+								[{ field: ["Cosmos", "chainId"] }, { field: ["Cosmos", "nodeNetwork"] }, { field: ["Cosmos", "applicationName"] }, { field: ["Cosmos", "applicationVersion"] }, { field: ["Cosmos", "cosmosSdkVersion"] }, { field: ["Cosmos", "isSyncing"] }, { field: ["Cosmos", "bondedValidatorCount"] }, { field: ["Cosmos", "bondedTokens"] }, { field: ["Cosmos", "notBondedTokens"] }],
+								[{ field: ["Polkadot", "finalizedBlockNumber"], format: "numberValue" }, { field: ["Polkadot", "finalizedBlockHash"] }, { field: ["Polkadot", "finalizedExtrinsicCount"], format: "number" }, { field: ["Polkadot", "runtimeSpecName"] }, { field: ["Polkadot", "runtimeSpecVersion"] }, { field: ["Polkadot", "transactionVersion"] }, { field: ["Polkadot", "stateVersion"] }, { field: ["Polkadot", "peerCount"] }, { field: ["Polkadot", "isSyncing"] }, { field: ["Polkadot", "shouldHavePeers"] }],
+								[{ field: ["Solana", "health"] }, { field: ["Solana", "absoluteSlot"], format: "numberValue" }, { field: ["Solana", "blockHeight"], format: "numberValue" }, { field: ["Solana", "epoch"] }, { field: ["Solana", "slotIndex"] }, { field: ["Solana", "slotsInEpoch"] }, { field: ["Solana", "transactionCount"], format: "numberValue" }, { field: ["Solana", "currentValidatorCount"] }, { field: ["Solana", "delinquentValidatorCount"] }, { field: ["Solana", "totalActivatedStakeLamports"] }, { field: ["Solana", "solanaCoreVersion"] }, { field: ["Solana", "featureSet"] }],
+								[{ field: ["Utxo", "bestBlockHeight"], format: "numberValue" }, { field: ["Utxo", "bestBlockHash"] }, { field: ["Utxo", "bestBlockTimeMs"], format: "timestamp" }, { field: ["Utxo", "blockCount"] }, { field: ["Utxo", "transactionCount"] }, { field: ["Utxo", "blocks24h"] }, { field: ["Utxo", "transactions24h"] }, { field: ["Utxo", "mempoolTransactionCount"] }, { field: ["Utxo", "mempoolSizeBytes"] }, { field: ["Utxo", "mempoolTps"] }, { field: ["Utxo", "averageTransactionFee24hSats"] }, { field: ["Utxo", "medianTransactionFee24hSats"] }, { field: ["Utxo", "suggestedTransactionFeePerByteSats"] }, { field: ["Utxo", "blockchainSizeBytes"] }],
 							],
 						},
 					},

@@ -373,6 +373,7 @@
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Transactions'

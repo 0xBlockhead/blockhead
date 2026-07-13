@@ -153,7 +153,11 @@
 
 				{#snippet SectionAlgorandAccountTimestamps({ id, label, open })}
 					<AlgorandAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand account observations.'
 						open={open}
@@ -193,7 +197,11 @@
 
 				{#snippet SectionAlgorandAccountAssetHoldings({ id, label, open })}
 					<AlgorandAssetHolding_RoundsView
-						selection={selection.$$assetHoldingRounds}
+						selection={
+							selection.$$assetHoldingRounds({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand asset holding rounds.'
 						open={open}
@@ -204,7 +212,11 @@
 
 				{#snippet SectionAlgorandAccountAppLocalState({ id, label, open })}
 					<AlgorandApplicationLocalState_RoundsView
-						selection={selection.$$applicationLocalStateRounds}
+						selection={
+							selection.$$applicationLocalStateRounds({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand application local state rounds.'
 						open={open}

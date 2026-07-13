@@ -316,14 +316,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PolkadotExtrinsicsView
-				selection={selection.$$extrinsics}
+				selection={
+						selection.$$extrinsics({
+							count: true,
+						})
+					}
 				title='Extrinsics'
 				emptyText='No Polkadot extrinsics.'
 				id='PolkadotExtrinsicsView-extrinsics'
 			/>
 
 			<PolkadotEventsView
-				selection={selection.$$events}
+				selection={
+						selection.$$events({
+							count: true,
+						})
+					}
 				title='Events'
 				emptyText='No Polkadot events.'
 				id='PolkadotEventsView-events'

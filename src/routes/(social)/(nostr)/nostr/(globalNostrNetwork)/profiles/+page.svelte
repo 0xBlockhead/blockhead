@@ -33,6 +33,7 @@
 				sources: [
 					Source.NostrBand_Rest,
 				],
+				count: true,
 			})
 		}
 		id='observed-profiles'

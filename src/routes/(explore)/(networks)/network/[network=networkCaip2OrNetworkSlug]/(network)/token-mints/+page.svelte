@@ -42,7 +42,11 @@
 					})
 				}
 				title='Solana token mints'
-				selection={projection.$$tokenMints}
+				selection={
+					projection.$$tokenMints({
+						count: true,
+					})
+				}
 				id='token-mints'
 			/>
 		{/snippet}

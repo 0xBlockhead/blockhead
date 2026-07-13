@@ -230,6 +230,7 @@
 										Source.SolanaSimds_Github,
 										Source.ZcashZips_Github,
 									],
+									count: true,
 								})
 							}
 						title={String(entity.labelPlural ?? 'Proposals')}

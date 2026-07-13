@@ -395,6 +395,7 @@
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Actions'
@@ -407,6 +408,7 @@
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Execution outcomes'

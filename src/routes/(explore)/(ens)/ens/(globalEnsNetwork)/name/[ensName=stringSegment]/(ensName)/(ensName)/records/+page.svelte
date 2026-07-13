@@ -45,6 +45,7 @@
 					Source.TheGraph_Graphql,
 					Source.Voltaire_JsonRpc,
 				],
+				count: true,
 			})
 		}
 		id='records'

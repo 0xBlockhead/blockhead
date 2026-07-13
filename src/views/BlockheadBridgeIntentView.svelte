@@ -869,7 +869,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadIntentQuotesView
-				selection={selection.$$quotes}
+				selection={
+						selection.$$quotes({
+							count: true,
+						})
+					}
 				title='quotes'
 				emptyText='No quotes.'
 				id='BlockheadIntentQuotesView-quotes'

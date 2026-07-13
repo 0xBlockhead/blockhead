@@ -300,14 +300,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ScalingDeploymentClaim_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Timestamps'
 				emptyText='No scaling deployment claim observations yet.'
 				id='ScalingDeploymentClaim_TimestampsView-timestamps'
 			/>
 
 			<EvmContractsView
-				selection={selection.$$settlementContracts}
+				selection={
+						selection.$$settlementContracts({
+							count: true,
+						})
+					}
 				title='Settlement contracts'
 				href={resolve('/contracts')}
 				emptyText='No settlement contracts yet.'

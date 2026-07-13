@@ -140,6 +140,7 @@
 									Source.Constants_Internal,
 									Source.Farcaster_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/farcaster/feed')}
@@ -160,6 +161,7 @@
 									Source.Neynar_Rest,
 									Source.Snapchain_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/farcaster/users')}
@@ -179,6 +181,7 @@
 									Source.Farcaster_Rest,
 									Source.Neynar_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/farcaster/channels')}
@@ -217,7 +220,11 @@
 
 				{#snippet SectionFarcasterCastList({ id, label, open })}
 					<FarcasterCastsView
-						selection={selection.$$observedCasts}
+						selection={
+							selection.$$observedCasts({
+								count: true,
+							})
+						}
 						href={resolve('/farcaster/feed/trending')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Farcaster casts in this observed.'
@@ -254,7 +261,11 @@
 
 				{#snippet SectionFarcasterHubObservations({ id, label, open })}
 					<GlobalFarcasterNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Farcaster observed observations yet.'
 						open={open}

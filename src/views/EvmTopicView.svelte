@@ -160,7 +160,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmTopic_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				emptyText='No Openchain observations for this topic.'
 				id='EvmTopic_TimestampsView-timestamps'

@@ -340,14 +340,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<FedimintFederation_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='FedimintFederation_TimestampsView-timestamps'
 			/>
 
 			<FedimintGatewaysView
-				selection={selection.$$gateways}
+				selection={
+						selection.$$gateways({
+							count: true,
+						})
+					}
 				title='gateways'
 				emptyText='No gateways found.'
 				id='FedimintGatewaysView-gateways'

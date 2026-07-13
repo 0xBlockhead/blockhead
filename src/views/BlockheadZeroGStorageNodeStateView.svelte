@@ -323,7 +323,11 @@
 
 				{#snippet SectionZerogLocalChunks({ id, label, open })}
 					<BlockheadZeroGStoredChunksView
-						selection={selection.$$localChunks}
+						selection={
+							selection.$$localChunks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No local chunks.'
 						open={open}
@@ -334,7 +338,11 @@
 
 				{#snippet SectionZerogLocalProofs({ id, label, open })}
 					<BlockheadZeroGStorageProofsView
-						selection={selection.$$localProofs}
+						selection={
+							selection.$$localProofs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No local proofs.'
 						open={open}
@@ -370,7 +378,11 @@
 
 				{#snippet SectionZerogStorageTimestamps({ id, label, open })}
 					<BlockheadZeroGStorageNodeState_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G storage-node observations.'
 						open={open}

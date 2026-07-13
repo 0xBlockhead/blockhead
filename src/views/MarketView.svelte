@@ -214,6 +214,7 @@
 									Source.Blockscout_Rest,
 									Source.Defillama_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/coins/prices')}
@@ -249,6 +250,7 @@
 													Source.Blockscout_Rest,
 													Source.Defillama_Rest,
 												],
+												count: true,
 											})
 										}
 										href={resolve('/coins/prices')}
@@ -275,6 +277,7 @@
 									Source.Coinpaprika_OpenApi,
 									Source.CoinMarketCap_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/coins/candles')}
@@ -306,6 +309,7 @@
 													Source.Coinpaprika_OpenApi,
 													Source.CoinMarketCap_Rest,
 												],
+												count: true,
 											})
 										}
 										href={resolve('/coins/candles')}
@@ -354,6 +358,7 @@
 								sources: [
 									Source.Coingecko_OpenApi,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -381,6 +386,7 @@
 												sources: [
 													Source.Coingecko_OpenApi,
 												],
+												count: true,
 											})
 										}
 										CollapsibleProps={{ canToggle: false }}

@@ -298,7 +298,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCashuMintQuote_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='BlockheadCashuMintQuote_TimestampsView-timestamps'

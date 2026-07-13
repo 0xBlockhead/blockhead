@@ -132,7 +132,11 @@
 
 				{#snippet SectionLensAccounts({ id, label, open })}
 					<LensAccountsView
-						selection={selection.$$observedAccounts}
+						selection={
+							selection.$$observedAccounts({
+								count: true,
+							})
+						}
 						href={resolve('/lens/observations/accounts')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens accounts in this observed.'
@@ -144,7 +148,11 @@
 
 				{#snippet SectionLensFeeds({ id, label, open })}
 					<LensFeedsView
-						selection={selection.$$observedFeeds}
+						selection={
+							selection.$$observedFeeds({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens feeds in this observed.'
 						open={open}
@@ -155,7 +163,11 @@
 
 				{#snippet SectionLensUsernameNamespaces({ id, label, open })}
 					<LensUsernameNamespacesView
-						selection={selection.$$observedUsernameNamespaces}
+						selection={
+							selection.$$observedUsernameNamespaces({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens username namespaces in this observed.'
 						open={open}
@@ -191,7 +203,11 @@
 
 				{#snippet SectionLensPostList({ id, label, open })}
 					<LensPostsView
-						selection={selection.$$observedPosts}
+						selection={
+							selection.$$observedPosts({
+								count: true,
+							})
+						}
 						href={resolve('/lens/observations/posts')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens posts in this observed.'
@@ -228,7 +244,11 @@
 
 				{#snippet SectionLensHubObservations({ id, label, open })}
 					<GlobalLensNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens observed observations yet.'
 						open={open}

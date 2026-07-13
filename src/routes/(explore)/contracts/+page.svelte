@@ -44,6 +44,7 @@
 							Source.Blockscout_Rest,
 						],
 						limit: 16,
+						count: true,
 					})
 				}
 				id='contracts'

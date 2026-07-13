@@ -190,7 +190,11 @@
 
 				{#snippet SectionTonChainObservations({ id, label, open })}
 					<TonNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON network observations.'
 						open={open}
@@ -201,7 +205,11 @@
 
 				{#snippet SectionTonChainWorkchains({ id, label, open })}
 					<TonWorkchainsView
-						selection={selection.$$workchains}
+						selection={
+							selection.$$workchains({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON workchains.'
 						open={open}
@@ -212,7 +220,11 @@
 
 				{#snippet SectionTonChainBlocks({ id, label, open })}
 					<TonBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON blocks.'
 						open={open}
@@ -223,7 +235,11 @@
 
 				{#snippet SectionTonChainTransactions({ id, label, open })}
 					<TonTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON transactions.'
 						open={open}
@@ -234,7 +250,11 @@
 
 				{#snippet SectionTonChainTraces({ id, label, open })}
 					<TonTracesView
-						selection={selection.$$traces}
+						selection={
+							selection.$$traces({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON traces.'
 						open={open}
@@ -278,7 +298,11 @@
 
 				{#snippet SectionTonAccounts({ id, label, open })}
 					<TonAccountsView
-						selection={selection.$$accounts}
+						selection={
+							selection.$$accounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON accounts.'
 						open={open}
@@ -289,7 +313,11 @@
 
 				{#snippet SectionTonContracts({ id, label, open })}
 					<TonContractsView
-						selection={selection.$$contracts}
+						selection={
+							selection.$$contracts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON contracts.'
 						open={open}
@@ -300,7 +328,11 @@
 
 				{#snippet SectionTonMessages({ id, label, open })}
 					<TonMessagesView
-						selection={selection.$$messages}
+						selection={
+							selection.$$messages({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON messages.'
 						open={open}
@@ -344,7 +376,11 @@
 
 				{#snippet SectionTonJettons({ id, label, open })}
 					<TonJettonsView
-						selection={selection.$$jettons}
+						selection={
+							selection.$$jettons({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON jettons.'
 						open={open}
@@ -355,7 +391,11 @@
 
 				{#snippet SectionTonNftCollections({ id, label, open })}
 					<TonNftCollectionsView
-						selection={selection.$$nftCollections}
+						selection={
+							selection.$$nftCollections({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON NFT collections.'
 						open={open}
@@ -366,7 +406,11 @@
 
 				{#snippet SectionTonNftItems({ id, label, open })}
 					<TonNftItemsView
-						selection={selection.$$nftItems}
+						selection={
+							selection.$$nftItems({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No TON NFT items.'
 						open={open}

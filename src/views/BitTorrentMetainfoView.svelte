@@ -479,7 +479,11 @@
 
 				{#snippet SectionBittorrentFiles({ id, label, open })}
 					<BitTorrentFilesView
-						selection={selection.$$files}
+						selection={
+							selection.$$files({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No files found.'
 						open={open}
@@ -490,7 +494,11 @@
 
 				{#snippet SectionBittorrentFileTree({ id, label, open })}
 					<BitTorrentFileTreeEntriesView
-						selection={selection.$$fileTreeEntries}
+						selection={
+							selection.$$fileTreeEntries({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No file tree entries found.'
 						open={open}
@@ -501,7 +509,11 @@
 
 				{#snippet SectionBittorrentPieces({ id, label, open })}
 					<BitTorrentPiecesView
-						selection={selection.$$pieces}
+						selection={
+							selection.$$pieces({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No pieces found.'
 						open={open}
@@ -541,7 +553,11 @@
 
 				{#snippet SectionBittorrentTrackers({ id, label, open })}
 					<BitTorrentTrackersView
-						selection={selection.$$trackers}
+						selection={
+							selection.$$trackers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No trackers found.'
 						open={open}
@@ -552,7 +568,11 @@
 
 				{#snippet SectionBittorrentMagnets({ id, label, open })}
 					<MagnetLinksView
-						selection={selection.$$magnets}
+						selection={
+							selection.$$magnets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No magnets found.'
 						open={open}
@@ -592,7 +612,11 @@
 
 				{#snippet SectionBittorrentSwarmObservations({ id, label, open })}
 					<BitTorrentSwarmObservation_TimestampsView
-						selection={selection.$$swarmTimestamps}
+						selection={
+							selection.$$swarmTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No swarm observations yet.'
 						open={open}
@@ -603,7 +627,11 @@
 
 				{#snippet SectionBittorrentClientTransfers({ id, label, open })}
 					<BlockheadBitTorrentTransfer_TimestampsView
-						selection={selection.$$clientTransfers}
+						selection={
+							selection.$$clientTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No client transfers yet.'
 						open={open}

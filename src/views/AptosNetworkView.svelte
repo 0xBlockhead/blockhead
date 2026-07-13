@@ -169,7 +169,11 @@
 
 				{#snippet SectionAptosChainObservations({ id, label, open })}
 					<AptosNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Aptos network observations.'
 						open={open}
@@ -180,7 +184,11 @@
 
 				{#snippet SectionAptosChainBlocks({ id, label, open })}
 					<AptosBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Aptos blocks.'
 						open={open}
@@ -191,7 +199,11 @@
 
 				{#snippet SectionAptosChainTransactions({ id, label, open })}
 					<AptosTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Aptos transactions.'
 						open={open}
@@ -202,7 +214,11 @@
 
 				{#snippet SectionAptosChainEvents({ id, label, open })}
 					<AptosEventsView
-						selection={selection.$$events}
+						selection={
+							selection.$$events({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Aptos events.'
 						open={open}
@@ -242,7 +258,11 @@
 
 				{#snippet SectionAptosAccounts({ id, label, open })}
 					<AptosAccountsView
-						selection={selection.$$accounts}
+						selection={
+							selection.$$accounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Aptos accounts.'
 						open={open}
@@ -253,7 +273,11 @@
 
 				{#snippet SectionAptosModules({ id, label, open })}
 					<MoveModulesView
-						selection={selection.$$modules}
+						selection={
+							selection.$$modules({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Aptos Move modules.'
 						open={open}
@@ -289,7 +313,11 @@
 
 				{#snippet SectionAptosCoinBalances({ id, label, open })}
 					<AptosCoinBalance_TimestampsView
-						selection={selection.$$coinBalanceTimestamps}
+						selection={
+							selection.$$coinBalanceTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Aptos coin balance observations.'
 						open={open}

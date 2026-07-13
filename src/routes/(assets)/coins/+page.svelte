@@ -35,6 +35,7 @@
 					Source.Coinpaprika_OpenApi,
 				],
 				limit: 120,
+				count: true,
 			})
 		}
 		id='coins'

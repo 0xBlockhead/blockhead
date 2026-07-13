@@ -342,7 +342,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<KaspaAcceptedTransactionsView
-				selection={selection.$$acceptedTransactions}
+				selection={
+						selection.$$acceptedTransactions({
+							count: true,
+						})
+					}
 				title='accepted transactions'
 				emptyText='No Kaspa accepted transactions.'
 				id='KaspaAcceptedTransactionsView-accepted-transactions'

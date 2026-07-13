@@ -423,7 +423,11 @@
 
 				{#snippet SectionSuiCoinTypeBalances({ id, label, open })}
 					<SuiCoinBalance_TimestampsView
-						selection={selection.$$balances}
+						selection={
+							selection.$$balances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No balances.'
 						open={open}
@@ -434,7 +438,11 @@
 
 				{#snippet SectionSuiCoinTypeObjects({ id, label, open })}
 					<SuiObjectsView
-						selection={selection.$$objects}
+						selection={
+							selection.$$objects({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No objects.'
 						open={open}
@@ -470,7 +478,11 @@
 
 				{#snippet SectionSuiCoinTypeRegulatedStates({ id, label, open })}
 					<SuiRegulatedCoinState_TimestampsView
-						selection={selection.$$regulatedStates}
+						selection={
+							selection.$$regulatedStates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No regulated states.'
 						open={open}

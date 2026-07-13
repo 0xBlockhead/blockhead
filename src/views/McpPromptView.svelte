@@ -223,7 +223,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<McpPromptResultsView
-				selection={selection.$$results}
+				selection={
+						selection.$$results({
+							count: true,
+						})
+					}
 				title='results'
 				emptyText='No MCP prompt results.'
 				id='McpPromptResultsView-results'

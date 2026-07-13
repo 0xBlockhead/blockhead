@@ -310,7 +310,11 @@
 
 				{#snippet SectionCashuProofs({ id, label, open })}
 					<BlockheadCashuProofsView
-						selection={selection.$$proofs}
+						selection={
+							selection.$$proofs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No proofs found.'
 						open={open}
@@ -321,7 +325,11 @@
 
 				{#snippet SectionCashuTokens({ id, label, open })}
 					<BlockheadCashuTokensView
-						selection={selection.$$tokens}
+						selection={
+							selection.$$tokens({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No tokens found.'
 						open={open}
@@ -361,7 +369,11 @@
 
 				{#snippet SectionCashuMintQuotes({ id, label, open })}
 					<BlockheadCashuMintQuotesView
-						selection={selection.$$mintQuotes}
+						selection={
+							selection.$$mintQuotes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No mint quotes found.'
 						open={open}
@@ -372,7 +384,11 @@
 
 				{#snippet SectionCashuMeltQuotes({ id, label, open })}
 					<BlockheadCashuMeltQuotesView
-						selection={selection.$$meltQuotes}
+						selection={
+							selection.$$meltQuotes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No melt quotes found.'
 						open={open}
@@ -408,7 +424,11 @@
 
 				{#snippet SectionCashuWalletTimestamps({ id, label, open })}
 					<BlockheadCashuWalletState_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No observations yet.'
 						open={open}

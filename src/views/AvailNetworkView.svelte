@@ -141,28 +141,44 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AvailNetwork_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='AvailNetwork_TimestampsView-timestamps'
 			/>
 
 			<AvailBlocksView
-				selection={selection.$$blocks}
+				selection={
+						selection.$$blocks({
+							count: true,
+						})
+					}
 				title='blocks'
 				emptyText='No blocks found.'
 				id='AvailBlocksView-blocks'
 			/>
 
 			<AvailAppIdsView
-				selection={selection.$$appIds}
+				selection={
+						selection.$$appIds({
+							count: true,
+						})
+					}
 				title='app ids'
 				emptyText='No app IDs found.'
 				id='AvailAppIdsView-app-ids'
 			/>
 
 			<AvailDataSubmissionsView
-				selection={selection.$$dataSubmissions}
+				selection={
+						selection.$$dataSubmissions({
+							count: true,
+						})
+					}
 				title='data submissions'
 				emptyText='No data submissions found.'
 				id='AvailDataSubmissionsView-data-submissions'

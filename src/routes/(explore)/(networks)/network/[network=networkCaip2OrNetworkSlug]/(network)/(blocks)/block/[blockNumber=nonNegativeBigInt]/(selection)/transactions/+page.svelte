@@ -38,7 +38,11 @@
 			})
 		}
 		title='Block transactions'
-		selection={select(EntityType.EvmBlock, data.selector).$$transactions}
+		selection={
+			select(EntityType.EvmBlock, data.selector).$$transactions({
+				count: true,
+			})
+		}
 		id='transactions'
 	/>
 </Page>

@@ -262,13 +262,7 @@
 							</ResourceBoundary>
 						</dd>
 					</div>
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Eip8004Registration}
-			>
-				{#snippet Applicable(projection)}
 					<div>
 						<dt>Agent ID</dt>
 						<dd>
@@ -290,13 +284,7 @@
 							</ResourceBoundary>
 						</dd>
 					</div>
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Eip8004Registration}
-			>
-				{#snippet Applicable(projection)}
 					<ResourceBoundary
 						resource={
 							projection.agentUri({
@@ -325,13 +313,7 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Eip8004Registration}
-			>
-				{#snippet Applicable(projection)}
 					<ResourceBoundary
 						resource={
 							projection.contactEndpoint({
@@ -353,13 +335,7 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Eip8004Registration}
-			>
-				{#snippet Applicable(projection)}
 					<ResourceBoundary
 						resource={projection.$agentWallet}
 					>
@@ -479,13 +455,7 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Eip8004Registration}
-			>
-				{#snippet Applicable(projection)}
 					<ResourceBoundary
 						resource={
 							projection.registrationTypeIri({
@@ -507,13 +477,7 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				{/snippet}
-			</ProjectionBoundary>
 
-			<ProjectionBoundary
-				resource={selection.Eip8004Registration}
-			>
-				{#snippet Applicable(projection)}
 					<ResourceBoundary
 						resource={
 							projection.fetchedAt({

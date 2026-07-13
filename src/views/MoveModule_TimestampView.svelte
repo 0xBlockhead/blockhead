@@ -402,14 +402,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<MoveFunctionsView
-				selection={selection.$$functions}
+				selection={
+						selection.$$functions({
+							count: true,
+						})
+					}
 				title='functions'
 				emptyText='No functions found.'
 				id='MoveFunctionsView-functions'
 			/>
 
 			<MoveStructsView
-				selection={selection.$$structs}
+				selection={
+						selection.$$structs({
+							count: true,
+						})
+					}
 				title='structs'
 				emptyText='No structs found.'
 				id='MoveStructsView-structs'

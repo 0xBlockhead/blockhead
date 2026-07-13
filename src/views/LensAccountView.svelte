@@ -478,6 +478,7 @@
 								sources: [
 									Source.Lens_Graphql,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/lens/observations/posts')}
@@ -491,7 +492,11 @@
 
 				{#snippet SectionLensAccountManagers({ id, label, open })}
 					<LensAccountManagersView
-						selection={selection.$$managers}
+						selection={
+							selection.$$managers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens account managers.'
 						open={open}
@@ -527,7 +532,11 @@
 
 				{#snippet SectionLensAccountTimestamps({ id, label, open })}
 					<LensAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Lens account observations yet.'
 						open={open}

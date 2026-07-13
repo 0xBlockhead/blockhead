@@ -190,7 +190,11 @@
 
 				{#snippet SectionTezosChainObservations({ id, label, open })}
 					<TezosNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos network observations.'
 						open={open}
@@ -201,7 +205,11 @@
 
 				{#snippet SectionTezosChainBlocks({ id, label, open })}
 					<TezosBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos blocks.'
 						open={open}
@@ -212,7 +220,11 @@
 
 				{#snippet SectionTezosChainOperationGroups({ id, label, open })}
 					<TezosOperationGroupsView
-						selection={selection.$$operationGroups}
+						selection={
+							selection.$$operationGroups({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos operation groups.'
 						open={open}
@@ -223,7 +235,11 @@
 
 				{#snippet SectionTezosChainOperations({ id, label, open })}
 					<TezosOperationsView
-						selection={selection.$$operations}
+						selection={
+							selection.$$operations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos operations.'
 						open={open}
@@ -263,7 +279,11 @@
 
 				{#snippet SectionTezosAccounts({ id, label, open })}
 					<TezosAccountsView
-						selection={selection.$$accounts}
+						selection={
+							selection.$$accounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos accounts.'
 						open={open}
@@ -274,7 +294,11 @@
 
 				{#snippet SectionTezosContracts({ id, label, open })}
 					<TezosContractsView
-						selection={selection.$$contracts}
+						selection={
+							selection.$$contracts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos contracts.'
 						open={open}
@@ -318,7 +342,11 @@
 
 				{#snippet SectionTezosBakers({ id, label, open })}
 					<TezosBakersView
-						selection={selection.$$bakers}
+						selection={
+							selection.$$bakers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos bakers.'
 						open={open}
@@ -329,7 +357,11 @@
 
 				{#snippet SectionTezosCycles({ id, label, open })}
 					<TezosCyclesView
-						selection={selection.$$cycles}
+						selection={
+							selection.$$cycles({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos cycles.'
 						open={open}
@@ -340,7 +372,11 @@
 
 				{#snippet SectionTezosBakingRights({ id, label, open })}
 					<TezosBakingRightsView
-						selection={selection.$$bakingRights}
+						selection={
+							selection.$$bakingRights({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos baking rights.'
 						open={open}
@@ -380,7 +416,11 @@
 
 				{#snippet SectionTezosTokenList({ id, label, open })}
 					<TezosTokensView
-						selection={selection.$$tokens}
+						selection={
+							selection.$$tokens({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos tokens.'
 						open={open}
@@ -391,7 +431,11 @@
 
 				{#snippet SectionTezosTokenTransfers({ id, label, open })}
 					<TezosTokenTransfersView
-						selection={selection.$$tokenTransfers}
+						selection={
+							selection.$$tokenTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos token transfers.'
 						open={open}
@@ -439,7 +483,11 @@
 
 				{#snippet SectionTezosBigMapList({ id, label, open })}
 					<TezosBigMapsView
-						selection={selection.$$bigMaps}
+						selection={
+							selection.$$bigMaps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos big maps.'
 						open={open}
@@ -450,7 +498,11 @@
 
 				{#snippet SectionTezosBigMapKeys({ id, label, open })}
 					<TezosBigMapKeysView
-						selection={selection.$$bigMapKeys}
+						selection={
+							selection.$$bigMapKeys({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos big map keys.'
 						open={open}
@@ -461,7 +513,11 @@
 
 				{#snippet SectionTezosBigMapObservations({ id, label, open })}
 					<TezosBigMap_TimestampsView
-						selection={selection.$$bigMapTimestamps}
+						selection={
+							selection.$$bigMapTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos big map observations.'
 						open={open}
@@ -472,7 +528,11 @@
 
 				{#snippet SectionTezosBigMapKeyObservations({ id, label, open })}
 					<TezosBigMapKey_TimestampsView
-						selection={selection.$$bigMapKeyTimestamps}
+						selection={
+							selection.$$bigMapKeyTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tezos big map key observations.'
 						open={open}

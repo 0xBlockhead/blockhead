@@ -313,6 +313,7 @@
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Access keys'

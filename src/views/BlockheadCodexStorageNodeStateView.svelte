@@ -283,14 +283,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCodexStorageNodeState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Codex node-state observations.'
 				id='BlockheadCodexStorageNodeState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadCodexStoredDataEntriesView
-				selection={selection.$$storedData}
+				selection={
+						selection.$$storedData({
+							count: true,
+						})
+					}
 				title='Stored Data'
 				emptyText='No stored data.'
 				id='BlockheadCodexStoredDataEntriesView-stored-data'

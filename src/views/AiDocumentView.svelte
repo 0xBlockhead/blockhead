@@ -494,7 +494,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AiDocumentClaimsView
-				selection={selection.$$claims}
+				selection={
+						selection.$$claims({
+							count: true,
+						})
+					}
 				title='claims'
 				emptyText='No AI document claims.'
 				id='AiDocumentClaimsView-claims'

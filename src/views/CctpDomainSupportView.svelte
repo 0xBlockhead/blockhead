@@ -497,14 +497,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CctpMessagesView
-				selection={selection.$$messages}
+				selection={
+						selection.$$messages({
+							count: true,
+						})
+					}
 				title='Messages'
 				emptyText='No CCTP messages.'
 				id='CctpMessagesView-messages'
 			/>
 
 			<CctpBurnFee_TimestampsView
-				selection={selection.$$burnFeeTimestamps}
+				selection={
+						selection.$$burnFeeTimestamps({
+							count: true,
+						})
+					}
 				title='Burn fee timestamps'
 				emptyText='No CCTP burn fee observations.'
 				id='CctpBurnFee_TimestampsView-burn-fee-timestamps'

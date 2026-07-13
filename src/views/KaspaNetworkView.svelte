@@ -193,7 +193,11 @@
 
 				{#snippet SectionKaspaChainObservations({ id, label, open })}
 					<KaspaNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa network observations.'
 						open={open}
@@ -204,7 +208,11 @@
 
 				{#snippet SectionKaspaVirtualChain({ id, label, open })}
 					<KaspaVirtualChain_TimestampsView
-						selection={selection.$$virtualChainTimestamps}
+						selection={
+							selection.$$virtualChainTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa virtual-chain observations.'
 						open={open}
@@ -215,7 +223,11 @@
 
 				{#snippet SectionKaspaChainBlocks({ id, label, open })}
 					<KaspaBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa blocks.'
 						open={open}
@@ -226,7 +238,11 @@
 
 				{#snippet SectionKaspaChainTransactions({ id, label, open })}
 					<KaspaTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa transactions.'
 						open={open}
@@ -237,7 +253,11 @@
 
 				{#snippet SectionKaspaAcceptedTransactions({ id, label, open })}
 					<KaspaAcceptedTransactionsView
-						selection={selection.$$acceptedTransactions}
+						selection={
+							selection.$$acceptedTransactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa accepted transactions.'
 						open={open}
@@ -273,7 +293,11 @@
 
 				{#snippet SectionKaspaAddressList({ id, label, open })}
 					<KaspaAddressesView
-						selection={selection.$$addresses}
+						selection={
+							selection.$$addresses({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa addresses.'
 						open={open}

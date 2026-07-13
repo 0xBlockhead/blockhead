@@ -38,7 +38,11 @@
 			})
 		}
 		title='Bundler observations'
-		selection={select(EntityType.Erc4337Bundler, data.selector).$$timestamps}
+		selection={
+			select(EntityType.Erc4337Bundler, data.selector).$$timestamps({
+				count: true,
+			})
+		}
 		id='timestamps'
 	/>
 </Page>

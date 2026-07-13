@@ -551,6 +551,7 @@
 							sources: [
 								Source.Lifi_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Steps'

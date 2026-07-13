@@ -48,6 +48,7 @@
 						sources: [
 							Source.MevRelay_Rest,
 						],
+						count: true,
 					})
 				}
 				id='mev-proposer-payload-delivered'

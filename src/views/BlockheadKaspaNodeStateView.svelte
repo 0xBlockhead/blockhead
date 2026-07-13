@@ -297,7 +297,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadKaspaNodeState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Kaspa node-state observations.'
 				id='BlockheadKaspaNodeState_TimestampsView-timestamps'

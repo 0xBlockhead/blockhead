@@ -180,7 +180,11 @@
 
 				{#snippet SectionTonNftCollectionItems({ id, label, open })}
 					<TonNftItemsView
-						selection={selection.$$items}
+						selection={
+							selection.$$items({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No items.'
 						open={open}
@@ -191,7 +195,11 @@
 
 				{#snippet SectionTonNftCollectionTransfers({ id, label, open })}
 					<TonNftTransfersView
-						selection={selection.$$transfers}
+						selection={
+							selection.$$transfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transfers.'
 						open={open}
@@ -227,7 +235,11 @@
 
 				{#snippet SectionTonNftCollectionTimestamps({ id, label, open })}
 					<TonNftCollection_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

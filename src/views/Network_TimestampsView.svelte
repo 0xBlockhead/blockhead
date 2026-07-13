@@ -68,9 +68,7 @@
 			selection({
 				fields: {
 					timestampMs: true,
-					latestHeight: true,
 					source: true,
-					health: true,
 					$network: true,
 				},
 			})

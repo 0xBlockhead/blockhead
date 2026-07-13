@@ -804,7 +804,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BridgeRouteQuoteStepsView
-				selection={selection.$$steps}
+				selection={
+						selection.$$steps({
+							count: true,
+						})
+					}
 				title='Steps'
 				emptyText='No steps on this route quote.'
 				id='BridgeRouteQuoteStepsView-steps'

@@ -183,7 +183,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SpecificationProposalKindsView
-				selection={selection.$$proposalKinds}
+				selection={
+						selection.$$proposalKinds({
+							count: true,
+						})
+					}
 				title='Proposal kinds'
 				href='/proposals'
 				emptyText='No proposal kinds for this realm.'

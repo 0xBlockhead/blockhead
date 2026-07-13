@@ -257,7 +257,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadStateChannelDeposit_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No deposit observations.'
 				id='BlockheadStateChannelDeposit_TimestampsView-timestamps'

@@ -384,7 +384,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LensUsernamesView
-				selection={selection.$$usernames}
+				selection={
+						selection.$$usernames({
+							count: true,
+						})
+					}
 				title='Usernames'
 				emptyText='No Lens usernames in this namespace.'
 				id='LensUsernamesView-usernames'

@@ -303,7 +303,11 @@
 
 				{#snippet SectionCoinInstances({ id, label, open })}
 					<EvmCoinInstancesView
-						selection={selection.$$coinInstances}
+						selection={
+							selection.$$coinInstances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -313,7 +317,11 @@
 
 				{#snippet SectionCoinWrapped({ id, label, open })}
 					<EvmCoinInstancesView
-						selection={selection.$$coinInstances}
+						selection={
+							selection.$$coinInstances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -323,7 +331,11 @@
 
 				{#snippet SectionCoinBridgeCapabilities({ id, label, open })}
 					<CoinBridgeCapabilitiesView
-						selection={selection.$$bridgeCapabilities}
+						selection={
+							selection.$$bridgeCapabilities({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -410,6 +422,7 @@
 									Source.Coingecko_OpenApi,
 									Source.Coinpaprika_OpenApi,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/markets')}
@@ -427,6 +440,7 @@
 								sources: [
 									Source.Constants_Internal,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/markets')}

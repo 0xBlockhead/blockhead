@@ -371,7 +371,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLightningPayment_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				emptyText='No observations yet.'
 				id='BlockheadLightningPayment_TimestampsView-timestamps'

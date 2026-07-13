@@ -602,7 +602,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadMoneroTransferState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Monero transfer observations.'
 				id='BlockheadMoneroTransferState_TimestampsView-timestamps'

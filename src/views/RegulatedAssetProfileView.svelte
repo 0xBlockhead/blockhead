@@ -211,7 +211,11 @@
 
 				{#snippet SectionRegulatedAssetClaimRequirements({ id, label, open })}
 					<ClaimTopicRequirementsView
-						selection={selection.$$claimRequirements}
+						selection={
+							selection.$$claimRequirements({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No claim topic requirements.'
 						open={open}
@@ -222,7 +226,11 @@
 
 				{#snippet SectionRegulatedAssetTrustedIssuers({ id, label, open })}
 					<TrustedIssuersView
-						selection={selection.$$trustedIssuers}
+						selection={
+							selection.$$trustedIssuers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No trusted issuers.'
 						open={open}
@@ -233,7 +241,11 @@
 
 				{#snippet SectionRegulatedAssetComplianceModules({ id, label, open })}
 					<ComplianceModulesView
-						selection={selection.$$complianceModules}
+						selection={
+							selection.$$complianceModules({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No compliance modules.'
 						open={open}
@@ -273,7 +285,11 @@
 
 				{#snippet SectionRegulatedAssetIssuerPowers({ id, label, open })}
 					<IssuerPowersView
-						selection={selection.$$issuerPowers}
+						selection={
+							selection.$$issuerPowers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No issuer powers.'
 						open={open}
@@ -284,7 +300,11 @@
 
 				{#snippet SectionRegulatedAssetRestrictions({ id, label, open })}
 					<TransferRestrictionsView
-						selection={selection.$$restrictions}
+						selection={
+							selection.$$restrictions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transfer restrictions.'
 						open={open}
@@ -320,7 +340,11 @@
 
 				{#snippet SectionRegulatedAssetTimestamps({ id, label, open })}
 					<RegulatedAssetProfile_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No regulated asset profile observations.'
 						open={open}

@@ -38,7 +38,11 @@
 			})
 		}
 		title='UTXO address observations'
-		selection={select(EntityType.UtxoAddress, data.selector).$$timestamps}
+		selection={
+			select(EntityType.UtxoAddress, data.selector).$$timestamps({
+				count: true,
+			})
+		}
 		id='timestamps'
 	/>
 </Page>

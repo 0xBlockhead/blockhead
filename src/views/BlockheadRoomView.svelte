@@ -200,7 +200,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadRoomPeersView
-				selection={selection.$$peers}
+				selection={
+						selection.$$peers({
+							count: true,
+						})
+					}
 				title='Peers'
 				href={resolve('/~/multiplayer/contacts')}
 				emptyText='No peers yet.'

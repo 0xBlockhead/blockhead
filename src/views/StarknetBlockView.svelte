@@ -382,7 +382,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<StarknetTransactionsView
-				selection={selection.$$transactions}
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
 				title='transactions'
 				emptyText='No Starknet transactions.'
 				id='StarknetTransactionsView-transactions'

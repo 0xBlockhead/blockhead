@@ -285,14 +285,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<A2aTasksView
-				selection={selection.$$tasks}
+				selection={
+						selection.$$tasks({
+							count: true,
+						})
+					}
 				title='tasks'
 				emptyText='No A2A tasks.'
 				id='A2aTasksView-tasks'
 			/>
 
 			<A2aAgentService_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No A2A service observations.'
 				id='A2aAgentService_TimestampsView-timestamps'

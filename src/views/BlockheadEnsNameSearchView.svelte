@@ -202,7 +202,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EnsNamesView
-				selection={selection.$$matchingNames}
+				selection={
+						selection.$$matchingNames({
+							count: true,
+						})
+					}
 				title='matching names'
 				emptyText='No matching ENS names.'
 				id='EnsNamesView-matching-names'

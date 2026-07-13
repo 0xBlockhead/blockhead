@@ -152,7 +152,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<StarknetStorageEntry_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Starknet storage observations.'
 				id='StarknetStorageEntry_TimestampsView-timestamps'

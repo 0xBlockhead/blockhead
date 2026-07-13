@@ -480,7 +480,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EasAttestationsView
-				selection={selection.$$attestations}
+				selection={
+						selection.$$attestations({
+							count: true,
+						})
+					}
 				title='Attestations'
 				emptyText='No EAS attestations.'
 				id='EasAttestationsView-attestations'

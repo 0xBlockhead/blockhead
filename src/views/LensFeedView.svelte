@@ -282,7 +282,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LensPostsView
-				selection={selection.$$posts}
+				selection={
+						selection.$$posts({
+							count: true,
+						})
+					}
 				title='Posts'
 				href={resolve('/lens/observations/posts')}
 				emptyText='No Lens posts for this feed.'

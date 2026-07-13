@@ -451,7 +451,11 @@
 
 				{#snippet SectionLiquidityPoolBlocks({ id, label, open })}
 					<LiquidityPool_BlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No liquidity pool blocks yet.'
 						open={open}
@@ -462,7 +466,11 @@
 
 				{#snippet SectionLiquidityPoolLeverages({ id, label, open })}
 					<LeveragesView
-						selection={selection.$$leverages}
+						selection={
+							selection.$$leverages({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No leverage positions yet.'
 						open={open}
@@ -503,6 +511,7 @@
 								sources: [
 									Source.Dexscreener_OpenApi,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

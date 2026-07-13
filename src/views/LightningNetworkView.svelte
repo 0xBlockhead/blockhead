@@ -194,7 +194,11 @@
 
 				{#snippet SectionLightningObservations({ id, label, open })}
 					<LightningNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No observations yet.'
 						open={open}
@@ -205,7 +209,11 @@
 
 				{#snippet SectionLightningNodes({ id, label, open })}
 					<LightningNodesView
-						selection={selection.$$nodes}
+						selection={
+							selection.$$nodes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No nodes yet.'
 						open={open}
@@ -216,7 +224,11 @@
 
 				{#snippet SectionLightningChannels({ id, label, open })}
 					<LightningChannelsView
-						selection={selection.$$channels}
+						selection={
+							selection.$$channels({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No channels yet.'
 						open={open}
@@ -256,7 +268,11 @@
 
 				{#snippet SectionLightningInvoices({ id, label, open })}
 					<BlockheadLightningInvoicesView
-						selection={selection.$$invoices}
+						selection={
+							selection.$$invoices({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No invoices yet.'
 						open={open}
@@ -267,7 +283,11 @@
 
 				{#snippet SectionLightningPaymentList({ id, label, open })}
 					<BlockheadLightningPaymentsView
-						selection={selection.$$payments}
+						selection={
+							selection.$$payments({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No payments yet.'
 						open={open}
@@ -303,7 +323,11 @@
 
 				{#snippet SectionLightningLocalNodeStates({ id, label, open })}
 					<BlockheadLightningNodeStatesView
-						selection={selection.$$localNodeStates}
+						selection={
+							selection.$$localNodeStates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No local node states.'
 						open={open}

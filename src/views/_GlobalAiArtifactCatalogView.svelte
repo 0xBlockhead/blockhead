@@ -210,7 +210,11 @@
 
 				{#snippet SectionAiArtifactCatalogArtifacts({ id, label, open })}
 					<AiArtifactsView
-						selection={selection.$$artifacts}
+						selection={
+							selection.$$artifacts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI artifacts.'
 						open={open}
@@ -221,7 +225,11 @@
 
 				{#snippet SectionAiArtifactCatalogDocuments({ id, label, open })}
 					<AiDocumentsView
-						selection={selection.$$documents}
+						selection={
+							selection.$$documents({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI documents.'
 						open={open}
@@ -257,7 +265,11 @@
 
 				{#snippet SectionAiArtifactCatalogTimestamps({ id, label, open })}
 					<GlobalAiArtifactCatalog_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI artifact catalog observations.'
 						open={open}

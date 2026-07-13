@@ -37,7 +37,11 @@
 			})
 		}
 		title='Native assets'
-		selection={select(EntityType.Network, data.selector).$$nativeAssets}
+		selection={
+			select(EntityType.Network, data.selector).$$nativeAssets({
+				count: true,
+			})
+		}
 		id='native-assets'
 	/>
 </Page>

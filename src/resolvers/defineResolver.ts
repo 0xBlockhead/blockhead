@@ -92,18 +92,54 @@ type ResolverFacetFieldsForDefinition<
 	_Facet['facets'] extends readonly EntityFacetDefinition[] ? ResolverFacetFields<_Source, _EntityType, _Resolve, _Facet['facets'][number]> : {}
 )
 
-export const defineResolver = <
+type DefineResolverResult<
+	_Source extends Source,
+	_EntityType extends EntityType<typeof schema>,
+	_Resolve extends ResolveShape<_Source, _EntityType>,
+	_Resolver extends {
+		entityType: _EntityType
+		resolve: _Resolve
+	},
+> = <const _Fields extends ResolverFields<_Source, _EntityType, _Resolve>>(projections: _Fields) => _Resolver & {
+	projections: _Fields
+}
+
+export function defineResolver<
 	const _Source extends Source,
 	const _EntityType extends EntityType<typeof schema>,
 	const _Resolve extends ResolveShape<_Source, _EntityType>,
 >(
 	_source: _Source,
 	resolver: {
-	entityType: _EntityType
-	resolve: _Resolve
-	resolveLive?: ResolveLivePublishers<typeof schema, _EntityType>
+		entityType: _EntityType
+		resolve: _Resolve
+	}
+): DefineResolverResult<_Source, _EntityType, _Resolve, typeof resolver>
+
+export function defineResolver<
+	const _Source extends Source,
+	const _EntityType extends EntityType<typeof schema>,
+	const _Resolve extends ResolveShape<_Source, _EntityType>,
+	const _ResolveLive extends ResolveLivePublishers<typeof schema, _EntityType>,
+>(
+	_source: _Source,
+	resolver: {
+		entityType: _EntityType
+		resolve: _Resolve
+		resolveLive: _ResolveLive
+	}
+): DefineResolverResult<_Source, _EntityType, _Resolve, typeof resolver>
+
+export function defineResolver(
+	_source: Source,
+	resolver: {
+		entityType: EntityType<typeof schema>
+		resolve: object
+		resolveLive?: object
+	}
+) {
+	return <const _Fields extends object>(projections: _Fields) => ({
+		...resolver,
+		projections,
+	})
 }
-) => <const _Fields extends ResolverFields<_Source, _EntityType, _Resolve>>(projections: _Fields) => ({
-	...resolver,
-	projections,
-})

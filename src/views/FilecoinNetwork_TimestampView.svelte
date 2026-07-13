@@ -638,6 +638,7 @@
 							sources: [
 								Source.Lotus_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Head miners'

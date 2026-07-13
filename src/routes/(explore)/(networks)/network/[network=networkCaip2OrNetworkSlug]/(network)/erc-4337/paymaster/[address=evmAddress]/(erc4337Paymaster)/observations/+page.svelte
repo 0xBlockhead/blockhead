@@ -38,7 +38,11 @@
 			})
 		}
 		title='Paymaster observations'
-		selection={select(EntityType.Erc4337Paymaster, data.selector).$$timestamps}
+		selection={
+			select(EntityType.Erc4337Paymaster, data.selector).$$timestamps({
+				count: true,
+			})
+		}
 		id='timestamps'
 	/>
 </Page>

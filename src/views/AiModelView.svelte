@@ -423,7 +423,11 @@
 
 				{#snippet SectionAiModelVersions({ id, label, open })}
 					<AiModelVersionsView
-						selection={selection.$$versions}
+						selection={
+							selection.$$versions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI model versions.'
 						open={open}
@@ -434,7 +438,11 @@
 
 				{#snippet SectionAiModelDocuments({ id, label, open })}
 					<AiDocumentsView
-						selection={selection.$$documents}
+						selection={
+							selection.$$documents({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No linked documents.'
 						open={open}
@@ -470,7 +478,11 @@
 
 				{#snippet SectionAiModelTimestamps({ id, label, open })}
 					<AiModel_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI model observations.'
 						open={open}

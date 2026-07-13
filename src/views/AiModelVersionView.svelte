@@ -549,7 +549,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AiDocumentsView
-				selection={selection.$$documents}
+				selection={
+						selection.$$documents({
+							count: true,
+						})
+					}
 				title='documents'
 				emptyText='No linked documents.'
 				id='AiDocumentsView-documents'

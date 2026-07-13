@@ -364,6 +364,7 @@
 								sources: [
 									Source.NostrBand_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/nostr/profiles')}
@@ -383,6 +384,7 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/nostr/relays')}
@@ -431,6 +433,7 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/nostr/notes')}
@@ -450,6 +453,7 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/nostr/articles')}
@@ -498,6 +502,7 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/nostr/reposts')}
@@ -511,7 +516,11 @@
 
 				{#snippet SectionNostrReactions({ id, label, open })}
 					<NostrReactionsView
-						selection={selection.$$observedReactions}
+						selection={
+							selection.$$observedReactions({
+								count: true,
+							})
+						}
 						href={resolve('/nostr/reactions')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Nostr reactions in this observed.'
@@ -548,7 +557,11 @@
 
 				{#snippet SectionNostrHubObservations({ id, label, open })}
 					<GlobalNostrNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Nostr network observations.'
 						open={open}

@@ -10,7 +10,8 @@
 	import { EntityMetaKey } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+	import { EvmInternalCallType } from '$/constants/Evm.ts'
+	import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 
 
 	// Context
@@ -59,6 +60,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
 	import EvmTracesView from '$/views/EvmTracesView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 </script>
 
@@ -231,40 +233,35 @@
 				</dd>
 			</div>
 
-			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							type: true,
-						},
-					})
-				}
-			>
-				{#snippet Pending()}
-					{@const type = pendingEntity.type}
-					{#if type !== undefined && type !== null}
-						<div>
-							<dt>Type</dt>
-							<dd>
+			<div>
+				<dt>Type</dt>
+				<dd>
+					<ResourceBoundary
+						resource={
+							selection({
+								fields: {
+									type: true,
+								},
+							})
+						}
+					>
+						{#snippet Pending()}
+							{@const type = pendingEntity.type}
+							{#if type !== undefined && type !== null}
 								{String((type) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+							{/if}
+						{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const type = resolvedEntity.type}
-					{#if type !== undefined && type !== null}
-						<div>
-							<dt>Type</dt>
-							<dd>
+						{#snippet children(entity)}
+							{@const resolvedEntity = { ...pendingEntity, ...entity }}
+							{@const type = resolvedEntity.type}
+							{#if type !== undefined && type !== null}
 								{String((type) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			<ResourceBoundary
 				resource={
@@ -304,34 +301,26 @@
 
 		<dl data-column-item="center">
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							from: true,
-						},
-					})
-				}
+				resource={selection.$from}
 			>
-				{#snippet Pending()}
-					{@const from = pendingEntity.from}
-					{#if from !== undefined && from !== null}
-						<div>
-							<dt>From</dt>
-							<dd>
-								{String((from) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+				{#snippet Pending()}{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const from = resolvedEntity.from}
-					{#if from !== undefined && from !== null}
+				{#snippet children(evmAccount)}
+					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>From</dt>
 							<dd>
-								{String((from) ?? '')}
+								<EvmAccountView
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									prefetched={evmAccount}
+									href={
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -339,34 +328,26 @@
 			</ResourceBoundary>
 
 			<ResourceBoundary
-				resource={
-					selection({
-						fields: {
-							to: true,
-						},
-					})
-				}
+				resource={selection.$to}
 			>
-				{#snippet Pending()}
-					{@const to = pendingEntity.to}
-					{#if to !== undefined && to !== null}
-						<div>
-							<dt>To</dt>
-							<dd>
-								{String((to) ?? '')}
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
+				{#snippet Pending()}{/snippet}
 
-				{#snippet children(entity)}
-					{@const resolvedEntity = { ...pendingEntity, ...entity }}
-					{@const to = resolvedEntity.to}
-					{#if to !== undefined && to !== null}
+				{#snippet children(evmAccount)}
+					{#if evmAccount != null && evmAccount[EntityMetaKey.Selector] != null}
 						<div>
 							<dt>To</dt>
 							<dd>
-								{String((to) ?? '')}
+								<EvmAccountView
+									selection={select(EntityType.EvmAccount, evmAccount[EntityMetaKey.Selector])}
+									prefetched={evmAccount}
+									href={
+										(evmAccount[EntityMetaKey.Selector].address !== undefined ? resolve('/account/[address=evmAddress]', {
+											address: String(evmAccount[EntityMetaKey.Selector].address ?? ''),
+										}) : undefined)
+									}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -572,7 +553,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmTracesView
-				selection={selection.$$children}
+				selection={
+						selection.$$children({
+							count: true,
+						})
+					}
 				title='Children'
 				emptyText='No child traces.'
 				id='EvmTracesView-children'

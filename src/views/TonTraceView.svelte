@@ -258,7 +258,11 @@
 
 				{#snippet SectionTonTraceTransactions({ id, label, open })}
 					<TonTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}
@@ -269,7 +273,11 @@
 
 				{#snippet SectionTonTraceMessages({ id, label, open })}
 					<TonMessagesView
-						selection={selection.$$messages}
+						selection={
+							selection.$$messages({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No messages.'
 						open={open}
@@ -305,7 +313,11 @@
 
 				{#snippet SectionTonTraceTimestamps({ id, label, open })}
 					<TonTrace_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

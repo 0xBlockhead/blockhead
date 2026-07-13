@@ -42,7 +42,11 @@
 					})
 				}
 				title='Solana token accounts'
-				selection={projection.$$tokenAccounts}
+				selection={
+					projection.$$tokenAccounts({
+						count: true,
+					})
+				}
 				id='token-accounts'
 			/>
 		{/snippet}

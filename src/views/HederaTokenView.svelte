@@ -256,7 +256,11 @@
 
 				{#snippet SectionHederaTokenAssociations({ id, label, open })}
 					<HederaTokenAssociationsView
-						selection={selection.$$associations}
+						selection={
+							selection.$$associations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No associations.'
 						open={open}
@@ -267,7 +271,11 @@
 
 				{#snippet SectionHederaTokenNfts({ id, label, open })}
 					<HederaNftsView
-						selection={selection.$$nfts}
+						selection={
+							selection.$$nfts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No nfts.'
 						open={open}
@@ -303,7 +311,11 @@
 
 				{#snippet SectionHederaTokenTimestamps({ id, label, open })}
 					<HederaToken_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

@@ -208,14 +208,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AlgorandAssetHolding_RoundsView
-				selection={selection.$$holdingRounds}
+				selection={
+						selection.$$holdingRounds({
+							count: true,
+						})
+					}
 				title='holding rounds'
 				emptyText='No Algorand asset holding rounds.'
 				id='AlgorandAssetHolding_RoundsView-holding-rounds'
 			/>
 
 			<AlgorandAsset_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Algorand asset observations.'
 				id='AlgorandAsset_TimestampsView-timestamps'

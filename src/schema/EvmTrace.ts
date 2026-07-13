@@ -1,8 +1,9 @@
 // Generated from APP.ts. Do not edit by hand.
 
+import { EvmInternalCallType } from '$/constants/Evm.ts'
 import { entity, EntityFieldCardinality, EntityFieldType, facet } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/EntityType.ts'
-import { EvmAddress, ZeroExHex } from '$/schema/ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/ZeroExHex.ts'
 import { type } from 'arktype'
 
 export enum EvmTraceSelector {
@@ -35,28 +36,28 @@ export const EvmTrace = entity({
 	},
 	type: {
 		label: 'Type',
-		description: 'The source-domain type or category.',
+		description: 'The EVM call-frame operation.',
 		type: EntityFieldType.Primitive,
-		primitiveType: type('string'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
+		primitiveType: type.enumerated(...Object.values(EvmInternalCallType)),
+		cardinality: EntityFieldCardinality.One,
 	},
-	from: {
+	$from: {
 		label: 'From',
-		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	to: {
+	$to: {
 		label: 'To',
-		type: EntityFieldType.Primitive,
-		primitiveType: (EvmAddress),
+		type: EntityFieldType.EntityReference,
+		entityType: EntityType.EvmAccount,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	value: {
 		label: 'Value',
-		description: 'The source-domain value.',
+		description: 'The native asset amount transferred by the call frame.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	gas: {

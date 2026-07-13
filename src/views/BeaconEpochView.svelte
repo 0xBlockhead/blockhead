@@ -383,6 +383,7 @@
 								Source.Beacon_Rest,
 							],
 							limit: 32,
+							count: true,
 						})
 					}
 				title='Slots'

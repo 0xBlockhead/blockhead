@@ -312,6 +312,31 @@ describe('resolver registry live resolver architecture', () => {
 	})
 
 	it('requires concrete resolver declarations to name every supported field facet', () => {
+		expect(() => {
+			defineResolver(Source.Voltaire_JsonRpc, {
+				entityType: EntityType.Network,
+				resolve: {
+					Caip2: async () => ({}),
+				},
+				resolveLive: {
+					invalid: {
+						facetPath: [
+							'Evm',
+						],
+						publishes: {
+							// @ts-expect-error Live publisher field names are scoped by facetPath.
+							missingField: true,
+						},
+						start: ({ fields }) => {
+							fields.$$blocks.invalidate()
+							// @ts-expect-error Live field handles are scoped by facetPath.
+							fields.missingField.invalidate()
+						},
+					},
+				},
+			})({})
+		}).toBeTypeOf('function')
+
 		expect(allSourceResolverDefinitions.length).toBeGreaterThan(0)
 		expect(allSourceResolverDefinitions.every((resolver) => (
 			Object.keys(resolver.projections).length > 0
@@ -409,6 +434,39 @@ describe('resolver registry live resolver architecture', () => {
 				&& part.resolveCount != null
 			)).length
 		).toBeGreaterThan(0)
+		for (const [source, facetPath, fieldName] of [
+			[Source.CosmosSdk_Rest, 'Cosmos', '$$validators'],
+			[Source.CosmosSdk_Rest, 'Cosmos', '$$governanceProposals'],
+			[Source.Blockchair_Rest, 'Utxo', '$$blocks'],
+			[Source.Blockchair_Rest, 'Utxo', '$$transactions'],
+			[Source.MempoolSpace_Rest, 'Utxo', '$$blocks'],
+			[Source.MempoolSpace_Rest, 'Utxo', '$$transactions'],
+			[Source.SubstrateSidecar_Rest, 'Polkadot', '$$validators'],
+			[Source.Solana_JsonRpc, 'Solana', '$$validators'],
+		] as const)
+			expect(
+				resolverParts.filter((part) => (
+					part.source === source
+					&& part.entityType === EntityType.Network
+					&& part.facetPath.join('.') === facetPath
+					&& part.fieldName === fieldName
+					&& part.resolveCount != null
+				)).length
+			).toBeGreaterThan(0)
+		for (const [source, fieldName] of [
+			[Source.Blockscout_Rest, '$$logs'],
+			[Source.Voltaire_JsonRpc, '$$logs'],
+			[Source.Voltaire_JsonRpc, '$$traces'],
+		] as const)
+			expect(
+				resolverParts.filter((part) => (
+					part.source === source
+					&& part.entityType === EntityType.EvmTransaction
+					&& part.facetPath.length === 0
+					&& part.fieldName === fieldName
+					&& part.resolveCount != null
+				)).length
+			).toBeGreaterThan(0)
 		expect(
 			Object.values(resolverValuePartsByEntityTypeAndFieldName)
 				.flat()
@@ -649,11 +707,11 @@ describe('resolver registry live resolver architecture', () => {
 			&& resolver.entityType === EntityType.EvmTransaction
 		)))).toEqual(expect.arrayContaining([
 			'$block',
-				'$from',
-				'$to',
-				'$contract',
-				'indexInBlock',
-				'value',
+			'$from',
+			'$to',
+			'$contract',
+			'indexInBlock',
+			'value',
 			'nonce',
 			'input',
 			'r',
@@ -672,8 +730,7 @@ describe('resolver registry live resolver architecture', () => {
 			'blobGasUsed',
 			'maxFeePerBlobGas',
 			'$$logs',
-			'traceRoot',
-			'traceUnavailable',
+			'$$traces',
 		]))
 		expect(resolverFieldNames(allSourceResolverDefinitions.find((resolver) => (
 			resolver.source === Source.Voltaire_JsonRpc
@@ -1661,13 +1718,15 @@ describe('resolver registry live resolver architecture', () => {
 				}],
 			},
 		] as const) {
-			const resolver = allSourceResolverDefinitions.find((candidate) => (
+			const resolverPart = allSourceResolverParts.find((candidate) => (
 				candidate.source === source
 				&& candidate.entityType === entityType
-				&& resolverFieldNames(candidate).includes(fieldName)
+				&& candidate.fieldName === fieldName
+				&& candidate.select != null
 			))
+			const resolver = resolverPart?.resolver
 			const resolve = resolver?.resolve[selectorName]
-			const fieldSelector = resolverFieldSelector(resolver, fieldName)
+			const fieldSelector = resolverPart?.select
 			if (resolver == null || resolve == null || typeof fieldSelector !== 'function')
 				throw new Error(`${source}:${entityType}.${fieldName}: missing resolver facet`)
 

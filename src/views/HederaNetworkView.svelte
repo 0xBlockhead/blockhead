@@ -261,7 +261,11 @@
 
 				{#snippet SectionHederaChainObservations({ id, label, open })}
 					<HederaNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera network observations.'
 						open={open}
@@ -272,7 +276,11 @@
 
 				{#snippet SectionHederaChainBlocks({ id, label, open })}
 					<HederaBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera blocks.'
 						open={open}
@@ -283,7 +291,11 @@
 
 				{#snippet SectionHederaChainTransactions({ id, label, open })}
 					<HederaTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera transactions.'
 						open={open}
@@ -327,7 +339,11 @@
 
 				{#snippet SectionHederaAccounts({ id, label, open })}
 					<HederaAccountsView
-						selection={selection.$$accounts}
+						selection={
+							selection.$$accounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera accounts.'
 						open={open}
@@ -338,7 +354,11 @@
 
 				{#snippet SectionHederaTokens({ id, label, open })}
 					<HederaTokensView
-						selection={selection.$$tokens}
+						selection={
+							selection.$$tokens({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera tokens.'
 						open={open}
@@ -349,7 +369,11 @@
 
 				{#snippet SectionHederaNfts({ id, label, open })}
 					<HederaNftsView
-						selection={selection.$$nfts}
+						selection={
+							selection.$$nfts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera NFTs.'
 						open={open}
@@ -393,7 +417,11 @@
 
 				{#snippet SectionHederaContracts({ id, label, open })}
 					<HederaContractsView
-						selection={selection.$$contracts}
+						selection={
+							selection.$$contracts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera contracts.'
 						open={open}
@@ -404,7 +432,11 @@
 
 				{#snippet SectionHederaTopics({ id, label, open })}
 					<HederaTopicsView
-						selection={selection.$$topics}
+						selection={
+							selection.$$topics({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera topics.'
 						open={open}
@@ -415,7 +447,11 @@
 
 				{#snippet SectionHederaSchedules({ id, label, open })}
 					<HederaSchedulesView
-						selection={selection.$$schedules}
+						selection={
+							selection.$$schedules({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera schedules.'
 						open={open}
@@ -451,7 +487,11 @@
 
 				{#snippet SectionHederaNetworkNodes({ id, label, open })}
 					<HederaNodesView
-						selection={selection.$$nodes}
+						selection={
+							selection.$$nodes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera nodes.'
 						open={open}
@@ -499,7 +539,11 @@
 
 				{#snippet SectionHederaFeeObservations({ id, label, open })}
 					<HederaNetworkFee_TimestampsView
-						selection={selection.$$feeTimestamps}
+						selection={
+							selection.$$feeTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera fee observations.'
 						open={open}
@@ -510,7 +554,11 @@
 
 				{#snippet SectionHederaExchangeObservations({ id, label, open })}
 					<HederaNetworkExchangeRate_TimestampsView
-						selection={selection.$$exchangeRateTimestamps}
+						selection={
+							selection.$$exchangeRateTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera exchange-rate observations.'
 						open={open}
@@ -521,7 +569,11 @@
 
 				{#snippet SectionHederaStakeObservations({ id, label, open })}
 					<HederaNetworkStake_TimestampsView
-						selection={selection.$$stakeTimestamps}
+						selection={
+							selection.$$stakeTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera stake observations.'
 						open={open}
@@ -532,7 +584,11 @@
 
 				{#snippet SectionHederaSupplyObservations({ id, label, open })}
 					<HederaNetworkSupply_TimestampsView
-						selection={selection.$$supplyTimestamps}
+						selection={
+							selection.$$supplyTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hedera supply observations.'
 						open={open}

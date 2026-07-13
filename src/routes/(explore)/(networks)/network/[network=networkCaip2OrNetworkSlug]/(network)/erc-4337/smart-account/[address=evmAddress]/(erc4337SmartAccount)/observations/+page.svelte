@@ -38,7 +38,11 @@
 			})
 		}
 		title='Smart account observations'
-		selection={select(EntityType.Erc4337SmartAccount, data.selector).$$timestamps}
+		selection={
+			select(EntityType.Erc4337SmartAccount, data.selector).$$timestamps({
+				count: true,
+			})
+		}
 		id='timestamps'
 	/>
 </Page>

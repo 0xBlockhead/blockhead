@@ -299,6 +299,7 @@
 								Source.Defillama_Rest,
 							],
 							limit: 64,
+							count: true,
 						})
 					}
 				title='Quote history'

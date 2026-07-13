@@ -381,7 +381,11 @@
 
 				{#snippet SectionLightningNodeChannels({ id, label, open })}
 					<LightningChannelsView
-						selection={selection.$$channels}
+						selection={
+							selection.$$channels({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No channels.'
 						open={open}
@@ -392,7 +396,11 @@
 
 				{#snippet SectionLightningNodeLocalNodeStates({ id, label, open })}
 					<BlockheadLightningNodeStatesView
-						selection={selection.$$localNodeStates}
+						selection={
+							selection.$$localNodeStates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No local node states.'
 						open={open}
@@ -428,7 +436,11 @@
 
 				{#snippet SectionLightningNodeTimestamps({ id, label, open })}
 					<LightningNode_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

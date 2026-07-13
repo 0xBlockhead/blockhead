@@ -46,6 +46,7 @@
 					Source.Youtube_Rest,
 					Source.Piped_Rest,
 				],
+				count: true,
 			})
 		}
 		id='videos'

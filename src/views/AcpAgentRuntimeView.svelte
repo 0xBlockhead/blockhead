@@ -361,14 +361,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AcpSessionsView
-				selection={selection.$$sessions}
+				selection={
+						selection.$$sessions({
+							count: true,
+						})
+					}
 				title='sessions'
 				emptyText='No ACP sessions.'
 				id='AcpSessionsView-sessions'
 			/>
 
 			<AcpAgentRuntime_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No ACP runtime observations.'
 				id='AcpAgentRuntime_TimestampsView-timestamps'

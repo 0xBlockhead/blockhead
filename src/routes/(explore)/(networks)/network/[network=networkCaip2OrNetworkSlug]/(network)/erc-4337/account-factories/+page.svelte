@@ -48,6 +48,7 @@
 						sources: [
 							Source.Blockscout_Rest,
 						],
+						count: true,
 					})
 				}
 				id='erc4337-account-factories'

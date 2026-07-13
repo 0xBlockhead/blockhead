@@ -33,6 +33,7 @@
 				sources: [
 					Source.Openchain_Rest,
 				],
+				count: true,
 			})
 		}
 		id='evm-topics'

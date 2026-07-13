@@ -432,7 +432,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<McpToolCall_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No MCP tool call observations.'
 				id='McpToolCall_TimestampsView-timestamps'

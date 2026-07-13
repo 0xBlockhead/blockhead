@@ -139,12 +139,6 @@ export const EvmTransaction = entity({
 		entityType: EntityType.EvmBlock,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
-	$contract: {
-		label: 'Contract',
-		type: EntityFieldType.EntityReference,
-		entityType: EntityType.EvmContract,
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
 	$$logs: {
 		label: 'Receipt logs',
 		type: EntityFieldType.EntitiesReference,
@@ -169,29 +163,11 @@ export const EvmTransaction = entity({
 		entityType: EntityType.EvmUserOperation,
 		cardinality: EntityFieldCardinality.Many,
 	},
-	$$authorizations: {
-		label: 'EIP-7702 authorizations',
-		type: EntityFieldType.EntitiesReference,
-		entityType: EntityType.Eip7702Authorization,
-		cardinality: EntityFieldCardinality.Many,
-	},
 	$$traces: {
 		label: 'Traces',
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.EvmTrace,
 		cardinality: EntityFieldCardinality.Many,
-	},
-	traceRoot: {
-		label: 'Trace root',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('unknown'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
-	},
-	traceUnavailable: {
-		label: 'Trace unavailable',
-		type: EntityFieldType.Primitive,
-		primitiveType: type('boolean'),
-		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 })({
 	selectors: {
@@ -202,6 +178,19 @@ export const EvmTransaction = entity({
 	},
 
 	facets: {
+		ContractCreation: facet({
+			path: [
+				'kind',
+			],
+			is: 'ContractCreation',
+		})({
+			$contract: {
+				label: 'Created contract',
+				type: EntityFieldType.EntityReference,
+				entityType: EntityType.EvmContract,
+				cardinality: EntityFieldCardinality.ZeroOrOne,
+			},
+		}),
 		FeeMarket: facet({
 			path: [
 				'envelopeType',
@@ -247,6 +236,19 @@ export const EvmTransaction = entity({
 				label: 'Blobs',
 				type: EntityFieldType.EntitiesReference,
 				entityType: EntityType.EvmBlob,
+				cardinality: EntityFieldCardinality.Many,
+			},
+		}),
+		SetCode: facet({
+			path: [
+				'envelopeType',
+			],
+			is: 'SetCode',
+		})({
+			$$authorizations: {
+				label: 'EIP-7702 authorizations',
+				type: EntityFieldType.EntitiesReference,
+				entityType: EntityType.Eip7702Authorization,
 				cardinality: EntityFieldCardinality.Many,
 			},
 		}),

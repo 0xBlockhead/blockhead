@@ -167,7 +167,11 @@
 
 				{#snippet SectionActivitypubActors({ id, label, open })}
 					<ActivityPubActorsView
-						selection={selection.$$observedActors}
+						selection={
+							selection.$$observedActors({
+								count: true,
+							})
+						}
 						href={resolve('/activitypub/actors')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub actors in this observed.'
@@ -179,7 +183,11 @@
 
 				{#snippet SectionActivitypubNotes({ id, label, open })}
 					<ActivityPubNotesView
-						selection={selection.$$observedNotes}
+						selection={
+							selection.$$observedNotes({
+								count: true,
+							})
+						}
 						href={resolve('/activitypub/notes')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub notes in this observed.'
@@ -191,7 +199,11 @@
 
 				{#snippet SectionActivitypubInstances({ id, label, open })}
 					<ActivityPubInstancesView
-						selection={selection.$$instances}
+						selection={
+							selection.$$instances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub instances declared.'
 						open={open}
@@ -231,7 +243,11 @@
 
 				{#snippet SectionActivitypubPeers({ id, label, open })}
 					<ActivityPubInstancePeersView
-						selection={selection.$$instancePeers}
+						selection={
+							selection.$$instancePeers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub instance peers in this observed.'
 						open={open}
@@ -242,7 +258,11 @@
 
 				{#snippet SectionActivitypubModeratedDomains({ id, label, open })}
 					<ActivityPubInstanceModeratedDomainsView
-						selection={selection.$$instanceModeratedDomains}
+						selection={
+							selection.$$instanceModeratedDomains({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub moderated domains in this observed.'
 						open={open}
@@ -278,7 +298,11 @@
 
 				{#snippet SectionActivitypubHubObservations({ id, label, open })}
 					<GlobalActivityPubNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub hub observations yet.'
 						open={open}

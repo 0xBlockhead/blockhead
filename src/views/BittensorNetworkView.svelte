@@ -186,6 +186,7 @@
 								sources: [
 									Source.Bittensor_JsonRpc,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -202,6 +203,7 @@
 								sources: [
 									Source.Bittensor_JsonRpc,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -243,6 +245,7 @@
 								sources: [
 									Source.Bittensor_JsonRpc,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

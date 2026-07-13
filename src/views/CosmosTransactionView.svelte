@@ -609,7 +609,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CosmosMessagesView
-				selection={selection.$$messages}
+				selection={
+						selection.$$messages({
+							count: true,
+						})
+					}
 				title='Messages'
 				emptyText='No Cosmos messages.'
 				id='CosmosMessagesView-messages'

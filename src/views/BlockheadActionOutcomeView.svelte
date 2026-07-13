@@ -454,7 +454,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadActionOutcome_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No outcome observations.'
 				id='BlockheadActionOutcome_TimestampsView-timestamps'

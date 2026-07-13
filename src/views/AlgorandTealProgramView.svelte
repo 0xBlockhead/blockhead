@@ -269,7 +269,11 @@
 
 				{#snippet SectionAlgorandTealApplications({ id, label, open })}
 					<AlgorandApplicationsView
-						selection={selection.$$applications}
+						selection={
+							selection.$$applications({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand applications.'
 						open={open}
@@ -280,7 +284,11 @@
 
 				{#snippet SectionAlgorandTealTransactions({ id, label, open })}
 					<AlgorandTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand transactions.'
 						open={open}
@@ -316,7 +324,11 @@
 
 				{#snippet SectionAlgorandTealTimestamps({ id, label, open })}
 					<AlgorandTealProgram_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand TEAL program observations.'
 						open={open}

@@ -790,7 +790,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AtprotoPostsView
-				selection={selection.$$posts}
+				selection={
+						selection.$$posts({
+							count: true,
+						})
+					}
 				title='Posts'
 				href={resolve('/atproto/posts')}
 				emptyText='No posts in this commit.'

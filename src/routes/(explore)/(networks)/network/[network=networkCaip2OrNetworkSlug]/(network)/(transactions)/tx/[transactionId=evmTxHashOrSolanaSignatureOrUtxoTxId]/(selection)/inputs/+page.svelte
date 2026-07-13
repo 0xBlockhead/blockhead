@@ -38,7 +38,11 @@
 			})
 		}
 		title='UTXO inputs'
-		selection={select(EntityType.UtxoTransaction, data.selector).$$inputs}
+		selection={
+			select(EntityType.UtxoTransaction, data.selector).$$inputs({
+				count: true,
+			})
+		}
 		id='inputs'
 	/>
 </Page>

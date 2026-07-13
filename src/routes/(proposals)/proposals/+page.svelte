@@ -28,7 +28,9 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$specificationRealms',
-			}).$$specificationRealms
+			}).$$specificationRealms({
+				count: true,
+			})
 		}
 		id='specification-realms'
 	/>

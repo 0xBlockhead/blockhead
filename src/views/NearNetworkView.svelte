@@ -201,6 +201,7 @@
 								sources: [
 									Source.NearRpc_JsonRpc,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -217,6 +218,7 @@
 								sources: [
 									Source.NearRpc_JsonRpc,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -258,6 +260,7 @@
 								sources: [
 									Source.NearRpc_JsonRpc,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

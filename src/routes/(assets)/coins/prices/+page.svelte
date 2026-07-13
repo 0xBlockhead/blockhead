@@ -39,6 +39,7 @@
 					Source.Defillama_OpenApi,
 				],
 				limit: 96,
+				count: true,
 			})
 		}
 		id='market-prices'

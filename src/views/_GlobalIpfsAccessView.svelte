@@ -128,14 +128,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<IpfsResourcesView
-				selection={selection.$$observedResources}
+				selection={
+						selection.$$observedResources({
+							count: true,
+						})
+					}
 				title='Observed resources'
 				emptyText='No IPFS resources yet.'
 				id='IpfsResourcesView-observed-resources'
 			/>
 
 			<GlobalIpfsAccess_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				emptyText='No IPFS access observations yet.'
 				id='_GlobalIpfsAccess_TimestampsView-timestamps'

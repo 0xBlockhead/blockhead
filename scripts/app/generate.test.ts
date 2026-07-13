@@ -396,20 +396,35 @@ test('preserves facet syntax and paths and unwraps primitive-list resources', ()
 		assert.match(networkView, /resource=\{\s+projection\.consensusEndpoints\(/)
 		assert.match(networkView, /\{#snippet children\(consensusEndpoints\)\}/)
 		assert.doesNotMatch(networkView, /entity\.consensusEndpoints(?:\.values)?/)
+		assert.match(networkView, /projection\.\$\$blocks\(\{[\s\S]+?limit: 16,[\s\S]+?count: true,/)
+		assert.match(networkView, /projection\.\$\$transactions\(\{[\s\S]+?count: true,/)
+
+		const networkBlocksPage = readFileSync(path.join(
+			generatedOutputRoot,
+			'src/routes/(explore)/(networks)/network/[network=networkCaip2OrNetworkSlug]/(network)/blocks/+page.svelte'
+		), 'utf8')
+		assert.match(networkBlocksPage, /projection\.\$\$blocks\(\{[\s\S]+?count: true,/)
 
 		const evmTransactionSchema = readFileSync(path.join(generatedOutputRoot, 'src/schema/EvmTransaction.ts'), 'utf8')
 		assert.match(evmTransactionSchema, /FeeMarket: facet\([\s\S]+?\}\),\n\s+Blob: facet/)
 		assert.doesNotMatch(evmTransactionSchema, /facets: \{\},/)
 
 		const evmLogSchema = readFileSync(path.join(generatedOutputRoot, 'src/schema/EvmLog.ts'), 'utf8')
-		assert.match(evmLogSchema, /Event: facet\([\s\S]+?\}\)\(\{\n\s+facets: \{\n\s+Erc20Transfer: facet/)
+		assert.match(evmLogSchema, /Event: facet\([\s\S]+?\}\)\(\{\n\s+facets: \{\n\s+TokenTransfer: facet/)
 		assert.doesNotMatch(evmLogSchema, /facets: \{\},/)
 
 		const evmTransactionView = readFileSync(path.join(generatedOutputRoot, 'src/views/EvmTransactionView.svelte'), 'utf8')
-		assert.match(evmTransactionView, /resource=\{selection\.Blob\}[\s\S]+?selection=\{projection\.\$\$blobs\}/)
+		assert.match(evmTransactionView, /resource=\{selection\.Blob\}[\s\S]+?projection\.\$\$blobs\(\{[\s\S]+?count: true,/)
 
 		const evmLogView = readFileSync(path.join(generatedOutputRoot, 'src/views/EvmLogView.svelte'), 'utf8')
-		assert.match(evmLogView, /resource=\{selection\.Event\.Erc20Transfer\}[\s\S]+?selection=\{projection\.\$\$tokenTransfers\}/)
+		assert.match(evmLogView, /resource=\{selection\.Event\.TokenTransfer\}[\s\S]+?projection\.\$\$tokenTransfers\(\{[\s\S]+?count: true,/)
+
+		const networkTimestampView = readFileSync(path.join(generatedOutputRoot, 'src/views/Network_TimestampView.svelte'), 'utf8')
+		assert.equal(
+			[...networkTimestampView.matchAll(/resource=\{selection\.Cosmos\}/g)].length,
+			2,
+			'projection fields in each modeled <dl> row must share one boundary'
+		)
 	} finally {
 		rmSync(generatedOutputRoot, {
 			force: true,

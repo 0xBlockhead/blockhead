@@ -199,14 +199,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CosmosAccount_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Account snapshots'
 				emptyText='No Cosmos account observations.'
 				id='CosmosAccount_TimestampsView-timestamps'
 			/>
 
 			<CosmosTransactionsView
-				selection={selection.$$transactions}
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
 				title='Transactions'
 				emptyText='No Cosmos transactions.'
 				id='CosmosTransactionsView-transactions'

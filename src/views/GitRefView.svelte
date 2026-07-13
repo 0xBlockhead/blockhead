@@ -267,7 +267,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<GitRefObservation_TimestampsView
-				selection={selection.$$observations}
+				selection={
+						selection.$$observations({
+							count: true,
+						})
+					}
 				title='observations'
 				emptyText='No ref observations.'
 				id='GitRefObservation_TimestampsView-observations'

@@ -221,14 +221,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CelestiaNamespace_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='CelestiaNamespace_TimestampsView-timestamps'
 			/>
 
 			<CelestiaBlobsView
-				selection={selection.$$blobs}
+				selection={
+						selection.$$blobs({
+							count: true,
+						})
+					}
 				title='blobs'
 				emptyText='No blobs found.'
 				id='CelestiaBlobsView-blobs'

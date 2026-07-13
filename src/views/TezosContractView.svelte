@@ -278,7 +278,11 @@
 
 				{#snippet SectionTezosContractEntrypoints({ id, label, open })}
 					<TezosEntrypointsView
-						selection={selection.$$entrypoints}
+						selection={
+							selection.$$entrypoints({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No entrypoints.'
 						open={open}
@@ -289,7 +293,11 @@
 
 				{#snippet SectionTezosContractBigMaps({ id, label, open })}
 					<TezosBigMapsView
-						selection={selection.$$bigMaps}
+						selection={
+							selection.$$bigMaps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No big maps.'
 						open={open}
@@ -300,7 +308,11 @@
 
 				{#snippet SectionTezosContractOperations({ id, label, open })}
 					<TezosOperationsView
-						selection={selection.$$operations}
+						selection={
+							selection.$$operations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No operations.'
 						open={open}
@@ -336,7 +348,11 @@
 
 				{#snippet SectionTezosContractTimestamps({ id, label, open })}
 					<TezosContract_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

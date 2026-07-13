@@ -49,6 +49,7 @@
 						sources: [
 							Source.Beacon_Rest,
 						],
+						count: true,
 					})
 				}
 				id='beacon-validators'
@@ -67,7 +68,11 @@
 					})
 				}
 				title='Solana validators'
-				selection={projection.$$validators}
+				selection={
+					projection.$$validators({
+						count: true,
+					})
+				}
 				id='validators'
 			/>
 		{/snippet}

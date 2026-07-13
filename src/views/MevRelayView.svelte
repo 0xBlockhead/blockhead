@@ -244,6 +244,7 @@
 							sources: [
 								Source.MevRelay_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Timestamps'

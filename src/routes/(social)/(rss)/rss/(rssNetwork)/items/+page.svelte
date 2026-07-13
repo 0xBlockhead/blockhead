@@ -34,6 +34,7 @@
 					Source.Rss_Rest,
 					Source.Rss2Json_Rest,
 				],
+				count: true,
 			})
 		}
 		id='observed-items'

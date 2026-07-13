@@ -286,7 +286,11 @@
 
 				{#snippet SectionStellarAssetClaimableBalances({ id, label, open })}
 					<StellarClaimableBalancesView
-						selection={selection.$$claimableBalances}
+						selection={
+							selection.$$claimableBalances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No claimable balances.'
 						open={open}
@@ -297,7 +301,11 @@
 
 				{#snippet SectionStellarAssetLiquidityPools({ id, label, open })}
 					<StellarLiquidityPoolsView
-						selection={selection.$$liquidityPools}
+						selection={
+							selection.$$liquidityPools({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No liquidity pools.'
 						open={open}
@@ -308,7 +316,11 @@
 
 				{#snippet SectionStellarAssetTrustlines({ id, label, open })}
 					<StellarTrustlinesView
-						selection={selection.$$trustlines}
+						selection={
+							selection.$$trustlines({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No trustlines.'
 						open={open}
@@ -348,7 +360,11 @@
 
 				{#snippet SectionStellarAssetOffers({ id, label, open })}
 					<StellarOffersView
-						selection={selection.$$offers}
+						selection={
+							selection.$$offers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No offers.'
 						open={open}
@@ -359,7 +375,11 @@
 
 				{#snippet SectionStellarAssetTrades({ id, label, open })}
 					<StellarTradesView
-						selection={selection.$$trades}
+						selection={
+							selection.$$trades({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No trades.'
 						open={open}

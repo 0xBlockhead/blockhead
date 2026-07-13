@@ -584,7 +584,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EasAttestation_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Timestamps'
 				emptyText='No EAS attestation observations.'
 				id='EasAttestation_TimestampsView-timestamps'

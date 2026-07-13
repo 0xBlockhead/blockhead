@@ -507,7 +507,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<MediaListView
-				selection={selection.$$media}
+				selection={
+						selection.$$media({
+							count: true,
+						})
+					}
 				title='media'
 				emptyText='No media.'
 				id='MediaListView-media'

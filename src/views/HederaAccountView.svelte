@@ -159,7 +159,11 @@
 
 				{#snippet SectionHederaAccountAllowances({ id, label, open })}
 					<HederaAllowancesView
-						selection={selection.$$allowances}
+						selection={
+							selection.$$allowances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No allowances.'
 						open={open}
@@ -170,7 +174,11 @@
 
 				{#snippet SectionHederaAccountTokens({ id, label, open })}
 					<HederaTokenAssociationsView
-						selection={selection.$$tokens}
+						selection={
+							selection.$$tokens({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No tokens.'
 						open={open}
@@ -210,7 +218,11 @@
 
 				{#snippet SectionHederaAccountNfts({ id, label, open })}
 					<HederaNftsView
-						selection={selection.$$nfts}
+						selection={
+							selection.$$nfts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No nfts.'
 						open={open}
@@ -221,7 +233,11 @@
 
 				{#snippet SectionHederaAccountTransactions({ id, label, open })}
 					<HederaTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}
@@ -257,7 +273,11 @@
 
 				{#snippet SectionHederaAccountTimestamps({ id, label, open })}
 					<HederaAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

@@ -467,7 +467,11 @@
 
 				{#snippet SectionBeaconSlotCommittees({ id, label, open })}
 					<BeaconCommitteesView
-						selection={selection.$$beaconCommittees}
+						selection={
+							selection.$$beaconCommittees({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -477,7 +481,11 @@
 
 				{#snippet SectionBeaconSlotAttestations({ id, label, open })}
 					<BeaconAttestationsView
-						selection={selection.$$beaconAttestations}
+						selection={
+							selection.$$beaconAttestations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -516,7 +524,11 @@
 
 				{#snippet SectionBeaconSlotWithdrawals({ id, label, open })}
 					<BeaconWithdrawalsView
-						selection={selection.$$beaconWithdrawals}
+						selection={
+							selection.$$beaconWithdrawals({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}
@@ -526,7 +538,11 @@
 
 				{#snippet SectionBeaconSlotSlashings({ id, label, open })}
 					<BeaconSlashingsView
-						selection={selection.$$beaconSlashings}
+						selection={
+							selection.$$beaconSlashings({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						open={open}
 						title={label}

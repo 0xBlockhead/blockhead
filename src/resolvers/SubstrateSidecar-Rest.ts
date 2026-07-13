@@ -1,6 +1,7 @@
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
+import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import { networkBySlug } from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
@@ -373,11 +374,17 @@ export default {
 		defineResolver(Source.SubstrateSidecar_Rest, {
 			entityType: EntityType.Network,
 			resolve: {
-				[NetworkSelector.Slug]: async (network) => {
+				[NetworkSelector.Slug]: async (network, context) => {
 					assertPolkadotMainnet(network)
 					const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
-					return ((await getStakingValidators({ restBaseUrl: await substrateSidecarRestBaseUrl() })).validators ?? [])
-						.slice(0, 64)
+					const validators = (await getStakingValidators({
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
+					})).validators
+					if (validators == null)
+						throw new Error('SubstrateSidecar_Rest: validators unavailable')
+
+					return validators
+						.slice(0, resolverContextRowLimit(context))
 						.flatMap((validator) => {
 						const stashAccountId = validator.accountId ?? validator.address ?? validator.stashId
 						return stashAccountId == null ?
@@ -399,6 +406,29 @@ export default {
 					$$validators: (validators) => validators.map((validator) => ({
 						[EntityMetaKey.Selector]: validator[EntityMetaKey.Selector],
 					})),
+				},
+			}),
+
+		defineResolver(Source.SubstrateSidecar_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertPolkadotMainnet(network)
+					const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+					const validators = (await getStakingValidators({
+						restBaseUrl: await substrateSidecarRestBaseUrl(),
+					})).validators
+					if (validators == null)
+						throw new Error('SubstrateSidecar_Rest: validator count unavailable')
+
+					return validators.length
+				}
+			},
+		})({
+				Polkadot: {
+					$$validators: {
+						resolveCount: (count) => count,
+					},
 				},
 			}),
 

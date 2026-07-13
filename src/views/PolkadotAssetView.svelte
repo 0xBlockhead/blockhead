@@ -216,14 +216,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<PolkadotAsset_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Asset observations'
 				emptyText='No Polkadot asset observations.'
 				id='PolkadotAsset_TimestampsView-timestamps'
 			/>
 
 			<PolkadotAssetBalance_TimestampsView
-				selection={selection.$$balanceTimestamps}
+				selection={
+						selection.$$balanceTimestamps({
+							count: true,
+						})
+					}
 				title='Balances'
 				emptyText='No Polkadot asset balance observations.'
 				id='PolkadotAssetBalance_TimestampsView-balance-timestamps'

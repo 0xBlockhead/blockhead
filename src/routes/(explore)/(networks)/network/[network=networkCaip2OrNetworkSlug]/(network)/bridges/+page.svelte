@@ -42,7 +42,11 @@
 					})
 				}
 				title='Bridges'
-				selection={projection.$$bridges}
+				selection={
+					projection.$$bridges({
+						count: true,
+					})
+				}
 				id='bridges'
 			/>
 		{/snippet}

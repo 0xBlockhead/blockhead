@@ -46,6 +46,7 @@
 				sources: [
 					Source.Mastodon_Rest,
 				],
+				count: true,
 			})
 		}
 		id='thread'

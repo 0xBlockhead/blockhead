@@ -436,7 +436,11 @@
 
 				{#snippet SectionA2aTaskEvents({ id, label, open })}
 					<A2aTaskEventsView
-						selection={selection.$$events}
+						selection={
+							selection.$$events({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No A2A task events.'
 						open={open}
@@ -447,7 +451,11 @@
 
 				{#snippet SectionA2aTaskMessages({ id, label, open })}
 					<A2aMessagesView
-						selection={selection.$$messages}
+						selection={
+							selection.$$messages({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No A2A messages.'
 						open={open}
@@ -458,7 +466,11 @@
 
 				{#snippet SectionA2aTaskArtifacts({ id, label, open })}
 					<A2aArtifactsView
-						selection={selection.$$artifacts}
+						selection={
+							selection.$$artifacts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No A2A artifacts.'
 						open={open}
@@ -498,7 +510,11 @@
 
 				{#snippet SectionA2aTaskPush({ id, label, open })}
 					<A2aPushNotificationConfigsView
-						selection={selection.$$pushNotificationConfigs}
+						selection={
+							selection.$$pushNotificationConfigs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No A2A push notification configs.'
 						open={open}
@@ -509,7 +525,11 @@
 
 				{#snippet SectionA2aTaskObservations({ id, label, open })}
 					<A2aTask_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No A2A task observations.'
 						open={open}

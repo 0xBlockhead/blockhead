@@ -652,7 +652,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BridgeTransfer_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No bridge transfer observations.'
 				id='BridgeTransfer_TimestampsView-timestamps'

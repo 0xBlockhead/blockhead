@@ -2,7 +2,11 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { networkBySlug } from '$/constants/Network.ts'
+import {
+	networkBySlug,
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -82,7 +86,13 @@ export default {
 		defineResolver(Source.Polkadot_JsonRpc, {
 			entityType: EntityType.Network_Timestamp,
 			resolve: {
-				[Network_TimestampSelector.NetworkTimestampMsSource]: async ({ $network }) => {
+				[Network_TimestampSelector.NetworkTimestampMsSource]: async ({
+					$network,
+					timestampMs,
+					source,
+				}) => {
+					if (source !== Source.Polkadot_JsonRpc)
+						throw new Error(`Polkadot_JsonRpc: unsupported source ${source}`)
 					assertPolkadotMainnet($network)
 					const {
 						getBlock,
@@ -110,6 +120,13 @@ export default {
 						getSystemHealth({ rpcUrl: (await polkadotMainnetRpcEndpoints())[0].url }),
 					])
 					return {
+						$network: {
+							[EntityMetaKey.Selector]: $network,
+						},
+						timestampMs,
+						source,
+						ledgerModels: [NetworkLedgerModel.Account],
+						executionModels: [NetworkExecutionModel.PolkadotRuntime],
 						finalizedBlockNumber: blockNumberFromHeader(header),
 						finalizedBlockHash,
 						finalizedExtrinsicCount: block.block.extrinsics.length,
@@ -124,16 +141,23 @@ export default {
 				}
 			},
 		})({
-				finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
-				finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
-				finalizedExtrinsicCount: (timestamp) => timestamp.finalizedExtrinsicCount,
-				runtimeSpecName: (timestamp) => timestamp.runtimeSpecName,
-				runtimeSpecVersion: (timestamp) => timestamp.runtimeSpecVersion,
-				transactionVersion: (timestamp) => timestamp.transactionVersion,
-				stateVersion: (timestamp) => timestamp.stateVersion,
-				peerCount: (timestamp) => timestamp.peerCount,
-				isSyncing: (timestamp) => timestamp.isSyncing,
-				shouldHavePeers: (timestamp) => timestamp.shouldHavePeers,
+				$network: (timestamp) => timestamp.$network,
+				timestampMs: (timestamp) => timestamp.timestampMs,
+				source: (timestamp) => timestamp.source,
+				ledgerModels: (timestamp) => timestamp.ledgerModels,
+				executionModels: (timestamp) => timestamp.executionModels,
+				Polkadot: {
+					finalizedBlockNumber: (timestamp) => timestamp.finalizedBlockNumber,
+					finalizedBlockHash: (timestamp) => timestamp.finalizedBlockHash,
+					finalizedExtrinsicCount: (timestamp) => timestamp.finalizedExtrinsicCount,
+					runtimeSpecName: (timestamp) => timestamp.runtimeSpecName,
+					runtimeSpecVersion: (timestamp) => timestamp.runtimeSpecVersion,
+					transactionVersion: (timestamp) => timestamp.transactionVersion,
+					stateVersion: (timestamp) => timestamp.stateVersion,
+					peerCount: (timestamp) => timestamp.peerCount,
+					isSyncing: (timestamp) => timestamp.isSyncing,
+					shouldHavePeers: (timestamp) => timestamp.shouldHavePeers,
+				},
 			}),
 
 		defineResolver(Source.Polkadot_JsonRpc, {

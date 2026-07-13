@@ -186,7 +186,11 @@
 
 				{#snippet SectionAptosAccountObservations({ id, label, open })}
 					<AptosAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No observations yet.'
 						open={open}
@@ -197,7 +201,11 @@
 
 				{#snippet SectionAptosAccountTransactions({ id, label, open })}
 					<AptosTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions found.'
 						open={open}
@@ -241,7 +249,11 @@
 
 				{#snippet SectionAptosAccountBalances({ id, label, open })}
 					<AptosCoinBalance_TimestampsView
-						selection={selection.$$balances}
+						selection={
+							selection.$$balances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No balances found.'
 						open={open}
@@ -252,7 +264,11 @@
 
 				{#snippet SectionAptosAccountResourceList({ id, label, open })}
 					<AptosAccountResourcesView
-						selection={selection.$$resources}
+						selection={
+							selection.$$resources({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No resources found.'
 						open={open}
@@ -263,7 +279,11 @@
 
 				{#snippet SectionAptosAccountModules({ id, label, open })}
 					<MoveModulesView
-						selection={selection.$$modules}
+						selection={
+							selection.$$modules({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No modules found.'
 						open={open}

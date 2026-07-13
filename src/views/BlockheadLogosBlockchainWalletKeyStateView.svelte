@@ -152,7 +152,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadLogosBlockchainWalletKeyState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Logos blockchain wallet-key observations.'
 				id='BlockheadLogosBlockchainWalletKeyState_TimestampsView-timestamps'

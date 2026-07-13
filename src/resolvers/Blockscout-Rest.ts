@@ -1292,7 +1292,6 @@ export default {
 									[evmLogEntityFromIdAndWire(id, log)]
 								})
 						),
-						traceUnavailable: true,
 					}
 				}
 			},
@@ -1304,7 +1303,9 @@ export default {
 						return transaction.$from
 				},
 				$to: (transaction) => transaction.$to,
-				$contract: (transaction) => transaction.$contract,
+				ContractCreation: {
+					$contract: (transaction) => transaction.$contract,
+				},
 				indexInBlock: (transaction) => transaction.indexInBlock,
 				value: (transaction) => transaction.value,
 				nonce: (transaction) => transaction.nonce,
@@ -1326,8 +1327,10 @@ export default {
 					maxFeePerGas: (transaction) => transaction.maxFeePerGas,
 					maxPriorityFeePerGas: (transaction) => transaction.maxPriorityFeePerGas,
 				},
-				$$logs: (transaction) => transaction.$$logs,
-				traceUnavailable: (transaction) => transaction.traceUnavailable,
+				$$logs: {
+					select: (transaction) => transaction.$$logs,
+					resolveCount: (transaction) => transaction.$$logs.length,
+				},
 			}),
 
 		defineResolver(Source.Blockscout_Rest, {
@@ -1353,6 +1356,7 @@ export default {
 			},
 		})({
 				$$topics: (log) => log.$$topics,
+				topic0: (log) => log.topic0,
 				$transaction: (log) => log.$transaction,
 				indexInTransaction: (log) => log[EntityMetaKey.Selector].indexInTransaction,
 				$block: (log) => log.$block,
@@ -1360,8 +1364,47 @@ export default {
 				removed: (log) => log.removed,
 				$emitter: (log) => log.$emitter,
 				Event: {
-					Erc20Transfer: {
-						$$tokenTransfers: (log) => log.$$tokenTransfers,
+					signatureHash: (log) => log.topic0,
+				},
+			}),
+
+		defineResolver(Source.Blockscout_Rest, {
+			entityType: EntityType.EvmLog,
+			resolve: {
+				[EvmLogSelector.TransactionIndexInTransaction]: async ({
+					$transaction,
+					indexInTransaction,
+				}, context) => {
+					const {
+						blockscoutV2ItemsCountMax,
+					} = await import('$/sources/Blockscout/Rest/constants.ts')
+					const { getTransactionTokenTransfers } = await import('$/sources/Blockscout/Rest/queries.ts')
+					return evmTokenTransferEntitiesFromBlockscoutWires({
+						$network: $transaction.$network,
+						txHash: $transaction.txHash,
+						wires: await getTransactionTokenTransfers({
+							explorerOrigin: await requireBlockscoutV2ExplorerOrigin(
+								chainIdFromEvmNetworkId($transaction.$network)
+							),
+							txHash: $transaction.txHash,
+							limit: Math.min(
+								resolverContextRowLimit(context),
+								blockscoutV2ItemsCountMax
+							),
+						}),
+					})
+						.filter((transfer) => (
+							transfer[EntityMetaKey.Selector].$log.indexInTransaction === indexInTransaction
+						))
+						.map((transfer) => ({
+							[EntityMetaKey.Selector]: transfer[EntityMetaKey.Selector],
+						}))
+				}
+			},
+		})({
+				Event: {
+					TokenTransfer: {
+						$$tokenTransfers: (transfers) => transfers,
 					},
 				},
 			}),

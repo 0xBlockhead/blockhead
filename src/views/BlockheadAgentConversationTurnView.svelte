@@ -367,7 +367,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadAgentProviderCallsView
-				selection={selection.$$providerCalls}
+				selection={
+						selection.$$providerCalls({
+							count: true,
+						})
+					}
 				title='provider calls'
 				emptyText='No provider calls yet.'
 				id='BlockheadAgentProviderCallsView-provider-calls'

@@ -34,6 +34,7 @@
 					Source.Constants_Internal,
 				],
 				limit: 512,
+				count: true,
 			})
 		}
 		id='network-upgrades'

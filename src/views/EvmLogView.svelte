@@ -352,19 +352,27 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmTopicsView
-				selection={selection.$$topics}
+				selection={
+						selection.$$topics({
+							count: true,
+						})
+					}
 				title='Topics'
 				href={resolve('/evm/topics')}
 				id='EvmTopicsView-topics'
 			/>
 
 			<ProjectionBoundary
-				resource={selection.Event.Erc20Transfer}
+				resource={selection.Event.TokenTransfer}
 			>
 				{#snippet Applicable(projection)}
 					<EvmTokenTransfersView
-						selection={projection.$$tokenTransfers}
-						title='ERC-20 token transfers'
+						selection={
+							projection.$$tokenTransfers({
+								count: true,
+							})
+						}
+						title='Token transfers'
 						id='EvmTokenTransfersView-token-transfers'
 					/>
 				{/snippet}

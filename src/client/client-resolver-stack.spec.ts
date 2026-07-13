@@ -4,8 +4,14 @@ import {
 	it,
 } from 'vitest'
 import { QueryClient } from '@tanstack/query-core'
+import {
+	and,
+	createLiveQueryCollection,
+	eq,
+} from '@tanstack/db'
 import type { PersistenceAdapter } from '@tanstack/db-sqlite-persistence-core'
 import { type as arktype } from 'arktype'
+import { stringify } from 'devalue'
 import {
 	readdirSync,
 	readFileSync,
@@ -20,12 +26,18 @@ import {
 	persistedCollectionHydrationPlan,
 	persistedCollectionRemoteResult,
 } from '$/client/$client.svelte.ts'
+import { subscribeEntityField } from '$/client/$subscribe.svelte.ts'
+import type {
+	ResolverContext,
+	SourceResolverModule,
+} from '$/resolvers/$resolvers.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	EntityMetaKey,
 	entity,
 	entityFieldAddressKey,
+	entitySelectorKey,
 	facet,
 } from '$/schema/$schema.ts'
 
@@ -705,6 +717,266 @@ describe('client resolver stack architecture', () => {
 	it('keeps count rows are authoritative for paged and windowed list totals', () => {
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/totalCount:[^\n]*values\.length/)
 		expect(source('$subscribe.svelte.ts')).not.toMatch(/loaded row length/)
+	})
+
+	it('selects authoritative count rows by field-local source priority', async () => {
+		const fixtureSchema = [
+			entity({
+				entityType: 'CountFixture',
+				labels: {
+					singular: 'Count fixture',
+					plural: 'Count fixtures',
+				},
+			})({
+				slug: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				items: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.Many,
+				},
+			})({
+				selectors: {
+					Slug: ['slug'],
+				},
+			}),
+		] as const
+		const resolverModule = (source: 'source-a' | 'source-b', count: number) => ({
+			source,
+			resolvers: [{
+				entityType: 'CountFixture',
+				resolve: {
+					Slug: async () => ({}),
+				},
+				projections: {
+					items: {
+						select: () => [],
+						resolveCount: () => count,
+					},
+				},
+			}],
+		}) satisfies SourceResolverModule<typeof fixtureSchema, 'source-a' | 'source-b', ResolverContext>
+		const context = client({
+			schema: fixtureSchema,
+			sourceProviders: [{
+				provider: 'fixture',
+				label: 'Fixture',
+				sources: [
+					{
+						provider: 'fixture',
+						source: 'source-a',
+						label: 'Source A',
+					},
+					{
+						provider: 'fixture',
+						source: 'source-b',
+						label: 'Source B',
+					},
+				],
+			}],
+		})({
+			resolvers: [
+				resolverModule('source-a', 5),
+				resolverModule('source-b', 7),
+			],
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence: {
+				adapter: {
+					loadSubset: async () => [],
+					applyCommittedTx: async () => {},
+					ensureIndex: async () => {},
+				} satisfies PersistenceAdapter,
+			},
+			schemaVersion: 1,
+		})
+		const entitySelector = {
+			slug: 'fixture',
+		}
+		const result = await subscribeEntityField(
+			context,
+			'CountFixture',
+			entitySelector,
+			'items',
+			{
+				sources: [
+					'source-b',
+					'source-a',
+				],
+				limit: 1,
+				count: true,
+			}
+		)
+
+		expect(result.totalCount).toBe(7)
+		expect(context.entityFieldCountCollections.CountFixture[
+			entityFieldAddressKey('CountFixture', [], 'items')
+		]?.toArray.map((row) => [
+			row[EntityMetaKey.Source],
+			row[EntityMetaKey.Value],
+			row[EntityMetaKey.ParentSelectorKey],
+		])).toEqual([
+			[
+				'source-a',
+				5,
+				entitySelectorKey(fixtureSchema, fixtureSchema[0], entitySelector),
+			],
+			[
+				'source-b',
+				7,
+				stringify(entitySelector),
+			],
+		])
+	})
+
+	it('shares projection live publishers and cleans up after the last field subscriber', async () => {
+		const fixtureSchema = [
+			entity({
+				entityType: 'LiveFixture',
+				labels: {
+					singular: 'Live fixture',
+					plural: 'Live fixtures',
+				},
+			})({
+				slug: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.One,
+				},
+				items: {
+					type: EntityFieldType.Primitive,
+					primitiveType: arktype('string'),
+					cardinality: EntityFieldCardinality.Many,
+				},
+			})({
+				selectors: {
+					Slug: ['slug'],
+				},
+			}),
+		] as const
+		let starts = 0
+		let cleanups = 0
+		const context = client({
+			schema: fixtureSchema,
+			sourceProviders: [{
+				provider: 'fixture',
+				label: 'Fixture',
+				sources: [{
+					provider: 'fixture',
+					source: 'live-source',
+					label: 'Live source',
+				}],
+			}],
+		})({
+			resolvers: [{
+				source: 'live-source',
+				resolvers: [{
+					entityType: 'LiveFixture',
+					resolve: {
+						Slug: async () => ({}),
+					},
+					resolveLive: {
+						items: {
+							facetPath: [],
+							publishes: {
+								items: true,
+							},
+							start: ({ fields }) => {
+								starts += 1
+								fields.items.replaceRows([{
+									source: 'live-source',
+									value: [
+										'live',
+									],
+								}])
+								fields.items.count.replaceRows([{
+									source: 'live-source',
+									value: 1,
+								}])
+								fields.items.count.replaceRows([])
+								return () => {
+									cleanups += 1
+								}
+							},
+						},
+					},
+					projections: {
+						items: () => [],
+					},
+				}],
+			}],
+			env: {},
+		})({
+			queryClient: new QueryClient(),
+			persistence: {
+				adapter: {
+					loadSubset: async () => [],
+					applyCommittedTx: async () => {},
+					ensureIndex: async () => {},
+				} satisfies PersistenceAdapter,
+			},
+			schemaVersion: 1,
+		})
+		const parentSelectorKey = stringify({
+			slug: 'fixture',
+		})
+		const fieldCollection = context.entityFieldCollections.LiveFixture[
+			entityFieldAddressKey('LiveFixture', [], 'items')
+		]
+		const countCollection = context.entityFieldCountCollections.LiveFixture[
+			entityFieldAddressKey('LiveFixture', [], 'items')
+		]
+		const createQuery = () => createLiveQueryCollection({
+			gcTime: 1,
+			startSync: true,
+			query: (query) => query
+				.from({
+					row: fieldCollection,
+				})
+				.where(({ row }) => and(
+					eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+					eq(row[EntityMetaKey.Source], 'live-source')
+				)),
+		})
+		const firstQuery = createQuery()
+		const secondQuery = createQuery()
+		const firstSubscription = firstQuery.subscribeChanges(() => {}, {
+			includeInitialState: true,
+		})
+		const secondSubscription = secondQuery.subscribeChanges(() => {}, {
+			includeInitialState: true,
+		})
+
+		await expect.poll(() => starts).toBe(1)
+		expect(fieldCollection.toArray.map((row) => row[EntityMetaKey.Value])).toEqual([
+			'live',
+		])
+		if (countCollection !== undefined)
+			await createLiveQueryCollection({
+				query: (query) => query
+					.from({
+						row: countCollection,
+					})
+					.where(({ row }) => and(
+						eq(row[EntityMetaKey.ParentSelectorKey], parentSelectorKey),
+						eq(row[EntityMetaKey.Source], 'live-source')
+					)),
+			}).preload()
+
+		expect(countCollection?.toArray).toEqual([])
+		expect([...context.liveSubscriptions.values()].map((subscription) => subscription.referenceCount)).toEqual([
+			2,
+		])
+		await Promise.resolve()
+		firstSubscription.unsubscribe()
+		expect(cleanups).toBe(0)
+		secondSubscription.unsubscribe()
+		await expect.poll(() => cleanups).toBe(1)
+		expect(context.liveSubscriptions.size).toBe(0)
 	})
 
 	it('keeps view-facing reads behind the proxy and subscribe files', () => {

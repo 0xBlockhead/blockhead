@@ -28,7 +28,9 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$currencies',
-			}).$$currencies
+			}).$$currencies({
+				count: true,
+			})
 		}
 		id='currencies'
 	/>

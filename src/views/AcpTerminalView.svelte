@@ -312,7 +312,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AcpTerminal_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No ACP terminal observations.'
 				id='AcpTerminal_TimestampsView-timestamps'

@@ -44,6 +44,7 @@
 				sources: [
 					Source.Atproto_Xrpc,
 				],
+				count: true,
 			})
 		}
 		id='timestamps'

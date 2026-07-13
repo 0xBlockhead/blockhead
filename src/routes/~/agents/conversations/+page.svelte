@@ -33,6 +33,7 @@
 				sources: [
 					Source.Local_Internal,
 				],
+				count: true,
 			})
 		}
 		id='blockhead-agent-conversations'

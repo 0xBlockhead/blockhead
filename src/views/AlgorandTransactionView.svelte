@@ -458,7 +458,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AlgorandTransactionProofsView
-				selection={selection.$$proofs}
+				selection={
+						selection.$$proofs({
+							count: true,
+						})
+					}
 				title='proofs'
 				emptyText='No Algorand transaction proofs.'
 				id='AlgorandTransactionProofsView-proofs'

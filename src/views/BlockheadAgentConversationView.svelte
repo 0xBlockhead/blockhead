@@ -317,7 +317,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadAgentConversationTurnsView
-				selection={selection.$$turns}
+				selection={
+						selection.$$turns({
+							count: true,
+						})
+					}
 				title='Turns'
 				emptyText='No turns yet.'
 				id='BlockheadAgentConversationTurnsView-turns'

@@ -362,6 +362,7 @@
 								sources: [
 									Source.Snapchain_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/farcaster/feed/trending')}
@@ -375,7 +376,11 @@
 
 				{#snippet SectionFarcasterUserVerifiedAddresses({ id, label, open })}
 					<FarcasterVerifiedAddressesView
-						selection={selection.$$verifiedAddresses}
+						selection={
+							selection.$$verifiedAddresses({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Farcaster verified addresses for this user.'
 						open={open}
@@ -411,7 +416,11 @@
 
 				{#snippet SectionFarcasterUserTimestamps({ id, label, open })}
 					<FarcasterUser_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Farcaster user observations yet.'
 						open={open}

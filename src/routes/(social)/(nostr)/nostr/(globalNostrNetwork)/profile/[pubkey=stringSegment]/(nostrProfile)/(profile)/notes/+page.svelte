@@ -44,6 +44,7 @@
 					Source.Constants_Internal,
 					Source.NostrBand_Rest,
 				],
+				count: true,
 			})
 		}
 		id='notes'

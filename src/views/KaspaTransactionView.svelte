@@ -338,7 +338,11 @@
 
 				{#snippet SectionKaspaTxInputs({ id, label, open })}
 					<UtxoInputsView
-						selection={selection.$$inputs}
+						selection={
+							selection.$$inputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No UTXO inputs.'
 						open={open}
@@ -349,7 +353,11 @@
 
 				{#snippet SectionKaspaTxOutputs({ id, label, open })}
 					<UtxoOutputsView
-						selection={selection.$$outputs}
+						selection={
+							selection.$$outputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No UTXO outputs.'
 						open={open}
@@ -385,7 +393,11 @@
 
 				{#snippet SectionKaspaTxAcceptances({ id, label, open })}
 					<KaspaAcceptedTransactionsView
-						selection={selection.$$acceptances}
+						selection={
+							selection.$$acceptances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa acceptances.'
 						open={open}

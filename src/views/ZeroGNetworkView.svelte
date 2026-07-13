@@ -370,7 +370,11 @@
 
 				{#snippet SectionZerogNetworkObservations({ id, label, open })}
 					<ZeroGNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G network observations.'
 						open={open}
@@ -414,7 +418,11 @@
 
 				{#snippet SectionZerogStorageNodes({ id, label, open })}
 					<ZeroGStorageNodesView
-						selection={selection.$$storageNodes}
+						selection={
+							selection.$$storageNodes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G storage nodes.'
 						open={open}
@@ -425,7 +433,11 @@
 
 				{#snippet SectionZerogDataBlobs({ id, label, open })}
 					<ZeroGDataBlobsView
-						selection={selection.$$dataBlobs}
+						selection={
+							selection.$$dataBlobs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G data blobs.'
 						open={open}
@@ -436,7 +448,11 @@
 
 				{#snippet SectionZerogKvEntries({ id, label, open })}
 					<ZeroGKvEntriesView
-						selection={selection.$$kvEntries}
+						selection={
+							selection.$$kvEntries({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G KV entries.'
 						open={open}
@@ -476,7 +492,11 @@
 
 				{#snippet SectionZerogDaQuorums({ id, label, open })}
 					<ZeroGDaQuorumsView
-						selection={selection.$$daQuorums}
+						selection={
+							selection.$$daQuorums({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G DA quorums.'
 						open={open}
@@ -487,7 +507,11 @@
 
 				{#snippet SectionZerogDaNodes({ id, label, open })}
 					<ZeroGDaNodesView
-						selection={selection.$$daNodes}
+						selection={
+							selection.$$daNodes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G DA nodes.'
 						open={open}
@@ -523,7 +547,11 @@
 
 				{#snippet SectionZerogServiceProviderList({ id, label, open })}
 					<ZeroGServiceProvidersView
-						selection={selection.$$serviceProviders}
+						selection={
+							selection.$$serviceProviders({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G service providers.'
 						open={open}

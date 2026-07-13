@@ -479,7 +479,11 @@
 
 				{#snippet SectionEigenlayerOperatorDelegations({ id, label, open })}
 					<EigenLayerDelegation_TimestampsView
-						selection={selection.$$delegations}
+						selection={
+							selection.$$delegations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer delegation observations.'
 						open={open}
@@ -490,7 +494,11 @@
 
 				{#snippet SectionEigenlayerOperatorAllocations({ id, label, open })}
 					<EigenLayerAllocation_TimestampsView
-						selection={selection.$$allocations}
+						selection={
+							selection.$$allocations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer allocation observations.'
 						open={open}
@@ -530,7 +538,11 @@
 
 				{#snippet SectionEigenlayerOperatorRewards({ id, label, open })}
 					<EigenLayerReward_TimestampsView
-						selection={selection.$$rewards}
+						selection={
+							selection.$$rewards({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer reward observations.'
 						open={open}
@@ -541,7 +553,11 @@
 
 				{#snippet SectionEigenlayerOperatorSlashing({ id, label, open })}
 					<EigenLayerSlashingEventsView
-						selection={selection.$$slashingEvents}
+						selection={
+							selection.$$slashingEvents({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer slashing events.'
 						open={open}

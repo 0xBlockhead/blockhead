@@ -360,7 +360,11 @@
 
 				{#snippet SectionEigenlayerStrategyTimestamps({ id, label, open })}
 					<EigenLayerStrategy_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer strategy observations.'
 						open={open}
@@ -400,7 +404,11 @@
 
 				{#snippet SectionEigenlayerStrategyDelegations({ id, label, open })}
 					<EigenLayerDelegation_TimestampsView
-						selection={selection.$$delegations}
+						selection={
+							selection.$$delegations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer delegation observations.'
 						open={open}
@@ -411,7 +419,11 @@
 
 				{#snippet SectionEigenlayerStrategyAllocations({ id, label, open })}
 					<EigenLayerAllocation_TimestampsView
-						selection={selection.$$allocations}
+						selection={
+							selection.$$allocations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer allocation observations.'
 						open={open}

@@ -4,6 +4,7 @@ import { TransportType } from '$/constants/TransportType.ts'
 import { keccak256, toHex } from '@tevm/voltaire/Hash'
 import { Hex, toBytes } from '@tevm/voltaire/Hex'
 import {
+	EvmInternalCallType,
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
@@ -51,20 +52,6 @@ import { EvmContractSelector } from '$/schema/EvmContract.ts'
 type EvmNetworkId = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
 type NetworkCaip2Id = EntitySelectorForSelectorName<typeof schema, EntityType.Network, NetworkSelector.Caip2>
 
-type EvmTraceTree = {
-	index: number
-	type?: string
-	from?: `0x${string}`
-	to?: `0x${string}`
-	value?: string
-	gas?: bigint
-	gasUsed?: bigint
-	input?: `0x${string}`
-	output?: `0x${string}`
-	error?: string
-	children?: EvmTraceTree[]
-}
-
 const voltaireJsonRpcTransportWithOriginsByChainId = async () => (
 	(await import('$/sources/Voltaire/JsonRpc/queries.ts')).voltaireJsonRpcTransportWithOriginsByChainId
 )
@@ -80,26 +67,78 @@ const evmNetworkIdFromChainId = (chainId: number): EvmNetworkId => ({
 	},
 })
 
-const evmTraceTreeFromVoltaireCallTrace = (
-	call: VoltaireCallTraceRpc,
-	index: number
-): EvmTraceTree => ({
-	index,
-	...(call.type != null && { type: call.type }),
-	...(call.from != null && { from: call.from as `0x${string}` }),
-	...(call.to != null && { to: call.to as `0x${string}` }),
-	...(call.value != null && { value: call.value }),
-	...(call.gas != null && { gas: BigInt(call.gas) }),
-	...(call.gasUsed != null && { gasUsed: BigInt(call.gasUsed) }),
-	...(call.input != null && { input: call.input as `0x${string}` }),
-	...(call.output != null && { output: call.output as `0x${string}` }),
-	...(call.error != null && { error: call.error }),
-	...(call.calls != null && {
-		children: call.calls.map((child, childIndex) => (
-			evmTraceTreeFromVoltaireCallTrace(child, childIndex)
-		)),
-	}),
-})
+const evmInternalCallTypeFromVoltaireCallTrace = (raw: string | undefined) => (
+	raw == null || raw === '' ?
+		EvmInternalCallType.Unknown
+	:
+		((normalized) => (
+			normalized === 'call' ? EvmInternalCallType.Call
+			: normalized === 'callcode' ? EvmInternalCallType.CallCode
+			: normalized === 'delegatecall' ? EvmInternalCallType.DelegateCall
+			: normalized === 'staticcall' ? EvmInternalCallType.StaticCall
+			: normalized === 'create' ? EvmInternalCallType.Create
+			: normalized === 'create2' ? EvmInternalCallType.Create2
+			: normalized === 'suicide' || normalized === 'selfdestruct' ? EvmInternalCallType.SelfDestruct
+			: EvmInternalCallType.Unknown
+		))(raw.toLowerCase())
+)
+
+const evmTraceEntitiesFromVoltaireCallTrace = ({
+	call,
+	$transaction,
+	traceAddress = [],
+}: {
+	call: VoltaireCallTraceRpc
+	$transaction: EntitySelector<typeof schema, EntityType.EvmTransaction>
+	traceAddress?: number[]
+}): Entity<typeof schema, EntityType.EvmTrace>[] => {
+	const traceAddressString = traceAddress.length === 0 ? 'root' : traceAddress.join('.')
+	const childTraces = (call.calls ?? []).flatMap((child, childIndex) => evmTraceEntitiesFromVoltaireCallTrace({
+		call: child,
+		$transaction,
+		traceAddress: [...traceAddress, childIndex],
+	}))
+	const from = hexLowerOfByteSize(call.from ?? '', 20)
+	const to = hexLowerOfByteSize(call.to ?? '', 20)
+
+	return [
+		{
+			[EntityMetaKey.Selector]: {
+				$transaction,
+				traceAddress: traceAddressString,
+			},
+			$transaction: {
+				[EntityMetaKey.Selector]: $transaction,
+			},
+			traceAddress: traceAddressString,
+			index: traceAddress.at(-1) ?? 0,
+			type: evmInternalCallTypeFromVoltaireCallTrace(call.type),
+			...(from != null && {
+				$from: {
+					[EntityMetaKey.Selector]: { address: from },
+				},
+			}),
+			...(to != null && {
+				$to: {
+					[EntityMetaKey.Selector]: { address: to },
+				},
+			}),
+			...(call.value != null && { value: BigInt(call.value) }),
+			...(call.gas != null && { gas: BigInt(call.gas) }),
+			...(call.gasUsed != null && { gasUsed: BigInt(call.gasUsed) }),
+			...(call.input != null && { input: with0xHex(call.input) }),
+			...(call.output != null && { output: with0xHex(call.output) }),
+			...(call.error != null && { error: call.error }),
+			$$children: (call.calls ?? []).map((_child, childIndex) => ({
+				[EntityMetaKey.Selector]: {
+					$transaction,
+					traceAddress: [...traceAddress, childIndex].join('.'),
+				},
+			})),
+		},
+		...childTraces,
+	]
+}
 
 const chainIdFromEvmNetworkId = (network: EvmNetworkId | NetworkCaip2Id) => Number(network.caip2.reference)
 
@@ -1254,8 +1293,13 @@ export default {
 										[evmLogEntityFromIdAndWire(id, log)]
 								})
 						),
-						traceRoot: rawCallTrace == null ? undefined : evmTraceTreeFromVoltaireCallTrace(rawCallTrace, 0),
-						traceUnavailable: rawCallTrace == null ? true : undefined,
+						$$traces: rawCallTrace == null ? [] : evmTraceEntitiesFromVoltaireCallTrace({
+							call: rawCallTrace,
+							$transaction: {
+								$network,
+								txHash,
+							},
+						}),
 					}
 				}
 			},
@@ -1263,7 +1307,9 @@ export default {
 				$block: (entity) => entity.$block,
 				$from: (entity) => entity.$from,
 				$to: (entity) => entity.$to,
-				$contract: (entity) => entity.$contract,
+				ContractCreation: {
+					$contract: (entity) => entity.$contract,
+				},
 				indexInBlock: (entity) => entity.indexInBlock,
 				value: (entity) => entity.value,
 				nonce: (entity) => entity.nonce,
@@ -1287,11 +1333,16 @@ export default {
 					blobGasUsed: (entity) => entity.blobGasUsed,
 					maxFeePerBlobGas: (entity) => entity.maxFeePerBlobGas,
 				},
-				$$logs: (entity) => entity.$$logs.map((log) => ({
-					[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
-				})),
-				traceRoot: (entity) => entity.traceRoot,
-				traceUnavailable: (entity) => entity.traceUnavailable,
+				$$logs: {
+					select: (entity) => entity.$$logs.map((log) => ({
+						[EntityMetaKey.Selector]: log[EntityMetaKey.Selector],
+					})),
+					resolveCount: (entity) => entity.$$logs.length,
+				},
+				$$traces: {
+					select: (entity) => entity.$$traces,
+					resolveCount: (entity) => entity.$$traces.length,
+				},
 			}),
 
 		defineResolver(Source.Voltaire_JsonRpc, {
@@ -1317,6 +1368,7 @@ export default {
 			},
 		})({
 				$$topics: (entity) => entity.$$topics,
+				topic0: (entity) => entity.topic0,
 				indexInTransaction: (entity) => entity[EntityMetaKey.Selector].indexInTransaction,
 				$transaction: (entity) => (
 					entity.$transaction == null ?
@@ -1342,8 +1394,11 @@ export default {
 					:
 						{
 							[EntityMetaKey.Selector]: entity.$emitter[EntityMetaKey.Selector],
-						}
+					}
 				),
+				Event: {
+					signatureHash: (entity) => entity.topic0,
+				},
 			}),
 		defineResolver(Source.Voltaire_JsonRpc, {
 			entityType: EntityType.Network,

@@ -35,6 +35,7 @@
 					Source.Farcaster_Rest,
 					Source.Snapchain_Rest,
 				],
+				count: true,
 			})
 		}
 		id='entries'

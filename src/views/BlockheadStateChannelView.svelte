@@ -337,7 +337,11 @@
 
 				{#snippet SectionStateChannelTransfers({ id, label, open })}
 					<BlockheadStateChannelTransfersView
-						selection={selection.$$transfers}
+						selection={
+							selection.$$transfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transfers yet.'
 						open={open}
@@ -348,7 +352,11 @@
 
 				{#snippet SectionStateChannelStates({ id, label, open })}
 					<BlockheadStateChannelStatesView
-						selection={selection.$$states}
+						selection={
+							selection.$$states({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No states yet.'
 						open={open}
@@ -359,7 +367,11 @@
 
 				{#snippet SectionStateChannelDeposits({ id, label, open })}
 					<BlockheadStateChannelDepositsView
-						selection={selection.$$deposits}
+						selection={
+							selection.$$deposits({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No deposits yet.'
 						open={open}
@@ -395,7 +407,11 @@
 
 				{#snippet SectionStateChannelTimestamps({ id, label, open })}
 					<BlockheadStateChannel_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No observations yet.'
 						open={open}

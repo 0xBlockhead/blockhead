@@ -518,7 +518,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AcpPromptTurnsView
-				selection={selection.$$promptTurns}
+				selection={
+						selection.$$promptTurns({
+							count: true,
+						})
+					}
 				title='prompt turns'
 				emptyText='No ACP prompt turns.'
 				id='AcpPromptTurnsView-prompt-turns'

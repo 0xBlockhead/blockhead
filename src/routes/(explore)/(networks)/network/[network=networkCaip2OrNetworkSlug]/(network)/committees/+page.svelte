@@ -48,6 +48,7 @@
 						sources: [
 							Source.Beacon_Rest,
 						],
+						count: true,
 					})
 				}
 				id='beacon-committees'

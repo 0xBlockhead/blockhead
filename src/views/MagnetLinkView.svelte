@@ -358,7 +358,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<MagnetResolution_TimestampsView
-				selection={selection.$$resolutionTimestamps}
+				selection={
+						selection.$$resolutionTimestamps({
+							count: true,
+						})
+					}
 				title='resolution timestamps'
 				emptyText='No resolution observations yet.'
 				id='MagnetResolution_TimestampsView-resolution-timestamps'

@@ -399,7 +399,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AgentPaymentRequirement_TimestampsView
-				selection={selection.$$paymentRequirements}
+				selection={
+						selection.$$paymentRequirements({
+							count: true,
+						})
+					}
 				title='Payment requirements'
 				emptyText='No payment requirement observations.'
 				id='AgentPaymentRequirement_TimestampsView-payment-requirements'

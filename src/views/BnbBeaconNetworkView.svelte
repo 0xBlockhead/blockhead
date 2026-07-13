@@ -258,7 +258,11 @@
 
 				{#snippet SectionBnbBeaconChainObservations({ id, label, open })}
 					<BnbBeaconNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No observations yet.'
 						open={open}
@@ -269,7 +273,11 @@
 
 				{#snippet SectionBnbBeaconChainBlocks({ id, label, open })}
 					<BnbBeaconBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No blocks found.'
 						open={open}
@@ -280,7 +288,11 @@
 
 				{#snippet SectionBnbBeaconChainTransactions({ id, label, open })}
 					<BnbBeaconTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions found.'
 						open={open}
@@ -316,7 +328,11 @@
 
 				{#snippet SectionBnbBeaconValidatorList({ id, label, open })}
 					<BnbValidatorsView
-						selection={selection.$$validators}
+						selection={
+							selection.$$validators({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No validators found.'
 						open={open}
@@ -356,7 +372,11 @@
 
 				{#snippet SectionBnbBeaconTokens({ id, label, open })}
 					<BnbBeaconTokensView
-						selection={selection.$$tokens}
+						selection={
+							selection.$$tokens({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No tokens found.'
 						open={open}
@@ -367,7 +387,11 @@
 
 				{#snippet SectionBnbBeaconMigrations({ id, label, open })}
 					<BnbBeaconTokenMigrationsView
-						selection={selection.$$migrationRecords}
+						selection={
+							selection.$$migrationRecords({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No migration records found.'
 						open={open}

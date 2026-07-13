@@ -263,7 +263,11 @@
 
 				{#snippet SectionErc4337FactorySmartAccounts({ id, label, open })}
 					<Erc4337SmartAccountsView
-						selection={selection.$$smartAccounts}
+						selection={
+							selection.$$smartAccounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ERC-4337 smart accounts.'
 						open={open}
@@ -274,7 +278,11 @@
 
 				{#snippet SectionErc4337FactoryUserOperations({ id, label, open })}
 					<EvmUserOperationsView
-						selection={selection.$$userOperations}
+						selection={
+							selection.$$userOperations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ERC-4337 user operations.'
 						open={open}
@@ -310,7 +318,11 @@
 
 				{#snippet SectionErc4337FactoryTimestamps({ id, label, open })}
 					<Erc4337AccountFactory_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ERC-4337 account factory observations.'
 						open={open}

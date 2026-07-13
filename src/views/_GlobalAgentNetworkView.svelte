@@ -217,7 +217,11 @@
 
 				{#snippet SectionAgentAcpPrograms({ id, label, open })}
 					<AcpAgentProgramsView
-						selection={selection.$$acpPrograms}
+						selection={
+							selection.$$acpPrograms({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ACP programs.'
 						open={open}
@@ -228,7 +232,11 @@
 
 				{#snippet SectionAgentA2aCards({ id, label, open })}
 					<A2aAgentCardsView
-						selection={selection.$$a2aCards}
+						selection={
+							selection.$$a2aCards({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No A2A cards.'
 						open={open}
@@ -239,7 +247,11 @@
 
 				{#snippet SectionAgentMcpServers({ id, label, open })}
 					<McpServersView
-						selection={selection.$$mcpServers}
+						selection={
+							selection.$$mcpServers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No MCP servers.'
 						open={open}
@@ -279,7 +291,11 @@
 
 				{#snippet SectionAgentEip8004({ id, label, open })}
 					<Eip8004AgentRegistrationsView
-						selection={selection.$$eip8004Registrations}
+						selection={
+							selection.$$eip8004Registrations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EIP-8004 registrations.'
 						open={open}
@@ -290,7 +306,11 @@
 
 				{#snippet SectionAgentBlockheadProfiles({ id, label, open })}
 					<BlockheadAgentProfilesView
-						selection={selection.$$blockheadProfiles}
+						selection={
+							selection.$$blockheadProfiles({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Blockhead agent profiles.'
 						open={open}
@@ -326,7 +346,11 @@
 
 				{#snippet SectionAgentHubObservations({ id, label, open })}
 					<GlobalAgentNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No agent network observations.'
 						open={open}

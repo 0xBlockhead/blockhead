@@ -171,14 +171,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BitTorrentAnnounce_TimestampsView
-				selection={selection.$$announces}
+				selection={
+						selection.$$announces({
+							count: true,
+						})
+					}
 				title='announces'
 				emptyText='No announces yet.'
 				id='BitTorrentAnnounce_TimestampsView-announces'
 			/>
 
 			<BitTorrentTrackerScrape_TimestampsView
-				selection={selection.$$scrapes}
+				selection={
+						selection.$$scrapes({
+							count: true,
+						})
+					}
 				title='scrapes'
 				emptyText='No scrapes yet.'
 				id='BitTorrentTrackerScrape_TimestampsView-scrapes'

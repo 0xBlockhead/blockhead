@@ -28,7 +28,9 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$networks',
-			}).$$networks
+			}).$$networks({
+				count: true,
+			})
 		}
 		id='networks'
 	/>

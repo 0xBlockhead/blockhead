@@ -273,7 +273,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadPayjoinSessionsView
-				selection={selection.$$blockheadSessions}
+				selection={
+						selection.$$blockheadSessions({
+							count: true,
+						})
+					}
 				title='blockhead sessions'
 				emptyText='No local payjoin sessions.'
 				id='BlockheadPayjoinSessionsView-blockhead-sessions'

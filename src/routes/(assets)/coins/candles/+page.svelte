@@ -34,6 +34,7 @@
 					Source.Constants_Internal,
 				],
 				limit: 256,
+				count: true,
 			})
 		}
 		id='market-time-interval-timestamps'

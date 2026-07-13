@@ -320,7 +320,11 @@
 
 				{#snippet SectionActorEns({ id, label, open })}
 					<EnsNamesView
-						selection={selection.$$ensNamesOwned}
+						selection={
+							selection.$$ensNamesOwned({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ENS names owned by this account yet.'
 						open={open}

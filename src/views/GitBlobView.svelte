@@ -277,7 +277,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<GitTreeEntriesView
-				selection={selection.$$paths}
+				selection={
+						selection.$$paths({
+							count: true,
+						})
+					}
 				title='paths'
 				emptyText='No paths.'
 				id='GitTreeEntriesView-paths'

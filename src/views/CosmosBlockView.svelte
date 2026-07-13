@@ -311,7 +311,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CosmosTransactionsView
-				selection={selection.$$transactions}
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
 				title='Transactions'
 				emptyText='No Cosmos transactions.'
 				id='CosmosTransactionsView-transactions'

@@ -229,7 +229,11 @@
 
 				{#snippet SectionSuiTransactionCommands({ id, label, open })}
 					<SuiProgrammableTransactionCommandsView
-						selection={selection.$$commands}
+						selection={
+							selection.$$commands({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No commands.'
 						open={open}
@@ -240,7 +244,11 @@
 
 				{#snippet SectionSuiTransactionObjectChanges({ id, label, open })}
 					<SuiObjectChangesView
-						selection={selection.$$objectChanges}
+						selection={
+							selection.$$objectChanges({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No object changes.'
 						open={open}
@@ -280,7 +288,11 @@
 
 				{#snippet SectionSuiTransactionBalanceChanges({ id, label, open })}
 					<SuiBalanceChangesView
-						selection={selection.$$balanceChanges}
+						selection={
+							selection.$$balanceChanges({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No balance changes.'
 						open={open}
@@ -291,7 +303,11 @@
 
 				{#snippet SectionSuiTransactionEvents({ id, label, open })}
 					<SuiEventsView
-						selection={selection.$$events}
+						selection={
+							selection.$$events({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No events.'
 						open={open}
@@ -327,7 +343,11 @@
 
 				{#snippet SectionSuiTransactionTimestamps({ id, label, open })}
 					<SuiTransaction_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

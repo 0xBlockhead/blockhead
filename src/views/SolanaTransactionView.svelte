@@ -391,7 +391,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SolanaInstructionsView
-				selection={selection.$$instructions}
+				selection={
+						selection.$$instructions({
+							count: true,
+						})
+					}
 				title='Instructions'
 				id='SolanaInstructionsView-instructions'
 			/>

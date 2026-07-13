@@ -274,7 +274,11 @@
 
 				{#snippet SectionGitRepositoryRefs({ id, label, open })}
 					<GitRefsView
-						selection={selection.$$refs}
+						selection={
+							selection.$$refs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No refs.'
 						open={open}
@@ -285,7 +289,11 @@
 
 				{#snippet SectionGitRepositoryObjectList({ id, label, open })}
 					<GitObjectsView
-						selection={selection.$$objects}
+						selection={
+							selection.$$objects({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No objects.'
 						open={open}
@@ -325,7 +333,11 @@
 
 				{#snippet SectionGitRepositoryRemoteList({ id, label, open })}
 					<GitRemotesView
-						selection={selection.$$remotes}
+						selection={
+							selection.$$remotes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No remotes.'
 						open={open}
@@ -336,7 +348,11 @@
 
 				{#snippet SectionGitRepositoryFetches({ id, label, open })}
 					<GitFetchObservationsView
-						selection={selection.$$fetches}
+						selection={
+							selection.$$fetches({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No fetch observations.'
 						open={open}

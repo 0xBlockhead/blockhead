@@ -306,7 +306,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<A2aMessagePartsView
-				selection={selection.$$parts}
+				selection={
+						selection.$$parts({
+							count: true,
+						})
+					}
 				title='parts'
 				emptyText='No A2A artifact parts.'
 				id='A2aMessagePartsView-parts'

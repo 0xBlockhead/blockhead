@@ -158,7 +158,11 @@
 
 				{#snippet SectionCelestiaChainObservations({ id, label, open })}
 					<CelestiaNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No observations yet.'
 						open={open}
@@ -169,7 +173,11 @@
 
 				{#snippet SectionCelestiaChainBlocks({ id, label, open })}
 					<CelestiaBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No blocks found.'
 						open={open}
@@ -209,7 +217,11 @@
 
 				{#snippet SectionCelestiaNamespaces({ id, label, open })}
 					<CelestiaNamespacesView
-						selection={selection.$$namespaces}
+						selection={
+							selection.$$namespaces({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No namespaces found.'
 						open={open}
@@ -220,7 +232,11 @@
 
 				{#snippet SectionCelestiaBlobs({ id, label, open })}
 					<CelestiaBlobsView
-						selection={selection.$$blobs}
+						selection={
+							selection.$$blobs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No blobs found.'
 						open={open}

@@ -38,7 +38,11 @@
 			})
 		}
 		title='Account factory observations'
-		selection={select(EntityType.Erc4337AccountFactory, data.selector).$$timestamps}
+		selection={
+			select(EntityType.Erc4337AccountFactory, data.selector).$$timestamps({
+				count: true,
+			})
+		}
 		id='timestamps'
 	/>
 </Page>

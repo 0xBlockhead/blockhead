@@ -128,14 +128,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<SwarmResourcesView
-				selection={selection.$$observedResources}
+				selection={
+						selection.$$observedResources({
+							count: true,
+						})
+					}
 				title='Observed resources'
 				emptyText='No Swarm resources yet.'
 				id='SwarmResourcesView-observed-resources'
 			/>
 
 			<GlobalSwarmAccess_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				emptyText='No Swarm access observations yet.'
 				id='_GlobalSwarmAccess_TimestampsView-timestamps'

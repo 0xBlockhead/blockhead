@@ -203,7 +203,11 @@
 
 				{#snippet SectionDydxSubaccountPositions({ id, label, open })}
 					<DydxChainPerpetualPosition_TimestampsView
-						selection={selection.$$positions}
+						selection={
+							selection.$$positions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No dYdX position observations.'
 						open={open}
@@ -214,7 +218,11 @@
 
 				{#snippet SectionDydxSubaccountOrders({ id, label, open })}
 					<DydxChainOrdersView
-						selection={selection.$$orders}
+						selection={
+							selection.$$orders({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No dYdX orders.'
 						open={open}
@@ -250,7 +258,11 @@
 
 				{#snippet SectionDydxSubaccountTimestamps({ id, label, open })}
 					<DydxChainSubaccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No dYdX subaccount observations.'
 						open={open}

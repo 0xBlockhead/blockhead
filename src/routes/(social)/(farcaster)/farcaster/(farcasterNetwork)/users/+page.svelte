@@ -34,6 +34,7 @@
 					Source.Snapchain_Rest,
 					Source.Neynar_Rest,
 				],
+				count: true,
 			})
 		}
 		id='users'

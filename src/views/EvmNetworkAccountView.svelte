@@ -212,7 +212,11 @@
 
 				{#snippet SectionEvmNetworkAccountTransactions({ id, label, open })}
 					<EvmTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions yet.'
 						open={open}
@@ -223,7 +227,11 @@
 
 				{#snippet SectionEvmNetworkAccountTokenTransfers({ id, label, open })}
 					<EvmTokenTransfersView
-						selection={selection.$$tokenTransfers}
+						selection={
+							selection.$$tokenTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No token transfers yet.'
 						open={open}
@@ -234,7 +242,11 @@
 
 				{#snippet SectionEvmNetworkAccountInternalTransfers({ id, label, open })}
 					<EvmInternalTransfersView
-						selection={selection.$$internalTransfers}
+						selection={
+							selection.$$internalTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No internal transfers yet.'
 						open={open}
@@ -274,7 +286,11 @@
 
 				{#snippet SectionEvmNetworkAccountOwnedCoins({ id, label, open })}
 					<EvmNetworkActorCoinBalancesView
-						selection={selection.$$ownedCoins}
+						selection={
+							selection.$$ownedCoins({
+								count: true,
+							})
+						}
 						href={resolve('/~/accounts/balances')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No owned coins yet.'
@@ -286,7 +302,11 @@
 
 				{#snippet SectionEvmNetworkAccountAllowances({ id, label, open })}
 					<EvmActorCoinAllowancesView
-						selection={selection.$$erc20TokenAllowances}
+						selection={
+							selection.$$erc20TokenAllowances({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No allowances yet.'
 						open={open}
@@ -322,7 +342,11 @@
 
 				{#snippet SectionEvmNetworkAccountTimestamps({ id, label, open })}
 					<EvmNetworkAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No account observations yet.'
 						open={open}

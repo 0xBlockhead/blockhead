@@ -183,7 +183,11 @@
 
 				{#snippet SectionCardanoChainObservations({ id, label, open })}
 					<CardanoNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano network observations.'
 						open={open}
@@ -194,7 +198,11 @@
 
 				{#snippet SectionCardanoChainBlocks({ id, label, open })}
 					<CardanoBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano blocks.'
 						open={open}
@@ -205,7 +213,11 @@
 
 				{#snippet SectionCardanoChainTransactions({ id, label, open })}
 					<CardanoTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano transactions.'
 						open={open}
@@ -249,7 +261,11 @@
 
 				{#snippet SectionCardanoStakeAddresses({ id, label, open })}
 					<CardanoAddressesView
-						selection={selection.$$addresses}
+						selection={
+							selection.$$addresses({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano addresses.'
 						open={open}
@@ -260,7 +276,11 @@
 
 				{#snippet SectionCardanoStakeCredentials({ id, label, open })}
 					<CardanoStakeCredentialsView
-						selection={selection.$$stakeCredentials}
+						selection={
+							selection.$$stakeCredentials({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano stake credentials.'
 						open={open}
@@ -271,7 +291,11 @@
 
 				{#snippet SectionCardanoStakePools({ id, label, open })}
 					<CardanoStakePoolsView
-						selection={selection.$$stakePools}
+						selection={
+							selection.$$stakePools({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano stake pools.'
 						open={open}
@@ -319,7 +343,11 @@
 
 				{#snippet SectionCardanoGovernanceDreps({ id, label, open })}
 					<CardanoDRepsView
-						selection={selection.$$dReps}
+						selection={
+							selection.$$dReps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano DReps.'
 						open={open}
@@ -330,7 +358,11 @@
 
 				{#snippet SectionCardanoGovernanceProposals({ id, label, open })}
 					<CardanoGovernanceProposalsView
-						selection={selection.$$governanceProposals}
+						selection={
+							selection.$$governanceProposals({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano governance proposals.'
 						open={open}
@@ -341,7 +373,11 @@
 
 				{#snippet SectionCardanoGovernanceConstitution({ id, label, open })}
 					<CardanoConstitution_EpochsView
-						selection={selection.$$constitutionEpochs}
+						selection={
+							selection.$$constitutionEpochs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano constitution epochs.'
 						open={open}
@@ -352,7 +388,11 @@
 
 				{#snippet SectionCardanoGovernanceCommittee({ id, label, open })}
 					<CardanoCommittee_EpochsView
-						selection={selection.$$committeeEpochs}
+						selection={
+							selection.$$committeeEpochs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano committee epochs.'
 						open={open}
@@ -388,7 +428,11 @@
 
 				{#snippet SectionCardanoAssetsNative({ id, label, open })}
 					<CardanoNativeAssetsView
-						selection={selection.$$assets}
+						selection={
+							selection.$$assets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano native assets.'
 						open={open}
@@ -424,7 +468,11 @@
 
 				{#snippet SectionCardanoProtocolParameters({ id, label, open })}
 					<CardanoProtocolParameters_EpochsView
-						selection={selection.$$protocolParameterEpochs}
+						selection={
+							selection.$$protocolParameterEpochs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Cardano protocol parameter epochs.'
 						open={open}

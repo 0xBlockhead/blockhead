@@ -295,6 +295,7 @@
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/youtube/videos')}
@@ -314,6 +315,7 @@
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/youtube/playlists')}
@@ -358,6 +360,7 @@
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

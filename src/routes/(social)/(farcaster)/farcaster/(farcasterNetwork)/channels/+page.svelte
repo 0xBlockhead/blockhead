@@ -33,6 +33,7 @@
 				sources: [
 					Source.Farcaster_Rest,
 				],
+				count: true,
 			})
 		}
 		id='channels'

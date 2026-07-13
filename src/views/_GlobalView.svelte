@@ -198,7 +198,11 @@
 
 				{#snippet SectionGlobalNetworksAll({ id, label, open })}
 					<NetworksView
-						selection={selection.$$networks}
+						selection={
+							selection.$$networks({
+								count: true,
+							})
+						}
 						href={resolve('/networks')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No networks.'
@@ -210,7 +214,11 @@
 
 				{#snippet SectionGlobalNetworkStacks({ id, label, open })}
 					<NetworkStacksView
-						selection={selection.$$networkStacks}
+						selection={
+							selection.$$networkStacks({
+								count: true,
+							})
+						}
 						href={resolve('/network-stacks')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No network stacks.'
@@ -222,7 +230,11 @@
 
 				{#snippet SectionGlobalEvmNetworks({ id, label, open })}
 					<NetworksView
-						selection={selection.$$evmNetworks}
+						selection={
+							selection.$$evmNetworks({
+								count: true,
+							})
+						}
 						href={resolve('/networks')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EVM networks.'
@@ -234,7 +246,11 @@
 
 				{#snippet SectionGlobalNetworkUpgrades({ id, label, open })}
 					<EthereumNetworkUpgradesView
-						selection={selection.$$networkUpgrades}
+						selection={
+							selection.$$networkUpgrades({
+								count: true,
+							})
+						}
 						href={resolve('/upgrades')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No network upgrades.'
@@ -291,7 +307,11 @@
 
 				{#snippet SectionGlobalCoins({ id, label, open })}
 					<CoinsView
-						selection={selection.$$coins}
+						selection={
+							selection.$$coins({
+								count: true,
+							})
+						}
 						href={resolve('/coins')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No coins.'
@@ -308,6 +328,7 @@
 								sources: [
 									Source.Constants_Internal,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/markets')}
@@ -321,7 +342,11 @@
 
 				{#snippet SectionGlobalMarketVenues({ id, label, open })}
 					<MarketVenuesView
-						selection={selection.$$marketVenues}
+						selection={
+							selection.$$marketVenues({
+								count: true,
+							})
+						}
 						href={resolve('/market-venues')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No market venues.'
@@ -333,7 +358,11 @@
 
 				{#snippet SectionGlobalCurrencies({ id, label, open })}
 					<CurrenciesView
-						selection={selection.$$currencies}
+						selection={
+							selection.$$currencies({
+								count: true,
+							})
+						}
 						href={resolve('/currencies')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No currencies.'
@@ -345,7 +374,11 @@
 
 				{#snippet SectionGlobalLiquidityPools({ id, label, open })}
 					<LiquidityPoolsView
-						selection={selection.$$liquidityPools}
+						selection={
+							selection.$$liquidityPools({
+								count: true,
+							})
+						}
 						href={resolve('/pools')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No liquidity pools.'
@@ -357,7 +390,11 @@
 
 				{#snippet SectionGlobalActorCoins({ id, label, open })}
 					<EvmNetworkActorCoinBalancesView
-						selection={selection.$$actorCoins}
+						selection={
+							selection.$$actorCoins({
+								count: true,
+							})
+						}
 						href={resolve('/~/accounts/balances')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No actor coin balances.'
@@ -398,7 +435,11 @@
 
 				{#snippet SectionGlobalMarketPrices({ id, label, open })}
 					<MarketPricesView
-						selection={selection.$$marketPrices}
+						selection={
+							selection.$$marketPrices({
+								count: true,
+							})
+						}
 						href={resolve('/coins/prices')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No market prices.'
@@ -410,7 +451,11 @@
 
 				{#snippet SectionGlobalMarketOhlc({ id, label, open })}
 					<Market_TimeInterval_TimestampsView
-						selection={selection.$$marketTimeIntervalTimestamps}
+						selection={
+							selection.$$marketTimeIntervalTimestamps({
+								count: true,
+							})
+						}
 						href={resolve('/coins/candles')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No OHLC observations.'
@@ -455,7 +500,11 @@
 
 				{#snippet SectionGlobalProposalsList({ id, label, open })}
 					<SpecificationProposalsView
-						selection={selection.$$proposals}
+						selection={
+							selection.$$proposals({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No proposals.'
 						open={open}
@@ -466,7 +515,11 @@
 
 				{#snippet SectionGlobalSpecificationRealms({ id, label, open })}
 					<SpecificationRealmsView
-						selection={selection.$$specificationRealms}
+						selection={
+							selection.$$specificationRealms({
+								count: true,
+							})
+						}
 						href={resolve('/proposals')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No specification realms.'
@@ -478,7 +531,11 @@
 
 				{#snippet SectionGlobalProposalKinds({ id, label, open })}
 					<SpecificationProposalKindsView
-						selection={selection.$$proposalKinds}
+						selection={
+							selection.$$proposalKinds({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No proposal kinds.'
 						open={open}
@@ -530,7 +587,11 @@
 
 				{#snippet SectionGlobalActors({ id, label, open })}
 					<EvmAccountsView
-						selection={selection.$$actors}
+						selection={
+							selection.$$actors({
+								count: true,
+							})
+						}
 						href={resolve('/~/accounts/watched-accounts')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No actors.'
@@ -542,7 +603,11 @@
 
 				{#snippet SectionGlobalXmtp({ id, label, open })}
 					<XmtpConversationsView
-						selection={selection.$$xmtpConversations}
+						selection={
+							selection.$$xmtpConversations({
+								count: true,
+							})
+						}
 						href={resolve('/xmtp/conversations')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No XMTP conversations.'
@@ -554,7 +619,11 @@
 
 				{#snippet SectionGlobalRooms({ id, label, open })}
 					<BlockheadRoomsView
-						selection={selection.$$blockheadRooms}
+						selection={
+							selection.$$blockheadRooms({
+								count: true,
+							})
+						}
 						href={resolve('/~/multiplayer/rooms')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No rooms.'
@@ -566,7 +635,11 @@
 
 				{#snippet SectionGlobalRoomPeers({ id, label, open })}
 					<BlockheadRoomPeersView
-						selection={selection.$$blockheadRoomPeers}
+						selection={
+							selection.$$blockheadRoomPeers({
+								count: true,
+							})
+						}
 						href={resolve('/~/multiplayer/contacts')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No room peers.'
@@ -578,7 +651,11 @@
 
 				{#snippet SectionGlobalStateChannels({ id, label, open })}
 					<BlockheadStateChannelsView
-						selection={selection.$$blockheadStateChannels}
+						selection={
+							selection.$$blockheadStateChannels({
+								count: true,
+							})
+						}
 						href={resolve('/channels')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No state channels.'
@@ -639,7 +716,11 @@
 
 				{#snippet SectionGlobalWalletsList({ id, label, open })}
 					<BlockheadWalletsView
-						selection={selection.$$blockheadWallets}
+						selection={
+							selection.$$blockheadWallets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No wallets.'
 						open={open}
@@ -650,7 +731,11 @@
 
 				{#snippet SectionGlobalWalletConnections({ id, label, open })}
 					<BlockheadWalletConnectionsView
-						selection={selection.$$blockheadWalletConnections}
+						selection={
+							selection.$$blockheadWalletConnections({
+								count: true,
+							})
+						}
 						href={resolve('/~/accounts/connections')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No wallet connections.'
@@ -662,7 +747,11 @@
 
 				{#snippet SectionGlobalWalletAccounts({ id, label, open })}
 					<BlockheadWalletAccountsView
-						selection={selection.$$blockheadWalletAccounts}
+						selection={
+							selection.$$blockheadWalletAccounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No wallet accounts.'
 						open={open}
@@ -673,7 +762,11 @@
 
 				{#snippet SectionGlobalWalletTransport({ id, label, open })}
 					<BlockheadWalletTransportSessionsView
-						selection={selection.$$blockheadWalletTransportSessions}
+						selection={
+							selection.$$blockheadWalletTransportSessions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No wallet transport sessions.'
 						open={open}
@@ -684,7 +777,11 @@
 
 				{#snippet SectionGlobalWalletRequests({ id, label, open })}
 					<BlockheadWalletRequestsView
-						selection={selection.$$blockheadWalletRequests}
+						selection={
+							selection.$$blockheadWalletRequests({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No wallet requests.'
 						open={open}
@@ -695,7 +792,11 @@
 
 				{#snippet SectionGlobalWalletGrants({ id, label, open })}
 					<BlockheadWalletCapabilityGrantsView
-						selection={selection.$$blockheadWalletCapabilityGrants}
+						selection={
+							selection.$$blockheadWalletCapabilityGrants({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No capability grants.'
 						open={open}
@@ -706,7 +807,11 @@
 
 				{#snippet SectionGlobalWalletAuth({ id, label, open })}
 					<BlockheadWalletAuthenticationsView
-						selection={selection.$$blockheadWalletAuthentications}
+						selection={
+							selection.$$blockheadWalletAuthentications({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No wallet authentications.'
 						open={open}
@@ -774,7 +879,11 @@
 
 				{#snippet SectionGlobalSources({ id, label, open })}
 					<BlockheadSourcesView
-						selection={selection.$$blockheadSources}
+						selection={
+							selection.$$blockheadSources({
+								count: true,
+							})
+						}
 						href={resolve('/~/manage/sources')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No sources.'
@@ -786,7 +895,11 @@
 
 				{#snippet SectionGlobalSessions({ id, label, open })}
 					<BlockheadSessionsView
-						selection={selection.$$blockheadSessions}
+						selection={
+							selection.$$blockheadSessions({
+								count: true,
+							})
+						}
 						href={resolve('/~/sessions')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No sessions.'
@@ -798,7 +911,11 @@
 
 				{#snippet SectionGlobalWorkspaces({ id, label, open })}
 					<BlockheadWorkspacesView
-						selection={selection.$$blockheadWorkspaces}
+						selection={
+							selection.$$blockheadWorkspaces({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No workspaces.'
 						open={open}
@@ -809,7 +926,11 @@
 
 				{#snippet SectionGlobalPanelTrees({ id, label, open })}
 					<BlockheadPanelTreesView
-						selection={selection.$$blockheadPanelTrees}
+						selection={
+							selection.$$blockheadPanelTrees({
+								count: true,
+							})
+						}
 						href={resolve('/~/dashboards')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No panel trees.'
@@ -821,7 +942,11 @@
 
 				{#snippet SectionGlobalMediaIngests({ id, label, open })}
 					<BlockheadLocalMediaIngestsView
-						selection={selection.$$blockheadLocalMediaIngests}
+						selection={
+							selection.$$blockheadLocalMediaIngests({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No media ingests.'
 						open={open}
@@ -832,7 +957,11 @@
 
 				{#snippet SectionGlobalSharedAddresses({ id, label, open })}
 					<BlockheadSharedAddressesView
-						selection={selection.$$blockheadSharedAddresses}
+						selection={
+							selection.$$blockheadSharedAddresses({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No shared addresses.'
 						open={open}
@@ -843,7 +972,11 @@
 
 				{#snippet SectionGlobalFarcasterConnections({ id, label, open })}
 					<BlockheadFarcasterAccountConnectionsView
-						selection={selection.$$blockheadFarcasterAccountConnections}
+						selection={
+							selection.$$blockheadFarcasterAccountConnections({
+								count: true,
+							})
+						}
 						href={resolve('/farcaster/accounts')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Farcaster connections.'
@@ -855,7 +988,11 @@
 
 				{#snippet SectionGlobalAgentConversations({ id, label, open })}
 					<BlockheadAgentConversationsView
-						selection={selection.$$blockheadAgentConversations}
+						selection={
+							selection.$$blockheadAgentConversations({
+								count: true,
+							})
+						}
 						href={resolve('/~/agents')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No agent conversations.'
@@ -867,7 +1004,11 @@
 
 				{#snippet SectionGlobalAlgorandKeys({ id, label, open })}
 					<BlockheadAlgorandParticipationKeysView
-						selection={selection.$$blockheadAlgorandParticipationKeys}
+						selection={
+							selection.$$blockheadAlgorandParticipationKeys({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Algorand participation keys.'
 						open={open}
@@ -915,7 +1056,11 @@
 
 				{#snippet SectionGlobalAiModelCatalogs({ id, label, open })}
 					<GlobalAiModelCatalogsView
-						selection={selection.$$aiModelCatalogs}
+						selection={
+							selection.$$aiModelCatalogs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI model catalogs.'
 						open={open}
@@ -926,7 +1071,11 @@
 
 				{#snippet SectionGlobalAiArtifactCatalogs({ id, label, open })}
 					<GlobalAiArtifactCatalogsView
-						selection={selection.$$aiArtifactCatalogs}
+						selection={
+							selection.$$aiArtifactCatalogs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No AI artifact catalogs.'
 						open={open}
@@ -937,7 +1086,11 @@
 
 				{#snippet SectionGlobalAgentNetworks({ id, label, open })}
 					<GlobalAgentNetworksView
-						selection={selection.$$agentNetworks}
+						selection={
+							selection.$$agentNetworks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No agent networks.'
 						open={open}
@@ -948,7 +1101,11 @@
 
 				{#snippet SectionGlobalEvmAbiCatalogs({ id, label, open })}
 					<GlobalEvmAbiCatalogsView
-						selection={selection.$$evmAbiCatalogs}
+						selection={
+							selection.$$evmAbiCatalogs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EVM ABI catalogs.'
 						open={open}
@@ -992,7 +1149,11 @@
 
 				{#snippet SectionGlobalBridgeTransactions({ id, label, open })}
 					<BlockheadBridgeTransactionsView
-						selection={selection.$$bridgeTransactions}
+						selection={
+							selection.$$bridgeTransactions({
+								count: true,
+							})
+						}
 						href={resolve('/~/accounts/transactions')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No bridge transactions.'
@@ -1004,7 +1165,11 @@
 
 				{#snippet SectionGlobalBridgeTransfers({ id, label, open })}
 					<BridgeTransfersView
-						selection={selection.$$bridgeTransfers}
+						selection={
+							selection.$$bridgeTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No bridge transfers.'
 						open={open}
@@ -1015,7 +1180,11 @@
 
 				{#snippet SectionGlobalEip8004({ id, label, open })}
 					<EvmNftsView
-						selection={selection.$$eip8004Services}
+						selection={
+							selection.$$eip8004Services({
+								count: true,
+							})
+						}
 						href={resolve('/services/agents')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EIP-8004 services.'
@@ -1060,7 +1229,11 @@
 
 				{#snippet SectionGlobalZerogNodes({ id, label, open })}
 					<BlockheadZeroGStorageNodeStatesView
-						selection={selection.$$blockheadZeroGStorageNodeStates}
+						selection={
+							selection.$$blockheadZeroGStorageNodeStates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No 0G storage node states.'
 						open={open}
@@ -1071,7 +1244,11 @@
 
 				{#snippet SectionGlobalZerogChunks({ id, label, open })}
 					<BlockheadZeroGStoredChunksView
-						selection={selection.$$blockheadZeroGStoredChunks}
+						selection={
+							selection.$$blockheadZeroGStoredChunks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No stored chunks.'
 						open={open}
@@ -1082,7 +1259,11 @@
 
 				{#snippet SectionGlobalZerogProofs({ id, label, open })}
 					<BlockheadZeroGStorageProofsView
-						selection={selection.$$blockheadZeroGStorageProofs}
+						selection={
+							selection.$$blockheadZeroGStorageProofs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No storage proofs.'
 						open={open}

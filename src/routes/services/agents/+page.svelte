@@ -34,6 +34,7 @@
 					Source.Eip8004Scan_Rest,
 				],
 				limit: 100,
+				count: true,
 			})
 		}
 		id='eip8004-services'

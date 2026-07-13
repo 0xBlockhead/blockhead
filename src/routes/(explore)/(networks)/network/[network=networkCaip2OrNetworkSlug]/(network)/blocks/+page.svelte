@@ -49,6 +49,7 @@
 							Source.Voltaire_JsonRpc,
 							Source.Blockscout_Rest,
 						],
+						count: true,
 					})
 				}
 				id='blocks'

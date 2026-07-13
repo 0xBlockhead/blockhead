@@ -692,14 +692,14 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 	- Selector parameters: destructure selector fields in resolver callbacks unless forwarding the whole selector unchanged to a source query or using it as an opaque selector key. Avoid repeated property drilling like `entitySelector.foo` when the callback uses individual fields.
 	- Count facets:
 		- `resolveCount` is authoritative only when the source exposes a count endpoint/value or the resolver has a complete unwindowed result set. Do not use a paginated/windowed page length as an authoritative count.
-		- `partial: true` means the list facet result is intentionally incomplete for count fallback purposes; it is not a support declaration. Set it when a many-field facet returns a window/preview and no authoritative count exists, so the client does not infer a count from list length.
+		- Counts are always explicit resolver capabilities. The client never infers `totalCount` from loaded list length; a resolver with a provably complete snapshot declares `resolveCount` directly.
 	- Source support metadata: source/provider constants or binding modules should own statically known network, chain, transport, API-family, operation-group, and feature coverage. Export row-derived O(1) lookup maps such as `*ByChainId` / `*ByNetworkKey`; do not export per-call support functions or scan binding arrays in resolver hot paths. Resolver predicates should consume those maps so unsupported surfaces are filtered before they look like runtime resolver failures.
 - Live resolvers:
-		- Optional `resolveLive` on a `defineResolver` field facet (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
-	- Keep `resolve` as the snapshot implementation.
-		- `resolveLive` typically calls `invalidateFields` or `invalidateCounts` so the existing collection `queryFn` re-runs.
-		- `mountEntityResolveLive` in `$/lib/db/resolveLive.svelte.ts` mounts resolver live facets from `$effect`; `startEntityFieldResolveLiveForParent` discovers field hooks for a parent id + field list.
-	- One live resolver may invalidate sibling fields, such as Voltaire `Network` `blockHeight` `resolveLive` refreshing `$$blocks` and `$$transactions`.
+		- Optional `resolveLive` on a `defineResolver` field facet or projection-scoped root publisher handles push-driven refresh from WebSockets or streams.
+		- Keep `resolve` as the snapshot implementation.
+		- Live publishers use projection-scoped `fields` handles to replace field/count rows or invalidate active Persisted collection subsets without clearing the previous rows on refresh failure.
+		- The Persisted collection `loadSubset`/`unloadSubset` lifecycle mounts live publishers. Root publishers are shared by source, resolver, projection, publisher, and parent selector; the last subscriber aborts and cleans up exactly once.
+	- One live resolver may publish or invalidate sibling fields in the same projection, such as Voltaire's `Network.Evm` block stream refreshing blocks, transactions, contracts, and blobs.
 
 
 ## Adding new Sources / Providers

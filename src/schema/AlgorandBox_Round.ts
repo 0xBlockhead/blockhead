@@ -36,9 +36,9 @@ export const AlgorandBox_Round = entity({
 	},
 	value: {
 		label: 'Value',
-		description: 'The source-domain value.',
+		description: 'The native asset amount transferred by the call frame.',
 		type: EntityFieldType.Primitive,
-		primitiveType: (ZeroExHex),
+		primitiveType: type('bigint'),
 		cardinality: EntityFieldCardinality.ZeroOrOne,
 	},
 	valueHash: {

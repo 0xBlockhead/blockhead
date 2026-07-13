@@ -160,7 +160,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadPanelsView
-				selection={selection.$$panels}
+				selection={
+						selection.$$panels({
+							count: true,
+						})
+					}
 				title='panels'
 				emptyText='No panels.'
 				id='BlockheadPanelsView-panels'

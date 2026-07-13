@@ -42,7 +42,11 @@
 					})
 				}
 				title='RPC URLs'
-				selection={projection.$$rpcUrls}
+				selection={
+					projection.$$rpcUrls({
+						count: true,
+					})
+				}
 				id='rpc-urls'
 			/>
 		{/snippet}

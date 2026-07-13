@@ -235,7 +235,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCodexStoredData_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No availability observations.'
 				id='BlockheadCodexStoredData_TimestampsView-timestamps'

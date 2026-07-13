@@ -34,6 +34,7 @@
 					Source.Dexscreener_OpenApi,
 				],
 				limit: 300,
+				count: true,
 			})
 		}
 		id='liquidity-pools'

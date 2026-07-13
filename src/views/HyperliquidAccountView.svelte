@@ -246,7 +246,11 @@
 
 				{#snippet SectionHyperliquidAccountOrders({ id, label, open })}
 					<HyperliquidOrdersView
-						selection={selection.$$orders}
+						selection={
+							selection.$$orders({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No orders.'
 						open={open}
@@ -257,7 +261,11 @@
 
 				{#snippet SectionHyperliquidAccountFills({ id, label, open })}
 					<HyperliquidFillsView
-						selection={selection.$$fills}
+						selection={
+							selection.$$fills({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No fills.'
 						open={open}
@@ -268,7 +276,11 @@
 
 				{#snippet SectionHyperliquidAccountVaultEquities({ id, label, open })}
 					<HyperliquidVaultEquity_TimestampsView
-						selection={selection.$$vaultEquities}
+						selection={
+							selection.$$vaultEquities({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No vault equities.'
 						open={open}
@@ -304,7 +316,11 @@
 
 				{#snippet SectionHyperliquidAccountTimestamps({ id, label, open })}
 					<HyperliquidAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

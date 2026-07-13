@@ -28,7 +28,9 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$blockheadStateChannels',
-			}).$$blockheadStateChannels
+			}).$$blockheadStateChannels({
+				count: true,
+			})
 		}
 		id='blockhead-state-channels'
 	/>

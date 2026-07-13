@@ -575,7 +575,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ArweaveTransactionsView
-				selection={selection.$$transactions}
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
 				title='transactions'
 				emptyText='No transactions found.'
 				id='ArweaveTransactionsView-transactions'

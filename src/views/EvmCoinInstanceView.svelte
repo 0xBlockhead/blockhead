@@ -509,6 +509,7 @@
 							sources: [
 								Source.Lifi_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Outbound bridge capabilities'
@@ -522,6 +523,7 @@
 							sources: [
 								Source.Lifi_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Inbound bridge capabilities'
@@ -530,7 +532,11 @@
 			/>
 
 			<MarketsView
-				selection={selection.$$marketsWithInstanceAsBase}
+				selection={
+						selection.$$marketsWithInstanceAsBase({
+							count: true,
+						})
+					}
 				title='Markets with instance as base'
 				href={resolve('/markets')}
 				emptyText='No markets use this instance as base yet.'
@@ -538,7 +544,11 @@
 			/>
 
 			<MarketsView
-				selection={selection.$$marketsWithInstanceAsQuote}
+				selection={
+						selection.$$marketsWithInstanceAsQuote({
+							count: true,
+						})
+					}
 				title='Markets with instance as quote'
 				href={resolve('/markets')}
 				emptyText='No markets use this instance as quote yet.'

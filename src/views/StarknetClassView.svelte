@@ -388,7 +388,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<StarknetContractsView
-				selection={selection.$$contracts}
+				selection={
+						selection.$$contracts({
+							count: true,
+						})
+					}
 				title='contracts'
 				emptyText='No Starknet contracts.'
 				id='StarknetContractsView-contracts'

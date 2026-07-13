@@ -232,7 +232,11 @@
 
 				{#snippet SectionHederaContractResults({ id, label, open })}
 					<HederaContractResultsView
-						selection={selection.$$results}
+						selection={
+							selection.$$results({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No results.'
 						open={open}
@@ -243,7 +247,11 @@
 
 				{#snippet SectionHederaContractLogs({ id, label, open })}
 					<HederaContractLogsView
-						selection={selection.$$logs}
+						selection={
+							selection.$$logs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No logs.'
 						open={open}
@@ -254,7 +262,11 @@
 
 				{#snippet SectionHederaContractState({ id, label, open })}
 					<HederaContractState_TimestampsView
-						selection={selection.$$state}
+						selection={
+							selection.$$state({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No state.'
 						open={open}
@@ -290,7 +302,11 @@
 
 				{#snippet SectionHederaContractTimestamps({ id, label, open })}
 					<HederaContract_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

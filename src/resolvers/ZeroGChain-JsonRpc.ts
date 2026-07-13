@@ -288,7 +288,9 @@ export default {
 			$block: (transaction) => transaction.$block,
 			$from: (transaction) => transaction.$from,
 			$to: (transaction) => transaction.$to,
-			$contract: (transaction) => transaction.$contract,
+			ContractCreation: {
+				$contract: (transaction) => transaction.$contract,
+			},
 			indexInBlock: (transaction) => transaction.indexInBlock,
 			value: (transaction) => transaction.value,
 			nonce: (transaction) => transaction.nonce,

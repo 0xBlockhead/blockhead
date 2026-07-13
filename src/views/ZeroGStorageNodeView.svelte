@@ -229,7 +229,11 @@
 
 				{#snippet SectionZeroGstorageNodeStoredChunks({ id, label, open })}
 					<ZeroGDataChunksView
-						selection={selection.$$storedChunks}
+						selection={
+							selection.$$storedChunks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No stored chunks.'
 						open={open}
@@ -240,7 +244,11 @@
 
 				{#snippet SectionZeroGstorageNodeProofs({ id, label, open })}
 					<ZeroGStorageProofsView
-						selection={selection.$$proofs}
+						selection={
+							selection.$$proofs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No proofs.'
 						open={open}
@@ -281,6 +289,7 @@
 								sources: [
 									Source.ZeroGStorageScan_Rest,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

@@ -430,7 +430,11 @@
 
 				{#snippet SectionEnsNameSubdomains({ id, label, open })}
 					<EnsNamesView
-						selection={selection.$$subdomains}
+						selection={
+							selection.$$subdomains({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No subdomains for this ENS name yet.'
 						open={open}
@@ -441,7 +445,11 @@
 
 				{#snippet SectionEnsNameRecordList({ id, label, open })}
 					<EnsRecordsView
-						selection={selection.$$records}
+						selection={
+							selection.$$records({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ENS records for this name yet.'
 						open={open}
@@ -477,7 +485,11 @@
 
 				{#snippet SectionEnsNameTimestamps({ id, label, open })}
 					<EnsName_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ENS name observations yet.'
 						open={open}

@@ -2,7 +2,11 @@ import { resolverContextRowLimit } from '$/resolvers/$resolvers.ts'
 import {
 	defineResolver,
 } from '$/resolvers/defineResolver.ts'
-import { networkBySlug } from '$/constants/Network.ts'
+import {
+	networkBySlug,
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
 import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
@@ -498,8 +502,13 @@ export default {
 						}),
 					])
 					return {
+						$network: {
+							[EntityMetaKey.Selector]: $network,
+						},
 						timestampMs,
 						source: Source.Solana_JsonRpc,
+						ledgerModels: [NetworkLedgerModel.Account],
+						executionModels: [NetworkExecutionModel.SolanaRuntime],
 						absoluteSlot: BigInt(epochInfo.absoluteSlot),
 						blockHeight: BigInt(epochInfo.blockHeight),
 						epoch: epochInfo.epoch,
@@ -521,20 +530,25 @@ export default {
 				}
 			},
 		})({
-				absoluteSlot: (timestamp) => timestamp.absoluteSlot,
+				$network: (timestamp) => timestamp.$network,
 				timestampMs: (timestamp) => timestamp.timestampMs,
-				blockHeight: (timestamp) => timestamp.blockHeight,
-				epoch: (timestamp) => timestamp.epoch,
-				slotIndex: (timestamp) => timestamp.slotIndex,
-				slotsInEpoch: (timestamp) => timestamp.slotsInEpoch,
-				transactionCount: (timestamp) => timestamp.transactionCount,
-				currentValidatorCount: (timestamp) => timestamp.currentValidatorCount,
-				delinquentValidatorCount: (timestamp) => timestamp.delinquentValidatorCount,
-				totalActivatedStakeLamports: (timestamp) => timestamp.totalActivatedStakeLamports,
-				solanaCoreVersion: (timestamp) => timestamp.solanaCoreVersion,
-				featureSet: (timestamp) => timestamp.featureSet,
-				health: (timestamp) => timestamp.health,
 				source: (timestamp) => timestamp.source,
+				ledgerModels: (timestamp) => timestamp.ledgerModels,
+				executionModels: (timestamp) => timestamp.executionModels,
+				Solana: {
+					absoluteSlot: (timestamp) => timestamp.absoluteSlot,
+					blockHeight: (timestamp) => timestamp.blockHeight,
+					epoch: (timestamp) => timestamp.epoch,
+					slotIndex: (timestamp) => timestamp.slotIndex,
+					slotsInEpoch: (timestamp) => timestamp.slotsInEpoch,
+					transactionCount: (timestamp) => timestamp.transactionCount,
+					currentValidatorCount: (timestamp) => timestamp.currentValidatorCount,
+					delinquentValidatorCount: (timestamp) => timestamp.delinquentValidatorCount,
+					totalActivatedStakeLamports: (timestamp) => timestamp.totalActivatedStakeLamports,
+					solanaCoreVersion: (timestamp) => timestamp.solanaCoreVersion,
+					featureSet: (timestamp) => timestamp.featureSet,
+					health: (timestamp) => timestamp.health,
+				},
 			}),
 
 		defineResolver(Source.Solana_JsonRpc, {
@@ -1095,6 +1109,26 @@ export default {
 		})({
 				Solana: {
 					$$validators: (validators) => validators,
+				},
+			}),
+
+		defineResolver(Source.Solana_JsonRpc, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Caip2]: async ({ caip2 }) => {
+					assertSolanaMainnet({ caip2 })
+					const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
+					const voteAccounts = await getVoteAccounts({
+						rpcUrl: await solanaMainnetRpcUrl(),
+					})
+					return voteAccounts.current.length + voteAccounts.delinquent.length
+				}
+			},
+		})({
+				Solana: {
+					$$validators: {
+						resolveCount: (count) => count,
+					},
 				},
 			}),
 

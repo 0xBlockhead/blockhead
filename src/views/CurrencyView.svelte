@@ -319,6 +319,7 @@
 								sources: [
 									Source.Constants_Internal,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/markets')}
@@ -336,6 +337,7 @@
 								sources: [
 									Source.Constants_Internal,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/markets')}

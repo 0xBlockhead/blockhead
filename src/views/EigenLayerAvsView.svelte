@@ -391,7 +391,11 @@
 
 				{#snippet SectionEigenlayerAvsOperatorList({ id, label, open })}
 					<EigenLayerOperatorsView
-						selection={selection.$$operators}
+						selection={
+							selection.$$operators({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer operators.'
 						open={open}
@@ -402,7 +406,11 @@
 
 				{#snippet SectionEigenlayerAvsAllocations({ id, label, open })}
 					<EigenLayerAllocation_TimestampsView
-						selection={selection.$$allocations}
+						selection={
+							selection.$$allocations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer allocation observations.'
 						open={open}
@@ -442,7 +450,11 @@
 
 				{#snippet SectionEigenlayerAvsObservations({ id, label, open })}
 					<EigenLayerAvs_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer AVS observations.'
 						open={open}
@@ -453,7 +465,11 @@
 
 				{#snippet SectionEigenlayerAvsSlashing({ id, label, open })}
 					<EigenLayerSlashingEventsView
-						selection={selection.$$slashingEvents}
+						selection={
+							selection.$$slashingEvents({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No EigenLayer slashing events.'
 						open={open}

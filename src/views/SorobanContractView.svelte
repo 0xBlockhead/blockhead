@@ -156,7 +156,11 @@
 
 				{#snippet SectionSorobanContractStorageEntries({ id, label, open })}
 					<SorobanContractStorageEntriesView
-						selection={selection.$$storageEntries}
+						selection={
+							selection.$$storageEntries({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No storage entries.'
 						open={open}
@@ -167,7 +171,11 @@
 
 				{#snippet SectionSorobanContractTransactions({ id, label, open })}
 					<StellarTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}
@@ -203,7 +211,11 @@
 
 				{#snippet SectionSorobanContractTimestamps({ id, label, open })}
 					<SorobanContract_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

@@ -518,7 +518,11 @@
 
 				{#snippet SectionHederaTransactionHbarTransfers({ id, label, open })}
 					<HederaHbarTransfersView
-						selection={selection.$$hbarTransfers}
+						selection={
+							selection.$$hbarTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No hbar transfers.'
 						open={open}
@@ -529,7 +533,11 @@
 
 				{#snippet SectionHederaTransactionTokenTransfers({ id, label, open })}
 					<HederaTokenTransfersView
-						selection={selection.$$tokenTransfers}
+						selection={
+							selection.$$tokenTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No token transfers.'
 						open={open}
@@ -565,7 +573,11 @@
 
 				{#snippet SectionHederaTransactionContractResults({ id, label, open })}
 					<HederaContractResultsView
-						selection={selection.$$contractResults}
+						selection={
+							selection.$$contractResults({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No contract results.'
 						open={open}

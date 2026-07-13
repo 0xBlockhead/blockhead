@@ -583,7 +583,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BnbBeaconTokenTransfersView
-				selection={selection.$$tokenEffects}
+				selection={
+						selection.$$tokenEffects({
+							count: true,
+						})
+					}
 				title='token effects'
 				emptyText='No token effects found.'
 				id='BnbBeaconTokenTransfersView-token-effects'

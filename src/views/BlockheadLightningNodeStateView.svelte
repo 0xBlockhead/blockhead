@@ -344,7 +344,11 @@
 
 				{#snippet SectionLightningNodeChannelStates({ id, label, open })}
 					<BlockheadLightningChannelStatesView
-						selection={selection.$$channelStates}
+						selection={
+							selection.$$channelStates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No local channel states.'
 						open={open}
@@ -355,7 +359,11 @@
 
 				{#snippet SectionLightningNodeChannels({ id, label, open })}
 					<LightningChannelsView
-						selection={selection.$$channels}
+						selection={
+							selection.$$channels({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No public channel refs.'
 						open={open}
@@ -395,7 +403,11 @@
 
 				{#snippet SectionLightningNodeInvoices({ id, label, open })}
 					<BlockheadLightningInvoicesView
-						selection={selection.$$invoices}
+						selection={
+							selection.$$invoices({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No invoices.'
 						open={open}
@@ -406,7 +418,11 @@
 
 				{#snippet SectionLightningNodePaymentList({ id, label, open })}
 					<BlockheadLightningPaymentsView
-						selection={selection.$$payments}
+						selection={
+							selection.$$payments({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No payments.'
 						open={open}
@@ -442,7 +458,11 @@
 
 				{#snippet SectionLightningNodeTimestamps({ id, label, open })}
 					<BlockheadLightningNodeState_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No node-state observations.'
 						open={open}

@@ -442,14 +442,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<StarknetEventsView
-				selection={selection.$$events}
+				selection={
+						selection.$$events({
+							count: true,
+						})
+					}
 				title='events'
 				emptyText='No Starknet events.'
 				id='StarknetEventsView-events'
 			/>
 
 			<StarknetTransaction_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Starknet transaction observations.'
 				id='StarknetTransaction_TimestampsView-timestamps'

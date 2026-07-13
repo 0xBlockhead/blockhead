@@ -176,7 +176,11 @@
 
 				{#snippet SectionTonJettonTransfers({ id, label, open })}
 					<TonJettonTransfersView
-						selection={selection.$$transfers}
+						selection={
+							selection.$$transfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transfers.'
 						open={open}
@@ -216,7 +220,11 @@
 
 				{#snippet SectionTonJettonBalanceTimestamps({ id, label, open })}
 					<TonJettonBalance_TimestampsView
-						selection={selection.$$balanceTimestamps}
+						selection={
+							selection.$$balanceTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No balance timestamps.'
 						open={open}
@@ -227,7 +235,11 @@
 
 				{#snippet SectionTonJettonTimestamps({ id, label, open })}
 					<TonJetton_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

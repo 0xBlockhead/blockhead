@@ -348,7 +348,11 @@
 
 				{#snippet SectionBlockheadSessionActions({ id, label, open })}
 					<BlockheadSessionActionsView
-						selection={selection.$$actions}
+						selection={
+							selection.$$actions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No actions.'
 						open={open}
@@ -359,7 +363,11 @@
 
 				{#snippet SectionBlockheadSessionIntents({ id, label, open })}
 					<BlockheadIntentInvocationsView
-						selection={selection.$$intentInvocations}
+						selection={
+							selection.$$intentInvocations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No intent invocations.'
 						open={open}
@@ -395,7 +403,11 @@
 
 				{#snippet SectionBlockheadSessionSimulationList({ id, label, open })}
 					<BlockheadSessionSimulationsView
-						selection={selection.$$simulations}
+						selection={
+							selection.$$simulations({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No simulations.'
 						open={open}

@@ -37,7 +37,11 @@
 			})
 		}
 		title='Block explorers'
-		selection={select(EntityType.Network, data.selector).$$blockExplorerUrls}
+		selection={
+			select(EntityType.Network, data.selector).$$blockExplorerUrls({
+				count: true,
+			})
+		}
 		id='block-explorer-urls'
 	/>
 </Page>

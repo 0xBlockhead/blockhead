@@ -293,14 +293,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<EvmNetworkActorCoinBalance_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				emptyText='No balance observations yet.'
 				id='EvmNetworkActorCoinBalance_TimestampsView-timestamps'
 			/>
 
 			<EvmNetworkActorCoinBalance_EvmBlocksView
-				selection={selection.$$blocks}
+				selection={
+						selection.$$blocks({
+							count: true,
+						})
+					}
 				title='Blocks'
 				emptyText='No balance blocks yet.'
 				id='EvmNetworkActorCoinBalance_EvmBlocksView-blocks'

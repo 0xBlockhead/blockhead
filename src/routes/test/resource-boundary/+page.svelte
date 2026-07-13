@@ -171,7 +171,7 @@
 			if (resourceFixtureSource.status === 'idle')
 				resourceFixtureSource.preload().catch(update)
 
-			return subscription.unsubscribe
+			return () => subscription.unsubscribe()
 		},
 		() => resourceFixtureSource.preload()
 	)

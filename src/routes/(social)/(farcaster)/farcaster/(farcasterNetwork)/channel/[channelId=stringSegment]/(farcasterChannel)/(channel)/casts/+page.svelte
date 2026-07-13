@@ -46,6 +46,7 @@
 					Source.Neynar_Rest,
 					Source.Snapchain_Rest,
 				],
+				count: true,
 			})
 		}
 		id='casts'

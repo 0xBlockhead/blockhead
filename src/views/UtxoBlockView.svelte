@@ -489,7 +489,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<UtxoTransactionsView
-				selection={selection.$$transactions}
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
 				title='Transactions'
 				id='UtxoTransactionsView-transactions'
 			/>

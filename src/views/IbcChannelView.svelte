@@ -500,7 +500,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<IbcPacketsView
-				selection={selection.$$packets}
+				selection={
+						selection.$$packets({
+							count: true,
+						})
+					}
 				title='Packets'
 				emptyText='No IBC packets.'
 				id='IbcPacketsView-packets'

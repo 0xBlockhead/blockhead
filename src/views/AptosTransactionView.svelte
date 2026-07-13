@@ -307,7 +307,11 @@
 
 				{#snippet SectionAptosTxStateChanges({ id, label, open })}
 					<AptosStateChangesView
-						selection={selection.$$stateChanges}
+						selection={
+							selection.$$stateChanges({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No state changes found.'
 						open={open}
@@ -318,7 +322,11 @@
 
 				{#snippet SectionAptosTxEvents({ id, label, open })}
 					<AptosEventsView
-						selection={selection.$$events}
+						selection={
+							selection.$$events({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No events found.'
 						open={open}
@@ -354,7 +362,11 @@
 
 				{#snippet SectionAptosTxTimestamps({ id, label, open })}
 					<AptosTransaction_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No observations yet.'
 						open={open}

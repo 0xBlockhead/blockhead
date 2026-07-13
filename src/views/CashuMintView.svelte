@@ -488,6 +488,7 @@
 							sources: [
 								Source.CashuMint_Rest,
 							],
+							count: true,
 						})
 					}
 				title='keysets'

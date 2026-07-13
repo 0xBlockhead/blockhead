@@ -179,7 +179,11 @@
 
 				{#snippet SectionHyperliquidChainObservations({ id, label, open })}
 					<HyperliquidNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hyperliquid network observations.'
 						open={open}
@@ -190,7 +194,11 @@
 
 				{#snippet SectionHyperliquidChainBlocks({ id, label, open })}
 					<HyperliquidBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hyperliquid blocks.'
 						open={open}
@@ -201,7 +209,11 @@
 
 				{#snippet SectionHyperliquidChainTransactions({ id, label, open })}
 					<HyperliquidTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hyperliquid transactions.'
 						open={open}
@@ -237,7 +249,11 @@
 
 				{#snippet SectionHyperliquidValidatorList({ id, label, open })}
 					<HyperliquidValidatorsView
-						selection={selection.$$validators}
+						selection={
+							selection.$$validators({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hyperliquid validators.'
 						open={open}
@@ -285,7 +301,11 @@
 
 				{#snippet SectionHyperliquidSpotAssets({ id, label, open })}
 					<HyperliquidSpotAssetsView
-						selection={selection.$$spotAssets}
+						selection={
+							selection.$$spotAssets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hyperliquid spot assets.'
 						open={open}
@@ -296,7 +316,11 @@
 
 				{#snippet SectionHyperliquidSpotPairs({ id, label, open })}
 					<HyperliquidSpotPairsView
-						selection={selection.$$spotPairs}
+						selection={
+							selection.$$spotPairs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hyperliquid spot pairs.'
 						open={open}
@@ -307,7 +331,11 @@
 
 				{#snippet SectionHyperliquidPerpMarkets({ id, label, open })}
 					<HyperliquidPerpMarketsView
-						selection={selection.$$perpMarkets}
+						selection={
+							selection.$$perpMarkets({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hyperliquid perp markets.'
 						open={open}
@@ -318,7 +346,11 @@
 
 				{#snippet SectionHyperliquidVaults({ id, label, open })}
 					<HyperliquidVaultsView
-						selection={selection.$$vaults}
+						selection={
+							selection.$$vaults({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Hyperliquid vaults.'
 						open={open}

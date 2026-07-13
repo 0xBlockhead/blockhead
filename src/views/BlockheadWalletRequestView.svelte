@@ -711,14 +711,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadWalletRequestCallsView
-				selection={selection.$$calls}
+				selection={
+						selection.$$calls({
+							count: true,
+						})
+					}
 				title='calls'
 				emptyText='No wallet request calls.'
 				id='BlockheadWalletRequestCallsView-calls'
 			/>
 
 			<BlockheadWalletRequest_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No wallet request observations.'
 				id='BlockheadWalletRequest_TimestampsView-timestamps'

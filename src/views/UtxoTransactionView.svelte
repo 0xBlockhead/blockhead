@@ -514,7 +514,11 @@
 
 				{#snippet SectionUtxoTransactionInputs({ id, label, open })}
 					<UtxoInputsView
-						selection={selection.$$inputs}
+						selection={
+							selection.$$inputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No inputs.'
 						open={open}
@@ -525,7 +529,11 @@
 
 				{#snippet SectionUtxoTransactionOutputs({ id, label, open })}
 					<UtxoOutputsView
-						selection={selection.$$outputs}
+						selection={
+							selection.$$outputs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No outputs.'
 						open={open}
@@ -561,7 +569,11 @@
 
 				{#snippet SectionUtxoTransactionZcashShieldedActions({ id, label, open })}
 					<ZcashShieldedActionsView
-						selection={selection.$$zcashShieldedActions}
+						selection={
+							selection.$$zcashShieldedActions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No zcash shielded actions.'
 						open={open}

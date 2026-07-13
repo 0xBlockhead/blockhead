@@ -258,7 +258,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<QuilibriumFramesView
-				selection={selection.$$frames}
+				selection={
+						selection.$$frames({
+							count: true,
+						})
+					}
 				title='frames'
 				emptyText='No Quilibrium frames.'
 				id='QuilibriumFramesView-frames'

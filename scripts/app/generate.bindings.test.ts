@@ -141,6 +141,13 @@ test('owns every provider, source, and binding in APP', () => {
 	assert.equal(sourceBindingRows.flatMap(({ binding }) => binding.credentials).filter((credential) => credential.env != null).length, 23)
 })
 
+test('declares live resolver transport in source bindings', () => {
+	assert.equal(sourceBindingRows.some(({ binding, source }) => (
+		source === Source.Voltaire_JsonRpc
+		&& binding.delivery === 'RemoteLive'
+	)), true)
+})
+
 test('owns Esplora target identities without object stringification', () => {
 	assert.deepEqual(
 		sourceBindingRows

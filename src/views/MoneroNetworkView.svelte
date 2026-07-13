@@ -188,6 +188,7 @@
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Observations'
@@ -200,6 +201,7 @@
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Blocks'

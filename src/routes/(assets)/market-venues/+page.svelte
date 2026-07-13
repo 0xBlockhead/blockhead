@@ -28,7 +28,9 @@
 		selection={
 			select(EntityType._Global, {
 				scope: '$$marketVenues',
-			}).$$marketVenues
+			}).$$marketVenues({
+				count: true,
+			})
 		}
 		id='market-venues'
 	/>

@@ -233,7 +233,11 @@
 
 				{#snippet SectionTonAccountTransactions({ id, label, open })}
 					<TonTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No transactions.'
 						open={open}
@@ -244,7 +248,11 @@
 
 				{#snippet SectionTonAccountMessages({ id, label, open })}
 					<TonMessagesView
-						selection={selection.$$messages}
+						selection={
+							selection.$$messages({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No messages.'
 						open={open}
@@ -255,7 +263,11 @@
 
 				{#snippet SectionTonAccountNftItems({ id, label, open })}
 					<TonNftItemsView
-						selection={selection.$$nftItems}
+						selection={
+							selection.$$nftItems({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No nft items.'
 						open={open}
@@ -295,7 +307,11 @@
 
 				{#snippet SectionTonAccountJettonBalanceTimestamps({ id, label, open })}
 					<TonJettonBalance_TimestampsView
-						selection={selection.$$jettonBalanceTimestamps}
+						selection={
+							selection.$$jettonBalanceTimestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No jetton balance timestamps.'
 						open={open}
@@ -306,7 +322,11 @@
 
 				{#snippet SectionTonAccountTimestamps({ id, label, open })}
 					<TonAccount_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

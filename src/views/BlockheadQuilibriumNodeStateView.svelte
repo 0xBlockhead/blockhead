@@ -404,7 +404,11 @@
 
 				{#snippet SectionQuilibriumFrames({ id, label, open })}
 					<QuilibriumFramesView
-						selection={selection.$$frames}
+						selection={
+							selection.$$frames({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Quilibrium frames.'
 						open={open}
@@ -415,7 +419,11 @@
 
 				{#snippet SectionQuilibriumProvers({ id, label, open })}
 					<QuilibriumProversView
-						selection={selection.$$provers}
+						selection={
+							selection.$$provers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Quilibrium provers.'
 						open={open}
@@ -451,7 +459,11 @@
 
 				{#snippet SectionQuilibriumNodeTimestamps({ id, label, open })}
 					<BlockheadQuilibriumNodeState_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Quilibrium node observations.'
 						open={open}

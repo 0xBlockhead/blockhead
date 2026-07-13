@@ -362,7 +362,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<McpResourceContent_TimestampsView
-				selection={selection.$$contentTimestamps}
+				selection={
+						selection.$$contentTimestamps({
+							count: true,
+						})
+					}
 				title='content timestamps'
 				emptyText='No MCP resource content observations.'
 				id='McpResourceContent_TimestampsView-content-timestamps'

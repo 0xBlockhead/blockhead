@@ -6,6 +6,10 @@ import {
 	bitcoinNetworkBySlug,
 } from '$/constants/BitcoinNetwork.ts'
 import {
+	NetworkExecutionModel,
+	NetworkLedgerModel,
+} from '$/constants/Network.ts'
+import {
 	EntityMetaKey,
 } from '$/schema/$schema.ts'
 import type { EntitySelector } from '$/schema/$schema.ts'
@@ -327,6 +331,8 @@ export default {
 						},
 						timestampMs,
 						source,
+						ledgerModels: [NetworkLedgerModel.Utxo],
+						executionModels: [] satisfies NetworkExecutionModel[],
 						bestBlockHeight: BigInt(block.height),
 						bestBlockHash: block.id,
 						mempoolTransactionCount: mempoolStats.count,
@@ -339,11 +345,15 @@ export default {
 				$network: (timestamp) => timestamp.$network,
 				timestampMs: (timestamp) => timestamp.timestampMs,
 				source: (timestamp) => timestamp.source,
-				bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
-				bestBlockHash: (timestamp) => timestamp.bestBlockHash,
-				mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
-				mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
-				suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
+				ledgerModels: (timestamp) => timestamp.ledgerModels,
+				executionModels: (timestamp) => timestamp.executionModels,
+				Utxo: {
+					bestBlockHeight: (timestamp) => timestamp.bestBlockHeight,
+					bestBlockHash: (timestamp) => timestamp.bestBlockHash,
+					mempoolTransactionCount: (timestamp) => timestamp.mempoolTransactionCount,
+					mempoolSizeBytes: (timestamp) => timestamp.mempoolSizeBytes,
+					suggestedTransactionFeePerByteSats: (timestamp) => timestamp.suggestedTransactionFeePerByteSats,
+				},
 			}),
 
 		defineResolver(Source.MempoolSpace_Rest, {
@@ -416,6 +426,40 @@ export default {
 		})({
 				Utxo: {
 					$$blocks: (blocks) => blocks,
+				},
+			}),
+
+		defineResolver(Source.MempoolSpace_Rest, {
+			entityType: EntityType.Network,
+			resolve: {
+				[NetworkSelector.Slug]: async (network) => {
+					assertBitcoinMainnet(network)
+					const {
+						getBlocks,
+						getMempoolStats,
+					} = await import('$/sources/MempoolSpace/Rest/queries.ts')
+					const [blocks, mempoolStats] = await Promise.all([
+						getBlocks({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl }),
+						getMempoolStats({ restBaseUrl: bitcoinNetworkBySlug.bitcoin.mempoolSpaceRestBaseUrl }),
+					])
+					const latestBlock = blocks.at(0)
+					if (latestBlock == null)
+						throw new Error('MempoolSpace_Rest: no blocks returned for counts')
+
+					return {
+						blocks: latestBlock.height + 1,
+						transactions: mempoolStats.count,
+					}
+				}
+			},
+		})({
+				Utxo: {
+					$$blocks: {
+						resolveCount: (counts) => counts.blocks,
+					},
+					$$transactions: {
+						resolveCount: (counts) => counts.transactions,
+					},
 				},
 			}),
 

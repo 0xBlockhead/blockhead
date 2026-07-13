@@ -44,6 +44,7 @@
 				sources: [
 					Source.Snapchain_Rest,
 				],
+				count: true,
 			})
 		}
 		id='casts'

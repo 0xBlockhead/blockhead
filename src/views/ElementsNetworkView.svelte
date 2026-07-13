@@ -337,6 +337,7 @@
 							sources: [
 								Source.Esplora_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Assets'

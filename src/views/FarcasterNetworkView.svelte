@@ -354,6 +354,7 @@
 									Source.Constants_Internal,
 									Source.Farcaster_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/farcaster/feed')}
@@ -367,7 +368,11 @@
 
 				{#snippet SectionFarcasterNetworkUsers({ id, label, open })}
 					<FarcasterUsersView
-						selection={selection.$$users}
+						selection={
+							selection.$$users({
+								count: true,
+							})
+						}
 						href={resolve('/farcaster/users')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Farcaster users in this observed.'
@@ -379,7 +384,11 @@
 
 				{#snippet SectionFarcasterNetworkChannels({ id, label, open })}
 					<FarcasterChannelsView
-						selection={selection.$$channels}
+						selection={
+							selection.$$channels({
+								count: true,
+							})
+						}
 						href={resolve('/farcaster/channels')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Farcaster channels in this observed.'

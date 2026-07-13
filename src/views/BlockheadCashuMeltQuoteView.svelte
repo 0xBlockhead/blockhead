@@ -334,14 +334,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCashuProofsView
-				selection={selection.$$inputProofs}
+				selection={
+						selection.$$inputProofs({
+							count: true,
+						})
+					}
 				title='input proofs'
 				emptyText='No input proofs found.'
 				id='BlockheadCashuProofsView-input-proofs'
 			/>
 
 			<BlockheadCashuMeltQuote_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='BlockheadCashuMeltQuote_TimestampsView-timestamps'

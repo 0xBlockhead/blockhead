@@ -160,7 +160,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LogosBlockchainNetwork_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Timestamps'
 				emptyText='No Logos blockchain consensus observations.'
 				id='LogosBlockchainNetwork_TimestampsView-timestamps'

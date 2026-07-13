@@ -364,42 +364,66 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<TokenMetadataDocumentsView
-				selection={selection.$$metadata}
+				selection={
+						selection.$$metadata({
+							count: true,
+						})
+					}
 				title='Metadata'
 				emptyText='No token metadata documents.'
 				id='TokenMetadataDocumentsView-metadata'
 			/>
 
 			<TokenProgramExtension_TimestampsView
-				selection={selection.$$tokenProgramExtensions}
+				selection={
+						selection.$$tokenProgramExtensions({
+							count: true,
+						})
+					}
 				title='Token program extensions'
 				emptyText='No token program extension observations.'
 				id='TokenProgramExtension_TimestampsView-token-program-extensions'
 			/>
 
 			<RegulatedAssetProfilesView
-				selection={selection.$$regulatedProfiles}
+				selection={
+						selection.$$regulatedProfiles({
+							count: true,
+						})
+					}
 				title='Regulated profiles'
 				emptyText='No regulated asset profiles.'
 				id='RegulatedAssetProfilesView-regulated-profiles'
 			/>
 
 			<TransferRestrictionsView
-				selection={selection.$$transferRestrictions}
+				selection={
+						selection.$$transferRestrictions({
+							count: true,
+						})
+					}
 				title='Transfer restrictions'
 				emptyText='No transfer restrictions.'
 				id='TransferRestrictionsView-transfer-restrictions'
 			/>
 
 			<NftCollectionsView
-				selection={selection.$$nftCollections}
+				selection={
+						selection.$$nftCollections({
+							count: true,
+						})
+					}
 				title='NFT collections'
 				emptyText='No NFT collections.'
 				id='NftCollectionsView-nft-collections'
 			/>
 
 			<PayoutsView
-				selection={selection.$$payouts}
+				selection={
+						selection.$$payouts({
+							count: true,
+						})
+					}
 				title='Payouts'
 				emptyText='No payouts.'
 				id='PayoutsView-payouts'

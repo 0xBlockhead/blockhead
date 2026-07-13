@@ -178,6 +178,7 @@
 								sources: [
 									Source.TronGrid_Rest,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -197,6 +198,7 @@
 									Source.TronFullNode_Rest,
 									Source.TronSolidityNode_Rest,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}
@@ -238,7 +240,11 @@
 
 				{#snippet SectionTronTokenList({ id, label, open })}
 					<TronTokensView
-						selection={selection.$$tokens}
+						selection={
+							selection.$$tokens({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tron tokens.'
 						open={open}
@@ -249,7 +255,11 @@
 
 				{#snippet SectionTronTokenTransfers({ id, label, open })}
 					<TronTokenTransfersView
-						selection={selection.$$tokenTransfers}
+						selection={
+							selection.$$tokenTransfers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Tron token transfers.'
 						open={open}
@@ -290,6 +300,7 @@
 								sources: [
 									Source.TronGrid_Rest,
 								],
+								count: true,
 							})
 						}
 						CollapsibleProps={{ canToggle: false }}

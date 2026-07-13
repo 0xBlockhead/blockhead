@@ -411,6 +411,7 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/nostr/notes')}
@@ -430,6 +431,7 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/nostr/articles')}
@@ -474,6 +476,7 @@
 									Source.Constants_Internal,
 									Source.NostrBand_Rest,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/nostr/reposts')}

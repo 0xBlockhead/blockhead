@@ -497,7 +497,11 @@
 
 				{#snippet SectionZcashViewingKeys({ id, label, open })}
 					<BlockheadZcashViewingKeysView
-						selection={selection.$$viewingKeys}
+						selection={
+							selection.$$viewingKeys({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Zcash viewing keys.'
 						open={open}
@@ -508,7 +512,11 @@
 
 				{#snippet SectionZcashNotes({ id, label, open })}
 					<BlockheadZcashNoteStatesView
-						selection={selection.$$notes}
+						selection={
+							selection.$$notes({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Zcash notes.'
 						open={open}
@@ -544,7 +552,11 @@
 
 				{#snippet SectionZcashWalletTimestamps({ id, label, open })}
 					<BlockheadZcashWalletState_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Zcash wallet observations.'
 						open={open}

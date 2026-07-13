@@ -156,7 +156,11 @@
 
 				{#snippet SectionIcpSubnetCanisterRanges({ id, label, open })}
 					<IcpSubnetCanisterRange_TimestampsView
-						selection={selection.$$canisterRanges}
+						selection={
+							selection.$$canisterRanges({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No canister ranges.'
 						open={open}
@@ -167,7 +171,11 @@
 
 				{#snippet SectionIcpSubnetCanisters({ id, label, open })}
 					<IcpCanistersView
-						selection={selection.$$canisters}
+						selection={
+							selection.$$canisters({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No canisters.'
 						open={open}
@@ -203,7 +211,11 @@
 
 				{#snippet SectionIcpSubnetTimestamps({ id, label, open })}
 					<IcpSubnet_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}

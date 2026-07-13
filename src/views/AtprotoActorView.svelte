@@ -330,6 +330,7 @@
 							sources: [
 								Source.Atproto_Xrpc,
 							],
+							count: true,
 						})
 					}
 				title='Posts'
@@ -343,6 +344,7 @@
 							sources: [
 								Source.Atproto_Xrpc,
 							],
+							count: true,
 						})
 					}
 				title='Metric observations'

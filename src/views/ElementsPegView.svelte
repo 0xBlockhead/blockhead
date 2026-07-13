@@ -344,7 +344,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<ElementsPeg_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Observations'
 				id='ElementsPeg_TimestampsView-timestamps'
 			/>

@@ -456,7 +456,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AcpToolCall_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No ACP tool call observations.'
 				id='AcpToolCall_TimestampsView-timestamps'

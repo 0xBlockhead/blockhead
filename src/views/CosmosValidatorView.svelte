@@ -436,7 +436,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CosmosValidator_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Validator snapshots'
 				emptyText='No Cosmos validator observations.'
 				id='CosmosValidator_TimestampsView-timestamps'

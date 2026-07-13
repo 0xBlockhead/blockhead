@@ -165,7 +165,11 @@
 
 				{#snippet SectionKaspaAddressTransactions({ id, label, open })}
 					<KaspaTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa transactions.'
 						open={open}
@@ -176,7 +180,11 @@
 
 				{#snippet SectionKaspaAddressUtxos({ id, label, open })}
 					<KaspaAddressUtxo_TimestampsView
-						selection={selection.$$utxos}
+						selection={
+							selection.$$utxos({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa UTXO observations.'
 						open={open}
@@ -212,7 +220,11 @@
 
 				{#snippet SectionKaspaAddressTimestamps({ id, label, open })}
 					<KaspaAddress_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Kaspa address observations.'
 						open={open}

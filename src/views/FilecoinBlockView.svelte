@@ -399,6 +399,7 @@
 								Source.Lotus_JsonRpc,
 								Source.Filfox_Rest,
 							],
+							count: true,
 						})
 					}
 				title='Messages'

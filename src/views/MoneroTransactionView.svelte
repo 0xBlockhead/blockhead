@@ -372,6 +372,7 @@
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Key images'
@@ -384,6 +385,7 @@
 							sources: [
 								Source.MoneroDaemonRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Stealth outputs'

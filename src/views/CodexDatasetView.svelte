@@ -332,7 +332,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadCodexStoredDataEntriesView
-				selection={selection.$$localCopies}
+				selection={
+						selection.$$localCopies({
+							count: true,
+						})
+					}
 				title='local copies'
 				emptyText='No local copies.'
 				id='BlockheadCodexStoredDataEntriesView-local-copies'

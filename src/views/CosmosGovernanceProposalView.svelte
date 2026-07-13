@@ -279,7 +279,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<CosmosGovernanceProposal_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='Lifecycle snapshots'
 				emptyText='No Cosmos governance proposal observations.'
 				id='CosmosGovernanceProposal_TimestampsView-timestamps'

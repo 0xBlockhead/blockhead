@@ -152,6 +152,7 @@
 									Source.Constants_Internal,
 									Source.Reddit_PublicJson,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/reddit/subreddits')}
@@ -170,6 +171,7 @@
 									Source.Constants_Internal,
 									Source.Reddit_PublicJson,
 								],
+								count: true,
 							})
 						}
 						href={resolve('/reddit/links')}
@@ -207,7 +209,11 @@
 
 				{#snippet SectionRedditHubObservations({ id, label, open })}
 					<GlobalRedditNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Reddit network observations.'
 						open={open}

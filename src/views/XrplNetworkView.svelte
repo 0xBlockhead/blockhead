@@ -178,7 +178,11 @@
 
 				{#snippet SectionXrplChainObservations({ id, label, open })}
 					<XrplNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No XRPL network observations.'
 						open={open}
@@ -189,7 +193,11 @@
 
 				{#snippet SectionXrplChainLedgers({ id, label, open })}
 					<XrplLedgersView
-						selection={selection.$$ledgers}
+						selection={
+							selection.$$ledgers({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No XRPL ledgers.'
 						open={open}
@@ -200,7 +208,11 @@
 
 				{#snippet SectionXrplChainTransactions({ id, label, open })}
 					<XrplTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No XRPL transactions.'
 						open={open}
@@ -240,7 +252,11 @@
 
 				{#snippet SectionXrplAccountList({ id, label, open })}
 					<XrplAccountsView
-						selection={selection.$$accounts}
+						selection={
+							selection.$$accounts({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No XRPL accounts.'
 						open={open}
@@ -251,7 +267,11 @@
 
 				{#snippet SectionXrplLedgerEntries({ id, label, open })}
 					<XrplLedgerEntriesView
-						selection={selection.$$ledgerEntries}
+						selection={
+							selection.$$ledgerEntries({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No XRPL ledger entries.'
 						open={open}
@@ -291,7 +311,11 @@
 
 				{#snippet SectionXrplAmms({ id, label, open })}
 					<XrplAmmsView
-						selection={selection.$$amms}
+						selection={
+							selection.$$amms({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No XRPL AMMs.'
 						open={open}
@@ -302,7 +326,11 @@
 
 				{#snippet SectionXrplAmendments({ id, label, open })}
 					<XrplAmendmentsView
-						selection={selection.$$amendments}
+						selection={
+							selection.$$amendments({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No XRPL amendments.'
 						open={open}

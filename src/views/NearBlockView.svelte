@@ -338,6 +338,7 @@
 							sources: [
 								Source.NearRpc_JsonRpc,
 							],
+							count: true,
 						})
 					}
 				title='Chunks'

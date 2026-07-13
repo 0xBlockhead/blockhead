@@ -232,14 +232,22 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadBitTorrentClientState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='BlockheadBitTorrentClientState_TimestampsView-timestamps'
 			/>
 
 			<BlockheadBitTorrentTransfer_TimestampsView
-				selection={selection.$$transfers}
+				selection={
+						selection.$$transfers({
+							count: true,
+						})
+					}
 				title='transfers'
 				emptyText='No transfers yet.'
 				id='BlockheadBitTorrentTransfer_TimestampsView-transfers'

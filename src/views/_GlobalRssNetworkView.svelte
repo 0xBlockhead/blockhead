@@ -127,7 +127,11 @@
 
 				{#snippet SectionRssFeeds({ id, label, open })}
 					<RssFeedsView
-						selection={selection.$$observedFeeds}
+						selection={
+							selection.$$observedFeeds({
+								count: true,
+							})
+						}
 						href={resolve('/rss/feeds')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No RSS feeds in this observed.'
@@ -139,7 +143,11 @@
 
 				{#snippet SectionRssItems({ id, label, open })}
 					<RssItemsView
-						selection={selection.$$observedItems}
+						selection={
+							selection.$$observedItems({
+								count: true,
+							})
+						}
 						href={resolve('/rss/items')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No RSS items in this observed.'
@@ -176,7 +184,11 @@
 
 				{#snippet SectionRssHubObservations({ id, label, open })}
 					<GlobalRssNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No RSS observed observations yet.'
 						open={open}

@@ -28,7 +28,9 @@
 		selection={
 			select(EntityType._GlobalNostrNetwork, {
 				scope: '_GlobalNostrNetwork',
-			}).$$observedReactions
+			}).$$observedReactions({
+				count: true,
+			})
 		}
 		id='observed-reactions'
 	/>

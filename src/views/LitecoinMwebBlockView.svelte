@@ -239,7 +239,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<LitecoinMwebTransactionsView
-				selection={selection.$$transactions}
+				selection={
+						selection.$$transactions({
+							count: true,
+						})
+					}
 				title='transactions'
 				emptyText='No Litecoin MWEB transactions.'
 				id='LitecoinMwebTransactionsView-transactions'

@@ -175,7 +175,11 @@
 
 				{#snippet SectionArweaveChainObservations({ id, label, open })}
 					<ArweaveNetwork_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Arweave network observations.'
 						open={open}
@@ -186,7 +190,11 @@
 
 				{#snippet SectionArweaveChainBlocks({ id, label, open })}
 					<ArweaveBlocksView
-						selection={selection.$$blocks}
+						selection={
+							selection.$$blocks({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Arweave blocks.'
 						open={open}
@@ -197,7 +205,11 @@
 
 				{#snippet SectionArweaveChainTransactions({ id, label, open })}
 					<ArweaveTransactionsView
-						selection={selection.$$transactions}
+						selection={
+							selection.$$transactions({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Arweave transactions.'
 						open={open}
@@ -233,7 +245,11 @@
 
 				{#snippet SectionArweaveResourceList({ id, label, open })}
 					<ArweaveResourcesView
-						selection={selection.$$resources}
+						selection={
+							selection.$$resources({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No Arweave resources.'
 						open={open}

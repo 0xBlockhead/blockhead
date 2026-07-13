@@ -327,7 +327,11 @@
 
 				{#snippet SectionActivitypubNoteThreadNotes({ id, label, open })}
 					<ActivityPubNotesView
-						selection={selection.$$thread}
+						selection={
+							selection.$$thread({
+								count: true,
+							})
+						}
 						href={resolve('/activitypub/notes')}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub thread notes.'
@@ -339,7 +343,11 @@
 
 				{#snippet SectionActivitypubNoteMedia({ id, label, open })}
 					<MediaListView
-						selection={selection.$$media}
+						selection={
+							selection.$$media({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub note media.'
 						open={open}
@@ -375,7 +383,11 @@
 
 				{#snippet SectionActivitypubNoteTimestamps({ id, label, open })}
 					<ActivityPubNote_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No ActivityPub note observations yet.'
 						open={open}

@@ -172,28 +172,44 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<AvalancheSubnet_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No observations yet.'
 				id='AvalancheSubnet_TimestampsView-timestamps'
 			/>
 
 			<AvalancheBlockchainsView
-				selection={selection.$$blockchains}
+				selection={
+						selection.$$blockchains({
+							count: true,
+						})
+					}
 				title='blockchains'
 				emptyText='No blockchains found.'
 				id='AvalancheBlockchainsView-blockchains'
 			/>
 
 			<AvalancheValidatorsView
-				selection={selection.$$validators}
+				selection={
+						selection.$$validators({
+							count: true,
+						})
+					}
 				title='validators'
 				emptyText='No validators found.'
 				id='AvalancheValidatorsView-validators'
 			/>
 
 			<AvalancheDelegatorsView
-				selection={selection.$$delegators}
+				selection={
+						selection.$$delegators({
+							count: true,
+						})
+					}
 				title='delegators'
 				emptyText='No delegators found.'
 				id='AvalancheDelegatorsView-delegators'

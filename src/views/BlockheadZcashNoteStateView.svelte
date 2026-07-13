@@ -527,7 +527,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadZcashNoteState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Zcash note observations.'
 				id='BlockheadZcashNoteState_TimestampsView-timestamps'

@@ -337,7 +337,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<GitSignaturesView
-				selection={selection.$$signatures}
+				selection={
+						selection.$$signatures({
+							count: true,
+						})
+					}
 				title='signatures'
 				emptyText='No signatures.'
 				id='GitSignaturesView-signatures'

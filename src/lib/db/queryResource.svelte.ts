@@ -5,6 +5,7 @@ import {
 	tick,
 	untrack,
 } from 'svelte'
+import { createSubscriber } from 'svelte/reactivity'
 
 
 export type QueryResourceError = object | string
@@ -46,7 +47,10 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	#query: () => TanStackLiveQuerySnapshot<Data>
 	#subscribeToSource: (update: () => void) => () => void
 	#initialize: (() => Promise<void>) | undefined
-	#unsubscribe: (() => void) | undefined
+	#sourceUnsubscribe: (() => void) | undefined
+	#sourceReferenceCount = 0
+	#sourceUpdates = new Set<() => void>()
+	#track = createSubscriber((update) => this.#acquireSource(update))
 	#first = promiseWithResolvers<void>()
 	#loading = $state(true)
 	#ready = $state(false)
@@ -65,15 +69,17 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	#started = false
 
 	#then = $derived.by((): Promise<Data>['then'] => {
-		const promise = this.#promise
-
 		return (onFulfilled, onRejected) => {
-			const result = promise.then(tick).then(() => {
+			const releaseSource = this.#acquireSource()
+			untrack(() => {
+				this.#apply(this.#query())
+			})
+			const result = this.#promise.then(tick).then(() => {
 				if (!this.#ready || this.#raw === undefined)
 					throw new Error('TanStackLiveQueryResource resolved before current value was available')
 
 				return this.#raw.value
-			})
+			}).finally(releaseSource)
 
 			return result.then(onFulfilled, onRejected)
 		}
@@ -90,15 +96,33 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 		this.#promise.catch(() => {})
 	}
 
-	#subscribe() {
-		if (this.#unsubscribe !== undefined)
-			return
-
-		this.#unsubscribe = this.#subscribeToSource(() => {
+	#acquireSource(update?: () => void) {
+		this.#sourceReferenceCount += 1
+		if (update != null)
+			this.#sourceUpdates.add(update)
+		if (this.#sourceUnsubscribe === undefined)
+			this.#sourceUnsubscribe = this.#subscribeToSource(() => {
 			untrack(() => {
 				this.#apply(this.#query())
 			})
-		})
+			for (const sourceUpdate of this.#sourceUpdates)
+				sourceUpdate()
+			})
+
+		let released = false
+		return () => {
+			if (released)
+				return
+
+		released = true
+		this.#sourceReferenceCount -= 1
+		if (update != null)
+			this.#sourceUpdates.delete(update)
+		if (this.#sourceReferenceCount === 0) {
+				this.#sourceUnsubscribe?.()
+				this.#sourceUnsubscribe = undefined
+			}
+		}
 	}
 
 	#start() {
@@ -106,7 +130,6 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			return
 
 		this.#started = true
-		this.#subscribe()
 		void (this.#initialize?.() ?? Promise.resolve())
 			.then(() => {
 				untrack(() => {
@@ -115,6 +138,19 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 			})
 			.catch((error) => {
 				this.fail(error instanceof Error ? error : String(error))
+			})
+	}
+
+	#read() {
+		const started = this.#started
+		this.#start()
+		this.#track()
+		if (
+			started
+			&& this.#sourceReferenceCount === 0
+		)
+			untrack(() => {
+				this.#apply(this.#query())
 			})
 	}
 
@@ -155,11 +191,13 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 
 	get then(): Promise<Data>['then'] {
 		this.#start()
+		this.#track()
 		return this.#then
 	}
 
 	get catch(): Promise<Data>['catch'] {
 		this.#start()
+		this.#track()
 		this.#then
 		return (
 			onRejected
@@ -168,6 +206,7 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 
 	get finally(): Promise<Data>['finally'] {
 		this.#start()
+		this.#track()
 		this.#then
 		return (
 			onFinally?: (() => void) | null
@@ -184,22 +223,22 @@ export class TanStackLiveQueryResource<Data> implements SvelteKitResource<Data> 
 	}
 
 	get current() {
-		this.#start()
+		this.#read()
 		return this.#current
 	}
 
 	get error() {
-		this.#start()
+		this.#read()
 		return this.#error
 	}
 
 	get loading() {
-		this.#start()
+		this.#read()
 		return this.#loading
 	}
 
 	get ready() {
-		this.#start()
+		this.#read()
 		return this.#ready
 	}
 

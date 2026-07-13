@@ -44,6 +44,7 @@
 				sources: [
 					Source.Lens_Graphql,
 				],
+				count: true,
 			})
 		}
 		id='posts'

@@ -334,7 +334,11 @@
 	{#snippet Details({ open: detailsOpen })}
 		{#if detailsOpen}
 			<BlockheadMoneroSubaddressState_TimestampsView
-				selection={selection.$$timestamps}
+				selection={
+						selection.$$timestamps({
+							count: true,
+						})
+					}
 				title='timestamps'
 				emptyText='No Monero subaddress observations.'
 				id='BlockheadMoneroSubaddressState_TimestampsView-timestamps'

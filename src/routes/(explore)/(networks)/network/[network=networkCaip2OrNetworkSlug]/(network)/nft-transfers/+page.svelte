@@ -48,6 +48,7 @@
 						sources: [
 							Source.Blockscout_Rest,
 						],
+						count: true,
 					})
 				}
 				id='nft-token-transfers'

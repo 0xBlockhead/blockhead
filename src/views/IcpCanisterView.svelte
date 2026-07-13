@@ -163,7 +163,11 @@
 
 				{#snippet SectionIcpCanisterMethods({ id, label, open })}
 					<IcpCanisterMethodsView
-						selection={selection.$$methods}
+						selection={
+							selection.$$methods({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No methods.'
 						open={open}
@@ -174,7 +178,11 @@
 
 				{#snippet SectionIcpCanisterMetadata({ id, label, open })}
 					<IcpCanisterMetadataEntriesView
-						selection={selection.$$metadata}
+						selection={
+							selection.$$metadata({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No metadata.'
 						open={open}
@@ -185,7 +193,11 @@
 
 				{#snippet SectionIcpCanisterLogs({ id, label, open })}
 					<IcpCanisterLog_TimestampsView
-						selection={selection.$$logs}
+						selection={
+							selection.$$logs({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No logs.'
 						open={open}
@@ -225,7 +237,11 @@
 
 				{#snippet SectionIcpCanisterCertifiedStates({ id, label, open })}
 					<IcpCertifiedStatesView
-						selection={selection.$$certifiedStates}
+						selection={
+							selection.$$certifiedStates({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No certified states.'
 						open={open}
@@ -236,7 +252,11 @@
 
 				{#snippet SectionIcpCanisterRequestStatuses({ id, label, open })}
 					<IcpRequestStatusesView
-						selection={selection.$$requestStatuses}
+						selection={
+							selection.$$requestStatuses({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No request statuses.'
 						open={open}
@@ -272,7 +292,11 @@
 
 				{#snippet SectionIcpCanisterTimestamps({ id, label, open })}
 					<IcpCanister_TimestampsView
-						selection={selection.$$timestamps}
+						selection={
+							selection.$$timestamps({
+								count: true,
+							})
+						}
 						CollapsibleProps={{ canToggle: false }}
 						emptyText='No timestamps.'
 						open={open}
